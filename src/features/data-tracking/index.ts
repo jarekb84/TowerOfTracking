@@ -8,6 +8,7 @@ export { CoinsPerDayChart } from './components/coins-per-day-chart';
 export { CellsPerRunChart } from './components/cells-per-run-chart';
 export { CellsPerDayChart } from './components/cells-per-day-chart';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
+export { TierStatsTable } from './components/tier-stats-table';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
@@ -46,6 +47,11 @@ export {
   prepareCellsPerDayData,
   prepareKilledByData,
   prepareRadarChartData,
+  prepareTierStatsData,
   formatLargeNumber,
   generateYAxisTicks
+} from './utils/chart-data';
+
+export type {
+  TierStatsData
 } from './utils/chart-data';
