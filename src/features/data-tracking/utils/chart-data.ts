@@ -23,6 +23,18 @@ export interface DailyCellsAggregatePoint {
   timestamp: Date
 }
 
+export interface KilledByData {
+  killedBy: string
+  count: number
+  percentage: number
+}
+
+export interface TierKilledByData {
+  tier: number
+  killedByStats: KilledByData[]
+  totalDeaths: number
+}
+
 export function prepareCoinsPerRunData(runs: ParsedGameRun[]): ChartDataPoint[] {
   return runs
     .map(run => ({
@@ -145,4 +157,73 @@ export function generateYAxisTicks(maxValue: number): number[] {
   }
   
   return ticks
+}
+
+export function prepareKilledByData(runs: ParsedGameRun[]): TierKilledByData[] {
+  // Group runs by tier
+  const tierGroups = new Map<number, ParsedGameRun[]>()
+  
+  runs.forEach(run => {
+    if (run.tier && run.processedData.killedBy) {
+      if (!tierGroups.has(run.tier)) {
+        tierGroups.set(run.tier, [])
+      }
+      tierGroups.get(run.tier)!.push(run)
+    }
+  })
+
+  // Process each tier's killed-by data
+  const tierData: TierKilledByData[] = []
+  
+  tierGroups.forEach((tierRuns, tier) => {
+    // Count deaths by type
+    const deathCounts = new Map<string, number>()
+    
+    tierRuns.forEach(run => {
+      const killedBy = run.processedData.killedBy || 'Unknown'
+      deathCounts.set(killedBy, (deathCounts.get(killedBy) || 0) + 1)
+    })
+
+    const totalDeaths = tierRuns.length
+    
+    // Convert to percentage-based data for radar chart
+    const killedByStats: KilledByData[] = Array.from(deathCounts.entries())
+      .map(([killedBy, count]) => ({
+        killedBy,
+        count,
+        percentage: (count / totalDeaths) * 100
+      }))
+      .sort((a, b) => b.count - a.count) // Sort by count descending
+
+    tierData.push({
+      tier,
+      killedByStats,
+      totalDeaths
+    })
+  })
+
+  return tierData.sort((a, b) => a.tier - b.tier)
+}
+
+// Prepare radar chart data by combining all tiers' top death causes
+export function prepareRadarChartData(tierData: TierKilledByData[]): any[] {
+  // Get all unique death causes across all tiers
+  const allDeathCauses = new Set<string>()
+  tierData.forEach(tier => {
+    tier.killedByStats.forEach(stat => {
+      allDeathCauses.add(stat.killedBy)
+    })
+  })
+
+  // Create radar chart data points
+  return Array.from(allDeathCauses).map(deathCause => {
+    const dataPoint: any = { killedBy: deathCause }
+    
+    tierData.forEach(tier => {
+      const stat = tier.killedByStats.find(s => s.killedBy === deathCause)
+      dataPoint[`tier${tier.tier}`] = stat ? stat.percentage : 0
+    })
+    
+    return dataPoint
+  })
 }
