@@ -1,6 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Button } from '../../../../components/ui';
-import { formatNumber, formatDuration, calculatePerHour } from '../../utils/data-parser';
+import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../../utils/data-parser';
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 
@@ -49,7 +49,10 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
     }),
     columnHelper.accessor('tier', {
       header: 'Tier',
-      cell: (info) => info.getValue() || '-',
+      cell: (info) => {
+        const row = info.row.original;
+        return formatTierLabel(row.camelCaseData?.tier, row.tier);
+      },
     }),
     columnHelper.accessor('wave', {
       header: 'Wave',
@@ -64,6 +67,13 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
       cell: (info) => {
         const value = info.getValue() as string | undefined;
         return value && value.trim() ? value : '-';
+      },
+    }),
+    columnHelper.accessor('runType', {
+      header: 'Run Type',
+      cell: (info) => {
+        const rt = info.getValue();
+        return rt === 'tournament' ? 'Tournament' : 'Farm';
       },
     }),
     columnHelper.accessor('coinsEarned', {

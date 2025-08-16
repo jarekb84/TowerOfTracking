@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Calendar, Popover, PopoverContent, PopoverTrigger, Input } from '../../../components/ui';
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
-import { parseGameRun, formatNumber, formatDuration, calculatePerHour } from '../utils/data-parser';
+import { parseGameRun, formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../utils/data-parser';
 import { useData } from '../hooks/use-data';
 import { Plus, Upload } from 'lucide-react';
 import type { ParsedGameRun } from '../types/game-run.types';
@@ -15,6 +15,7 @@ export function DataInput({ className }: DataInputProps) {
   const [inputData, setInputData] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewData, setPreviewData] = useState<ParsedGameRun | null>(null);
+  const [selectedRunType, setSelectedRunType] = useState<'farm' | 'tournament'>('farm');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedTime, setSelectedTime] = useState<{ hours: string; minutes: string }>(() => {
     const now = new Date();
@@ -32,6 +33,7 @@ export function DataInput({ className }: DataInputProps) {
       if (text.trim()) {
         const parsed = parseGameRun(text, getDateTimeFromSelection());
         setPreviewData(parsed);
+        setSelectedRunType(parsed.runType);
       }
     } catch (error) {
       console.error('Failed to read clipboard:', error);
@@ -44,6 +46,7 @@ export function DataInput({ className }: DataInputProps) {
       try {
         const parsed = parseGameRun(value, getDateTimeFromSelection());
         setPreviewData(parsed);
+        setSelectedRunType(parsed.runType);
       } catch (error) {
         setPreviewData(null);
       }
@@ -54,7 +57,8 @@ export function DataInput({ className }: DataInputProps) {
 
   const handleSave = (): void => {
     if (previewData) {
-      addRun(previewData);
+      // Allow manual override of runType
+      addRun({ ...previewData, runType: selectedRunType });
       setInputData('');
       setPreviewData(null);
       setIsDialogOpen(false);
@@ -64,6 +68,7 @@ export function DataInput({ className }: DataInputProps) {
   const handleCancel = (): void => {
     setInputData('');
     setPreviewData(null);
+    setSelectedRunType('farm');
     const now = new Date();
     setSelectedDate(now);
     setSelectedTime({
@@ -93,6 +98,7 @@ export function DataInput({ className }: DataInputProps) {
           dateTime.setMinutes(parseInt(selectedTime.minutes, 10));
           const parsed = parseGameRun(inputData, dateTime);
           setPreviewData(parsed);
+          setSelectedRunType(parsed.runType);
         } catch (error) {
           setPreviewData(null);
         }
@@ -112,6 +118,7 @@ export function DataInput({ className }: DataInputProps) {
         dateTime.setMinutes(parseInt(newTime.minutes, 10));
         const parsed = parseGameRun(inputData, dateTime);
         setPreviewData(parsed);
+        setSelectedRunType(parsed.runType);
       } catch (error) {
         setPreviewData(null);
       }
@@ -223,13 +230,28 @@ Cash Earned        $44.65B"
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm text-muted-foreground w-24">Run Type</label>
+                      <select
+                        className="border rounded px-2 py-1 text-sm bg-background"
+                        value={selectedRunType}
+                        onChange={(e) => setSelectedRunType(e.target.value as 'farm' | 'tournament')}
+                      >
+                        <option value="farm">Farm</option>
+                        <option value="tournament">Tournament</option>
+                      </select>
+                    </div>
                     <div>
                       <h4 className="font-medium mb-2">Key Stats</h4>
                       <div className="space-y-1 text-sm">
                         {previewData.realTime && (
                           <div>Real Time: {formatDuration(previewData.realTime)}</div>
                         )}
-                        {previewData.tier && <div>Tier: {previewData.tier}</div>}
+                        {previewData && (
+                          <div>
+                            Tier: {formatTierLabel(previewData.camelCaseData?.tier, previewData.tier)}
+                          </div>
+                        )}
                         {previewData.wave && <div>Wave: {formatNumber(previewData.wave)}</div>}
                         {previewData.processedData.killedBy && <div>Killed By: {previewData.processedData.killedBy}</div>}
                         {previewData.coinsEarned && (

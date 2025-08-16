@@ -158,7 +158,11 @@ export function transformGameRunData(rawData: RawClipboardData): DataTransformRe
     camelCaseData[camelKey] = value as any;
     
     // Process based on field type
-    if (key === 'Game Time' || key === 'Real Time') {
+    if (key === 'Tier') {
+      // Tier can be numeric or include '+' for tournament (e.g., '8+')
+      const numeric = parseInt(value.replace(/[^0-9]/g, ''), 10);
+      processedData[camelKey as keyof ProcessedGameRunData] = (Number.isFinite(numeric) ? numeric : 0) as any;
+    } else if (key === 'Game Time' || key === 'Real Time') {
       processedData[camelKey as keyof ProcessedGameRunData] = parseDuration(value) as any;
     } else if (key === 'Tier' || key === 'Wave' || key.includes('Shards') || key.includes('Modules') || 
                key.includes('Upgrade') || key.includes('Packages') || key === 'Death Defy' || 
@@ -223,6 +227,10 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
     const keyStats = extractKeyStats(processedData);
     console.log('Key stats:', keyStats);
     
+    // Determine run type based on Tier string including '+'
+    const tierStr = camelCaseData.tier || '';
+    const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
+    
     // Raw data is just the clipboard data as-is
     const rawData: RawGameRunData = clipboardData;
     
@@ -233,6 +241,7 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
       camelCaseData,
       processedData,
       ...keyStats,
+      runType,
     };
   } catch (error) {
     console.error('Error parsing game run:', error);
@@ -240,9 +249,34 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
   }
 }
 
+// Map tournament tier (with '+') to league label
+export function getTournamentLeague(tierNumber: number): string | null {
+  if (!Number.isFinite(tierNumber) || tierNumber <= 0) return null;
+  if (tierNumber >= 14) return 'Legend';
+  if (tierNumber >= 11) return 'Champion';
+  if (tierNumber >= 8) return 'Platinum';
+  if (tierNumber >= 5) return 'Gold';
+  if (tierNumber >= 3) return 'Silver';
+  return 'Copper';
+}
+
+// Format tier label including tournament league when applicable, e.g., '8+ Platinum'
+export function formatTierLabel(camelTier: string | undefined, numericTier: number | undefined): string {
+  const hasPlus = typeof camelTier === 'string' && /\+/.test(camelTier);
+  if (hasPlus) {
+    const tierNum = Number(numericTier ?? parseInt((camelTier || '').replace(/[^0-9]/g, ''), 10));
+    const league = getTournamentLeague(tierNum);
+    const base = `${tierNum}+`;
+    return league ? `${base} ${league}` : base;
+  }
+  // Fallback to numeric tier if available, otherwise the raw string
+  if (numericTier && numericTier > 0) return String(numericTier);
+  return camelTier || '-';
+}
+
 // Format numbers back to human-readable format
 export function formatNumber(value: number): string {
-  if (value < 1000) return value.toString();
+  if (Math.abs(value) < 1000) return Math.round(value).toString();
   return humanFormat(value, { decimals: 1, separator: '', scale: BILLIONS_SCALE });
 }
 

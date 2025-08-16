@@ -184,6 +184,7 @@ export interface ParsedGameRun {
   coinsEarned: number;
   cellsEarned: number;
   realTime: number; // in seconds
+  runType: 'farm' | 'tournament';
 }
 
 export interface GameRunFilters {

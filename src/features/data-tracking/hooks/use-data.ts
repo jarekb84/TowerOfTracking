@@ -36,6 +36,7 @@ export function useDataProvider(): DataContextType {
         const runsWithDates = parsed.map((run: any) => ({
           ...run,
           timestamp: new Date(run.timestamp),
+          runType: run.runType ?? (run?.camelCaseData?.tier && /\+/.test(run.camelCaseData.tier) ? 'tournament' : 'farm'),
         }));
         setRuns(runsWithDates);
       }
