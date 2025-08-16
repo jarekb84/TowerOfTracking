@@ -1,18 +1,5 @@
 import humanFormat from 'human-format';
-
-export interface ParsedGameRun {
-  id: string;
-  timestamp: Date;
-  rawData: Record<string, string>;
-  parsedData: Record<string, number | string | Date>;
-  // Key stats for table display
-  tier?: number;
-  wave?: number;
-  coins?: number;
-  cash?: number;
-  cells?: number;
-  duration?: number; // in seconds
-}
+import type { ParsedGameRun } from '../types/game-run.types';
 
 // Parse duration strings like "7H 45M 35S" into seconds
 export function parseDuration(duration: string): number {

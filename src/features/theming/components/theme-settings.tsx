@@ -1,7 +1,7 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { useTheme } from '../contexts/theme-context';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/card';
+import { Button } from '../../ui/components/button';
+import { Input } from '../../ui/components/input';
+import { useTheme } from '../hooks/use-theme';
 
 export function ThemeSettings() {
   const { theme, setTheme, toggleCondensed } = useTheme();

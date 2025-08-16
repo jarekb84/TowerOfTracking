@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ParsedGameRun } from '../lib/data-parser';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ParsedGameRun } from '../types/game-run.types';
 
 interface DataContextType {
   runs: ParsedGameRun[];
@@ -13,7 +13,15 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'tower-tracking-runs';
 
-export function DataProvider({ children }: { children: React.ReactNode }) {
+export function useData(): DataContextType {
+  const context = useContext(DataContext);
+  if (context === undefined) {
+    throw new Error('useData must be used within a DataProvider');
+  }
+  return context;
+}
+
+export function useDataProvider(): DataContextType {
   const [runs, setRuns] = useState<ParsedGameRun[]>(() => {
     // Load runs from localStorage if available (only on client)
     if (typeof window !== 'undefined') {
@@ -34,21 +42,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
-  const addRun = (run: ParsedGameRun) => {
+  const addRun = (run: ParsedGameRun): void => {
     setRuns(prev => [run, ...prev].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
   };
 
-  const removeRun = (id: string) => {
+  const removeRun = (id: string): void => {
     setRuns(prev => prev.filter(run => run.id !== id));
   };
 
-  const updateRun = (id: string, updates: Partial<ParsedGameRun>) => {
+  const updateRun = (id: string, updates: Partial<ParsedGameRun>): void => {
     setRuns(prev => prev.map(run => 
       run.id === id ? { ...run, ...updates } : run
     ));
   };
 
-  const clearAllRuns = () => {
+  const clearAllRuns = (): void => {
     setRuns([]);
   };
 
@@ -63,23 +71,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [runs]);
 
-  return (
-    <DataContext.Provider value={{ 
-      runs, 
-      addRun, 
-      removeRun, 
-      updateRun, 
-      clearAllRuns 
-    }}>
-      {children}
-    </DataContext.Provider>
-  );
+  return {
+    runs,
+    addRun,
+    removeRun,
+    updateRun,
+    clearAllRuns,
+  };
 }
 
-export function useData() {
-  const context = useContext(DataContext);
-  if (context === undefined) {
-    throw new Error('useData must be used within a DataProvider');
-  }
-  return context;
-}
+export { DataContext };

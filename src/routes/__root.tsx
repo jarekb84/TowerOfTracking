@@ -2,9 +2,8 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanstackDevtools } from '@tanstack/react-devtools'
 
-import Header from '../components/Header'
-import { ThemeProvider } from '../contexts/theme-context'
-import { DataProvider } from '../contexts/data-context'
+import { ThemeProvider } from '../features/theming'
+import { DataProvider } from '../features/data-tracking'
 
 import appCss from '../styles.css?url'
 
@@ -42,7 +41,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <ThemeProvider>
           <DataProvider>
-            <Header />
             {children}
             <TanstackDevtools
               config={{

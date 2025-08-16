@@ -1,17 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-type ThemeMode = 'normal' | 'condensed';
-
-interface ThemeConfig {
-  mode: ThemeMode;
-  spacingBase: number; // Base spacing in rem
-}
-
-interface ThemeContextType {
-  theme: ThemeConfig;
-  setTheme: (theme: Partial<ThemeConfig>) => void;
-  toggleCondensed: () => void;
-}
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ThemeConfig, ThemeContextType } from '../types/theme.types';
 
 const defaultTheme: ThemeConfig = {
   mode: 'normal',
@@ -20,7 +8,15 @@ const defaultTheme: ThemeConfig = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function useTheme(): ThemeContextType {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}
+
+export function useThemeProvider(): ThemeContextType {
   const [theme, setThemeState] = useState<ThemeConfig>(() => {
     // Load theme from localStorage if available (only on client)
     if (typeof window !== 'undefined') {
@@ -34,11 +30,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return defaultTheme;
   });
 
-  const setTheme = (updates: Partial<ThemeConfig>) => {
+  const setTheme = (updates: Partial<ThemeConfig>): void => {
     setThemeState(prev => ({ ...prev, ...updates }));
   };
 
-  const toggleCondensed = () => {
+  const toggleCondensed = (): void => {
     setTheme({ mode: theme.mode === 'normal' ? 'condensed' : 'normal' });
   };
 
@@ -67,17 +63,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme]);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleCondensed }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return { theme, setTheme, toggleCondensed };
 }
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-}
+export { ThemeContext };

@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { parseGameRun } from '../lib/data-parser';
-import { useData } from '../contexts/data-context';
+import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui';
+import { parseGameRun } from '../utils/data-parser';
+import { useData } from '../hooks/use-data';
 import { Plus, Upload } from 'lucide-react';
+import type { ParsedGameRun } from '../types/game-run.types';
 
 interface DataInputProps {
   className?: string;
@@ -14,10 +12,10 @@ interface DataInputProps {
 export function DataInput({ className }: DataInputProps) {
   const [inputData, setInputData] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [previewData, setPreviewData] = useState<ReturnType<typeof parseGameRun> | null>(null);
+  const [previewData, setPreviewData] = useState<ParsedGameRun | null>(null);
   const { addRun } = useData();
 
-  const handlePaste = async () => {
+  const handlePaste = async (): Promise<void> => {
     try {
       const text = await navigator.clipboard.readText();
       setInputData(text);
@@ -30,7 +28,7 @@ export function DataInput({ className }: DataInputProps) {
     }
   };
 
-  const handleInputChange = (value: string) => {
+  const handleInputChange = (value: string): void => {
     setInputData(value);
     if (value.trim()) {
       try {
@@ -44,7 +42,7 @@ export function DataInput({ className }: DataInputProps) {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = (): void => {
     if (previewData) {
       addRun(previewData);
       setInputData('');
@@ -53,7 +51,7 @@ export function DataInput({ className }: DataInputProps) {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     setInputData('');
     setPreviewData(null);
     setIsDialogOpen(false);

@@ -1,0 +1,204 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+TowerOfTracking is a web application for tracking and analyzing tower defense game statistics. Users can import game run data via tab-delimited clipboard content, view runs in a sortable table, and analyze performance metrics over time.
+
+## Development Commands
+
+- **Development server**: `npm run dev` (runs on port 3000, but will auto-increment if occupied)
+- **Build for production**: `npm run build`
+- **Run tests**: `npm run test` (uses Vitest)
+- **Production server**: `npm run start` (serves built files)
+- **Preview production build**: `npm run serve`
+
+## Architecture Overview
+
+### Core Technology Stack
+- **TanStack Start**: Full-stack React framework with SSR
+- **TanStack Router**: File-based routing system
+- **TanStack Table**: Headless table component for data display
+- **Tailwind CSS v4**: Styling with `@theme` directive (no config file)
+- **Radix UI**: Headless UI primitives
+- **TypeScript**: Full type safety throughout
+
+### Data Flow Architecture
+
+**Context-Based State Management:**
+- `DataProvider` (`src/contexts/data-context.tsx`): Manages game run data with localStorage persistence
+- `ThemeProvider` (`src/contexts/theme-context.tsx`): Handles UI theming and configurable spacing system
+
+**Data Processing Pipeline:**
+- Raw clipboard data → `parseTabDelimitedData()` → `extractKeyStats()` → `ParsedGameRun` interface
+- Handles shorthand number formats (100K, 15.2M, 1.5B) and duration strings (7H 45M 35S)
+- Uses `human-format` library for number parsing and display
+
+### Key Components Structure
+
+**Data Input Flow:**
+- `DataInput` component → Modal dialog → Live preview → Save to context
+- Clipboard integration with paste button functionality
+- Real-time data validation and preview
+
+**Table Display System:**
+- `RunsTable` component with TanStack Table integration
+- Expandable rows showing all 80+ raw data fields
+- Sorting, filtering, and search capabilities
+- Custom cell renderers for formatted numbers and durations
+
+### SSR Considerations
+
+**Critical**: All localStorage and DOM access must be wrapped in `typeof window !== 'undefined'` checks to prevent SSR errors. Both contexts handle this pattern for:
+- Initial state loading from localStorage
+- Theme application to document element
+- Data persistence operations
+
+### Styling System
+
+**Tailwind v4 Configuration:**
+- Uses `@theme` directive in CSS instead of config file
+- Custom spacing system with normal/condensed modes
+- CSS custom properties for dynamic theming
+- Dark tower defense theme with orange (#f97316) accent colors
+
+### Data Model
+
+**ParsedGameRun Interface:**
+```typescript
+{
+  id: string;
+  timestamp: Date;
+  rawData: Record<string, string>;          // Original tab-delimited data
+  parsedData: Record<string, number | string | Date>; // Processed values
+  // Extracted key stats:
+  tier?: number;
+  wave?: number;
+  coins?: number;
+  cash?: number; 
+  cells?: number;
+  duration?: number; // in seconds
+}
+```
+
+## File Organization
+
+**Feature-Based Architecture**: Code is organized by business features, not file types.
+
+```
+src/
+  features/
+    data-tracking/          # Game run tracking and management
+      components/           # DataInput, DataProvider 
+      types/               # ParsedGameRun, GameRunFilters interfaces
+      utils/               # Data parsing and formatting utilities
+      hooks/               # useData hook for state management
+      index.ts            # Feature exports
+    theming/              # Application theming system
+      components/         # ThemeSettings, ThemeProvider
+      types/             # ThemeConfig, ThemeMode interfaces  
+      hooks/             # useTheme hook for theme management
+      index.ts          # Feature exports
+    ui/                  # Reusable UI components
+      components/        # Button, Card, Dialog, Input, Textarea
+      index.ts          # UI component exports
+  shared/               # Cross-feature utilities
+    lib/               # Common utilities (cn function)
+  routes/              # TanStack Router file-based routing
+```
+
+**Import Strategy**: Import from feature index files for clean dependencies:
+```typescript
+// ✅ Good - import from feature barrel
+import { DataInput, useData, ParsedGameRun } from '../features/data-tracking';
+import { ThemeSettings, useTheme } from '../features/theming';
+import { Button, Card } from '../features/ui';
+
+// ❌ Avoid - deep imports bypass feature boundaries  
+import { DataInput } from '../features/data-tracking/components/data-input';
+```
+
+## Engineering Standards & Code Architecture Guidelines
+
+**Write code with the mindset of a seasoned engineer with 20+ years of experience building extensible applications.**
+
+### File Organization & Structure
+
+**Feature-Based Architecture**: Organize code by features, not by file types. Group related components, types, styles, and utilities together.
+
+```
+src/features/
+  feature-name/
+    components/          # Feature-specific components
+    types/              # TypeScript interfaces/types  
+    utils/              # Feature-specific utilities
+    hooks/              # Custom hooks for this feature
+    styles/             # Feature-specific styles (if needed)
+    sub-feature/        # Sub-features when complexity grows
+      components/
+      types/
+      utils/
+```
+
+**File Size Limits**: Keep files focused and maintainable
+- **Maximum 300 lines per file** - decompose when approaching this limit
+- Apply **Single Responsibility Principle** - each file should have one primary reason to change
+- **Composition over complexity** - break down complex components into smaller, focused pieces
+
+**Co-location**: Keep related code together. If components, types, and utilities are tightly coupled to a specific feature, place them in the same feature directory.
+
+### TypeScript Standards
+
+**Strict Type Safety**: 
+- Avoid `any` type - use proper typing or `unknown` with type guards
+- Enable strict mode in TypeScript configuration
+- Prefer explicit return types for functions
+- Use type-only imports when appropriate: `import type { ... }`
+
+**Type Organization**:
+- Create dedicated `types/` directories within features
+- Use descriptive interface/type names with clear business domain language
+- Export types from feature index files for clean imports
+
+### Component Architecture
+
+**Decomposition Strategy**:
+- When a component grows beyond 150 lines, look for extraction opportunities
+- Extract logical sections into sub-components
+- Create feature sub-directories when 3+ closely related components emerge
+- Prefer hooks for stateful logic extraction
+
+**Independence & Low Coupling**:
+- Components should depend on abstractions, not concrete implementations
+- Use dependency injection patterns for external dependencies
+- Minimize prop drilling with appropriate context boundaries
+- Design components to be easily testable in isolation
+
+### Engineering Principles
+
+**Extensibility**: Design for change
+- Use composition patterns over inheritance
+- Implement interfaces for external dependencies
+- Keep business logic separate from UI concerns
+- Design APIs that can evolve without breaking changes
+
+**Maintainability**: Code should be self-documenting
+- Use descriptive variable and function names that express intent
+- Prefer explicit over clever code
+- Add comments for business logic rationale, not implementation details
+- Structure code to minimize cognitive load
+
+**Error Handling**: Be defensive
+- Handle edge cases explicitly
+- Use Result/Option patterns for fallible operations
+- Validate data at system boundaries
+- Provide meaningful error messages
+
+## Special Considerations
+
+**Data Parsing**: The app expects tab-delimited game statistics with property-value pairs. Key field mappings are handled via case-insensitive matching in `extractKeyStats()`.
+
+**Demo Files**: Files prefixed with `demo` in routes can be safely deleted - they're TanStack Start examples.
+
+**Future Supabase Integration**: The data layer is designed to eventually replace localStorage with Supabase for cross-device synchronization.

@@ -1,6 +1,12 @@
 {
   "files.watcherExclude": {
-    "**/routeTree.gen.ts": true
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.hg/store/**": true,
+    "**/routeTree.gen.ts": true,
+    "**/.git/**": true,
+    "**/node_modules/**": true,
+    "**/.vscode/**": true
   },
   "search.exclude": {
     "**/routeTree.gen.ts": true
