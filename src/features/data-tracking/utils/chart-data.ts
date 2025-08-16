@@ -15,6 +15,14 @@ export interface DailyAggregatePoint {
   timestamp: Date
 }
 
+export interface DailyCellsAggregatePoint {
+  date: string
+  totalCells: number
+  runCount: number
+  avgCells: number
+  timestamp: Date
+}
+
 export function prepareCoinsPerRunData(runs: ParsedGameRun[]): ChartDataPoint[] {
   return runs
     .map(run => ({
@@ -51,6 +59,49 @@ export function prepareCoinsPerDayData(runs: ParsedGameRun[]): DailyAggregatePoi
       totalCoins,
       runCount,
       avgCoins,
+      timestamp,
+    })
+  })
+
+  return dailyData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+export function prepareCellsPerRunData(runs: ParsedGameRun[]): ChartDataPoint[] {
+  return runs
+    .map(run => ({
+      date: format(run.timestamp, 'MMM dd'),
+      value: run.cellsEarned,
+      timestamp: run.timestamp,
+    }))
+    .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+export function prepareCellsPerDayData(runs: ParsedGameRun[]): DailyCellsAggregatePoint[] {
+  const dailyGroups = new Map<string, ParsedGameRun[]>()
+  
+  // Group runs by day
+  runs.forEach(run => {
+    const dayKey = format(startOfDay(run.timestamp), 'yyyy-MM-dd')
+    if (!dailyGroups.has(dayKey)) {
+      dailyGroups.set(dayKey, [])
+    }
+    dailyGroups.get(dayKey)!.push(run)
+  })
+
+  // Calculate daily aggregates
+  const dailyData: DailyCellsAggregatePoint[] = []
+  
+  dailyGroups.forEach((dayRuns, dayKey) => {
+    const totalCells = dayRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
+    const runCount = dayRuns.length
+    const avgCells = totalCells / runCount
+    const timestamp = new Date(dayKey)
+    
+    dailyData.push({
+      date: format(timestamp, 'MMM dd'),
+      totalCells,
+      runCount,
+      avgCells,
       timestamp,
     })
   })

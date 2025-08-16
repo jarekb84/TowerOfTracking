@@ -5,6 +5,8 @@ export { DataProvider } from './components/data-provider';
 export { RunsTable } from './components/runs-table';
 export { CoinsPerRunChart } from './components/coins-per-run-chart';
 export { CoinsPerDayChart } from './components/coins-per-day-chart';
+export { CellsPerRunChart } from './components/cells-per-run-chart';
+export { CellsPerDayChart } from './components/cells-per-day-chart';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
@@ -39,6 +41,8 @@ export {
 export {
   prepareCoinsPerRunData,
   prepareCoinsPerDayData,
+  prepareCellsPerRunData,
+  prepareCellsPerDayData,
   formatLargeNumber,
   generateYAxisTicks
 } from './utils/chart-data';

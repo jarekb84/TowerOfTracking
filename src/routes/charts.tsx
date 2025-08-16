@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui'
-import { CoinsPerRunChart } from '../features/data-tracking/components/coins-per-run-chart'
-import { CoinsPerDayChart } from '../features/data-tracking/components/coins-per-day-chart'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/simple-tabs'
+import { CoinsPerRunChart, CoinsPerDayChart, CellsPerRunChart, CellsPerDayChart } from '../features/data-tracking'
 
 export const Route = createFileRoute('/charts')({
   component: ChartsPage,
@@ -21,38 +21,89 @@ function ChartsPage() {
           </div>          
         </div>
 
-        {/* Charts Grid */}
-        <div className="grid gap-8 lg:gap-12">
-          <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:scale-[1.01]">
-            <CardHeader className="bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 border-b border-slate-700/50">
-              <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
-                <div className="w-2 h-8 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full shadow-lg shadow-purple-500/30"></div>
-                Coins Per Run
-                <span className="text-sm font-normal text-slate-400 ml-auto">Individual Performance</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="p-8 w-full">
-                <CoinsPerRunChart />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Analytics Tabs */}
+        <Tabs defaultValue="coins" className="w-full">
+          <div className="flex justify-center mb-8">
+            <TabsList className="grid grid-cols-2 w-[400px] bg-slate-800/50 border border-slate-700/50 p-1">
+              <TabsTrigger 
+                value="coins" 
+                className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-100 data-[state=active]:border-purple-500/50"
+              >
+                💰 Coins Analytics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="cells" 
+                className="data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-100 data-[state=active]:border-pink-500/50"
+              >
+                🔬 Cells Analytics
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 hover:scale-[1.01]">
-            <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10 border-b border-slate-700/50">
-              <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
-                <div className="w-2 h-8 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full shadow-lg shadow-emerald-500/30"></div>
-                Coins Per Day
-                <span className="text-sm font-normal text-slate-400 ml-auto">Daily Accumulation</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="p-8 w-full">
-                <CoinsPerDayChart />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="coins" className="space-y-8 lg:space-y-12">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+                  <div className="w-2 h-8 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full shadow-lg shadow-purple-500/30"></div>
+                  Coins Per Run
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Individual Performance</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <CoinsPerRunChart />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+                  <div className="w-2 h-8 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full shadow-lg shadow-emerald-500/30"></div>
+                  Coins Per Day
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Daily Accumulation</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <CoinsPerDayChart />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cells" className="space-y-8 lg:space-y-12">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-pink-500/10 via-transparent to-pink-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+                  <div className="w-2 h-8 bg-gradient-to-b from-pink-400 to-pink-600 rounded-full shadow-lg shadow-pink-500/30"></div>
+                  Cells Per Run
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Individual Performance</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <CellsPerRunChart />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-yellow-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-yellow-500/10 via-transparent to-yellow-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+                  <div className="w-2 h-8 bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-full shadow-lg shadow-yellow-500/30"></div>
+                  Cells Per Day
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Daily Accumulation</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <CellsPerDayChart />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )
