@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/simple-tabs'
-import { CoinsPerRunChart, CoinsPerDayChart, CellsPerRunChart, CellsPerDayChart, DeathsRadarChart, TierStatsTable } from '../features/data-tracking'
+import { CoinsPerRunChart, CoinsPerDayChart, CellsPerRunChart, CellsPerDayChart, DeathsRadarChart, TierStatsTable, TimeSeriesChart } from '../features/data-tracking'
 
 export const Route = createFileRoute('/charts')({
   component: ChartsPage,
@@ -53,6 +53,23 @@ function ChartsPage() {
           </div>
 
           <TabsContent value="coins" className="space-y-8 lg:space-y-12">
+            {/* New configurable time series chart */}
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-xl font-medium text-slate-100">💰 Coins Analysis</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <TimeSeriesChart 
+                    metric="coins"
+                    title="Coins Earned"
+                    subtitle="Track your coin earnings over different time periods"
+                    defaultPeriod="run"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:scale-[1.01]">
               <CardHeader className="bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 border-b border-slate-700/50">
                 <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
@@ -85,6 +102,23 @@ function ChartsPage() {
           </TabsContent>
 
           <TabsContent value="cells" className="space-y-8 lg:space-y-12">
+            {/* New configurable time series chart */}
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-pink-500/10 via-transparent to-pink-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-xl font-medium text-slate-100">🔬 Cells Analysis</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <TimeSeriesChart 
+                    metric="cells"
+                    title="Cells Earned"
+                    subtitle="Track your cell earnings over different time periods"
+                    defaultPeriod="run"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 hover:scale-[1.01]">
               <CardHeader className="bg-gradient-to-r from-pink-500/10 via-transparent to-pink-500/10 border-b border-slate-700/50">
                 <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">

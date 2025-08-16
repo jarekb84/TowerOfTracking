@@ -1,4 +1,4 @@
-import { format, startOfDay, isSameDay } from 'date-fns'
+import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, isSameDay } from 'date-fns'
 import { ParsedGameRun } from '../types/game-run.types'
 
 export interface ChartDataPoint {
@@ -21,6 +21,45 @@ export interface DailyCellsAggregatePoint {
   runCount: number
   avgCells: number
   timestamp: Date
+}
+
+export interface WeeklyAggregatePoint {
+  date: string
+  totalCoins: number
+  totalCells: number
+  runCount: number
+  avgCoins: number
+  avgCells: number
+  timestamp: Date
+}
+
+export interface MonthlyAggregatePoint {
+  date: string
+  totalCoins: number
+  totalCells: number
+  runCount: number
+  avgCoins: number
+  avgCells: number
+  timestamp: Date
+}
+
+export interface YearlyAggregatePoint {
+  date: string
+  totalCoins: number
+  totalCells: number
+  runCount: number
+  avgCoins: number
+  avgCells: number
+  timestamp: Date
+}
+
+export type TimePeriod = 'run' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+export interface TimePeriodConfig {
+  period: TimePeriod
+  label: string
+  color: string
+  dateFormat: string
 }
 
 export interface KilledByData {
@@ -312,4 +351,169 @@ export function prepareTierStatsData(runs: ParsedGameRun[]): TierStatsData[] {
   })
 
   return tierStats.sort((a, b) => b.tier - a.tier) // Sort highest tier first
+}
+
+// Time period configurations
+export const TIME_PERIOD_CONFIGS: TimePeriodConfig[] = [
+  { period: 'run', label: 'Per Run', color: '#8b5cf6', dateFormat: 'MMM dd' },
+  { period: 'daily', label: 'Daily', color: '#10b981', dateFormat: 'MMM dd' },
+  { period: 'weekly', label: 'Weekly', color: '#f59e0b', dateFormat: 'MMM dd' },
+  { period: 'monthly', label: 'Monthly', color: '#ef4444', dateFormat: 'MMM yyyy' },
+  { period: 'yearly', label: 'Yearly', color: '#3b82f6', dateFormat: 'yyyy' }
+]
+
+// Generic function to prepare data for any time period
+export function prepareTimeSeriesData(
+  runs: ParsedGameRun[], 
+  period: TimePeriod,
+  metric: 'coins' | 'cells'
+): ChartDataPoint[] {
+  switch (period) {
+    case 'run':
+      return metric === 'coins' ? prepareCoinsPerRunData(runs) : prepareCellsPerRunData(runs)
+    case 'daily':
+      const dailyData = metric === 'coins' ? prepareCoinsPerDayData(runs) : prepareCellsPerDayData(runs)
+      return dailyData.map(point => ({
+        date: point.date,
+        value: metric === 'coins' ? point.totalCoins : point.totalCells,
+        timestamp: point.timestamp
+      }))
+    case 'weekly':
+      const weeklyData = prepareWeeklyData(runs)
+      return weeklyData.map(point => ({
+        date: point.date,
+        value: metric === 'coins' ? point.totalCoins : point.totalCells,
+        timestamp: point.timestamp
+      }))
+    case 'monthly':
+      const monthlyData = prepareMonthlyData(runs)
+      return monthlyData.map(point => ({
+        date: point.date,
+        value: metric === 'coins' ? point.totalCoins : point.totalCells,
+        timestamp: point.timestamp
+      }))
+    case 'yearly':
+      const yearlyData = prepareYearlyData(runs)
+      return yearlyData.map(point => ({
+        date: point.date,
+        value: metric === 'coins' ? point.totalCoins : point.totalCells,
+        timestamp: point.timestamp
+      }))
+    default:
+      return []
+  }
+}
+
+export function prepareWeeklyData(runs: ParsedGameRun[]): WeeklyAggregatePoint[] {
+  const weeklyGroups = new Map<string, ParsedGameRun[]>()
+  
+  // Group runs by week (starting Monday)
+  runs.forEach(run => {
+    const weekStart = startOfWeek(run.timestamp, { weekStartsOn: 1 })
+    const weekKey = format(weekStart, 'yyyy-MM-dd')
+    if (!weeklyGroups.has(weekKey)) {
+      weeklyGroups.set(weekKey, [])
+    }
+    weeklyGroups.get(weekKey)!.push(run)
+  })
+
+  // Calculate weekly aggregates
+  const weeklyData: WeeklyAggregatePoint[] = []
+  
+  weeklyGroups.forEach((weekRuns, weekKey) => {
+    const totalCoins = weekRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
+    const totalCells = weekRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
+    const runCount = weekRuns.length
+    const avgCoins = totalCoins / runCount
+    const avgCells = totalCells / runCount
+    const timestamp = new Date(weekKey)
+    
+    weeklyData.push({
+      date: format(timestamp, 'MMM dd'),
+      totalCoins,
+      totalCells,
+      runCount,
+      avgCoins,
+      avgCells,
+      timestamp,
+    })
+  })
+
+  return weeklyData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+export function prepareMonthlyData(runs: ParsedGameRun[]): MonthlyAggregatePoint[] {
+  const monthlyGroups = new Map<string, ParsedGameRun[]>()
+  
+  // Group runs by month
+  runs.forEach(run => {
+    const monthStart = startOfMonth(run.timestamp)
+    const monthKey = format(monthStart, 'yyyy-MM')
+    if (!monthlyGroups.has(monthKey)) {
+      monthlyGroups.set(monthKey, [])
+    }
+    monthlyGroups.get(monthKey)!.push(run)
+  })
+
+  // Calculate monthly aggregates
+  const monthlyData: MonthlyAggregatePoint[] = []
+  
+  monthlyGroups.forEach((monthRuns, monthKey) => {
+    const totalCoins = monthRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
+    const totalCells = monthRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
+    const runCount = monthRuns.length
+    const avgCoins = totalCoins / runCount
+    const avgCells = totalCells / runCount
+    const timestamp = new Date(monthKey + '-01')
+    
+    monthlyData.push({
+      date: format(timestamp, 'MMM yyyy'),
+      totalCoins,
+      totalCells,
+      runCount,
+      avgCoins,
+      avgCells,
+      timestamp,
+    })
+  })
+
+  return monthlyData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+export function prepareYearlyData(runs: ParsedGameRun[]): YearlyAggregatePoint[] {
+  const yearlyGroups = new Map<string, ParsedGameRun[]>()
+  
+  // Group runs by year
+  runs.forEach(run => {
+    const yearStart = startOfYear(run.timestamp)
+    const yearKey = format(yearStart, 'yyyy')
+    if (!yearlyGroups.has(yearKey)) {
+      yearlyGroups.set(yearKey, [])
+    }
+    yearlyGroups.get(yearKey)!.push(run)
+  })
+
+  // Calculate yearly aggregates
+  const yearlyData: YearlyAggregatePoint[] = []
+  
+  yearlyGroups.forEach((yearRuns, yearKey) => {
+    const totalCoins = yearRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
+    const totalCells = yearRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
+    const runCount = yearRuns.length
+    const avgCoins = totalCoins / runCount
+    const avgCells = totalCells / runCount
+    const timestamp = new Date(yearKey + '-01-01')
+    
+    yearlyData.push({
+      date: yearKey,
+      totalCoins,
+      totalCells,
+      runCount,
+      avgCoins,
+      avgCells,
+      timestamp,
+    })
+  })
+
+  return yearlyData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
 }

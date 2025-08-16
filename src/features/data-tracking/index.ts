@@ -9,6 +9,7 @@ export { CellsPerRunChart } from './components/cells-per-run-chart';
 export { CellsPerDayChart } from './components/cells-per-day-chart';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
 export { TierStatsTable } from './components/tier-stats-table';
+export { TimeSeriesChart } from './components/time-series-chart';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
@@ -48,10 +49,20 @@ export {
   prepareKilledByData,
   prepareRadarChartData,
   prepareTierStatsData,
+  prepareTimeSeriesData,
+  prepareWeeklyData,
+  prepareMonthlyData,
+  prepareYearlyData,
   formatLargeNumber,
-  generateYAxisTicks
+  generateYAxisTicks,
+  TIME_PERIOD_CONFIGS
 } from './utils/chart-data';
 
 export type {
-  TierStatsData
+  TierStatsData,
+  TimePeriod,
+  TimePeriodConfig,
+  WeeklyAggregatePoint,
+  MonthlyAggregatePoint,
+  YearlyAggregatePoint
 } from './utils/chart-data';
