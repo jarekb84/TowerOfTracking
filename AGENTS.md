@@ -49,6 +49,12 @@ TowerOfTracking is a web application for tracking and analyzing tower defense ga
 - Sorting, filtering, and search capabilities
 - Custom cell renderers for formatted numbers and durations
 
+**Analytics & Visualization System:**
+- `TimeSeriesChart` component: Configurable chart supporting multiple time periods (run, daily, weekly, monthly, yearly)
+- `TierStatsTable` component: Interactive table showing max performance metrics per tier with column sorting
+- `DeathsRadarChart` component: Radar chart analyzing death causes by tier with dynamic scaling and tier toggles
+- Color-coded visualization system with consistent theming across chart types
+
 ### SSR Considerations
 
 **Critical**: All localStorage and DOM access must be wrapped in `typeof window !== 'undefined'` checks to prevent SSR errors. Both contexts handle this pattern for:
@@ -74,14 +80,20 @@ TowerOfTracking is a web application for tracking and analyzing tower defense ga
   rawData: Record<string, string>;          // Original tab-delimited data
   parsedData: Record<string, number | string | Date>; // Processed values
   // Extracted key stats:
-  tier?: number;
-  wave?: number;
-  coins?: number;
-  cash?: number; 
-  cells?: number;
-  duration?: number; // in seconds
+  tier: number;
+  wave: number;
+  coinsEarned: number;
+  cellsEarned: number;
+  realTime: number; // in seconds - use this field for duration calculations
+  runType: 'farm' | 'tournament';
 }
 ```
+
+**Key Data Processing Notes:**
+- Use `run.realTime` for all duration calculations, not `run.duration` 
+- The `realTime` field contains the actual game duration in seconds
+- Time series data supports 5 periods: run, daily, weekly, monthly, yearly
+- Chart data aggregation functions automatically handle proper grouping and date formatting
 
 ## File Organization
 
@@ -99,9 +111,9 @@ src/
       index.ts           # Component exports
   features/
     data-tracking/         # Game run tracking and management
-      components/          # DataInput, DataProvider 
+      components/          # DataInput, DataProvider, TimeSeriesChart, TierStatsTable, DeathsRadarChart
       types/              # ParsedGameRun, GameRunFilters interfaces
-      utils/              # Data parsing and formatting utilities
+      utils/              # Data parsing, chart data aggregation, and formatting utilities
       hooks/              # useData hook for state management
       index.ts           # Feature exports
     theming/             # Application theming system
@@ -113,6 +125,51 @@ src/
     lib/              # Common utilities (cn function)
   routes/             # TanStack Router file-based routing
 ```
+
+## Analytics & Visualization Patterns
+
+### Chart Component Architecture
+
+**TimeSeriesChart Pattern**: Use the configurable `TimeSeriesChart` component for all time-based metric visualization:
+```typescript
+<TimeSeriesChart 
+  metric="coins" | "cells"
+  title="Chart Title"
+  subtitle="Description"
+  defaultPeriod="run" | "daily" | "weekly" | "monthly" | "yearly"
+/>
+```
+
+**Time Period Configuration**: 
+- Each period has a distinct color scheme (purple, green, orange, red, blue)
+- Date formatting adapts automatically (e.g., "Jan 2024" for monthly, "2024" for yearly)
+- Chart gradients and visual elements update dynamically based on selected period
+
+**Interactive Table Pattern**: For statistical tables with sorting:
+- Implement column sorting with visual indicators (↑↓ arrows)
+- Use color-coded metrics (green for coins, red/pink for cells)
+- Include summary statistics above table data
+- Sort data by most relevant field by default (highest values first)
+
+**Radar Chart Pattern**: For multi-dimensional analysis:
+- Dynamic axis scaling based on actual data (divisible by 4 for clean grid lines)
+- Toggle-based tier visibility with color coding
+- Default to showing most relevant data (highest 3 tiers)
+- Bold, prominent labels for better readability
+
+### Data Aggregation Functions
+
+**Available Time Periods**:
+- `prepareTimeSeriesData()`: Master function that routes to appropriate aggregation
+- `prepareWeeklyData()`: Groups by Monday-starting weeks
+- `prepareMonthlyData()`: Groups by calendar months  
+- `prepareYearlyData()`: Groups by calendar years
+- All maintain proper sorting and date formatting
+
+**Chart Data Processing**:
+- Use `formatLargeNumber()` for Y-axis labels (100K, 1.5M, 2.3B format)
+- Use `generateYAxisTicks()` for clean axis scaling
+- Color configuration available in `TIME_PERIOD_CONFIGS` array
 
 **Import Strategy**: Import from feature index files for clean dependencies:
 ```typescript
