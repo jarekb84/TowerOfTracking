@@ -22,12 +22,12 @@
   --color-ring: #f97316;
   --radius: 0.5rem;
   
-  /* Chart colors */
-  --color-chart-1: #f97316;
-  --color-chart-2: #ea580c;
-  --color-chart-3: #fb923c;
-  --color-chart-4: #fdba74;
-  --color-chart-5: #fed7aa;
+  /* Chart colors - Vibrant data visualization palette */
+  --color-chart-1: #8b5cf6; /* Electric Purple */
+  --color-chart-2: #06d6a0; /* Mint Green */
+  --color-chart-3: #f72585; /* Hot Pink */
+  --color-chart-4: #ffbe0b; /* Golden Yellow */
+  --color-chart-5: #3a86ff; /* Electric Blue */
   
   /* Container breakpoints */
   --breakpoint-sm: 640px;
@@ -69,5 +69,25 @@
   code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
       monospace;
+  }
+}
+
+@layer utilities {
+  /* Chart animations and transitions */
+  .chart-container {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Gradient text utilities for enhanced typography */
+  .gradient-text {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899, #ef4444);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 }

@@ -1,4 +1,4 @@
-import { Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from 'recharts'
+import { Area, AreaChart, XAxis, YAxis, ResponsiveContainer, defs, linearGradient, stop } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../components/ui'
 import { useData } from '../hooks/use-data'
 import { prepareCoinsPerRunData, formatLargeNumber, generateYAxisTicks } from '../utils/chart-data'
@@ -6,7 +6,7 @@ import { prepareCoinsPerRunData, formatLargeNumber, generateYAxisTicks } from '.
 const chartConfig = {
   coins: {
     label: 'Coins Earned',
-    color: 'hsl(var(--chart-1))',
+    color: 'var(--color-chart-1)',
   },
 }
 
@@ -27,18 +27,25 @@ export function CoinsPerRunChart() {
   const yAxisTicks = generateYAxisTicks(maxValue)
 
   return (
-    <ChartContainer config={chartConfig} className="h-[400px]">
-      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+    <ChartContainer config={chartConfig} className="h-[400px] w-full">
+      <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }} width="100%">
+        <defs>
+          <linearGradient id="coinsGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.8}/>
+            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0.1}/>
+          </linearGradient>
+        </defs>
         <XAxis 
           dataKey="date" 
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 11, fill: '#94a3b8' }}
+          interval="preserveStartEnd"
         />
         <YAxis 
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 12 }}
+          tick={{ fontSize: 11, fill: '#94a3b8' }}
           tickFormatter={formatLargeNumber}
           ticks={yAxisTicks}
           domain={[0, 'dataMax']}
@@ -46,15 +53,17 @@ export function CoinsPerRunChart() {
         <ChartTooltip 
           content={<ChartTooltipContent 
             formatter={(value) => [formatLargeNumber(Number(value)), 'Coins Earned']}
+            className="bg-slate-800/95 border-slate-600 backdrop-blur-sm"
           />} 
         />
         <Area
-          type="stepAfter"
+          type="monotone"
           dataKey="value"
-          stroke="var(--color-coins)"
-          fill="var(--color-coins)"
-          fillOpacity={0.6}
-          strokeWidth={2}
+          stroke="var(--color-chart-1)"
+          fill="url(#coinsGradient)"
+          strokeWidth={3}
+          dot={{ fill: 'var(--color-chart-1)', strokeWidth: 0, r: 4 }}
+          activeDot={{ r: 6, stroke: 'var(--color-chart-1)', strokeWidth: 2, fill: '#0f172a' }}
         />
       </AreaChart>
     </ChartContainer>
