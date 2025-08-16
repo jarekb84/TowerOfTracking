@@ -17,18 +17,21 @@ export function useTheme(): ThemeContextType {
 }
 
 export function useThemeProvider(): ThemeContextType {
-  const [theme, setThemeState] = useState<ThemeConfig>(() => {
-    // Load theme from localStorage if available (only on client)
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('tower-tracking-theme');
-        return saved ? JSON.parse(saved) : defaultTheme;
-      } catch {
-        return defaultTheme;
+  const [theme, setThemeState] = useState<ThemeConfig>(defaultTheme);
+  const [isClient, setIsClient] = useState(false);
+
+  // Initialize client state and load saved theme
+  useEffect(() => {
+    setIsClient(true);
+    try {
+      const saved = localStorage.getItem('tower-tracking-theme');
+      if (saved) {
+        setThemeState(JSON.parse(saved));
       }
+    } catch {
+      // Ignore localStorage errors
     }
-    return defaultTheme;
-  });
+  }, []);
 
   const setTheme = (updates: Partial<ThemeConfig>): void => {
     setThemeState(prev => ({ ...prev, ...updates }));
@@ -39,29 +42,27 @@ export function useThemeProvider(): ThemeContextType {
   };
 
   useEffect(() => {
-    // Save theme to localStorage (only on client)
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('tower-tracking-theme', JSON.stringify(theme));
-      } catch {
-        // Ignore localStorage errors
-      }
+    if (!isClient) return;
+    
+    // Save theme to localStorage
+    try {
+      localStorage.setItem('tower-tracking-theme', JSON.stringify(theme));
+    } catch {
+      // Ignore localStorage errors
     }
 
-    // Apply theme to document (only on client)
-    if (typeof window !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', theme.mode);
-      document.documentElement.style.setProperty('--spacing-base', `${theme.spacingBase}rem`);
-      
-      // For condensed mode, apply the scale factor
-      if (theme.mode === 'condensed') {
-        const scale = 0.6;
-        document.documentElement.style.setProperty('--spacing-scale', scale.toString());
-      } else {
-        document.documentElement.style.setProperty('--spacing-scale', '1');
-      }
+    // Apply theme to document
+    document.documentElement.setAttribute('data-theme', theme.mode);
+    document.documentElement.style.setProperty('--spacing-base', `${theme.spacingBase}rem`);
+    
+    // For condensed mode, apply the scale factor
+    if (theme.mode === 'condensed') {
+      const scale = 0.6;
+      document.documentElement.style.setProperty('--spacing-scale', scale.toString());
+    } else {
+      document.documentElement.style.setProperty('--spacing-scale', '1');
     }
-  }, [theme]);
+  }, [theme, isClient]);
 
   return { theme, setTheme, toggleCondensed };
 }

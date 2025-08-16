@@ -10,10 +10,10 @@ export const Route = createFileRoute('/')({
 
 function App() {
   return (
-    <div className="container mx-auto py-lg space-y-lg">
+    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Header Section */}
-      <div className="text-center space-y-md">
-        <div className="flex items-center justify-center gap-2 mb-md">
+      <div className="text-center space-y-4">
+        <div className="flex items-center justify-center gap-2 mb-4">
           <Shield className="h-8 w-8 text-primary" />
           <h1 className="text-4xl font-bold">Tower of Tracking</h1>
           <Target className="h-8 w-8 text-primary" />
@@ -25,17 +25,17 @@ function App() {
       </div>
 
       {/* Action Bar */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <DataInput />
         <ThemeSettings />
       </div>
 
       {/* Main Content */}
-      <div className="space-y-lg">
+      <div className="space-y-6">
         <RunsTable />
         
         {/* Placeholder for upcoming features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

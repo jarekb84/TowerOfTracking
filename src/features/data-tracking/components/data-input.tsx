@@ -74,8 +74,8 @@ export function DataInput({ className }: DataInputProps) {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-md">
-            <div className="space-y-sm">
+          <div className="space-y-4">
+            <div className="space-y-2">
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
@@ -110,10 +110,10 @@ Real Time	2H 45M 30S"
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-md">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="font-medium mb-sm">Key Stats</h4>
-                      <div className="space-y-xs text-sm">
+                      <h4 className="font-medium mb-2">Key Stats</h4>
+                      <div className="space-y-1 text-sm">
                         {previewData.tier && <div>Tier: {previewData.tier}</div>}
                         {previewData.wave && <div>Wave: {previewData.wave}</div>}
                         {previewData.coins && <div>Coins: {previewData.coins.toLocaleString()}</div>}
@@ -125,7 +125,7 @@ Real Time	2H 45M 30S"
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-medium mb-sm">Raw Data ({Object.keys(previewData.rawData).length} fields)</h4>
+                      <h4 className="font-medium mb-2">Raw Data ({Object.keys(previewData.rawData).length} fields)</h4>
                       <div className="max-h-32 overflow-y-auto text-xs space-y-1">
                         {Object.entries(previewData.rawData).slice(0, 10).map(([key, value]) => (
                           <div key={key} className="flex justify-between">

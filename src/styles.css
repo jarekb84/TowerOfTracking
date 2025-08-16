@@ -22,13 +22,12 @@
   --color-ring: #f97316;
   --radius: 0.5rem;
   
-  /* Configurable spacing system */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
+  /* Container breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 }
 
 @layer base {
@@ -55,6 +54,9 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    word-break: normal;
+    word-wrap: normal;
+    overflow-wrap: normal;
   }
 
   code {

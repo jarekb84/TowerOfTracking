@@ -22,25 +22,27 @@ export function useData(): DataContextType {
 }
 
 export function useDataProvider(): DataContextType {
-  const [runs, setRuns] = useState<ParsedGameRun[]>(() => {
-    // Load runs from localStorage if available (only on client)
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          // Convert timestamp strings back to Date objects
-          return parsed.map((run: any) => ({
-            ...run,
-            timestamp: new Date(run.timestamp),
-          }));
-        }
-      } catch (error) {
-        console.error('Failed to load runs from localStorage:', error);
+  const [runs, setRuns] = useState<ParsedGameRun[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  // Initialize client state and load saved runs
+  useEffect(() => {
+    setIsClient(true);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Convert timestamp strings back to Date objects
+        const runsWithDates = parsed.map((run: any) => ({
+          ...run,
+          timestamp: new Date(run.timestamp),
+        }));
+        setRuns(runsWithDates);
       }
+    } catch (error) {
+      console.error('Failed to load runs from localStorage:', error);
     }
-    return [];
-  });
+  }, []);
 
   const addRun = (run: ParsedGameRun): void => {
     setRuns(prev => [run, ...prev].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
@@ -60,16 +62,16 @@ export function useDataProvider(): DataContextType {
     setRuns([]);
   };
 
-  // Save runs to localStorage whenever they change (only on client)
+  // Save runs to localStorage whenever they change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
-      } catch (error) {
-        console.error('Failed to save runs to localStorage:', error);
-      }
+    if (!isClient) return;
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
+    } catch (error) {
+      console.error('Failed to save runs to localStorage:', error);
     }
-  }, [runs]);
+  }, [runs, isClient]);
 
   return {
     runs,

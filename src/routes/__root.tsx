@@ -1,6 +1,4 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanstackDevtools } from '@tanstack/react-devtools'
 
 import { ThemeProvider } from '../features/theming'
 import { DataProvider } from '../features/data-tracking'
@@ -42,17 +40,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <DataProvider>
             {children}
-            <TanstackDevtools
-              config={{
-                position: 'bottom-left',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            />
           </DataProvider>
         </ThemeProvider>
         <Scripts />

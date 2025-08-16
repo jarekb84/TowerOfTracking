@@ -14,7 +14,7 @@ export function TableBody({ table }: TableBodyProps) {
     return (
       <tbody>
         <tr>
-          <td colSpan={table.getAllColumns().length} className="text-center py-lg text-muted-foreground">
+          <td colSpan={table.getAllColumns().length} className="text-center py-6 text-muted-foreground">
             No runs found. Add your first game run to get started!
           </td>
         </tr>
@@ -30,7 +30,7 @@ export function TableBody({ table }: TableBodyProps) {
             {row.getVisibleCells().map((cell) => (
               <td
                 key={cell.id}
-                className="p-sm"
+                className="p-2"
                 style={{ width: cell.column.getSize() }}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -39,7 +39,7 @@ export function TableBody({ table }: TableBodyProps) {
           </tr>
           {row.getIsExpanded() && (
             <tr>
-              <td colSpan={row.getVisibleCells().length} className="p-md bg-muted/25">
+              <td colSpan={row.getVisibleCells().length} className="p-4 bg-muted/25">
                 <RunDetails run={row.original} />
               </td>
             </tr>

@@ -9,13 +9,13 @@ export function RunDetails({ run }: RunDetailsProps) {
     .sort(([a], [b]) => a.localeCompare(b));
 
   return (
-    <div className="space-y-md">
+    <div className="space-y-4">
       <h4 className="font-medium">Complete Run Data</h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {sortedData.map(([key, value]) => (
           <div
             key={key}
-            className="flex justify-between items-center p-sm bg-background rounded border"
+            className="flex justify-between items-center p-2 bg-background rounded border"
           >
             <span className="font-mono text-sm text-muted-foreground">
               {key}

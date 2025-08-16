@@ -7,15 +7,15 @@ export function ThemeSettings() {
   const { theme, setTheme, toggleCondensed } = useTheme();
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-sm min-w-80">
       <CardHeader>
         <CardTitle>Theme Settings</CardTitle>
         <CardDescription>
           Customize the appearance and spacing of the application
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-md">
-        <div className="space-y-sm">
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Display Mode</label>
           <Button
             variant={theme.mode === 'condensed' ? 'default' : 'outline'}
@@ -26,7 +26,7 @@ export function ThemeSettings() {
           </Button>
         </div>
         
-        <div className="space-y-sm">
+        <div className="space-y-2">
           <label className="text-sm font-medium">Base Spacing (rem)</label>
           <Input
             type="number"
