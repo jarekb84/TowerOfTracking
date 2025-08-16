@@ -25,6 +25,7 @@ export function DataInput({ className }: DataInputProps) {
       minutes: now.getMinutes().toString().padStart(2, '0')
     };
   });
+  const [notes, setNotes] = useState('');
   const { addRun } = useData();
 
   const handlePaste = async (): Promise<void> => {
@@ -58,10 +59,17 @@ export function DataInput({ className }: DataInputProps) {
 
   const handleSave = (): void => {
     if (previewData) {
-      // Allow manual override of runType
-      addRun({ ...previewData, runType: selectedRunType });
+      // Allow manual override of runType and add notes
+      const runWithNotes = {
+        ...previewData,
+        runType: selectedRunType,
+        camelCaseData: { ...previewData.camelCaseData, notes },
+        processedData: { ...previewData.processedData, notes }
+      };
+      addRun(runWithNotes);
       setInputData('');
       setPreviewData(null);
+      setNotes('');
       setIsDialogOpen(false);
     }
   };
@@ -70,6 +78,7 @@ export function DataInput({ className }: DataInputProps) {
     setInputData('');
     setPreviewData(null);
     setSelectedRunType('farm');
+    setNotes('');
     const now = new Date();
     setSelectedDate(now);
     setSelectedTime({
@@ -221,6 +230,18 @@ Cash Earned        $44.65B"
                 onChange={(e) => handleInputChange(e.target.value)}
                 className="font-mono text-sm h-48 resize-none"
               />
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Notes (optional)
+                </label>
+                <Textarea
+                  placeholder="Add any notes about this run..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="text-sm h-20 resize-none"
+                />
+              </div>
             </div>
 
             {previewData && (

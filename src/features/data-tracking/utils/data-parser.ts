@@ -158,7 +158,10 @@ export function transformGameRunData(rawData: RawClipboardData): DataTransformRe
     camelCaseData[camelKey] = value as any;
     
     // Process based on field type
-    if (key === 'Tier') {
+    if (key === 'Notes') {
+      // String fields
+      processedData[camelKey as keyof ProcessedGameRunData] = value as any;
+    } else if (key === 'Tier') {
       // Tier can be numeric or include '+' for tournament (e.g., '8+')
       const numeric = parseInt(value.replace(/[^0-9]/g, ''), 10);
       processedData[camelKey as keyof ProcessedGameRunData] = (Number.isFinite(numeric) ? numeric : 0) as any;
@@ -183,6 +186,10 @@ export function transformGameRunData(rawData: RawClipboardData): DataTransformRe
     }
   }
   
+  // Ensure notes field exists
+  if (!camelCaseData.notes) camelCaseData.notes = '';
+  if (!processedData.notes) processedData.notes = '';
+
   return {
     camelCaseData: camelCaseData as CamelCaseGameRunData,
     processedData: processedData as ProcessedGameRunData
@@ -294,4 +301,157 @@ export function formatDuration(seconds: number): string {
   if (secs > 0) parts.push(`${secs}s`);
   
   return parts.join(' ') || '0s';
+}
+
+// Parse CSV/TSV data with column mapping
+export function parseCsvData(rawInput: string): { success: ParsedGameRun[], failed: number, errors: string[] } {
+  const lines = rawInput.trim().split('\n');
+  if (lines.length === 0) {
+    return { success: [], failed: 0, errors: ['No data provided'] };
+  }
+
+  const success: ParsedGameRun[] = [];
+  const errors: string[] = [];
+  let failed = 0;
+
+  // Parse header to determine delimiter
+  const firstLine = lines[0];
+  const delimiter = firstLine.includes('\t') ? '\t' : ',';
+  
+  // Parse headers
+  const headers = firstLine.split(delimiter).map(h => h.trim().replace(/["']/g, ''));
+  
+  // Column mapping from CSV headers to our internal structure
+  const columnMap: Record<string, string> = {
+    'Date': 'date',
+    'Time': 'time', 
+    'Tier': 'Tier',
+    'Wave': 'Wave',
+    'Hrs': 'hours',
+    'Min': 'minutes', 
+    'Sec': 'seconds',
+    'Duration': 'Real Time',
+    'Coins': 'Coins Earned',
+    'Cells': 'Cells Earned',
+    'CellsPerHour': 'skip', // Computed field
+    'CoinsPerHour': 'skip', // Computed field
+    'CoinsPerDay': 'skip', // Computed field
+    'Killed By': 'Killed By',
+    'Notes': 'notes'
+  };
+
+  // Process data rows
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    try {
+      // Split the line and clean values
+      const values = line.split(delimiter).map(v => v.trim().replace(/["']/g, ''));
+      
+      // Allow for fewer columns than headers (missing trailing columns are OK)
+      // Only error if we have MORE columns than expected
+      if (values.length > headers.length) {
+        errors.push(`Row ${i + 1}: Too many columns (expected max ${headers.length}, got ${values.length})`);
+        failed++;
+        continue;
+      }
+
+      // Build raw data object
+      const rawData: Record<string, string> = {};
+      let date = '';
+      let time = '';
+      let hours = '0';
+      let minutes = '0';  
+      let seconds = '0';
+      let notes = '';
+
+      for (let j = 0; j < headers.length; j++) {
+        const header = headers[j];
+        const value = values[j] || ''; // Use empty string if value doesn't exist
+        const mappedField = columnMap[header];
+
+        if (mappedField === 'skip') continue;
+        
+        if (mappedField === 'date') {
+          date = value;
+        } else if (mappedField === 'time') {
+          time = value;
+        } else if (mappedField === 'hours') {
+          hours = value || '0';
+        } else if (mappedField === 'minutes') {
+          minutes = value || '0';
+        } else if (mappedField === 'seconds') {
+          seconds = value || '0';
+        } else if (mappedField === 'notes') {
+          notes = value;
+        } else if (mappedField) {
+          rawData[mappedField] = value;
+        }
+      }
+
+      // Create Real Time from hours/minutes/seconds 
+      // Always use Hrs/Min/Sec if available, even if Duration is provided (Duration might be formatted differently)
+      if (hours !== '0' || minutes !== '0' || seconds !== '0') {
+        const parts = [];
+        if (hours !== '0') parts.push(`${hours}h`);
+        if (minutes !== '0') parts.push(`${minutes}m`);
+        if (seconds !== '0') parts.push(`${seconds}s`);
+        
+        if (parts.length > 0) {
+          rawData['Real Time'] = parts.join(' ');
+        }
+      }
+
+      // Parse timestamp
+      let timestamp: Date;
+      try {
+        if (date && time) {
+          timestamp = new Date(`${date} ${time}`);
+        } else if (date) {
+          timestamp = new Date(date);
+        } else {
+          timestamp = new Date();
+        }
+        
+        if (isNaN(timestamp.getTime())) {
+          timestamp = new Date();
+        }
+      } catch {
+        timestamp = new Date();
+      }
+
+      // Transform data using existing functions
+      const { camelCaseData, processedData } = transformGameRunData(rawData);
+      
+      // Add notes if provided
+      if (notes) {
+        camelCaseData.notes = notes;
+        processedData.notes = notes;
+      }
+
+      const keyStats = extractKeyStats(processedData);
+      
+      // Determine run type (default to farm for CSV imports)
+      const tierStr = camelCaseData.tier || '';
+      const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
+
+      const parsedRun: ParsedGameRun = {
+        id: crypto.randomUUID(),
+        timestamp,
+        rawData: rawData as RawGameRunData,
+        camelCaseData,
+        processedData,
+        ...keyStats,
+        runType,
+      };
+
+      success.push(parsedRun);
+    } catch (error) {
+      errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      failed++;
+    }
+  }
+
+  return { success, failed, errors };
 }

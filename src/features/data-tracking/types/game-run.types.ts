@@ -84,6 +84,7 @@ export interface CamelCaseGameRunData {
   coreShards: string;
   commonModules: string;
   rareModules: string;
+  notes: string;
 }
 
 // Processed data for analytics (parsed numbers, durations, etc.)
@@ -169,6 +170,7 @@ export interface ProcessedGameRunData {
   coreShards: number;
   commonModules: number;
   rareModules: number;
+  notes: string;
 }
 
 // Main game run interface

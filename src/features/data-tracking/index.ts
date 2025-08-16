@@ -1,5 +1,6 @@
 // Data Tracking Components
 export { DataInput } from './components/data-input';
+export { CsvImport } from './components/csv-import';
 export { DataProvider } from './components/data-provider';
 export { RunsTable } from './components/runs-table';
 export { CoinsPerRunChart } from './components/coins-per-run-chart';
@@ -24,6 +25,7 @@ export type {
 // Data Tracking Utilities
 export { 
   parseGameRun, 
+  parseCsvData,
   parseDuration, 
   parseShorthandNumber, 
   parseTabDelimitedData, 

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DataInput, RunsTable } from '../features/data-tracking'
+import { DataInput, CsvImport, RunsTable } from '../features/data-tracking'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui'
 import { TrendingUp } from 'lucide-react'
 
@@ -12,7 +12,10 @@ function App() {
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <DataInput />
+        <div className="flex gap-3">
+          <DataInput />
+          <CsvImport />
+        </div>
       </div>
 
       {/* Main Content */}
