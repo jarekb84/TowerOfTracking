@@ -30,13 +30,30 @@ export function DeathsRadarChart() {
   
   // Process the data
   const tierKilledByData = useMemo(() => prepareKilledByData(runs), [runs])
-  const availableTiers = useMemo(() => tierKilledByData.map(data => data.tier), [tierKilledByData])
-  
-  // State for which tiers to show
-  const [visibleTiers, setVisibleTiers] = useState<Set<number>>(
-    new Set(availableTiers.slice(0, 5)) // Show first 5 tiers by default
+  const availableTiers = useMemo(() => 
+    tierKilledByData.map(data => data.tier).sort((a, b) => b - a), // Sort highest tier first
+    [tierKilledByData]
   )
   
+  // State for which tiers to show - default to highest 3 tiers
+  const [visibleTiers, setVisibleTiers] = useState<Set<number>>(
+    new Set(availableTiers.slice(0, 3)) // Show highest 3 tiers by default
+  )
+  
+  // Calculate dynamic max value for radar chart
+  const maxPercentage = useMemo(() => {
+    const filteredTierData = tierKilledByData.filter(data => visibleTiers.has(data.tier))
+    const allPercentages = filteredTierData.flatMap(tier => 
+      tier.killedByStats.map(stat => stat.percentage)
+    )
+    const maxValue = Math.max(...allPercentages, 0)
+    
+    // Round up to next value cleanly divisible by 4
+    // This ensures we have nice increments for the 4 grid lines
+    const increment = Math.ceil(maxValue / 4) 
+    return increment * 4
+  }, [tierKilledByData, visibleTiers])
+
   // Prepare radar chart data
   const radarData = useMemo(() => {
     const filteredTierData = tierKilledByData.filter(data => visibleTiers.has(data.tier))
@@ -132,11 +149,11 @@ export function DeathsRadarChart() {
           />
           <PolarAngleAxis 
             dataKey="killedBy" 
-            tick={{ fontSize: 12, fill: '#94a3b8' }}
-            className="text-xs"
+            tick={{ fontSize: 14, fill: '#e2e8f0', fontWeight: 'bold' }}
+            className="text-sm font-bold"
           />
           <PolarRadiusAxis 
-            domain={[0, 100]} 
+            domain={[0, maxPercentage]} 
             tick={{ fontSize: 10, fill: '#64748b' }}
             tickFormatter={(value) => `${value}%`}
           />
