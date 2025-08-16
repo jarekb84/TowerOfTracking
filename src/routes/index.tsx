@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataInput, RunsTable } from '../features/data-tracking'
-import { ThemeSettings } from '../features/theming'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui'
-import { Shield, Target, TrendingUp } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -11,23 +10,9 @@ export const Route = createFileRoute('/')({
 function App() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      {/* Header Section */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Shield className="h-8 w-8 text-primary" />
-          <h1 className="text-4xl font-bold">Tower of Tracking</h1>
-          <Target className="h-8 w-8 text-primary" />
-        </div>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Track and analyze your tower defense game runs. Import your stats, 
-          visualize your progress, and optimize your strategy.
-        </p>
-      </div>
-
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <DataInput />
-        <ThemeSettings />
       </div>
 
       {/* Main Content */}
@@ -56,7 +41,7 @@ function App() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5" />
+                <TrendingUp className="h-5 w-5" />
                 Analytics
               </CardTitle>
               <CardDescription>
@@ -73,7 +58,7 @@ function App() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
+                <TrendingUp className="h-5 w-5" />
                 Export
               </CardTitle>
               <CardDescription>
