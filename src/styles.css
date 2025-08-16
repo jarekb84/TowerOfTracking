@@ -22,6 +22,13 @@
   --color-ring: #f97316;
   --radius: 0.5rem;
   
+  /* Chart colors */
+  --color-chart-1: #f97316;
+  --color-chart-2: #ea580c;
+  --color-chart-3: #fb923c;
+  --color-chart-4: #fdba74;
+  --color-chart-5: #fed7aa;
+  
   /* Container breakpoints */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;

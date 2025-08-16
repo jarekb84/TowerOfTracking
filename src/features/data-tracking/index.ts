@@ -2,6 +2,8 @@
 export { DataInput } from './components/data-input';
 export { DataProvider } from './components/data-provider';
 export { RunsTable } from './components/runs-table';
+export { CoinsPerRunChart } from './components/coins-per-run-chart';
+export { CoinsPerDayChart } from './components/coins-per-day-chart';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
@@ -31,3 +33,10 @@ export {
   formatNumber, 
   formatDuration 
 } from './utils/data-parser';
+
+export {
+  prepareCoinsPerRunData,
+  prepareCoinsPerDayData,
+  formatLargeNumber,
+  generateYAxisTicks
+} from './utils/chart-data';

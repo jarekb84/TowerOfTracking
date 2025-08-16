@@ -48,6 +48,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                   <Link to="/" className="text-muted-foreground hover:text-foreground">
                     Game Runs
                   </Link>
+                  <Link to="/charts" className="text-muted-foreground hover:text-foreground">
+                    Charts
+                  </Link>
                   <Link to="/settings" className="text-muted-foreground hover:text-foreground">
                     Settings
                   </Link>
