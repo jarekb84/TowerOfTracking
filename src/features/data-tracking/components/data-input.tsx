@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui';
+import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui';
 import { parseGameRun } from '../utils/data-parser';
 import { useData } from '../hooks/use-data';
 import { Plus, Upload } from 'lucide-react';

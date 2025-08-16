@@ -1,4 +1,4 @@
-import { Input } from '../../../ui';
+import { Input } from '../../../../components/ui';
 import { Search } from 'lucide-react';
 
 interface TableHeaderProps {

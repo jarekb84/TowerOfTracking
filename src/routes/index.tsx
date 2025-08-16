@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { DataInput, RunsTable } from '../features/data-tracking'
 import { ThemeSettings } from '../features/theming'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../features/ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui'
 import { Shield, Target, TrendingUp } from 'lucide-react'
 
 export const Route = createFileRoute('/')({

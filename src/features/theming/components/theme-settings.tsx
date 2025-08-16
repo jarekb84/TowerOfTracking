@@ -1,6 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/card';
-import { Button } from '../../ui/components/button';
-import { Input } from '../../ui/components/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input } from '../../../components/ui';
 import { useTheme } from '../hooks/use-theme';
 
 export function ThemeSettings() {

@@ -1,5 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button } from '../../../ui';
+import { Button } from '../../../../components/ui';
 import { formatNumber, formatDuration } from '../../utils/data-parser';
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';

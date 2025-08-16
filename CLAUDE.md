@@ -21,7 +21,8 @@ TowerOfTracking is a web application for tracking and analyzing tower defense ga
 - **TanStack Router**: File-based routing system
 - **TanStack Table**: Headless table component for data display
 - **Tailwind CSS v4**: Styling with `@theme` directive (no config file)
-- **Radix UI**: Headless UI primitives
+- **shadcn/ui**: Component library built on Radix UI primitives
+- **Radix UI**: Headless UI primitives (via shadcn/ui)
 - **TypeScript**: Full type safety throughout
 
 ### Data Flow Architecture
@@ -88,35 +89,41 @@ TowerOfTracking is a web application for tracking and analyzing tower defense ga
 
 ```
 src/
+  components/
+    ui/                    # shadcn/ui components
+      button.tsx          # Button component
+      card.tsx           # Card component and variants
+      dialog.tsx         # Modal dialog components
+      input.tsx          # Input field component
+      textarea.tsx       # Textarea component
+      index.ts           # Component exports
   features/
-    data-tracking/          # Game run tracking and management
-      components/           # DataInput, DataProvider 
-      types/               # ParsedGameRun, GameRunFilters interfaces
-      utils/               # Data parsing and formatting utilities
-      hooks/               # useData hook for state management
-      index.ts            # Feature exports
-    theming/              # Application theming system
-      components/         # ThemeSettings, ThemeProvider
-      types/             # ThemeConfig, ThemeMode interfaces  
-      hooks/             # useTheme hook for theme management
-      index.ts          # Feature exports
-    ui/                  # Reusable UI components
-      components/        # Button, Card, Dialog, Input, Textarea
-      index.ts          # UI component exports
-  shared/               # Cross-feature utilities
-    lib/               # Common utilities (cn function)
-  routes/              # TanStack Router file-based routing
+    data-tracking/         # Game run tracking and management
+      components/          # DataInput, DataProvider 
+      types/              # ParsedGameRun, GameRunFilters interfaces
+      utils/              # Data parsing and formatting utilities
+      hooks/              # useData hook for state management
+      index.ts           # Feature exports
+    theming/             # Application theming system
+      components/        # ThemeSettings, ThemeProvider
+      types/            # ThemeConfig, ThemeMode interfaces  
+      hooks/            # useTheme hook for theme management
+      index.ts         # Feature exports
+  shared/              # Cross-feature utilities
+    lib/              # Common utilities (cn function)
+  routes/             # TanStack Router file-based routing
 ```
 
 **Import Strategy**: Import from feature index files for clean dependencies:
 ```typescript
-// ✅ Good - import from feature barrel
+// ✅ Good - import from feature barrel and shadcn/ui
 import { DataInput, useData, ParsedGameRun } from '../features/data-tracking';
 import { ThemeSettings, useTheme } from '../features/theming';
-import { Button, Card } from '../features/ui';
+import { Button, Card } from '../components/ui';
 
 // ❌ Avoid - deep imports bypass feature boundaries  
 import { DataInput } from '../features/data-tracking/components/data-input';
+import { Button } from '../components/ui/button';
 ```
 
 ## Engineering Standards & Code Architecture Guidelines
