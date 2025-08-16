@@ -1,4 +1,18 @@
 import humanFormat from 'human-format';
+
+// Custom scale mapping using 'B' for billions instead of 'G'
+const BILLIONS_SCALE = new humanFormat.Scale({
+  '': 1,
+  K: 1e3,
+  M: 1e6,
+  B: 1e9,
+  T: 1e12,
+  Q: 1e15,
+  q: 1e18,
+  S: 1e21,
+  s: 1e24,
+  O: 1e27,
+});
 import type { 
   ParsedGameRun, 
   RawGameRunData, 
@@ -229,7 +243,7 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
 // Format numbers back to human-readable format
 export function formatNumber(value: number): string {
   if (value < 1000) return value.toString();
-  return humanFormat(value, { decimals: 1, separator: '' });
+  return humanFormat(value, { decimals: 1, separator: '', scale: BILLIONS_SCALE });
 }
 
 // Format duration in seconds back to readable format

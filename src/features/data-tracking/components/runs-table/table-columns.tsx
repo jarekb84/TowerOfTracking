@@ -1,6 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Button } from '../../../../components/ui';
-import { formatNumber, formatDuration } from '../../utils/data-parser';
+import { formatNumber, formatDuration, calculatePerHour } from '../../utils/data-parser';
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 
@@ -40,6 +40,13 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         minute: '2-digit' 
       }),
     }),
+    columnHelper.accessor('realTime', {
+      header: 'Real Time',
+      cell: (info) => {
+        const value = info.getValue();
+        return value ? formatDuration(value) : '-';
+      },
+    }),
     columnHelper.accessor('tier', {
       header: 'Tier',
       cell: (info) => info.getValue() || '-',
@@ -51,6 +58,14 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         return value ? value.toLocaleString() : '-';
       },
     }),
+    columnHelper.accessor((row) => row.processedData.killedBy, {
+      id: 'killedBy',
+      header: 'Killed by',
+      cell: (info) => {
+        const value = info.getValue() as string | undefined;
+        return value && value.trim() ? value : '-';
+      },
+    }),
     columnHelper.accessor('coinsEarned', {
       header: 'Coins',
       cell: (info) => {
@@ -58,10 +73,13 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         return value ? formatNumber(value) : '-';
       },
     }),
-    columnHelper.accessor('cashEarned', {
-      header: 'Cash',
+    columnHelper.accessor((row) =>
+      calculatePerHour(row.coinsEarned ?? 0, row.realTime ?? 0)
+    , {
+      id: 'coinsPerHour',
+      header: 'Coins/hr',
       cell: (info) => {
-        const value = info.getValue();
+        const value = info.getValue() as number;
         return value ? formatNumber(value) : '-';
       },
     }),
@@ -72,18 +90,14 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         return value ? formatNumber(value) : '-';
       },
     }),
-    columnHelper.accessor('realTime', {
-      header: 'Real Time',
+    columnHelper.accessor((row) =>
+      calculatePerHour(row.cellsEarned ?? 0, row.realTime ?? 0)
+    , {
+      id: 'cellsPerHour',
+      header: 'Cells/hr',
       cell: (info) => {
-        const value = info.getValue();
-        return value ? formatDuration(value) : '-';
-      },
-    }),
-    columnHelper.accessor('gameTime', {
-      header: 'Game Time',
-      cell: (info) => {
-        const value = info.getValue();
-        return value ? formatDuration(value) : '-';
+        const value = info.getValue() as number;
+        return value ? formatNumber(value) : '-';
       },
     }),
     columnHelper.display({
