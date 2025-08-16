@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0f172a;
+  --color-foreground: #e2e8f0;
+  --color-card: #1e293b;
+  --color-card-foreground: #e2e8f0;
+  --color-popover: #1e293b;
+  --color-popover-foreground: #e2e8f0;
+  --color-primary: #f97316;
+  --color-primary-foreground: #0f172a;
+  --color-secondary: #334155;
+  --color-secondary-foreground: #e2e8f0;
+  --color-muted: #334155;
+  --color-muted-foreground: #94a3b8;
+  --color-accent: #ea580c;
+  --color-accent-foreground: #0f172a;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #e2e8f0;
+  --color-border: #475569;
+  --color-input: #475569;
+  --color-ring: #f97316;
+  --radius: 0.5rem;
+  
+  /* Configurable spacing system */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+}
+
+@layer base {
+  :root {
+    /* Configurable spacing system */
+    --spacing-base: 0.25rem;
+    --spacing-scale: 1;
+  }
+
+  [data-theme="condensed"] {
+    --spacing-scale: 0.6;
+  }
+
+  * {
+    border-color: theme(colors.border);
+  }
+
+  body {
+    background-color: theme(colors.background);
+    color: theme(colors.foreground);
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+      monospace;
+  }
+}
