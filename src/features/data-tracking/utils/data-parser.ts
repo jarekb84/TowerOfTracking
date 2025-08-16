@@ -193,7 +193,7 @@ export function extractKeyStats(processedData: ProcessedGameRunData): {
 }
 
 // Main parsing function
-export function parseGameRun(rawInput: string): ParsedGameRun {
+export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGameRun {
   try {
     const clipboardData = parseTabDelimitedData(rawInput);
     console.log('Parsed clipboard data:', clipboardData);
@@ -209,7 +209,7 @@ export function parseGameRun(rawInput: string): ParsedGameRun {
     
     return {
       id: crypto.randomUUID(),
-      timestamp: new Date(),
+      timestamp: customTimestamp || new Date(),
       rawData: rawData as RawGameRunData,
       camelCaseData,
       processedData,

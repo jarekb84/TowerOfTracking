@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui';
-import { parseGameRun } from '../utils/data-parser';
+import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Calendar, Popover, PopoverContent, PopoverTrigger, Input } from '../../../components/ui';
+import { format } from 'date-fns';
+import { CalendarIcon, Clock } from 'lucide-react';
+import { parseGameRun, formatNumber, formatDuration } from '../utils/data-parser';
 import { useData } from '../hooks/use-data';
 import { Plus, Upload } from 'lucide-react';
 import type { ParsedGameRun } from '../types/game-run.types';
@@ -13,6 +15,14 @@ export function DataInput({ className }: DataInputProps) {
   const [inputData, setInputData] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [previewData, setPreviewData] = useState<ParsedGameRun | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedTime, setSelectedTime] = useState<{ hours: string; minutes: string }>(() => {
+    const now = new Date();
+    return {
+      hours: now.getHours().toString().padStart(2, '0'),
+      minutes: now.getMinutes().toString().padStart(2, '0')
+    };
+  });
   const { addRun } = useData();
 
   const handlePaste = async (): Promise<void> => {
@@ -20,7 +30,7 @@ export function DataInput({ className }: DataInputProps) {
       const text = await navigator.clipboard.readText();
       setInputData(text);
       if (text.trim()) {
-        const parsed = parseGameRun(text);
+        const parsed = parseGameRun(text, getDateTimeFromSelection());
         setPreviewData(parsed);
       }
     } catch (error) {
@@ -32,7 +42,7 @@ export function DataInput({ className }: DataInputProps) {
     setInputData(value);
     if (value.trim()) {
       try {
-        const parsed = parseGameRun(value);
+        const parsed = parseGameRun(value, getDateTimeFromSelection());
         setPreviewData(parsed);
       } catch (error) {
         setPreviewData(null);
@@ -54,7 +64,58 @@ export function DataInput({ className }: DataInputProps) {
   const handleCancel = (): void => {
     setInputData('');
     setPreviewData(null);
+    const now = new Date();
+    setSelectedDate(now);
+    setSelectedTime({
+      hours: now.getHours().toString().padStart(2, '0'),
+      minutes: now.getMinutes().toString().padStart(2, '0')
+    });
     setIsDialogOpen(false);
+  };
+
+  const getDateTimeFromSelection = (): Date => {
+    const dateTime = new Date(selectedDate);
+    dateTime.setHours(parseInt(selectedTime.hours, 10));
+    dateTime.setMinutes(parseInt(selectedTime.minutes, 10));
+    dateTime.setSeconds(0);
+    dateTime.setMilliseconds(0);
+    return dateTime;
+  };
+
+  const handleDateSelect = (date: Date | undefined): void => {
+    if (date) {
+      setSelectedDate(date);
+      // Re-parse data with new date/time if we have input
+      if (inputData.trim()) {
+        try {
+          const dateTime = new Date(date);
+          dateTime.setHours(parseInt(selectedTime.hours, 10));
+          dateTime.setMinutes(parseInt(selectedTime.minutes, 10));
+          const parsed = parseGameRun(inputData, dateTime);
+          setPreviewData(parsed);
+        } catch (error) {
+          setPreviewData(null);
+        }
+      }
+    }
+  };
+
+  const handleTimeChange = (field: 'hours' | 'minutes', value: string): void => {
+    const newTime = { ...selectedTime, [field]: value };
+    setSelectedTime(newTime);
+    
+    // Re-parse data with new time if we have input
+    if (inputData.trim()) {
+      try {
+        const dateTime = new Date(selectedDate);
+        dateTime.setHours(parseInt(newTime.hours, 10));
+        dateTime.setMinutes(parseInt(newTime.minutes, 10));
+        const parsed = parseGameRun(inputData, dateTime);
+        setPreviewData(parsed);
+      } catch (error) {
+        setPreviewData(null);
+      }
+    }
   };
 
   return (
@@ -75,7 +136,7 @@ export function DataInput({ className }: DataInputProps) {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex gap-2">
                 <Button 
                   variant="outline" 
@@ -85,6 +146,57 @@ export function DataInput({ className }: DataInputProps) {
                   <Upload className="h-4 w-4" />
                   Paste from Clipboard
                 </Button>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Date:</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="gap-2 min-w-[180px] justify-start"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                        {format(selectedDate, "MMM d, yyyy")}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Time:</span>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="number"
+                      min="0"
+                      max="23"
+                      value={selectedTime.hours}
+                      onChange={(e) => handleTimeChange('hours', e.target.value)}
+                      className="w-16 text-center"
+                      placeholder="HH"
+                    />
+                    <span className="text-muted-foreground">:</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={selectedTime.minutes}
+                      onChange={(e) => handleTimeChange('minutes', e.target.value)}
+                      className="w-16 text-center"
+                      placeholder="MM"
+                    />
+                  </div>
+                </div>
               </div>
               <Textarea
                 placeholder="Paste your game stats here...
@@ -97,8 +209,7 @@ Coins Earned        1.13T
 Cash Earned        $44.65B"
                 value={inputData}
                 onChange={(e) => handleInputChange(e.target.value)}
-                rows={10}
-                className="font-mono text-sm"
+                className="font-mono text-sm h-48 resize-none"
               />
             </div>
 
@@ -116,16 +227,17 @@ Cash Earned        $44.65B"
                       <h4 className="font-medium mb-2">Key Stats</h4>
                       <div className="space-y-1 text-sm">
                         {previewData.tier && <div>Tier: {previewData.tier}</div>}
-                        {previewData.wave && <div>Wave: {previewData.wave}</div>}
-                        {previewData.coinsEarned && <div>Coins: {previewData.coinsEarned.toLocaleString()}</div>}
-                        {previewData.cashEarned && <div>Cash: {previewData.cashEarned.toLocaleString()}</div>}
-                        {previewData.cellsEarned && <div>Cells: {previewData.cellsEarned.toLocaleString()}</div>}
+                        {previewData.wave && <div>Wave: {formatNumber(previewData.wave)}</div>}
+                        {previewData.coinsEarned && <div>Coins: {formatNumber(previewData.coinsEarned)}</div>}
+                        {previewData.cashEarned && <div>Cash: ${formatNumber(previewData.cashEarned)}</div>}
+                        {previewData.cellsEarned && <div>Cells: {formatNumber(previewData.cellsEarned)}</div>}
                         {previewData.gameTime && (
-                          <div>Game Time: {Math.floor(previewData.gameTime / 86400)}d {Math.floor((previewData.gameTime % 86400) / 3600)}h {Math.floor((previewData.gameTime % 3600) / 60)}m</div>
+                          <div>Game Time: {formatDuration(previewData.gameTime)}</div>
                         )}
                         {previewData.realTime && (
-                          <div>Real Time: {Math.floor(previewData.realTime / 3600)}h {Math.floor((previewData.realTime % 3600) / 60)}m</div>
+                          <div>Real Time: {formatDuration(previewData.realTime)}</div>
                         )}
+                        <div>Timestamp: {format(previewData.timestamp, "PPp")}</div>
                       </div>
                     </div>
                     <div>
