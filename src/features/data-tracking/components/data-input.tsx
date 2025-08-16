@@ -89,11 +89,12 @@ export function DataInput({ className }: DataInputProps) {
               <Textarea
                 placeholder="Paste your game stats here...
 Example format:
-Tier	5
-Wave	127
-Coins	15.2M
-Cash	1.2B
-Real Time	2H 45M 30S"
+Game Time        1d 13h 24m 51s
+Real Time        7h 46m 6s
+Tier        10
+Wave        5881
+Coins Earned        1.13T
+Cash Earned        $44.65B"
                 value={inputData}
                 onChange={(e) => handleInputChange(e.target.value)}
                 rows={10}
@@ -116,26 +117,29 @@ Real Time	2H 45M 30S"
                       <div className="space-y-1 text-sm">
                         {previewData.tier && <div>Tier: {previewData.tier}</div>}
                         {previewData.wave && <div>Wave: {previewData.wave}</div>}
-                        {previewData.coins && <div>Coins: {previewData.coins.toLocaleString()}</div>}
-                        {previewData.cash && <div>Cash: {previewData.cash.toLocaleString()}</div>}
-                        {previewData.cells && <div>Cells: {previewData.cells.toLocaleString()}</div>}
-                        {previewData.duration && (
-                          <div>Duration: {Math.floor(previewData.duration / 3600)}h {Math.floor((previewData.duration % 3600) / 60)}m</div>
+                        {previewData.coinsEarned && <div>Coins: {previewData.coinsEarned.toLocaleString()}</div>}
+                        {previewData.cashEarned && <div>Cash: {previewData.cashEarned.toLocaleString()}</div>}
+                        {previewData.cellsEarned && <div>Cells: {previewData.cellsEarned.toLocaleString()}</div>}
+                        {previewData.gameTime && (
+                          <div>Game Time: {Math.floor(previewData.gameTime / 86400)}d {Math.floor((previewData.gameTime % 86400) / 3600)}h {Math.floor((previewData.gameTime % 3600) / 60)}m</div>
+                        )}
+                        {previewData.realTime && (
+                          <div>Real Time: {Math.floor(previewData.realTime / 3600)}h {Math.floor((previewData.realTime % 3600) / 60)}m</div>
                         )}
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-medium mb-2">Raw Data ({Object.keys(previewData.rawData).length} fields)</h4>
+                      <h4 className="font-medium mb-2">Raw Data ({Object.keys(previewData.rawData || {}).length} fields)</h4>
                       <div className="max-h-32 overflow-y-auto text-xs space-y-1">
-                        {Object.entries(previewData.rawData).slice(0, 10).map(([key, value]) => (
+                        {Object.entries(previewData.rawData || {}).slice(0, 10).map(([key, value]) => (
                           <div key={key} className="flex justify-between">
                             <span className="text-muted-foreground">{key}:</span>
                             <span>{value}</span>
                           </div>
                         ))}
-                        {Object.keys(previewData.rawData).length > 10 && (
+                        {Object.keys(previewData.rawData || {}).length > 10 && (
                           <div className="text-muted-foreground italic">
-                            ... and {Object.keys(previewData.rawData).length - 10} more
+                            ... and {Object.keys(previewData.rawData || {}).length - 10} more
                           </div>
                         )}
                       </div>

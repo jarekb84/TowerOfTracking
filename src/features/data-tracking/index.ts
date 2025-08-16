@@ -7,7 +7,17 @@ export { RunsTable } from './components/runs-table';
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
 
 // Data Tracking Types
-export type { ParsedGameRun, GameRunFilters, GameRunSortConfig, GameRunTableColumn } from './types/game-run.types';
+export type { 
+  ParsedGameRun, 
+  RawGameRunData, 
+  CamelCaseGameRunData, 
+  ProcessedGameRunData,
+  GameRunFilters, 
+  GameRunSortConfig, 
+  GameRunTableColumn,
+  DataTransformResult,
+  RawClipboardData
+} from './types/game-run.types';
 
 // Data Tracking Utilities
 export { 
@@ -15,6 +25,8 @@ export {
   parseDuration, 
   parseShorthandNumber, 
   parseTabDelimitedData, 
+  transformGameRunData,
+  toCamelCase,
   extractKeyStats, 
   formatNumber, 
   formatDuration 

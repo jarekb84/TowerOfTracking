@@ -51,29 +51,36 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         return value ? value.toLocaleString() : '-';
       },
     }),
-    columnHelper.accessor('coins', {
+    columnHelper.accessor('coinsEarned', {
       header: 'Coins',
       cell: (info) => {
         const value = info.getValue();
         return value ? formatNumber(value) : '-';
       },
     }),
-    columnHelper.accessor('cash', {
+    columnHelper.accessor('cashEarned', {
       header: 'Cash',
       cell: (info) => {
         const value = info.getValue();
         return value ? formatNumber(value) : '-';
       },
     }),
-    columnHelper.accessor('cells', {
+    columnHelper.accessor('cellsEarned', {
       header: 'Cells',
       cell: (info) => {
         const value = info.getValue();
         return value ? formatNumber(value) : '-';
       },
     }),
-    columnHelper.accessor('duration', {
-      header: 'Duration',
+    columnHelper.accessor('realTime', {
+      header: 'Real Time',
+      cell: (info) => {
+        const value = info.getValue();
+        return value ? formatDuration(value) : '-';
+      },
+    }),
+    columnHelper.accessor('gameTime', {
+      header: 'Game Time',
       cell: (info) => {
         const value = info.getValue();
         return value ? formatDuration(value) : '-';

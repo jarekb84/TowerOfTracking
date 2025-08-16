@@ -1,160 +1,224 @@
 import humanFormat from 'human-format';
-import type { ParsedGameRun } from '../types/game-run.types';
+import type { 
+  ParsedGameRun, 
+  RawGameRunData, 
+  CamelCaseGameRunData, 
+  ProcessedGameRunData,
+  DataTransformResult,
+  RawClipboardData
+} from '../types/game-run.types';
 
-// Parse duration strings like "7H 45M 35S" into seconds
+// Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
 export function parseDuration(duration: string): number {
   if (!duration || typeof duration !== 'string') return 0;
   
-  const regex = /(?:(\d+)H)?\s*(?:(\d+)M)?\s*(?:(\d+)S)?/i;
+  const regex = /(?:(\d+)d)?\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?/i;
   const match = duration.match(regex);
   
   if (!match) return 0;
   
-  const hours = parseInt(match[1] || '0', 10);
-  const minutes = parseInt(match[2] || '0', 10);
-  const seconds = parseInt(match[3] || '0', 10);
+  const days = parseInt(match[1] || '0', 10);
+  const hours = parseInt(match[2] || '0', 10);
+  const minutes = parseInt(match[3] || '0', 10);
+  const seconds = parseInt(match[4] || '0', 10);
   
-  return hours * 3600 + minutes * 60 + seconds;
+  return days * 86400 + hours * 3600 + minutes * 60 + seconds;
 }
 
-// Parse shorthand numbers like "100K", "10.9M", "15.2B", "1.10T"
+// Parse shorthand numbers like "100K", "10.9M", "15.2B", "1.10T", "94.90q"
 export function parseShorthandNumber(value: string): number {
   if (!value || typeof value !== 'string') return 0;
   
-  // Remove commas and trim
-  const cleaned = value.replace(/,/g, '').trim();
+  // Remove $ signs, commas and trim
+  let cleaned = value.replace(/[$,]/g, '').trim();
+  
+  // Handle x multipliers like "x8.00"
+  if (cleaned.startsWith('x')) {
+    cleaned = cleaned.substring(1);
+  }
   
   // If it's just a number, return it
   if (/^\d+\.?\d*$/.test(cleaned)) {
     return parseFloat(cleaned);
   }
   
-  // Check for shorthand notation
-  const shorthandRegex = /^(\d+\.?\d*)\s*([KMBTQSX]?)$/i;
+  // Check for shorthand notation (case sensitive for q vs Q)
+  const shorthandRegex = /^(\d+\.?\d*)\s*([KMBTQqSsO]?)$/;
   const match = cleaned.match(shorthandRegex);
   
   if (!match) return 0;
   
   const number = parseFloat(match[1]);
-  const suffix = match[2].toUpperCase();
+  const suffix = match[2];
   
   const multipliers: Record<string, number> = {
     '': 1,
-    'K': 1000,
-    'M': 1000000,
-    'B': 1000000000,
-    'T': 1000000000000,
-    'Q': 1000000000000000,
-    'S': 1000000000000000000,
-    'X': 1000000000000000000000
+    'K': 1e3,
+    'M': 1e6,
+    'B': 1e9,
+    'T': 1e12,
+    'Q': 1e15,       // Quadrillion
+    'q': 1e18,       // Quintillion
+    'S': 1e21,       // Sextillion
+    's': 1e24,       // Septillion
+    'O': 1e27        // Octillion
   };
   
   return number * (multipliers[suffix] || 1);
 }
 
+// Convert property name to camelCase
+export function toCamelCase(str: string): string {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+      return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    })
+    .replace(/\s+/g, '');
+}
+
 // Parse tab-delimited data from clipboard
-export function parseTabDelimitedData(rawData: string): Record<string, string> {
+export function parseTabDelimitedData(rawData: string): RawClipboardData {
   const lines = rawData.trim().split('\n');
   const parsed: Record<string, string> = {};
   
   for (const line of lines) {
+    // Skip empty lines
+    if (!line.trim()) continue;
+    
+    // Check for numbered arrow format: "     1→Game Time        1d 13h 24m 51s"
+    const arrowIndex = line.indexOf('→');
+    if (arrowIndex !== -1) {
+      // Extract everything after the arrow and number
+      const afterArrow = line.substring(arrowIndex + 1);
+      
+      // Find the first occurrence of multiple spaces to separate key from value
+      const match = afterArrow.match(/^(\S+(?:\s+\S+)*)\s{2,}(.+)$/);
+      if (match) {
+        const key = match[1].trim();
+        const value = match[2].trim();
+        
+        if (key && value) {
+          parsed[key] = value;
+        }
+        continue;
+      }
+    }
+    
+    // Handle simple format: "Game Time        1d 13h 24m 51s"
+    const match = line.match(/^(\S+(?:\s+\S+)*)\s{2,}(.+)$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      
+      if (key && value) {
+        parsed[key] = value;
+      }
+      continue;
+    }
+    
+    // Handle tab-delimited format as fallback
     const tabIndex = line.indexOf('\t');
-    if (tabIndex === -1) continue;
-    
-    const key = line.substring(0, tabIndex).trim();
-    const value = line.substring(tabIndex + 1).trim();
-    
-    if (key && value) {
-      parsed[key] = value;
+    if (tabIndex !== -1) {
+      const key = line.substring(0, tabIndex).trim();
+      const value = line.substring(tabIndex + 1).trim();
+      
+      if (key && value) {
+        parsed[key] = value;
+      }
     }
   }
   
   return parsed;
 }
 
-// Extract key statistics from parsed data
-export function extractKeyStats(rawData: Record<string, string>): Partial<ParsedGameRun> {
-  const stats: Partial<ParsedGameRun> = {};
+// Transform raw clipboard data to strongly typed structure
+export function transformGameRunData(rawData: RawClipboardData): DataTransformResult {
+  const camelCaseData: Partial<CamelCaseGameRunData> = {};
+  const processedData: Partial<ProcessedGameRunData> = {};
   
-  // Map common field names to our standardized keys
-  const fieldMappings = {
-    // Tier variations
-    tier: ['tier', 'level', 'stage'],
-    wave: ['wave', 'waves', 'wave number', 'waves cleared'],
-    coins: ['coins', 'coin', 'gold coins', 'total coins'],
-    cash: ['cash', 'money', 'currency', 'dollars'],
-    cells: ['cells', 'cell', 'upgrade cells', 'total cells'],
-    duration: ['real time', 'duration', 'time played', 'play time', 'session time'],
-  };
-  
-  for (const [standardKey, variants] of Object.entries(fieldMappings)) {
-    for (const variant of variants) {
-      // Try exact match first
-      let value = rawData[variant];
-      
-      // If not found, try case-insensitive match
-      if (!value) {
-        const foundKey = Object.keys(rawData).find(
-          key => key.toLowerCase() === variant.toLowerCase()
-        );
-        if (foundKey) {
-          value = rawData[foundKey];
-        }
-      }
-      
-      if (value) {
-        if (standardKey === 'duration') {
-          stats.duration = parseDuration(value);
-        } else {
-          const numValue = parseShorthandNumber(value);
-          if (numValue > 0) {
-            (stats as any)[standardKey] = numValue;
-          }
-        }
-        break; // Found a match, move to next standard key
-      }
-    }
-  }
-  
-  return stats;
-}
-
-// Main parsing function
-export function parseGameRun(rawInput: string): ParsedGameRun {
-  const rawData = parseTabDelimitedData(rawInput);
-  const keyStats = extractKeyStats(rawData);
-  
-  // Create parsed data with both numbers and original strings
-  const parsedData: Record<string, number | string | Date> = {};
-  
+  // Map each raw field to camelCase and processed versions
   for (const [key, value] of Object.entries(rawData)) {
-    // Try to parse as duration first
-    if (value.match(/\d+[HMS]/i)) {
-      const durationSeconds = parseDuration(value);
-      if (durationSeconds > 0) {
-        parsedData[key] = durationSeconds;
-        parsedData[key + '_formatted'] = value;
-        continue;
-      }
-    }
+    const camelKey = toCamelCase(key) as keyof CamelCaseGameRunData;
     
-    // Try to parse as number
-    const numValue = parseShorthandNumber(value);
-    if (numValue > 0 && numValue.toString() !== value) {
-      parsedData[key] = numValue;
-      parsedData[key + '_formatted'] = value;
+    // Store raw string version
+    camelCaseData[camelKey] = value as any;
+    
+    // Process based on field type
+    if (key === 'Game Time' || key === 'Real Time') {
+      processedData[camelKey as keyof ProcessedGameRunData] = parseDuration(value) as any;
+    } else if (key === 'Tier' || key === 'Wave' || key.includes('Shards') || key.includes('Modules') || 
+               key.includes('Upgrade') || key.includes('Packages') || key === 'Death Defy' || 
+               key.includes('Tapped') || key.includes('Spawned') || key.includes('Skipped') ||
+               key.includes('Enemies') || key.includes('Elites') || key.includes('catches') ||
+               key === 'Gems' || key === 'Medals') {
+      // Integer fields
+      processedData[camelKey as keyof ProcessedGameRunData] = Math.floor(parseShorthandNumber(value)) as any;
+    } else if (key === 'Killed By') {
+      // String fields
+      processedData[camelKey as keyof ProcessedGameRunData] = value as any;
+    } else if (key.includes('Damage') && key.includes('Berserk') && value.startsWith('x')) {
+      // Multiplier fields
+      processedData[camelKey as keyof ProcessedGameRunData] = parseShorthandNumber(value) as any;
     } else {
-      parsedData[key] = value;
+      // All other numeric fields
+      processedData[camelKey as keyof ProcessedGameRunData] = parseShorthandNumber(value) as any;
     }
   }
   
   return {
-    id: crypto.randomUUID(),
-    timestamp: new Date(),
-    rawData,
-    parsedData,
-    ...keyStats,
+    camelCaseData: camelCaseData as CamelCaseGameRunData,
+    processedData: processedData as ProcessedGameRunData
   };
+}
+
+// Extract key statistics from processed data for quick access
+export function extractKeyStats(processedData: ProcessedGameRunData): {
+  tier: number;
+  wave: number;
+  coinsEarned: number;
+  cashEarned: number;
+  cellsEarned: number;
+  gameTime: number;
+  realTime: number;
+} {
+  return {
+    tier: processedData.tier || 0,
+    wave: processedData.wave || 0,
+    coinsEarned: processedData.coinsEarned || 0,
+    cashEarned: processedData.cashEarned || 0,
+    cellsEarned: processedData.cellsEarned || 0,
+    gameTime: processedData.gameTime || 0,
+    realTime: processedData.realTime || 0
+  };
+}
+
+// Main parsing function
+export function parseGameRun(rawInput: string): ParsedGameRun {
+  try {
+    const clipboardData = parseTabDelimitedData(rawInput);
+    console.log('Parsed clipboard data:', clipboardData);
+    
+    const { camelCaseData, processedData } = transformGameRunData(clipboardData);
+    console.log('Transformed data:', { camelCaseData, processedData });
+    
+    const keyStats = extractKeyStats(processedData);
+    console.log('Key stats:', keyStats);
+    
+    // Raw data is just the clipboard data as-is
+    const rawData: RawGameRunData = clipboardData;
+    
+    return {
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+      rawData: rawData as RawGameRunData,
+      camelCaseData,
+      processedData,
+      ...keyStats,
+    };
+  } catch (error) {
+    console.error('Error parsing game run:', error);
+    throw error;
+  }
 }
 
 // Format numbers back to human-readable format
@@ -165,14 +229,16 @@ export function formatNumber(value: number): string {
 
 // Format duration in seconds back to readable format
 export function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
   
   const parts = [];
-  if (hours > 0) parts.push(`${hours}H`);
-  if (minutes > 0) parts.push(`${minutes}M`);
-  if (secs > 0) parts.push(`${secs}S`);
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (secs > 0) parts.push(`${secs}s`);
   
-  return parts.join(' ') || '0S';
+  return parts.join(' ') || '0s';
 }

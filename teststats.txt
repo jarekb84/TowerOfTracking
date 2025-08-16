@@ -1,0 +1,81 @@
+Game Time        1d 13h 24m 51s
+Real Time        7h 46m 6s
+Tier        10
+Wave        5881
+Killed By        Ranged
+Coins Earned        1.13T
+Cash Earned        $44.65B
+Interest Earned        $11.76M
+Gem Blocks Tapped        9
+Cells Earned        47.89K
+Reroll Shards Earned        6.36K
+Damage Taken        468.82T
+Damage Taken Wall        94.90q
+Damage Taken While Berserked        1.59Q
+Damage Gain From Berserk        x8.00
+Death Defy        1
+Damage Dealt        3.31O
+Projectiles Damage        4.57s
+Rend Armor Damage        3.46s
+Projectiles Count        12.64M
+Lifesteal        112.96B
+Thorn Damage        502.83S
+Orb Damage        2.63O
+Orb Hits        522.99K
+Land Mine Damage        460.43Q
+Land Mines Spawned        239757
+Death Ray Damage        0
+Smart Missile Damage        7.13Q
+Inner Land Mine Damage        0
+Chain Lightning Damage        23.74s
+Death Wave Damage        353.64q
+Swamp Damage        0
+Black Hole Damage        185.63S
+Waves Skipped        1355
+Recovery Packages        3409
+Free Attack Upgrade        1692
+Free Defense Upgrade        2084
+Free Utility Upgrade        1177
+HP From Death Wave        2.13T
+Coins from Death Wave        799.78M
+Cash from Golden Tower        $29.76B
+Coins from Golden Tower        75.06B
+Coins from Blackhole        26.83B
+Coins from Spotlight        0
+Coins from Orbs        0
+Coins from Coin Upgrade        72.23B
+Coins from Coin Bonuses        951.77B
+Total Enemies        793234
+Basic        342868
+Fast        146866
+Tank        143101
+Ranged        123510
+Boss        455
+Protector        867
+Total Elites        3364
+Vampires        1165
+Rays        1071
+Scatters        1128
+Saboteurs        0
+Commanders        0
+Overcharges        0
+Destroyed by Orbs        519962
+Destroyed by Thorns        72539
+Destroyed by Death ray        0
+Destroyed by Land Mine        19433
+Flame bot damage        0
+Thunder bot stuns        0
+Golden bot coins earned        798.12M
+Damage        0
+Coins Stolen        2.08B
+Guardian catches        0
+Coins Fetched        1.90B
+Gems        14
+Medals        9
+Reroll Shards        192
+Cannon Shards        12
+Armor Shards        3
+Generator Shards        0
+Core Shards        18
+Common Modules        1
+Rare Modules        0
