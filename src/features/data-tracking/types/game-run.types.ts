@@ -182,9 +182,7 @@ export interface ParsedGameRun {
   tier: number;
   wave: number;
   coinsEarned: number;
-  cashEarned: number;
   cellsEarned: number;
-  gameTime: number; // in seconds
   realTime: number; // in seconds
 }
 

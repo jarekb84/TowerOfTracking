@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Calendar, Popover, PopoverContent, PopoverTrigger, Input } from '../../../components/ui';
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
-import { parseGameRun, formatNumber, formatDuration } from '../utils/data-parser';
+import { parseGameRun, formatNumber, formatDuration, calculatePerHour } from '../utils/data-parser';
 import { useData } from '../hooks/use-data';
 import { Plus, Upload } from 'lucide-react';
 import type { ParsedGameRun } from '../types/game-run.types';
@@ -222,38 +222,29 @@ Cash Earned        $44.65B"
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <h4 className="font-medium mb-2">Key Stats</h4>
                       <div className="space-y-1 text-sm">
-                        {previewData.tier && <div>Tier: {previewData.tier}</div>}
-                        {previewData.wave && <div>Wave: {formatNumber(previewData.wave)}</div>}
-                        {previewData.coinsEarned && <div>Coins: {formatNumber(previewData.coinsEarned)}</div>}
-                        {previewData.cashEarned && <div>Cash: ${formatNumber(previewData.cashEarned)}</div>}
-                        {previewData.cellsEarned && <div>Cells: {formatNumber(previewData.cellsEarned)}</div>}
-                        {previewData.gameTime && (
-                          <div>Game Time: {formatDuration(previewData.gameTime)}</div>
-                        )}
                         {previewData.realTime && (
                           <div>Real Time: {formatDuration(previewData.realTime)}</div>
                         )}
-                        <div>Timestamp: {format(previewData.timestamp, "PPp")}</div>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium mb-2">Raw Data ({Object.keys(previewData.rawData || {}).length} fields)</h4>
-                      <div className="max-h-32 overflow-y-auto text-xs space-y-1">
-                        {Object.entries(previewData.rawData || {}).slice(0, 10).map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-muted-foreground">{key}:</span>
-                            <span>{value}</span>
-                          </div>
-                        ))}
-                        {Object.keys(previewData.rawData || {}).length > 10 && (
-                          <div className="text-muted-foreground italic">
-                            ... and {Object.keys(previewData.rawData || {}).length - 10} more
+                        {previewData.tier && <div>Tier: {previewData.tier}</div>}
+                        {previewData.wave && <div>Wave: {formatNumber(previewData.wave)}</div>}
+                        {previewData.processedData.killedBy && <div>Killed By: {previewData.processedData.killedBy}</div>}
+                        {previewData.coinsEarned && (
+                          <div>
+                            Coins: {formatNumber(previewData.coinsEarned)} (
+                            {formatNumber(calculatePerHour(previewData.coinsEarned, previewData.realTime || 0))}/hr)
                           </div>
                         )}
+                        {previewData.cellsEarned && (
+                          <div>
+                            Cells: {formatNumber(previewData.cellsEarned)} (
+                            {formatNumber(calculatePerHour(previewData.cellsEarned, previewData.realTime || 0))}/hr)
+                          </div>
+                        )}
+                        <div>Timestamp: {format(previewData.timestamp, "PPp")}</div>
                       </div>
                     </div>
                   </div>

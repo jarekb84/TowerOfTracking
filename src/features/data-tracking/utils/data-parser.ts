@@ -176,20 +176,25 @@ export function extractKeyStats(processedData: ProcessedGameRunData): {
   tier: number;
   wave: number;
   coinsEarned: number;
-  cashEarned: number;
   cellsEarned: number;
-  gameTime: number;
   realTime: number;
 } {
   return {
     tier: processedData.tier || 0,
     wave: processedData.wave || 0,
     coinsEarned: processedData.coinsEarned || 0,
-    cashEarned: processedData.cashEarned || 0,
     cellsEarned: processedData.cellsEarned || 0,
-    gameTime: processedData.gameTime || 0,
     realTime: processedData.realTime || 0
   };
+}
+
+// Calculate value per hour
+export function calculatePerHour(value: number, durationInSeconds: number): number {
+  if (durationInSeconds === 0) {
+    return 0;
+  }
+  const hours = durationInSeconds / 3600;
+  return value / hours;
 }
 
 // Main parsing function
