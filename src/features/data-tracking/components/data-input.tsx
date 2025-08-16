@@ -17,6 +17,7 @@ export function DataInput({ className }: DataInputProps) {
   const [previewData, setPreviewData] = useState<ParsedGameRun | null>(null);
   const [selectedRunType, setSelectedRunType] = useState<'farm' | 'tournament'>('farm');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<{ hours: string; minutes: string }>(() => {
     const now = new Date();
     return {
@@ -103,6 +104,8 @@ export function DataInput({ className }: DataInputProps) {
           setPreviewData(null);
         }
       }
+      // Close the date picker popover after selecting a date
+      setIsDatePopoverOpen(false);
     }
   };
 
@@ -158,7 +161,7 @@ export function DataInput({ className }: DataInputProps) {
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Date:</span>
-                  <Popover>
+                  <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
