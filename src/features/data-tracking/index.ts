@@ -16,16 +16,26 @@ export type {
   GameRunField,  
   RawGameRunData,
   GameRunFilters,
-  RawClipboardData
+  RawClipboardData,
+  CsvParseConfig,
+  CsvParseResult,
+  FieldMappingReport,
+  CsvDelimiter
 } from './types/game-run.types';
 
 // Data Tracking Utilities
 export { 
   parseGameRun, 
-  parseCsvData,
   formatNumber, 
   formatDuration 
 } from './utils/data-parser';
+
+// New Generic CSV Parser
+export {
+  parseGenericCsv,
+  getDelimiterString,
+  getSupportedFields
+} from './utils/csv-parser';
 
 // Field Utilities
 export {

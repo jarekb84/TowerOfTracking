@@ -34,6 +34,9 @@ const STAT_GROUPS = {
   "GUARDIAN": [
     "damage", "coinsStolen", "guardianCatches", "coinsFetched", "gems", "medals", "rerollShards", 
     "cannonShards", "armorShards", "generatorShards", "coreShards", "commonModules", "rareModules"
+  ],
+  "__SKIP__": [
+    "date", "time"
   ]
 };
 
@@ -110,7 +113,7 @@ export function RunDetails({ run }: RunDetailsProps) {
   return (
     <div className="space-y-6">
       <h4 className="font-medium text-lg">Complete Run Data</h4>
-      {Object.entries(STAT_GROUPS).map(([groupTitle, fields]) => (
+      {Object.entries(STAT_GROUPS).filter(([groupTitle]) => groupTitle !== "__SKIP__").map(([groupTitle, fields]) => (
         <StatGroup
           key={groupTitle}
           title={groupTitle}

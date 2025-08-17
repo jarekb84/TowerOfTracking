@@ -50,3 +50,29 @@ export type NumberSuffix = 'K' | 'M' | 'B' | 'T' | 'Q' | 'q' | 'S' | 's' | 'O';
 // Duration format types
 export type DurationUnit = 'd' | 'h' | 'm' | 's';
 export type DurationString = string; // Format: "1d 13h 24m 51s"
+
+// Generic CSV Parser Types
+export interface CsvParseConfig {
+  delimiter?: string;
+  supportedFields: string[];
+  skipUnknownFields?: boolean;
+}
+
+export interface CsvParseResult {
+  success: ParsedGameRun[];
+  failed: number;
+  errors: string[];
+  fieldMappingReport: FieldMappingReport;
+}
+
+export interface FieldMappingReport {
+  mappedFields: Array<{ 
+    csvHeader: string; 
+    camelCase: string; 
+    supported: boolean;
+  }>;
+  unsupportedFields: string[];
+  skippedFields: string[];
+}
+
+export type CsvDelimiter = 'tab' | 'comma' | 'semicolon' | 'custom';

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui';
+import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '../../../components/ui';
 import { format } from 'date-fns';
-import { Upload, FileText } from 'lucide-react';
-import { parseCsvData, formatNumber, formatDuration } from '../utils/data-parser';
+import { Upload, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { parseGenericCsv, getDelimiterString } from '../utils/csv-parser';
+import { formatNumber, formatDuration } from '../utils/data-parser';
 import { getFieldValue } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
-import type { ParsedGameRun } from '../types/game-run.types';
+import type { CsvDelimiter, CsvParseResult } from '../types/game-run.types';
 
 interface CsvImportProps {
   className?: string;
@@ -14,19 +15,36 @@ interface CsvImportProps {
 export function CsvImport({ className }: CsvImportProps) {
   const [inputData, setInputData] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [previewData, setPreviewData] = useState<ParsedGameRun[]>([]);
-  const [importStatus, setImportStatus] = useState<{ success: number; failed: number; errors: string[] }>({ success: 0, failed: 0, errors: [] });
+  const [parseResult, setParseResult] = useState<CsvParseResult | null>(null);
+  const [selectedDelimiter, setSelectedDelimiter] = useState<CsvDelimiter>('tab');
+  const [customDelimiter, setCustomDelimiter] = useState('');
   const { addRun } = useData();
+
+  const parseData = (text: string): void => {
+    if (!text.trim()) {
+      setParseResult(null);
+      return;
+    }
+
+    try {
+      const delimiter = selectedDelimiter === 'custom' ? customDelimiter : getDelimiterString(selectedDelimiter);
+      const result = parseGenericCsv(text, { delimiter });
+      setParseResult(result);
+    } catch (error) {
+      setParseResult({
+        success: [],
+        failed: 0,
+        errors: ['Failed to parse data: ' + (error instanceof Error ? error.message : 'Unknown error')],
+        fieldMappingReport: { mappedFields: [], unsupportedFields: [], skippedFields: [] }
+      });
+    }
+  };
 
   const handlePaste = async (): Promise<void> => {
     try {
       const text = await navigator.clipboard.readText();
       setInputData(text);
-      if (text.trim()) {
-        const parsed = parseCsvData(text);
-        setPreviewData(parsed.success);
-        setImportStatus({ success: parsed.success.length, failed: parsed.failed.length, errors: parsed.errors });
-      }
+      parseData(text);
     } catch (error) {
       console.error('Failed to read clipboard:', error);
     }
@@ -34,35 +52,41 @@ export function CsvImport({ className }: CsvImportProps) {
 
   const handleInputChange = (value: string): void => {
     setInputData(value);
-    if (value.trim()) {
-      try {
-        const parsed = parseCsvData(value);
-        setPreviewData(parsed.success);
-        setImportStatus({ success: parsed.success.length, failed: parsed.failed.length, errors: parsed.errors });
-      } catch (error) {
-        setPreviewData([]);
-        setImportStatus({ success: 0, failed: 0, errors: ['Failed to parse data'] });
-      }
-    } else {
-      setPreviewData([]);
-      setImportStatus({ success: 0, failed: 0, errors: [] });
+    parseData(value);
+  };
+
+  const handleDelimiterChange = (delimiter: CsvDelimiter): void => {
+    setSelectedDelimiter(delimiter);
+    if (inputData.trim()) {
+      parseData(inputData);
+    }
+  };
+
+  const handleCustomDelimiterChange = (value: string): void => {
+    setCustomDelimiter(value);
+    if (selectedDelimiter === 'custom' && inputData.trim()) {
+      parseData(inputData);
     }
   };
 
   const handleImport = (): void => {
-    previewData.forEach(run => {
-      addRun(run);
-    });
+    if (parseResult?.success) {
+      parseResult.success.forEach(run => {
+        addRun(run);
+      });
+    }
     setInputData('');
-    setPreviewData([]);
-    setImportStatus({ success: 0, failed: 0, errors: [] });
+    setParseResult(null);
+    setSelectedDelimiter('tab');
+    setCustomDelimiter('');
     setIsDialogOpen(false);
   };
 
   const handleCancel = (): void => {
     setInputData('');
-    setPreviewData([]);
-    setImportStatus({ success: 0, failed: 0, errors: [] });
+    setParseResult(null);
+    setSelectedDelimiter('tab');
+    setCustomDelimiter('');
     setIsDialogOpen(false);
   };
 
@@ -75,17 +99,17 @@ export function CsvImport({ className }: CsvImportProps) {
             Import CSV/TSV
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-5xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Import CSV/Tab-Delimited Data</DialogTitle>
             <DialogDescription>
-              Import game run data from CSV or tab-delimited format. Expected columns: Date, Time, Tier, Wave, Hrs, Min, Sec, Duration, Coins, Cells, CellsPerHour, CoinsPerHour, CoinsPerDay, Killed By, Notes
+              Import game run data from any CSV format. Column headers will be automatically mapped to supported fields. Use any field names - they'll be converted to camelCase and validated against the 84 supported fields.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="space-y-3">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-3 items-center">
                 <Button 
                   variant="outline" 
                   onClick={handlePaste}
@@ -94,23 +118,132 @@ export function CsvImport({ className }: CsvImportProps) {
                   <Upload className="h-4 w-4" />
                   Paste from Clipboard
                 </Button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Delimiter:</span>
+                  <select 
+                    value={selectedDelimiter} 
+                    onChange={(e) => handleDelimiterChange(e.target.value as CsvDelimiter)}
+                    className="w-32 px-2 py-1 border rounded text-sm bg-background"
+                  >
+                    <option value="tab">Tab</option>
+                    <option value="comma">Comma</option>
+                    <option value="semicolon">Semicolon</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  
+                  {selectedDelimiter === 'custom' && (
+                    <Input
+                      placeholder="Enter delimiter"
+                      value={customDelimiter}
+                      onChange={(e) => handleCustomDelimiterChange(e.target.value)}
+                      className="w-20"
+                      maxLength={1}
+                    />
+                  )}
+                </div>
               </div>
               
               <Textarea
-                placeholder="Paste your CSV/TSV data here...
-Example format:
-Date,Time,Tier,Wave,Hrs,Min,Sec,Duration,Coins,Cells,CellsPerHour,CoinsPerHour,CoinsPerDay,Killed By,Notes
-2024-01-15,14:30,10,5881,7,46,6,7H 46M 6S,1.13T,45.2K,,,,$1.5B,Wall,Good run
-2024-01-16,16:20,11,6200,8,12,30,8H 12M 30S,1.45T,52.1K,,,,$1.8B,Elite,,
-"
+                placeholder="Paste your CSV data here...
+Example format (any column names work):
+Date,Time,Tier,Wave,Real Time,Coins Earned,Cells Earned,Killed By,Notes
+2024-01-15,14:30,10,5881,7h 46m 6s,1.13T,45.2K,Wall,Good run
+2024-01-16,16:20,11,6200,8h 12m 30s,1.45T,52.1K,Elite,Another run
+
+Column headers will be automatically converted to camelCase and matched against supported fields."
                 value={inputData}
                 onChange={(e) => handleInputChange(e.target.value)}
                 className="font-mono text-sm h-48 resize-none"
               />
             </div>
 
+            {/* Field Mapping Report */}
+            {parseResult?.fieldMappingReport && parseResult.fieldMappingReport.mappedFields.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Field Mapping</CardTitle>
+                  <CardDescription>
+                    How your CSV column headers map to supported fields
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-6 text-sm">
+                      <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="font-medium text-green-800">
+                          {parseResult.fieldMappingReport.mappedFields.filter(f => f.supported).length} Supported Fields
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg border border-orange-200">
+                        <AlertCircle className="h-4 w-4 text-orange-600" />
+                        <span className="font-medium text-orange-800">
+                          {parseResult.fieldMappingReport.unsupportedFields.length} Unsupported Fields
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium text-blue-800">
+                          {parseResult.success.length} Runs Ready
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Field mapping table */}
+                    <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg shadow-sm">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-100 border-b border-gray-300 sticky top-0">
+                          <tr>
+                            <th className="text-left p-3 font-semibold text-gray-900">CSV Header</th>
+                            <th className="text-left p-3 font-semibold text-gray-900">Mapped Field</th>
+                            <th className="text-center p-3 font-semibold text-gray-900">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {parseResult.fieldMappingReport.mappedFields.map((field, index) => (
+                            <tr key={index} className={`border-t border-gray-200 hover:bg-gray-50 transition-colors ${
+                              field.supported 
+                                ? 'bg-green-50 hover:bg-green-100' 
+                                : 'bg-orange-50 hover:bg-orange-100'
+                            }`}>
+                              <td className="p-3 font-mono text-gray-900 font-medium">{field.csvHeader}</td>
+                              <td className="p-3 font-mono text-gray-700">{field.camelCase}</td>
+                              <td className="p-3 text-center">
+                                {field.supported ? (
+                                  <div className="flex items-center justify-center">
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center">
+                                    <XCircle className="h-4 w-4 text-orange-600" />
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Unsupported fields warning */}
+                    {parseResult.fieldMappingReport.unsupportedFields.length > 0 && (
+                      <div className="bg-orange-50 border border-orange-200 rounded p-3">
+                        <p className="text-sm font-medium text-orange-800 mb-1">
+                          Unsupported fields will be skipped:
+                        </p>
+                        <p className="text-xs text-orange-700">
+                          {parseResult.fieldMappingReport.unsupportedFields.join(', ')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Import Status */}
-            {(importStatus.success > 0 || importStatus.failed > 0) && (
+            {parseResult && (parseResult.success.length > 0 || parseResult.failed > 0) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Import Status</CardTitle>
@@ -118,20 +251,20 @@ Date,Time,Tier,Wave,Hrs,Min,Sec,Duration,Coins,Cells,CellsPerHour,CoinsPerHour,C
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex gap-4 text-sm">
-                      <span className="text-green-600">✓ {importStatus.success} runs will be imported</span>
-                      {importStatus.failed > 0 && (
-                        <span className="text-red-600">✗ {importStatus.failed} rows failed to parse</span>
+                      <span className="text-green-600">✓ {parseResult.success.length} runs will be imported</span>
+                      {parseResult.failed > 0 && (
+                        <span className="text-red-600">✗ {parseResult.failed} rows failed to parse</span>
                       )}
                     </div>
-                    {importStatus.errors.length > 0 && (
+                    {parseResult.errors.length > 0 && (
                       <div className="mt-2">
                         <p className="text-sm font-medium text-red-600 mb-1">Errors:</p>
                         <ul className="text-sm text-red-600 space-y-1">
-                          {importStatus.errors.slice(0, 5).map((error, index) => (
+                          {parseResult.errors.slice(0, 5).map((error, index) => (
                             <li key={index} className="text-xs">• {error}</li>
                           ))}
-                          {importStatus.errors.length > 5 && (
-                            <li className="text-xs">• ... and {importStatus.errors.length - 5} more</li>
+                          {parseResult.errors.length > 5 && (
+                            <li className="text-xs">• ... and {parseResult.errors.length - 5} more</li>
                           )}
                         </ul>
                       </div>
@@ -142,17 +275,17 @@ Date,Time,Tier,Wave,Hrs,Min,Sec,Duration,Coins,Cells,CellsPerHour,CoinsPerHour,C
             )}
 
             {/* Preview */}
-            {previewData.length > 0 && (
+            {parseResult?.success && parseResult.success.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Preview ({previewData.length} runs)</CardTitle>
+                  <CardTitle className="text-lg">Preview ({parseResult.success.length} runs)</CardTitle>
                   <CardDescription>
                     Here's how your data will be imported
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4 max-h-64 overflow-y-auto">
-                    {previewData.slice(0, 3).map((run, index) => (
+                    {parseResult.success.slice(0, 3).map((run, index) => (
                       <div key={index} className="border rounded p-3 space-y-2">
                         <div className="font-medium text-sm">
                           Run {index + 1} - {format(run.timestamp, "MMM d, yyyy 'at' HH:mm")}
@@ -168,9 +301,9 @@ Date,Time,Tier,Wave,Hrs,Min,Sec,Duration,Coins,Cells,CellsPerHour,CoinsPerHour,C
                         </div>
                       </div>
                     ))}
-                    {previewData.length > 3 && (
+                    {parseResult.success.length > 3 && (
                       <div className="text-center text-sm text-muted-foreground">
-                        ... and {previewData.length - 3} more runs
+                        ... and {parseResult.success.length - 3} more runs
                       </div>
                     )}
                   </div>
@@ -185,9 +318,9 @@ Date,Time,Tier,Wave,Hrs,Min,Sec,Duration,Coins,Cells,CellsPerHour,CoinsPerHour,C
             </Button>
             <Button 
               onClick={handleImport} 
-              disabled={previewData.length === 0}
+              disabled={!parseResult?.success || parseResult.success.length === 0}
             >
-              Import {previewData.length} Runs
+              Import {parseResult?.success?.length || 0} Runs
             </Button>
           </DialogFooter>
         </DialogContent>
