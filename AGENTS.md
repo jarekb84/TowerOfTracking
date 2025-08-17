@@ -315,14 +315,6 @@ Implement the minimal solution that satisfies requirements:
 - Components doing too many things
 - Missing abstraction layers
 
-### Known Architectural Issues to Fix
-
-#### 3. **Pattern**: Component Duplication Prevention
-When creating similar UI elements:
-- First occurrence: Implement directly
-- Second occurrence: Note similarity, consider abstraction  
-- Third occurrence: MANDATORY extraction to reusable component
-
 ### Automatic Architect Agent Usage
 
 **Before ANY code modification, check these conditions:**
@@ -436,9 +428,3 @@ ASSISTANT: "✅ New field uses improved data pattern. ✅ Created migration foun
 - [ ] Architecture review complete
 - [ ] All todos marked complete
 - [ ] Codebase left in better state than before
-
-## Special Considerations
-
-**Data Parsing**: The app expects tab-delimited game statistics with property-value pairs. Key field mappings are handled via case-insensitive matching in `extractKeyStats()`.
-
-**Future Supabase Integration**: The data layer is designed to eventually replace localStorage with Supabase for cross-device synchronization.
