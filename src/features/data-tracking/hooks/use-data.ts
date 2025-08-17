@@ -51,7 +51,6 @@ export function useDataProvider(): DataContextType {
         const runsWithDates = parsed.map((run: any) => ({
           ...run,
           timestamp: new Date(run.timestamp),
-          _fieldsByOriginalKey: new Map(run._fieldsByOriginalKeyArray || []),
         }));
         setRuns(runsWithDates);
         // Generate composite keys set for loaded runs
@@ -193,8 +192,6 @@ export function useDataProvider(): DataContextType {
       // Convert Map to array for JSON serialization
       const runsForStorage = runs.map(run => ({
         ...run,
-        _fieldsByOriginalKeyArray: Array.from(run._fieldsByOriginalKey.entries()),
-        _fieldsByOriginalKey: undefined, // Remove the Map before serialization
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(runsForStorage));
     } catch (error) {

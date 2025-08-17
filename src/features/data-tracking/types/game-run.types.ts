@@ -17,9 +17,6 @@ export interface ParsedGameRun {
   readonly cellsEarned: number;
   readonly realTime: number;
   readonly runType: 'farm' | 'tournament';
-  
-  // Field lookup optimization
-  readonly _fieldsByOriginalKey: Map<string, string>;
 }
 
 export interface GameRunFilters {

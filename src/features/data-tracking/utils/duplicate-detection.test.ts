@@ -20,7 +20,6 @@ function createMockRun(overrides: Partial<ParsedGameRun> = {}): ParsedGameRun {
     cellsEarned: 50000,
     realTime: 7200, // 2 hours
     runType: 'farm',
-    _fieldsByOriginalKey: new Map(),
     ...overrides
   };
 }

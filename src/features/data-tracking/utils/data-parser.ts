@@ -115,14 +115,12 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
     
     // Generate field-based structure
     const fields: Record<string, GameRunField> = {};
-    const fieldsByOriginalKey = new Map<string, string>();
     
     for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
       const camelKey = toCamelCase(originalKey);
       const field = createGameRunField(originalKey, rawValue);
       
       fields[camelKey] = field;
-      fieldsByOriginalKey.set(originalKey.toLowerCase(), camelKey);
     }
     
     // Extract key stats from field structure
@@ -132,7 +130,6 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
       id: crypto.randomUUID(),
       timestamp: customTimestamp || new Date(),
       fields,
-      _fieldsByOriginalKey: fieldsByOriginalKey,
       ...fieldKeyStats,
     };
   } catch (error) {

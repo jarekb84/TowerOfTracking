@@ -86,7 +86,6 @@ export function parseGenericCsv(
 
       // Build field structure using only supported fields
       const fields: Record<string, GameRunField> = {};
-      const fieldsByOriginalKey = new Map<string, string>();
       
       // Process each column that maps to a supported field
       for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
@@ -97,7 +96,6 @@ export function parseGenericCsv(
         const field = createGameRunField(originalHeader, rawValue);
         
         fields[fieldName] = field;
-        fieldsByOriginalKey.set(originalHeader.toLowerCase(), fieldName);
       }
 
       // Parse timestamp if date/time fields are available
@@ -110,7 +108,6 @@ export function parseGenericCsv(
         id: crypto.randomUUID(),
         timestamp,
         fields,
-        _fieldsByOriginalKey: fieldsByOriginalKey,
         ...keyStats,
       };
 
