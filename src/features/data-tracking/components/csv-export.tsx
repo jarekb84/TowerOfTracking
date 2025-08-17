@@ -83,12 +83,12 @@ export function CsvExport({ className }: CsvExportProps) {
     }
   };
 
-  const handleDownloadFile = (): void => {
+  const handleDownloadFile = async (): Promise<void> => {
     if (!exportResult?.csvContent) return;
     
     try {
       const filename = generateExportFilename(exportResult.rowCount);
-      downloadAsFile(exportResult.csvContent, filename);
+      await downloadAsFile(exportResult.csvContent, filename);
       setDownloadSuccess(true);
       setError(null);
       setTimeout(() => setDownloadSuccess(false), 2000);

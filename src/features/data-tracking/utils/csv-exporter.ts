@@ -241,10 +241,27 @@ export async function copyToClipboard(text: string): Promise<void> {
 }
 
 /**
- * Download text as file
+ * Download text as file using File System Access API with fallback
  */
-export function downloadAsFile(content: string, filename: string): void {
+export async function downloadAsFile(content: string, filename: string): Promise<void> {
   try {
+    // Try using File System Access API first (Chrome 86+, Edge 86+)
+    if ('showSaveFilePicker' in window) {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{
+          description: 'CSV files',
+          accept: { 'text/csv': ['.csv'] }
+        }]
+      });
+      
+      const writable = await fileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      return;
+    }
+    
+    // Fallback to traditional download for unsupported browsers
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     
@@ -261,6 +278,10 @@ export function downloadAsFile(content: string, filename: string): void {
       throw new Error('File download not supported');
     }
   } catch (error) {
+    // If user cancels the save dialog, don't throw an error
+    if (error instanceof Error && error.name === 'AbortError') {
+      return;
+    }
     throw new Error('Failed to download file');
   }
 }
