@@ -8,10 +8,6 @@
             tier stats
         and all related code/logic for those sub features shoudl be in the same dir
 - add unit tests around parsing game run stats from clipboard
-- modify the csv import to not have special hadnling for my specific spreadsheet format
-    it shoudl just accept col names that match up to the prop names from the game stats export
-    ie instead of "Coins" it should expect a col for "Coins Earned"
-    and instead of constructing a Real Time field from horus, min, sec, it should just expect a "Real Time" field with data tha tlooks like 7h 48m 33s which is the output from the game's stat export
 - add linting for no unused exports/fields
 - have claude run linting/tests
 - create a process to sync up ai instructions sets

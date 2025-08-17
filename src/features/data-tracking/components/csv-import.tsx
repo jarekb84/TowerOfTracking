@@ -6,6 +6,7 @@ import { parseGenericCsv, getDelimiterString } from '../utils/csv-parser';
 import { formatNumber, formatDuration } from '../utils/data-parser';
 import { getFieldValue } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
+import { useFileImport } from '../hooks/use-file-import';
 import type { CsvDelimiter, CsvParseResult } from '../types/game-run.types';
 
 interface CsvImportProps {
@@ -49,6 +50,16 @@ export function CsvImport({ className }: CsvImportProps) {
       console.error('Failed to read clipboard:', error);
     }
   };
+
+  const { importFile } = useFileImport({
+    onFileContent: (text) => {
+      setInputData(text);
+      parseData(text);
+    },
+    onError: (error) => {
+      console.error('Failed to import file:', error);
+    }
+  });
 
   const handleInputChange = (value: string): void => {
     setInputData(value);
@@ -117,6 +128,14 @@ export function CsvImport({ className }: CsvImportProps) {
                 >
                   <Upload className="h-4 w-4" />
                   Paste from Clipboard
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={importFile}
+                  className="gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Import from File
                 </Button>
                 
                 <div className="flex items-center gap-2">

@@ -5,7 +5,8 @@ import { CalendarIcon, Clock } from 'lucide-react';
 import { parseGameRun, formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../utils/data-parser';
 import { getFieldValue, getFieldRaw } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
-import { Plus, Upload } from 'lucide-react';
+import { useFileImport } from '../hooks/use-file-import';
+import { Plus, Upload, FileText } from 'lucide-react';
 import type { ParsedGameRun } from '../types/game-run.types';
 
 interface DataInputProps {
@@ -42,6 +43,24 @@ export function DataInput({ className }: DataInputProps) {
       console.error('Failed to read clipboard:', error);
     }
   };
+
+  const { importFile } = useFileImport({
+    onFileContent: (text) => {
+      setInputData(text);
+      if (text.trim()) {
+        try {
+          const parsed = parseGameRun(text, getDateTimeFromSelection());
+          setPreviewData(parsed);
+          setSelectedRunType(parsed.runType);
+        } catch (error) {
+          setPreviewData(null);
+        }
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to import file:', error);
+    }
+  });
 
   const handleInputChange = (value: string): void => {
     setInputData(value);
@@ -175,6 +194,14 @@ export function DataInput({ className }: DataInputProps) {
                 >
                   <Upload className="h-4 w-4" />
                   Paste from Clipboard
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={importFile}
+                  className="gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Import from File
                 </Button>
               </div>
               

@@ -10,6 +10,7 @@ export { TimeSeriesChart } from './components/time-series-chart';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
+export { useFileImport } from './hooks/use-file-import';
 
 // Data Tracking Types
 export type { 
