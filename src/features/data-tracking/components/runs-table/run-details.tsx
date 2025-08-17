@@ -1,4 +1,5 @@
 import type { ParsedGameRun } from '../../types/game-run.types';
+import { findField } from '../../utils/field-utils';
 
 interface RunDetailsProps {
   run: ParsedGameRun;
@@ -42,17 +43,6 @@ const STAT_GROUPS = {
   ]
 };
 
-function findDataKey(rawData: Record<string, string>, targetKey: string): string | null {
-  // Try exact match first
-  const exactKey = Object.keys(rawData).find(key => key === targetKey);
-  if (exactKey) return exactKey;
-  
-  // Try case-insensitive match
-  const lowerTargetKey = targetKey.toLowerCase();
-  return Object.keys(rawData).find(key => 
-    key.toLowerCase() === lowerTargetKey
-  ) || null;
-}
 
 function StatSection({ title, fieldsData }: { 
   title: string; 
@@ -84,23 +74,24 @@ function StatSection({ title, fieldsData }: {
   );
 }
 
-function StatGroup({ title, fields, rawData }: { 
+function StatGroup({ title, fields, run }: { 
   title: string; 
   fields: string[]; 
-  rawData: Record<string, string>; 
+  run: ParsedGameRun; 
 }) {
   const availableFields = fields
-    .map(field => ({
-      originalField: field,
-      dataKey: findDataKey(rawData, field),
-      value: findDataKey(rawData, field) ? rawData[findDataKey(rawData, field)!] : null
-    }))
-    .filter(item => item.value !== null)
-    .map(({ originalField, dataKey, value }) => ({
-      key: dataKey!,
-      displayName: originalField,
-      value: value!
-    }));
+    .map(fieldName => {
+      const field = findField(run, fieldName);
+      if (field) {
+        return {
+          key: field.originalKey,
+          displayName: field.originalKey,
+          value: field.displayValue
+        };
+      }
+      return null;
+    })
+    .filter(Boolean) as Array<{ key: string; displayName: string; value: string }>;
 
   return <StatSection title={title} fieldsData={availableFields} />;
 }
@@ -112,11 +103,19 @@ export function RunDetails({ run }: RunDetailsProps) {
   );
   
   // Find unmatched fields
-  const unmatchedFields = Object.keys(run.rawData).filter(key => 
-    !categorizedFields.has(key.toLowerCase())
-  );
+  const unmatchedFields = Object.keys(run.fields)
+    .filter(camelKey => {
+      const field = run.fields[camelKey];
+      return !categorizedFields.has(field.originalKey.toLowerCase());
+    })
+    .map(camelKey => ({
+      key: run.fields[camelKey].originalKey,
+      displayName: run.fields[camelKey].originalKey,
+      value: run.fields[camelKey].displayValue
+    }));
 
-  const notes = run.processedData.notes;
+  // Get notes from field structure
+  const notes = run.fields?.notes?.displayValue || '';
 
   return (
     <div className="space-y-6">
@@ -138,17 +137,13 @@ export function RunDetails({ run }: RunDetailsProps) {
           key={groupTitle}
           title={groupTitle}
           fields={fields}
-          rawData={run.rawData}
+          run={run}
         />
       ))}
       
       <StatSection
         title="Misc"
-        fieldsData={unmatchedFields.map(key => ({
-          key,
-          displayName: key,
-          value: run.rawData[key]
-        }))}
+        fieldsData={unmatchedFields}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFoote
 import { format } from 'date-fns';
 import { Upload, FileText } from 'lucide-react';
 import { parseCsvData, formatNumber, formatDuration } from '../utils/data-parser';
+import { getFieldValue } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
 import type { ParsedGameRun } from '../types/game-run.types';
 
@@ -162,8 +163,8 @@ Date,Time,Tier,Wave,Hrs,Min,Sec,Duration,Coins,Cells,CellsPerHour,CoinsPerHour,C
                           {run.realTime > 0 && <div>Duration: {formatDuration(run.realTime)}</div>}
                           <div>Coins: {formatNumber(run.coinsEarned)}</div>
                           {run.cellsEarned > 0 && <div>Cells: {formatNumber(run.cellsEarned)}</div>}
-                          {run.processedData.killedBy && <div>Killed By: {run.processedData.killedBy}</div>}
-                          {run.processedData.notes && <div>Notes: {run.processedData.notes}</div>}
+                          {getFieldValue<string>(run, 'killedBy') && <div>Killed By: {getFieldValue<string>(run, 'killedBy')}</div>}
+                          {getFieldValue<string>(run, 'notes') && <div>Notes: {getFieldValue<string>(run, 'notes')}</div>}
                         </div>
                       </div>
                     ))}

@@ -3,6 +3,7 @@ import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFoote
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
 import { parseGameRun, formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../utils/data-parser';
+import { getFieldValue, getFieldRaw } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
 import { Plus, Upload } from 'lucide-react';
 import type { ParsedGameRun } from '../types/game-run.types';
@@ -60,11 +61,21 @@ export function DataInput({ className }: DataInputProps) {
   const handleSave = (): void => {
     if (previewData) {
       // Allow manual override of runType and add notes
+      const updatedFields = {
+        ...previewData.fields,
+        notes: {
+          value: notes,
+          rawValue: notes,
+          displayValue: notes,
+          originalKey: 'Notes',
+          dataType: 'string' as const
+        }
+      };
+      
       const runWithNotes = {
         ...previewData,
         runType: selectedRunType,
-        camelCaseData: { ...previewData.camelCaseData, notes },
-        processedData: { ...previewData.processedData, notes }
+        fields: updatedFields
       };
       addRun(runWithNotes);
       setInputData('');
@@ -273,11 +284,11 @@ Cash Earned        $44.65B"
                         )}
                         {previewData && (
                           <div>
-                            Tier: {formatTierLabel(previewData.camelCaseData?.tier, previewData.tier)}
+                            Tier: {formatTierLabel(getFieldRaw(previewData, 'tier'), previewData.tier)}
                           </div>
                         )}
                         {previewData.wave && <div>Wave: {formatNumber(previewData.wave)}</div>}
-                        {previewData.processedData.killedBy && <div>Killed By: {previewData.processedData.killedBy}</div>}
+                        {getFieldValue<string>(previewData, 'killedBy') && <div>Killed By: {getFieldValue<string>(previewData, 'killedBy')}</div>}
                         {previewData.coinsEarned && (
                           <div>
                             Coins: {formatNumber(previewData.coinsEarned)} (

@@ -32,11 +32,11 @@ export function useDataProvider(): DataContextType {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Convert timestamp strings back to Date objects
+        // Convert timestamp strings back to Date objects and restore Map
         const runsWithDates = parsed.map((run: any) => ({
           ...run,
           timestamp: new Date(run.timestamp),
-          runType: run.runType ?? (run?.camelCaseData?.tier && /\+/.test(run.camelCaseData.tier) ? 'tournament' : 'farm'),
+          _fieldsByOriginalKey: new Map(run._fieldsByOriginalKeyArray || []),
         }));
         setRuns(runsWithDates);
       }
@@ -68,7 +68,13 @@ export function useDataProvider(): DataContextType {
     if (!isClient) return;
     
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
+      // Convert Map to array for JSON serialization
+      const runsForStorage = runs.map(run => ({
+        ...run,
+        _fieldsByOriginalKeyArray: Array.from(run._fieldsByOriginalKey.entries()),
+        _fieldsByOriginalKey: undefined, // Remove the Map before serialization
+      }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(runsForStorage));
     } catch (error) {
       console.error('Failed to save runs to localStorage:', error);
     }

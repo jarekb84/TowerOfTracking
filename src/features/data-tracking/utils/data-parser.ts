@@ -14,13 +14,14 @@ const BILLIONS_SCALE = new humanFormat.Scale({
   O: 1e27,
 });
 import type { 
-  ParsedGameRun, 
-  RawGameRunData, 
+  ParsedGameRun,
   CamelCaseGameRunData, 
   ProcessedGameRunData,
   DataTransformResult,
-  RawClipboardData
+  RawClipboardData,
+  GameRunField
 } from '../types/game-run.types';
+import { createGameRunField, toCamelCase as fieldUtilsToCamelCase } from './field-utils';
 
 // Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
 export function parseDuration(duration: string): number {
@@ -81,8 +82,8 @@ export function parseShorthandNumber(value: string): number {
   return number * (multipliers[suffix] || 1);
 }
 
-// Convert property name to camelCase
-export function toCamelCase(str: string): string {
+// Convert property name to camelCase (moved to field-utils.ts)
+function toCamelCase(str: string): string {
   return str
     .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
       return index === 0 ? word.toLowerCase() : word.toUpperCase();
@@ -213,6 +214,28 @@ export function extractKeyStats(processedData: ProcessedGameRunData): {
   };
 }
 
+export function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
+  tier: number;
+  wave: number;
+  coinsEarned: number;
+  cellsEarned: number;
+  realTime: number;
+  runType: 'farm' | 'tournament';
+} {
+  const tier = (fields.tier?.value as number) || 0;
+  const tierStr = (fields.tier?.rawValue) || '';
+  const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
+  
+  return {
+    tier,
+    wave: (fields.wave?.value as number) || 0,
+    coinsEarned: (fields.coinsEarned?.value as number) || 0,
+    cellsEarned: (fields.cellsEarned?.value as number) || 0,
+    realTime: (fields.realTime?.value as number) || 0,
+    runType
+  };
+}
+
 // Calculate value per hour
 export function calculatePerHour(value: number, durationInSeconds: number): number {
   if (durationInSeconds === 0) {
@@ -222,33 +245,33 @@ export function calculatePerHour(value: number, durationInSeconds: number): numb
   return value / hours;
 }
 
-// Main parsing function
+// Main parsing function with enhanced field structure
 export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGameRun {
   try {
     const clipboardData = parseTabDelimitedData(rawInput);
     console.log('Parsed clipboard data:', clipboardData);
     
-    const { camelCaseData, processedData } = transformGameRunData(clipboardData);
-    console.log('Transformed data:', { camelCaseData, processedData });
+    // Generate field-based structure
+    const fields: Record<string, GameRunField> = {};
+    const fieldsByOriginalKey = new Map<string, string>();
     
-    const keyStats = extractKeyStats(processedData);
-    console.log('Key stats:', keyStats);
+    for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
+      const camelKey = fieldUtilsToCamelCase(originalKey);
+      const field = createGameRunField(originalKey, rawValue);
+      
+      fields[camelKey] = field;
+      fieldsByOriginalKey.set(originalKey.toLowerCase(), camelKey);
+    }
     
-    // Determine run type based on Tier string including '+'
-    const tierStr = camelCaseData.tier || '';
-    const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
-    
-    // Raw data is just the clipboard data as-is
-    const rawData: RawGameRunData = clipboardData;
+    // Extract key stats from field structure
+    const fieldKeyStats = extractKeyStatsFromFields(fields);
     
     return {
       id: crypto.randomUUID(),
       timestamp: customTimestamp || new Date(),
-      rawData: rawData as RawGameRunData,
-      camelCaseData,
-      processedData,
-      ...keyStats,
-      runType,
+      fields,
+      _fieldsByOriginalKey: fieldsByOriginalKey,
+      ...fieldKeyStats,
     };
   } catch (error) {
     console.error('Error parsing game run:', error);
@@ -421,29 +444,39 @@ export function parseCsvData(rawInput: string): { success: ParsedGameRun[], fail
         timestamp = new Date();
       }
 
-      // Transform data using existing functions
-      const { camelCaseData, processedData } = transformGameRunData(rawData);
+      // Generate field structure for CSV imports
+      const fields: Record<string, GameRunField> = {};
+      const fieldsByOriginalKey = new Map<string, string>();
       
-      // Add notes if provided
-      if (notes) {
-        camelCaseData.notes = notes;
-        processedData.notes = notes;
+      for (const [originalKey, rawValue] of Object.entries(rawData)) {
+        const camelKey = fieldUtilsToCamelCase(originalKey);
+        const field = createGameRunField(originalKey, rawValue);
+        
+        fields[camelKey] = field;
+        fieldsByOriginalKey.set(originalKey.toLowerCase(), camelKey);
       }
-
-      const keyStats = extractKeyStats(processedData);
       
-      // Determine run type (default to farm for CSV imports)
-      const tierStr = camelCaseData.tier || '';
-      const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
+      // Add notes from CSV if provided
+      if (notes) {
+        fields.notes = {
+          value: notes,
+          rawValue: notes,
+          displayValue: notes,
+          originalKey: 'Notes',
+          dataType: 'string'
+        };
+        fieldsByOriginalKey.set('notes', 'notes');
+      }
+      
+      // Extract key stats from field structure
+      const csvFieldKeyStats = extractKeyStatsFromFields(fields);
 
       const parsedRun: ParsedGameRun = {
         id: crypto.randomUUID(),
         timestamp,
-        rawData: rawData as RawGameRunData,
-        camelCaseData,
-        processedData,
-        ...keyStats,
-        runType,
+        fields,
+        _fieldsByOriginalKey: fieldsByOriginalKey,
+        ...csvFieldKeyStats,
       };
 
       success.push(parsedRun);

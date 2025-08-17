@@ -1,6 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Button } from '../../../../components/ui';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../../utils/data-parser';
+import { getFieldValue } from '../../utils/field-utils';
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { ChevronDown, ChevronRight, Trash2, StickyNote } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
       id: 'notes',
       header: '',
       cell: ({ row }) => {
-        const notes = row.original.processedData.notes;
+        const notes = getFieldValue<string>(row.original, 'notes');
         if (!notes || notes.trim() === '') {
           return null;
         }
@@ -65,7 +66,8 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
       header: 'Tier',
       cell: (info) => {
         const row = info.row.original;
-        return formatTierLabel(row.camelCaseData?.tier, row.tier);
+        const tierField = row.fields.tier;
+        return formatTierLabel(tierField?.rawValue, row.tier);
       },
     }),
     columnHelper.accessor('wave', {
@@ -75,7 +77,7 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         return value ? value.toLocaleString() : '-';
       },
     }),
-    columnHelper.accessor((row) => row.processedData.killedBy, {
+    columnHelper.accessor((row) => getFieldValue<string>(row, 'killedBy'), {
       id: 'killedBy',
       header: 'Killed by',
       cell: (info) => {

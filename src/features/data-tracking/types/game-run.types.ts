@@ -173,20 +173,24 @@ export interface ProcessedGameRunData {
   notes: string;
 }
 
-// Main game run interface
+// Main game run interface with enhanced field structure
 export interface ParsedGameRun {
   id: string;
   timestamp: Date;
-  rawData: RawGameRunData;
-  camelCaseData: CamelCaseGameRunData;
-  processedData: ProcessedGameRunData;
-  // Key stats for quick access
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number; // in seconds
-  runType: 'farm' | 'tournament';
+  
+  // Single data source with rich field objects
+  fields: Record<string, GameRunField>;
+  
+  // Cached computed properties for performance
+  readonly tier: number;
+  readonly wave: number;
+  readonly coinsEarned: number;
+  readonly cellsEarned: number;
+  readonly realTime: number;
+  readonly runType: 'farm' | 'tournament';
+  
+  // Field lookup optimization
+  readonly _fieldsByOriginalKey: Map<string, string>;
 }
 
 export interface GameRunFilters {
@@ -217,6 +221,19 @@ export type DataTransformResult = {
   processedData: ProcessedGameRunData;
 };
 
+// NEW: Enhanced field interface for single source of truth
+export interface GameRunField {
+  // Computed values for analytics
+  value: number | string | Date;
+  
+  // Display formats
+  rawValue: string;           // Original clipboard value
+  displayValue: string;       // Formatted for display (70.5B, 2h 45m)
+  
+  // Metadata
+  originalKey: string;        // Original clipboard key
+  dataType: 'number' | 'duration' | 'string' | 'date';
+}
 // Number suffixes for parsing
 export type NumberSuffix = 'K' | 'M' | 'B' | 'T' | 'Q' | 'q' | 'S' | 's' | 'O';
 

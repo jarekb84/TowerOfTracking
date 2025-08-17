@@ -13,6 +13,7 @@ export { useData, useDataProvider, DataContext } from './hooks/use-data';
 // Data Tracking Types
 export type { 
   ParsedGameRun, 
+  GameRunField,  
   RawGameRunData, 
   CamelCaseGameRunData, 
   ProcessedGameRunData,
@@ -30,12 +31,20 @@ export {
   parseDuration, 
   parseShorthandNumber, 
   parseTabDelimitedData, 
-  transformGameRunData,
-  toCamelCase,
-  extractKeyStats, 
+  extractKeyStatsFromFields,
   formatNumber, 
   formatDuration 
 } from './utils/data-parser';
+
+// Field Utilities
+export {
+  createGameRunField,
+  findField,
+  getFieldValue,
+  getFieldDisplay,
+  getFieldRaw,
+  toCamelCase
+} from './utils/field-utils';
 
 export {
   prepareKilledByData,

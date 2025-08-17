@@ -1,5 +1,6 @@
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, isSameDay } from 'date-fns'
 import { ParsedGameRun } from '../types/game-run.types'
+import { getFieldValue } from './field-utils'
 
 export interface ChartDataPoint {
   date: string
@@ -203,7 +204,8 @@ export function prepareKilledByData(runs: ParsedGameRun[]): TierKilledByData[] {
   const tierGroups = new Map<number, ParsedGameRun[]>()
   
   runs.forEach(run => {
-    if (run.tier && run.processedData.killedBy) {
+    const killedBy = getFieldValue<string>(run, 'killedBy');
+    if (run.tier && killedBy) {
       if (!tierGroups.has(run.tier)) {
         tierGroups.set(run.tier, [])
       }
@@ -219,7 +221,7 @@ export function prepareKilledByData(runs: ParsedGameRun[]): TierKilledByData[] {
     const deathCounts = new Map<string, number>()
     
     tierRuns.forEach(run => {
-      const killedBy = run.processedData.killedBy || 'Unknown'
+      const killedBy = getFieldValue<string>(run, 'killedBy') || 'Unknown'
       deathCounts.set(killedBy, (deathCounts.get(killedBy) || 0) + 1)
     })
 
