@@ -1,6 +1,7 @@
 // Data Tracking Components
 export { DataInput } from './components/data-input';
 export { CsvImport } from './components/csv-import';
+export { CsvExport } from './components/csv-export';
 export { DataProvider } from './components/data-provider';
 export { RunsTable } from './components/runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
@@ -30,12 +31,26 @@ export {
   formatDuration 
 } from './utils/data-parser';
 
-// New Generic CSV Parser
+// CSV Import/Export
 export {
   parseGenericCsv,
   getDelimiterString,
   getSupportedFields
 } from './utils/csv-parser';
+
+export {
+  exportToCsv,
+  detectDelimiterConflicts,
+  generateExportFilename,
+  copyToClipboard,
+  downloadAsFile
+} from './utils/csv-exporter';
+
+export type {
+  CsvExportConfig,
+  CsvExportResult,
+  DelimiterConflict
+} from './utils/csv-exporter';
 
 // Field Utilities
 export {

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DataInput, CsvImport, RunsTable } from '../features/data-tracking'
+import { DataInput, CsvImport, CsvExport, RunsTable } from '../features/data-tracking'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui'
 import { TrendingUp } from 'lucide-react'
 
@@ -15,6 +15,7 @@ function App() {
         <div className="flex gap-3">
           <DataInput />
           <CsvImport />
+          <CsvExport />
         </div>
       </div>
 
