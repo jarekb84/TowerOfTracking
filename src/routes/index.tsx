@@ -21,60 +21,6 @@ function App() {
       {/* Main Content */}
       <div className="space-y-6">
         <RunsTable />
-        
-        {/* Placeholder for upcoming features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Charts
-              </CardTitle>
-              <CardDescription>
-                Visualizations coming soon
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Timeline charts for coins, cells, and performance metrics
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Analytics
-              </CardTitle>
-              <CardDescription>
-                Tier analysis coming soon
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Aggregated statistics and performance analysis by tier
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Export
-              </CardTitle>
-              <CardDescription>
-                Data export coming soon
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Export your data to various formats for further analysis
-              </p>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   )
