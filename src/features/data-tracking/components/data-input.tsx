@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Calendar, Popover, PopoverContent, PopoverTrigger, Input } from '../../../components/ui';
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
@@ -8,6 +8,8 @@ import { useData } from '../hooks/use-data';
 import { useFileImport } from '../hooks/use-file-import';
 import { Plus, Upload, FileText } from 'lucide-react';
 import type { ParsedGameRun } from '../types/game-run.types';
+import { DuplicateInfo, type DuplicateResolution } from './duplicate-info';
+import type { DuplicateDetectionResult } from '../utils/duplicate-detection';
 
 interface DataInputProps {
   className?: string;
@@ -28,7 +30,28 @@ export function DataInput({ className }: DataInputProps) {
     };
   });
   const [notes, setNotes] = useState('');
-  const { addRun } = useData();
+  const [duplicateResult, setDuplicateResult] = useState<DuplicateDetectionResult | null>(null);
+  const [resolution, setResolution] = useState<DuplicateResolution>('new-only');
+  const { addRun, checkDuplicate, overwriteRun } = useData();
+
+  // Helper function to check for duplicates immediately when data is parsed
+  const checkForDuplicates = (parsed: ParsedGameRun) => {
+    const result = checkDuplicate(parsed);
+    setDuplicateResult(result);
+    // Default to 'new-only' when duplicates are found
+    if (result.isDuplicate) {
+      setResolution('new-only');
+    }
+  };
+
+  // Check for duplicates whenever preview data changes
+  useEffect(() => {
+    if (previewData) {
+      checkForDuplicates(previewData);
+    } else {
+      setDuplicateResult(null);
+    }
+  }, [previewData, checkDuplicate]);
 
   const handlePaste = async (): Promise<void> => {
     try {
@@ -96,12 +119,30 @@ export function DataInput({ className }: DataInputProps) {
         runType: selectedRunType,
         fields: updatedFields
       };
-      addRun(runWithNotes);
-      setInputData('');
-      setPreviewData(null);
-      setNotes('');
-      setIsDialogOpen(false);
+
+      // Handle based on duplicate detection and user resolution choice
+      if (duplicateResult?.isDuplicate && duplicateResult.existingRun) {
+        if (resolution === 'overwrite') {
+          // Overwrite existing run, preserving date/time
+          overwriteRun(duplicateResult.existingRun.id, runWithNotes, true);
+        }
+        // If resolution is 'new-only', we skip saving (don't import duplicate)
+      } else {
+        // No duplicate, save directly
+        addRun(runWithNotes);
+      }
+      
+      resetForm();
     }
+  };
+
+  const resetForm = (): void => {
+    setInputData('');
+    setPreviewData(null);
+    setNotes('');
+    setDuplicateResult(null);
+    setResolution('new-only');
+    setIsDialogOpen(false);
   };
 
   const handleCancel = (): void => {
@@ -109,6 +150,8 @@ export function DataInput({ className }: DataInputProps) {
     setPreviewData(null);
     setSelectedRunType('farm');
     setNotes('');
+    setDuplicateResult(null);
+    setResolution('new-only');
     const now = new Date();
     setSelectedDate(now);
     setSelectedTime({
@@ -335,6 +378,17 @@ Cash Earned        $44.65B"
                 </CardContent>
               </Card>
             )}
+
+            {/* Duplicate Detection - shows immediately when duplicates are found */}
+            {duplicateResult?.isDuplicate && previewData && (
+              <DuplicateInfo
+                singleResult={duplicateResult}
+                newRun={previewData}
+                onResolutionChange={setResolution}
+                resolution={resolution}
+                className="mt-4"
+              />
+            )}
           </div>
 
           <DialogFooter>
@@ -345,7 +399,10 @@ Cash Earned        $44.65B"
               onClick={handleSave} 
               disabled={!previewData}
             >
-              Save Run
+              {duplicateResult?.isDuplicate 
+                ? (resolution === 'overwrite' ? 'Overwrite Existing' : 'Skip Duplicate')
+                : 'Save Run'
+              }
             </Button>
           </DialogFooter>
         </DialogContent>

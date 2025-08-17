@@ -19,3 +19,4 @@
     farming runs focus on econ related data
     tournament runs focus on combat focused stuff
     milestone runs...figure it out
+- remove _fieldsByOriginalKey, seems old/unused    

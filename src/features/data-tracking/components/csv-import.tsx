@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '../../../components/ui';
 import { format } from 'date-fns';
 import { Upload, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
@@ -8,6 +8,8 @@ import { getFieldValue } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
 import { useFileImport } from '../hooks/use-file-import';
 import type { CsvDelimiter, CsvParseResult } from '../types/game-run.types';
+import { DuplicateInfo, type DuplicateResolution } from './duplicate-info';
+import type { BatchDuplicateDetectionResult } from '../utils/duplicate-detection';
 
 interface CsvImportProps {
   className?: string;
@@ -19,11 +21,28 @@ export function CsvImport({ className }: CsvImportProps) {
   const [parseResult, setParseResult] = useState<CsvParseResult | null>(null);
   const [selectedDelimiter, setSelectedDelimiter] = useState<CsvDelimiter>('tab');
   const [customDelimiter, setCustomDelimiter] = useState('');
-  const { addRun } = useData();
+  const [duplicateResult, setDuplicateResult] = useState<BatchDuplicateDetectionResult | null>(null);
+  const [resolution, setResolution] = useState<DuplicateResolution>('new-only');
+  const { addRuns, detectBatchDuplicates, overwriteRun } = useData();
+
+  // Check for duplicates immediately when parse result changes
+  useEffect(() => {
+    if (parseResult?.success && parseResult.success.length > 0) {
+      const result = detectBatchDuplicates(parseResult.success);
+      setDuplicateResult(result);
+      // Default to 'new-only' when duplicates are found
+      if (result.duplicates.length > 0) {
+        setResolution('new-only');
+      }
+    } else {
+      setDuplicateResult(null);
+    }
+  }, [parseResult, detectBatchDuplicates]);
 
   const parseData = (text: string): void => {
     if (!text.trim()) {
       setParseResult(null);
+      setDuplicateResult(null);
       return;
     }
 
@@ -81,15 +100,41 @@ export function CsvImport({ className }: CsvImportProps) {
   };
 
   const handleImport = (): void => {
-    if (parseResult?.success) {
-      parseResult.success.forEach(run => {
-        addRun(run);
-      });
+    if (parseResult?.success && parseResult.success.length > 0) {
+      // Handle based on duplicate detection and user resolution choice
+      if (duplicateResult && duplicateResult.duplicates.length > 0) {
+        if (resolution === 'new-only') {
+          // Only import new runs
+          addRuns(duplicateResult.newRuns, false);
+        } else if (resolution === 'overwrite') {
+          // Import new runs + overwrite existing duplicates
+          if (duplicateResult.newRuns.length > 0) {
+            addRuns(duplicateResult.newRuns, false);
+          }
+          // Overwrite existing runs with duplicate data
+          duplicateResult.duplicates.forEach(({ newRun, existingRun }) => {
+            if (existingRun) {
+              // Use the new overwriteRun method with date/time preservation
+              overwriteRun(existingRun.id, newRun, true);
+            }
+          });
+        }
+      } else {
+        // No duplicates, import all runs
+        addRuns(parseResult.success, false);
+      }
+      
+      resetForm();
     }
+  };
+
+  const resetForm = (): void => {
     setInputData('');
     setParseResult(null);
     setSelectedDelimiter('tab');
     setCustomDelimiter('');
+    setDuplicateResult(null);
+    setResolution('new-only');
     setIsDialogOpen(false);
   };
 
@@ -98,6 +143,8 @@ export function CsvImport({ className }: CsvImportProps) {
     setParseResult(null);
     setSelectedDelimiter('tab');
     setCustomDelimiter('');
+    setDuplicateResult(null);
+    setResolution('new-only');
     setIsDialogOpen(false);
   };
 
@@ -329,6 +376,16 @@ Column headers will be automatically converted to camelCase and matched against 
                 </CardContent>
               </Card>
             )}
+
+            {/* Duplicate Detection - shows immediately when duplicates are found */}
+            {duplicateResult && duplicateResult.duplicates.length > 0 && (
+              <DuplicateInfo
+                batchResult={duplicateResult}
+                onResolutionChange={setResolution}
+                resolution={resolution}
+                className="mt-4"
+              />
+            )}
           </div>
 
           <DialogFooter>
@@ -339,7 +396,13 @@ Column headers will be automatically converted to camelCase and matched against 
               onClick={handleImport} 
               disabled={!parseResult?.success || parseResult.success.length === 0}
             >
-              Import {parseResult?.success?.length || 0} Runs
+              {duplicateResult && duplicateResult.duplicates.length > 0
+                ? (resolution === 'overwrite' 
+                    ? `Import ${duplicateResult.newRuns.length} + Overwrite ${duplicateResult.duplicates.length}`
+                    : `Import ${duplicateResult.newRuns.length} New Only`
+                  )
+                : `Import ${parseResult?.success?.length || 0} Runs`
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
