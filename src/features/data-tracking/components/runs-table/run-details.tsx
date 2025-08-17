@@ -13,7 +13,7 @@ const STAT_GROUPS = {
   'Combat': [
     'Damage Taken', 'Damage Taken Wall', 'Damage Taken While Berserked', 
     'Damage Gain From Berserk', 'Death Defy', 'Lifesteal', 'Damage Dealt', 
-    'Projectiles Damage--', 'Projectiles Count--', 'Thorn Damage', 'Orb Damage', 
+    'Projectiles Damage', 'Projectiles Count', 'Thorn Damage', 'Orb Damage', 
     'Land Mine Damage', 'Land Mines Spawned', 'Rend Armor Damage', 'Death Ray Damage', 
     'Smart Missile Damage'
   ],
