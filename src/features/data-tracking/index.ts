@@ -14,13 +14,8 @@ export { useData, useDataProvider, DataContext } from './hooks/use-data';
 export type { 
   ParsedGameRun, 
   GameRunField,  
-  RawGameRunData, 
-  CamelCaseGameRunData, 
-  ProcessedGameRunData,
-  GameRunFilters, 
-  GameRunSortConfig, 
-  GameRunTableColumn,
-  DataTransformResult,
+  RawGameRunData,
+  GameRunFilters,
   RawClipboardData
 } from './types/game-run.types';
 

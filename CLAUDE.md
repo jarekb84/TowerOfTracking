@@ -317,52 +317,6 @@ Implement the minimal solution that satisfies requirements:
 
 ### Known Architectural Issues to Fix
 
-#### 1. **CRITICAL**: Triple Data Representation Problem
-Current `ParsedGameRun` interface stores the same data in 3 formats:
-```typescript
-interface ParsedGameRun {
-  rawData: Record<string, string>;           // Original keys/values
-  camelCaseData: CamelCaseGameRunData;       // Same data, camel-cased keys  
-  processedData: ProcessedGameRunData;       // Same data, proper types
-}
-```
-
-**Required Refactor**: Single data structure with rich field objects:
-```typescript
-interface GameRunField {
-  value: number | string;           // Processed value for calculations
-  displayValue: string;             // Human-readable format (70.5B)
-  rawKey: string;                   // Original import key
-  rawValue: string;                 // Original import value
-}
-
-interface ParsedGameRun {
-  id: string;
-  timestamp: Date;
-  fields: Record<string, GameRunField>;  // Single source of truth
-  // Computed properties for quick access
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number;
-  runType: 'farm' | 'tournament';
-}
-```
-
-#### 2. **CRITICAL**: Performance Issue in run-details.tsx
-The `findDataKey()` function performs O(n) iteration defeating hash map benefits:
-```typescript
-// PROBLEM: O(n) lookup instead of O(1)
-function findDataKey(rawData: Record<string, string>, targetKey: string): string | null {
-  return Object.keys(rawData).find(key => 
-    key.toLowerCase() === targetKey.toLowerCase()
-  ) || null;
-}
-```
-
-**Required Fix**: Pre-process keys for O(1) lookup or eliminate the need entirely with the refactored data structure.
-
 #### 3. **Pattern**: Component Duplication Prevention
 When creating similar UI elements:
 - First occurrence: Implement directly
