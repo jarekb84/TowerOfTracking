@@ -28,10 +28,6 @@ export type {
 export { 
   parseGameRun, 
   parseCsvData,
-  parseDuration, 
-  parseShorthandNumber, 
-  parseTabDelimitedData, 
-  extractKeyStatsFromFields,
   formatNumber, 
   formatDuration 
 } from './utils/data-parser';

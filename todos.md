@@ -19,3 +19,4 @@
 - create a process to sync up ai instructions sets
 - extract claude agents/rules whatever into a user dir instead of having it in the proejct    
 - address duplicate implemeantion of functions between data-parser and the field utils
+- remove use of index.ts files
