@@ -1,0 +1,22 @@
+{
+  "entry": [
+    "src/router.tsx",
+    "src/routes/**/*.tsx",
+    "src/routes/**/*.ts",
+    "vite.config.ts"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "!src/**/*.test.{ts,tsx}",
+    "!src/**/*.spec.{ts,tsx}"
+  ],
+  "ignore": [
+    "src/routeTree.gen.ts"
+  ],
+  "ignoreDependencies": [
+    "@tanstack/react-start",
+    "@tailwindcss/vite",
+    "vite-tsconfig-paths",
+    "@vitejs/plugin-react"
+  ]
+}

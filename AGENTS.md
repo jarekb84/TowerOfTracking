@@ -263,6 +263,4 @@ src/features/
 
 **Data Parsing**: The app expects tab-delimited game statistics with property-value pairs. Key field mappings are handled via case-insensitive matching in `extractKeyStats()`.
 
-**Demo Files**: Files prefixed with `demo` in routes can be safely deleted - they're TanStack Start examples.
-
 **Future Supabase Integration**: The data layer is designed to eventually replace localStorage with Supabase for cross-device synchronization.
