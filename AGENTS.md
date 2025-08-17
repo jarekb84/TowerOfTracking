@@ -259,6 +259,230 @@ src/features/
 - Validate data at system boundaries
 - Provide meaningful error messages
 
+## Claude Code Development Workflow
+
+### Mandatory Red-Green-Refactor Process
+
+**CRITICAL**: Every Claude Code session MUST follow this systematic approach to prevent architectural debt accumulation.
+
+#### Phase 1: Requirement Analysis (Red)
+Before writing any code, ALWAYS use the `system-architect` agent to:
+
+**Trigger the architect agent for ALL tasks involving:**
+- Adding new features or components
+- Modifying existing data structures
+- Performance improvements 
+- Bug fixes that touch core logic
+- Any change affecting multiple files
+
+**Example triggers:**
+```
+USER: "Add a new chart for tracking upgrades"
+ASSISTANT: "I'll use the system-architect agent to analyze the existing chart infrastructure and implement this in a way that leverages our current TimeSeriesChart abstraction."
+
+USER: "The data loading is slow"  
+ASSISTANT: "Let me use the system-architect agent to investigate this performance issue and implement a solution that addresses the root cause while improving system scalability."
+```
+
+#### Phase 2: Implementation (Green)
+Implement the minimal solution that satisfies requirements:
+- Focus on making it work first
+- Follow existing patterns and conventions
+- Use TodoWrite to track implementation steps
+- Maintain test coverage
+
+#### Phase 3: Architecture Review & Refactor (Refactor)
+**MANDATORY** after every implementation - analyze for:
+
+**Duplication Detection:**
+- If implementing something for the 2nd time → note the pattern
+- If implementing something for the 3rd time → MUST refactor to abstraction
+- Look for similar logic, components, or data structures
+
+**Performance Anti-patterns:**
+- Hash map iterations instead of direct lookups
+- Nested loops where single pass would suffice  
+- Redundant data transformations
+- Unnecessary re-renders or recalculations
+
+**Data Structure Issues:**
+- Multiple representations of same data (like current rawData/camelCaseData/processedData)
+- Complex lookup patterns that defeat data structure benefits
+- Missing normalization opportunities
+
+**Separation of Concerns:**
+- Business logic mixed with presentation logic
+- Components doing too many things
+- Missing abstraction layers
+
+### Known Architectural Issues to Fix
+
+#### 1. **CRITICAL**: Triple Data Representation Problem
+Current `ParsedGameRun` interface stores the same data in 3 formats:
+```typescript
+interface ParsedGameRun {
+  rawData: Record<string, string>;           // Original keys/values
+  camelCaseData: CamelCaseGameRunData;       // Same data, camel-cased keys  
+  processedData: ProcessedGameRunData;       // Same data, proper types
+}
+```
+
+**Required Refactor**: Single data structure with rich field objects:
+```typescript
+interface GameRunField {
+  value: number | string;           // Processed value for calculations
+  displayValue: string;             // Human-readable format (70.5B)
+  rawKey: string;                   // Original import key
+  rawValue: string;                 // Original import value
+}
+
+interface ParsedGameRun {
+  id: string;
+  timestamp: Date;
+  fields: Record<string, GameRunField>;  // Single source of truth
+  // Computed properties for quick access
+  tier: number;
+  wave: number;
+  coinsEarned: number;
+  cellsEarned: number;
+  realTime: number;
+  runType: 'farm' | 'tournament';
+}
+```
+
+#### 2. **CRITICAL**: Performance Issue in run-details.tsx
+The `findDataKey()` function performs O(n) iteration defeating hash map benefits:
+```typescript
+// PROBLEM: O(n) lookup instead of O(1)
+function findDataKey(rawData: Record<string, string>, targetKey: string): string | null {
+  return Object.keys(rawData).find(key => 
+    key.toLowerCase() === targetKey.toLowerCase()
+  ) || null;
+}
+```
+
+**Required Fix**: Pre-process keys for O(1) lookup or eliminate the need entirely with the refactored data structure.
+
+#### 3. **Pattern**: Component Duplication Prevention
+When creating similar UI elements:
+- First occurrence: Implement directly
+- Second occurrence: Note similarity, consider abstraction  
+- Third occurrence: MANDATORY extraction to reusable component
+
+### Automatic Architect Agent Usage
+
+**Before ANY code modification, check these conditions:**
+
+1. **Feature Addition**: Adding new functionality → Use `system-architect`
+2. **Performance Issue**: Investigating slowness → Use `system-architect`  
+3. **Data Structure Change**: Modifying types/interfaces → Use `system-architect`
+4. **Third Similar Implementation**: Creating 3rd similar thing → Use `system-architect`
+5. **Cross-Feature Impact**: Changes affecting multiple features → Use `system-architect`
+
+**Agent Invocation Pattern:**
+```
+"I'll use the system-architect agent to [analyze existing patterns/investigate the issue/design this feature] and implement a solution that [improves architecture/reduces complexity/follows established patterns]."
+```
+
+### Example Refactoring Scenarios
+
+#### Scenario 1: Adding a Third Chart Type
+```
+USER: "Add a chart for tracking damage over time"
+
+PHASE 1 (RED - Requirement Analysis):
+ASSISTANT: "I'll use the system-architect agent to analyze our existing chart infrastructure. We already have TimeSeriesChart handling coins and cells metrics, so this would be the third chart implementation. Let me ensure we leverage the existing abstraction."
+
+[System-architect agent analyzes TimeSeriesChart.tsx and confirms it's properly configurable]
+
+PHASE 2 (GREEN - Implementation):
+ASSISTANT: "Perfect! The TimeSeriesChart component is already designed for this. I'll add 'damage' as a new metric option and update the chart-data.ts utility to handle damage aggregation."
+
+[Implements by extending existing TimeSeriesChart with new metric type]
+
+PHASE 3 (REFACTOR - Architecture Review):
+ASSISTANT: "Implementation complete. Architecture review: ✅ No duplication - leveraged existing abstraction. ✅ No performance issues. ✅ Maintains separation of concerns. The configurable design prevented the third-chart duplication problem."
+```
+
+#### Scenario 2: Component Duplication Pattern
+```
+USER: "Add a settings card for theme configuration"
+
+PHASE 1 (RED - Requirement Analysis):
+ASSISTANT: "I notice we already have similar card layouts in the runs table and data input areas. Let me check if this would be the third similar implementation requiring abstraction."
+
+[Reviews existing card components and finds 2 similar patterns]
+
+PHASE 2 (GREEN - Implementation):
+ASSISTANT: "This would be our third card-based settings component. Instead of duplicating, I'll extract a common SettingsCard component and refactor the existing implementations to use it."
+
+[Extracts abstraction and refactors existing code]
+
+PHASE 3 (REFACTOR - Architecture Review):
+ASSISTANT: "✅ Eliminated future duplication risk. ✅ Reduced codebase complexity. ✅ Created reusable abstraction for future settings sections."
+```
+
+#### Scenario 3: Performance Issue Detection
+```
+USER: "The run details view is rendering slowly"
+
+PHASE 1 (RED - Requirement Analysis):
+ASSISTANT: "I'll use the system-architect agent to investigate this performance issue and implement a solution that addresses the root cause while improving system scalability."
+
+[System-architect agent analyzes run-details.tsx and identifies the O(n) findDataKey issue]
+
+PHASE 2 (GREEN - Implementation):
+ASSISTANT: "Found the issue: findDataKey() is doing O(n) iteration instead of O(1) hash lookup. I'll create a normalized key mapping during data processing to eliminate the iteration."
+
+[Implements key normalization in data parser]
+
+PHASE 3 (REFACTOR - Architecture Review):
+ASSISTANT: "✅ Performance improved from O(n²) to O(1) lookup. ✅ Maintains existing API. ✅ Sets foundation for the planned data structure refactor. This change aligns with our goal to eliminate the triple data representation problem."
+```
+
+#### Scenario 4: Data Structure Modification
+```
+USER: "Add a new field for tracking power-ups used"
+
+PHASE 1 (RED - Requirement Analysis):  
+ASSISTANT: "I'll use the system-architect agent to analyze how this new field fits into our current data structure and whether this is an opportunity to address the triple representation issue."
+
+[System-architect agent identifies this as good opportunity for data structure improvement]
+
+PHASE 2 (GREEN - Implementation):
+ASSISTANT: "This is a perfect opportunity to start migrating toward the single-field-object pattern. I'll implement the new field using the GameRunField interface and create a migration path for existing data."
+
+[Implements new field with improved structure]
+
+PHASE 3 (REFACTOR - Architecture Review):
+ASSISTANT: "✅ New field uses improved data pattern. ✅ Created migration foundation. ✅ No performance regression. Next features should continue this pattern until we can fully refactor the data structure."
+```
+
+### Red-Green-Refactor Checklist
+
+**Before Each Session:**
+- [ ] Read user request carefully
+- [ ] Identify if this triggers architect agent usage (see conditions above)
+- [ ] If triggered, invoke system-architect agent before coding
+
+**During Implementation:**
+- [ ] Use TodoWrite to track progress
+- [ ] Follow existing patterns and conventions
+- [ ] Keep changes minimal and focused
+- [ ] Maintain test coverage
+
+**After Implementation:**
+- [ ] Check for duplication opportunities (2nd/3rd occurrence rule)
+- [ ] Verify no performance anti-patterns introduced
+- [ ] Confirm separation of concerns maintained
+- [ ] Consider if change improves or hurts overall architecture
+- [ ] Mark todos complete and note any follow-up architectural work needed
+
+**Session End:**
+- [ ] Architecture review complete
+- [ ] All todos marked complete
+- [ ] Codebase left in better state than before
+
 ## Special Considerations
 
 **Data Parsing**: The app expects tab-delimited game statistics with property-value pairs. Key field mappings are handled via case-insensitive matching in `extractKeyStats()`.
