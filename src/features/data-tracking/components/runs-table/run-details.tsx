@@ -116,9 +116,22 @@ export function RunDetails({ run }: RunDetailsProps) {
     !categorizedFields.has(key.toLowerCase())
   );
 
+  const notes = run.processedData.notes;
+
   return (
     <div className="space-y-6">
       <h4 className="font-medium text-lg">Complete Run Data</h4>
+      
+      {notes && notes.trim() !== '' && (
+        <div className="space-y-3">
+          <h5 className="font-semibold text-base text-primary border-b border-border pb-1">
+            Notes
+          </h5>
+          <div className="p-3 bg-background rounded border">
+            <p className="text-sm whitespace-pre-wrap">{notes.trim()}</p>
+          </div>
+        </div>
+      )}
       
       {Object.entries(STAT_GROUPS).map(([groupTitle, fields]) => (
         <StatGroup

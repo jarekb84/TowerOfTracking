@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Button } from '../../../../components/ui';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../../utils/data-parser';
 import type { ParsedGameRun } from '../../types/game-run.types';
-import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trash2, StickyNote } from 'lucide-react';
 
 const columnHelper = createColumnHelper<ParsedGameRun>();
 
@@ -26,6 +26,20 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
         </Button>
       ),
       size: 40,
+    }),
+    columnHelper.display({
+      id: 'notes',
+      header: '',
+      cell: ({ row }) => {
+        const notes = row.original.processedData.notes;
+        if (!notes || notes.trim() === '') {
+          return null;
+        }
+        return (
+          <StickyNote className="h-3.5 w-3.5 text-muted-foreground/60" />
+        );
+      },
+      size: 30,
     }),
     columnHelper.accessor('timestamp', {
       header: 'Date',
