@@ -153,11 +153,6 @@ export function createGameRunField(originalKey: string, rawValue: string): GameR
   };
 }
 
-// O(1) field lookup instead of O(n)
-export function findField(run: ParsedGameRun, originalKey: string): GameRunField | null {
-  const camelKey = run._fieldsByOriginalKey.get(originalKey.toLowerCase());
-  return camelKey ? run.fields[camelKey] : null;
-}
 
 // Efficient data access patterns
 export function getFieldValue<T = any>(run: ParsedGameRun, fieldName: string): T | null {

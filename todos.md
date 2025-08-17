@@ -1,10 +1,8 @@
-- update run-details.txt to have stat_groups reference the camelcase properties vs readable values to avoid all the complexity that comes with looking up data
 - update file structure
     don't have file type specific dir (ie a hooks or a types dir)
     break up features
         like data-tracking should have sub features for each tab in the charts page
             coins
-
             cells
             deaths analysis
             tier stats
@@ -20,3 +18,8 @@
 - extract claude agents/rules whatever into a user dir instead of having it in the proejct    
 - address duplicate implemeantion of functions between data-parser and the field utils
 - remove use of index.ts files
+- add support for milestone run types (not just the runType field, but a new table as well)
+- split up Game runs by types, ie 3 tables with different cols shown which would be relevant to each type
+    farming runs focus on econ related data
+    tournament runs focus on combat focused stuff
+    milestone runs...figure it out

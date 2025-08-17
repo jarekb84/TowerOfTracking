@@ -18,7 +18,7 @@ import type {
   RawClipboardData,
   GameRunField
 } from '../types/game-run.types';
-import { createGameRunField, toCamelCase as fieldUtilsToCamelCase } from './field-utils';
+import { createGameRunField, toCamelCase } from './field-utils';
 
 
 // Parse tab-delimited data from clipboard
@@ -118,7 +118,7 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
     const fieldsByOriginalKey = new Map<string, string>();
     
     for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
-      const camelKey = fieldUtilsToCamelCase(originalKey);
+      const camelKey = toCamelCase(originalKey);
       const field = createGameRunField(originalKey, rawValue);
       
       fields[camelKey] = field;
@@ -311,7 +311,7 @@ export function parseCsvData(rawInput: string): { success: ParsedGameRun[], fail
       const fieldsByOriginalKey = new Map<string, string>();
       
       for (const [originalKey, rawValue] of Object.entries(rawData)) {
-        const camelKey = fieldUtilsToCamelCase(originalKey);
+        const camelKey = toCamelCase(originalKey);
         const field = createGameRunField(originalKey, rawValue);
         
         fields[camelKey] = field;
