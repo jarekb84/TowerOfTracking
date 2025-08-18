@@ -32,16 +32,7 @@ jobs:
         
       - name: Build for GitHub Pages
         run: npm run build
-          
-      - name: Add .nojekyll file
-        run: touch .output/public/.nojekyll
-        
-      - name: Verify build output
-        run: |
-          echo "Contents of .output/public:"
-          ls -la .output/public/
-          echo "Checking if index.html exists:"
-          test -f .output/public/index.html && echo "✅ index.html found" || echo "❌ index.html missing"          
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
