@@ -11,7 +11,8 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
-   tanstackStart({
+    tanstackStart({
+      customViteReactPlugin: true,
       spa: {
         enabled: true,
         prerender: {
