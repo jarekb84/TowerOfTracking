@@ -9,6 +9,7 @@ export const createRouter = () => {
     routeTree,
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    basepath: import.meta.env.BASE_URL
   })
 }
 
