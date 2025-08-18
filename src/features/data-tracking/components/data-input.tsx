@@ -3,7 +3,7 @@ import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFoote
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
 import { parseGameRun, formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../utils/data-parser';
-import { getFieldValue, getFieldRaw } from '../utils/field-utils';
+import { getFieldValue, getFieldRaw, extractTimestampFromFields } from '../utils/field-utils';
 import { useData } from '../hooks/use-data';
 import { useFileImport } from '../hooks/use-file-import';
 import { Plus, Upload, FileText } from 'lucide-react';
@@ -53,6 +53,20 @@ export function DataInput({ className }: DataInputProps) {
     }
   }, [previewData, checkDuplicate]);
 
+  // Helper function to update date/time UI fields from extracted timestamp
+  const updateDateTimeFromParsedData = (parsed: ParsedGameRun): void => {
+    const extractedTimestamp = extractTimestampFromFields(parsed.fields);
+    if (extractedTimestamp) {
+      setSelectedDate(extractedTimestamp);
+      setSelectedTime({
+        hours: extractedTimestamp.getHours().toString().padStart(2, '0'),
+        minutes: extractedTimestamp.getMinutes().toString().padStart(2, '0')
+      });
+      // Update the parsed data to use the extracted timestamp
+      parsed.timestamp = extractedTimestamp;
+    }
+  };
+
   const handlePaste = async (): Promise<void> => {
     try {
       const text = await navigator.clipboard.readText();
@@ -61,6 +75,7 @@ export function DataInput({ className }: DataInputProps) {
         const parsed = parseGameRun(text, getDateTimeFromSelection());
         setPreviewData(parsed);
         setSelectedRunType(parsed.runType);
+        updateDateTimeFromParsedData(parsed);
       }
     } catch (error) {
       console.error('Failed to read clipboard:', error);
@@ -75,6 +90,7 @@ export function DataInput({ className }: DataInputProps) {
           const parsed = parseGameRun(text, getDateTimeFromSelection());
           setPreviewData(parsed);
           setSelectedRunType(parsed.runType);
+          updateDateTimeFromParsedData(parsed);
         } catch (error) {
           setPreviewData(null);
         }
@@ -92,6 +108,7 @@ export function DataInput({ className }: DataInputProps) {
         const parsed = parseGameRun(value, getDateTimeFromSelection());
         setPreviewData(parsed);
         setSelectedRunType(parsed.runType);
+        updateDateTimeFromParsedData(parsed);
       } catch (error) {
         setPreviewData(null);
       }

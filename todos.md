@@ -19,3 +19,7 @@
     farming runs focus on econ related data
     tournament runs focus on combat focused stuff
     milestone runs...figure it out
+- add some notes about creating common components and using them everywhere
+    ie we have <button> usage all over while we have a Button component
+    also keep noticing that secondary buttons don't handle inverted color scheme well
+    so you freqnelty have issues with light text on light background    

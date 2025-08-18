@@ -105,6 +105,7 @@ function getFieldConfig(key: string): FieldConfig {
   const lowerKey = key.toLowerCase();
   
   if (lowerKey.includes('time')) return { type: 'duration' };
+  if (lowerKey === 'date' || lowerKey === 'time' || lowerKey.includes('date')) return { type: 'date' };
   if (lowerKey === 'notes' || lowerKey === 'killed by') return { type: 'string' };
   if (lowerKey === 'tier' && key.includes('+')) return { type: 'string' };
   
@@ -124,6 +125,18 @@ export function createGameRunField(originalKey: string, rawValue: string): GameR
       processedValue = parseDuration(rawValue);
       displayValue = formatDuration(processedValue as number);
       dataType = 'duration';
+      break;
+      
+    case 'date':
+      try {
+        processedValue = new Date(rawValue);
+        displayValue = rawValue;
+        dataType = 'date';
+      } catch {
+        processedValue = rawValue;
+        displayValue = rawValue;
+        dataType = 'string';
+      }
       break;
       
     case 'number':
@@ -175,4 +188,31 @@ export function toCamelCase(str: string): string {
   return str
     .toLowerCase()
     .replace(/[^a-zA-Z0-9]+(.)/g, (_, char) => char.toUpperCase());
+}
+
+// Extract timestamp from date and time fields if available
+export function extractTimestampFromFields(fields: Record<string, GameRunField>): Date | null {
+  const dateField = fields.date;
+  const timeField = fields.time;
+
+  try {
+    if (dateField && timeField) {
+      const dateStr = dateField.rawValue;
+      const timeStr = timeField.rawValue;
+      const timestamp = new Date(`${dateStr} ${timeStr}`);
+      
+      if (!isNaN(timestamp.getTime())) {
+        return timestamp;
+      }
+    } else if (dateField) {
+      const timestamp = new Date(dateField.rawValue);
+      if (!isNaN(timestamp.getTime())) {
+        return timestamp;
+      }
+    }
+  } catch {
+    // Fall through to null
+  }
+
+  return null; // Return null if no valid date/time found
 }
