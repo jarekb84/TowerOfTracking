@@ -15,9 +15,6 @@ const config = defineConfig({
       customViteReactPlugin: true,
       spa: {
         enabled: true,
-        prerender: {
-          outputPath: '/index.html',
-        },
       },
     }),
     viteReact(),
