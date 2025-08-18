@@ -1,3 +1,6 @@
+Bugs
+- fix the game game time stat showing up and being under misc
+
 Features
 - add support for milestone run types (not just the runType field, but a new table as well)
 - split up Game runs by types, ie 3 tables with different cols shown which would be relevant to each type
@@ -13,7 +16,9 @@ Features
 - add a section which highlights biggest deltas in past 5 runs
 - add ability to click a button to clear local storage
 - Extract the data import/export into a single page (bulk?)
+    - rename import/export modals to use term bulk
 - only persist raw data to local storage not the full transformed payloads we use in app state
+- make fields editable
 
 Tech Debt
 - update file structure

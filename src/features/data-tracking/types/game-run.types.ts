@@ -73,3 +73,38 @@ export interface FieldMappingReport {
 }
 
 export type CsvDelimiter = 'tab' | 'comma' | 'semicolon' | 'custom';
+
+// Tier Trends Analysis Types
+export interface TierTrendsFilters {
+  tier: number;
+  changeThresholdPercent: number; // Only show fields with changes above this threshold
+  runCount: number; // Number of recent runs to analyze (default: 5)
+}
+
+export interface FieldTrendData {
+  fieldName: string;
+  displayName: string;
+  dataType: GameRunField['dataType'];
+  values: number[]; // Values from oldest to newest run
+  change: {
+    absolute: number; // Absolute change from first to last
+    percent: number; // Percentage change from first to last
+    direction: 'up' | 'down' | 'stable'; // Trend direction
+  };
+  trendType: 'linear' | 'upward' | 'downward' | 'volatile' | 'stable';
+  significance: 'high' | 'medium' | 'low'; // Based on change threshold
+}
+
+export interface TierTrendsData {
+  tier: number;
+  runCount: number; // How many runs were actually analyzed (may be less than requested)
+  runIds: string[]; // IDs of runs analyzed (oldest to newest)
+  runTimestamps: Date[]; // Timestamps of runs analyzed
+  fieldTrends: FieldTrendData[];
+  summary: {
+    totalFields: number;
+    significantChanges: number;
+    topGainers: FieldTrendData[]; // Top 3 fields with highest positive change
+    topDecliners: FieldTrendData[]; // Top 3 fields with highest negative change
+  };
+}

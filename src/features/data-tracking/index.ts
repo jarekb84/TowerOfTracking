@@ -7,6 +7,7 @@ export { RunsTable } from './components/runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
 export { TierStatsTable } from './components/tier-stats-table';
 export { TimeSeriesChart } from './components/time-series-chart';
+export { TierTrendsAnalysis } from './components/tier-trends-analysis';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
@@ -22,7 +23,10 @@ export type {
   CsvParseConfig,
   CsvParseResult,
   FieldMappingReport,
-  CsvDelimiter
+  CsvDelimiter,
+  TierTrendsFilters,
+  TierTrendsData,
+  FieldTrendData
 } from './types/game-run.types';
 
 // Data Tracking Utilities
@@ -74,6 +78,13 @@ export {
   generateYAxisTicks,
   TIME_PERIOD_CONFIGS
 } from './utils/chart-data';
+
+export {
+  calculateTierTrends,
+  getAvailableTiersForTrends,
+  formatFieldDisplayName,
+  generateSparklinePath
+} from './utils/tier-trends';
 
 export type {
   TierStatsData,

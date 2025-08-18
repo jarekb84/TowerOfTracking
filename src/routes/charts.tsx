@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/simple-tabs'
-import { DeathsRadarChart, TierStatsTable, TimeSeriesChart } from '../features/data-tracking'
+import { DeathsRadarChart, TierStatsTable, TimeSeriesChart, TierTrendsAnalysis } from '../features/data-tracking'
 
 export const Route = createFileRoute('/charts')({
   component: ChartsPage,
@@ -24,7 +24,7 @@ function ChartsPage() {
         {/* Analytics Tabs */}
         <Tabs defaultValue="coins" className="w-full">
           <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-4 w-[800px] bg-slate-800/50 border border-slate-700/50 p-1">
+            <TabsList className="grid grid-cols-5 w-[1000px] bg-slate-800/50 border border-slate-700/50 p-1">
               <TabsTrigger 
                 value="coins" 
                 className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-100 data-[state=active]:border-purple-500/50"
@@ -48,6 +48,12 @@ function ChartsPage() {
                 className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-100 data-[state=active]:border-blue-500/50"
               >
                 🏆 Tier Stats
+              </TabsTrigger>
+              <TabsTrigger 
+                value="trends" 
+                className="data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-100 data-[state=active]:border-orange-500/50"
+              >
+                📈 Tier Trends
               </TabsTrigger>
             </TabsList>
           </div>
@@ -123,6 +129,26 @@ function ChartsPage() {
               <CardContent className="p-0">
                 <div className="p-8 w-full">
                   <TierStatsTable />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="trends" className="space-y-8 lg:space-y-12">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-orange-500/10 transition-all duration-300 hover:scale-[1.01]">
+              <CardHeader className="bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+                  <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
+                  Statistical Trends Analysis
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Recent Run Comparison</span>
+                </CardTitle>
+                <p className="text-slate-400 text-sm mt-2">
+                  Compare statistical changes across your recent farming runs for the same tier. Identify performance improvements and upgrade impacts.
+                </p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full">
+                  <TierTrendsAnalysis />
                 </div>
               </CardContent>
             </Card>
