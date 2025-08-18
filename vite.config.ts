@@ -13,9 +13,18 @@ const config = defineConfig({
     tailwindcss(),
     tanstackStart({
       customViteReactPlugin: true,
+      prerender: {
+        routes: ['/'],
+        crawlLinks: true,
+      },
     }),
     viteReact(),
   ],
+  define: {
+    __BUILD_DATE__: JSON.stringify(new Date().toLocaleDateString('en-CA')),
+    __GIT_HASH__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) || 'dev'),
+  },
+  base: process.env.GITHUB_PAGES === 'true' ? '/TowerOfTracking/' : '/',
 })
 
 export default config

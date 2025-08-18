@@ -38,6 +38,12 @@ export function ThemeSettings() {
             Controls the base unit for all spacing throughout the app
           </p>
         </div>
+        
+        <div className="pt-4 border-t border-border">
+          <p className="text-xs text-muted-foreground">
+            Version: {__BUILD_DATE__} {__GIT_HASH__}
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
