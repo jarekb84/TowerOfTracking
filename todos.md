@@ -10,6 +10,10 @@ Features
     filter any property we store
     add group by
     support different chart types
+- add a section which highlights biggest deltas in past 5 runs
+- add ability to click a button to clear local storage
+- Extract the data import/export into a single page (bulk?)
+- only persist raw data to local storage not the full transformed payloads we use in app state
 
 Tech Debt
 - update file structure
@@ -32,3 +36,4 @@ Tech Debt
     ie we have <button> usage all over while we have a Button component
     also keep noticing that secondary buttons don't handle inverted color scheme well
     so you frequently have issues with light text on light background
+- Add E2E which uploads dataset and verifies stuff renders
