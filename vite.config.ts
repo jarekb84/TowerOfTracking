@@ -27,7 +27,7 @@ const config = defineConfig({
     __BUILD_DATE__: JSON.stringify(new Date().toLocaleDateString('en-CA')),
     __GIT_HASH__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) || 'dev'),
   },
-  base: process.env.GITHUB_PAGES === 'true' ? '/TowerOfTracking/' : '/',
+  base: process.env.CI === 'true' ? '/TowerOfTracking/' : '/',
 })
 
 export default config
