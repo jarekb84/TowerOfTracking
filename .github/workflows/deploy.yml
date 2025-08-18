@@ -44,10 +44,7 @@ jobs:
           echo "Contents of .output/public:"
           ls -la .output/public/
           echo "Checking if index.html exists:"
-          test -f .output/public/index.html && echo "✅ index.html found" || echo "❌ index.html missing"
-          echo "Checking if 404.html exists:"
-          test -f .output/public/404.html && echo "✅ 404.html found" || echo "❌ 404.html missing"
-          
+          test -f .output/public/index.html && echo "✅ index.html found" || echo "❌ index.html missing"          
       - name: Setup Pages
         uses: actions/configure-pages@v4
         

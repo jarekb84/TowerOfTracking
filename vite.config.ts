@@ -11,10 +11,13 @@ const config = defineConfig({
       projects: ['./tsconfig.json'],
     }),
     tailwindcss(),
-    tanstackStart({
-      customViteReactPlugin: true,
+   tanstackStart({
       spa: {
         enabled: true,
+        prerender: {
+          outputPath: '/index.html',
+          crawlLinks: false,
+        },
       },
     }),
     viteReact(),
