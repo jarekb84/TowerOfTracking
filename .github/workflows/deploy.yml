@@ -32,9 +32,6 @@ jobs:
         
       - name: Build for GitHub Pages
         run: npm run build
-        env:
-          GITHUB_PAGES: 'true'
-          GITHUB_SHA: ${{ github.sha }}
           
       - name: Add .nojekyll file
         run: touch .output/public/.nojekyll
