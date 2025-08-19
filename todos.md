@@ -1,5 +1,4 @@
 Bugs
-- fix the game game time stat showing up and being under misc
 
 Features
 - Mobile designs
