@@ -6,9 +6,12 @@ import {
   detectDuplicate, 
   detectBatchDuplicates,
   type DuplicateDetectionResult,
-  type DuplicateResolutionChoice,
   type BatchDuplicateDetectionResult
 } from '../utils/duplicate-detection';
+import {
+  saveRunsToStorage,
+  loadRunsFromStorage,
+} from '../utils/csv-persistence';
 
 interface DataContextType {
   runs: ParsedGameRun[];
@@ -24,8 +27,6 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-
-const STORAGE_KEY = 'tower-tracking-runs';
 
 export function useData(): DataContextType {
   const context = useContext(DataContext);
@@ -44,20 +45,13 @@ export function useDataProvider(): DataContextType {
   useEffect(() => {
     setIsClient(true);
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Convert timestamp strings back to Date objects and restore Map
-        const runsWithDates = parsed.map((run: any) => ({
-          ...run,
-          timestamp: new Date(run.timestamp),
-        }));
-        setRuns(runsWithDates);
-        // Generate composite keys set for loaded runs
-        setCompositeKeys(generateCompositeKeysSet(runsWithDates));
-      }
+      const loadedRuns = loadRunsFromStorage();
+      setRuns(loadedRuns);
+      
+      // Generate composite keys set for loaded runs
+      setCompositeKeys(generateCompositeKeysSet(loadedRuns));
     } catch (error) {
-      console.error('Failed to load runs from localStorage:', error);
+      console.error('Failed to load runs from CSV storage:', error);
     }
   }, []);
 
@@ -184,18 +178,14 @@ export function useDataProvider(): DataContextType {
     });
   };
 
-  // Save runs to localStorage whenever they change
+  // Save runs to CSV storage whenever they change
   useEffect(() => {
     if (!isClient) return;
     
     try {
-      // Convert Map to array for JSON serialization
-      const runsForStorage = runs.map(run => ({
-        ...run,
-      }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(runsForStorage));
+      saveRunsToStorage(runs);
     } catch (error) {
-      console.error('Failed to save runs to localStorage:', error);
+      console.error('Failed to save runs to CSV storage:', error);
     }
   }, [runs, isClient]);
 

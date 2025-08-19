@@ -57,7 +57,13 @@ export type {
   DelimiterConflict
 } from './utils/csv-exporter';
 
-// Field Utilities
+export {
+  saveRunsToStorage,
+  loadRunsFromStorage,
+  runsToStorageCsv,
+  storageCsvToRuns
+} from './utils/csv-persistence';
+
 export {
   createGameRunField,
   getFieldValue,

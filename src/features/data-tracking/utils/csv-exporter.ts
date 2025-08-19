@@ -136,17 +136,6 @@ export function detectDelimiterConflicts(
 }
 
 /**
- * Escape CSV value if it contains delimiter, quotes, or newlines
- */
-function escapeCsvValue(value: string, delimiter: string): string {
-  // If value contains delimiter, quotes, or newlines, wrap in quotes and escape internal quotes
-  if (value.includes(delimiter) || value.includes('"') || value.includes('\n') || value.includes('\r')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
-
-/**
  * Export runs to CSV format
  */
 export function exportToCsv(
@@ -178,7 +167,7 @@ export function exportToCsv(
   const lines: string[] = [];
   
   // Header row
-  const headers = fieldKeys.map(field => escapeCsvValue(field.originalKey, delimiter));
+  const headers = fieldKeys.map(field => field.originalKey);
   lines.push(headers.join(delimiter));
   
   // Data rows
@@ -203,7 +192,7 @@ export function exportToCsv(
         rawValue = field?.rawValue || '';
       }
       
-      values.push(escapeCsvValue(rawValue, delimiter));
+      values.push(rawValue);
     }
     
     lines.push(values.join(delimiter));
