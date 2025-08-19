@@ -1,4 +1,4 @@
-import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, isSameDay } from 'date-fns'
+import { format, startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns'
 import { ParsedGameRun } from '../types/game-run.types'
 import { getFieldValue } from './field-utils'
 
@@ -54,7 +54,7 @@ export interface YearlyAggregatePoint {
   timestamp: Date
 }
 
-export type TimePeriod = 'run' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+export type TimePeriod = 'hourly' | 'run' | 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export interface TimePeriodConfig {
   period: TimePeriod
@@ -123,6 +123,28 @@ export function prepareCellsPerRunData(runs: ParsedGameRun[]): ChartDataPoint[] 
     .map(run => ({
       date: format(run.timestamp, 'MMM dd'),
       value: run.cellsEarned,
+      timestamp: run.timestamp,
+    }))
+    .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+export function prepareCoinsPerHourData(runs: ParsedGameRun[]): ChartDataPoint[] {
+  return runs
+    .filter(run => run.realTime && run.realTime > 0) // Filter out runs with invalid duration
+    .map(run => ({
+      date: format(run.timestamp, 'MMM dd'),
+      value: (run.coinsEarned / run.realTime) * 3600, // Convert to per hour
+      timestamp: run.timestamp,
+    }))
+    .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+export function prepareCellsPerHourData(runs: ParsedGameRun[]): ChartDataPoint[] {
+  return runs
+    .filter(run => run.realTime && run.realTime > 0) // Filter out runs with invalid duration
+    .map(run => ({
+      date: format(run.timestamp, 'MMM dd'),
+      value: (run.cellsEarned / run.realTime) * 3600, // Convert to per hour
       timestamp: run.timestamp,
     }))
     .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
@@ -357,6 +379,7 @@ export function prepareTierStatsData(runs: ParsedGameRun[]): TierStatsData[] {
 
 // Time period configurations
 export const TIME_PERIOD_CONFIGS: TimePeriodConfig[] = [
+  { period: 'hourly', label: 'Per Hour', color: '#ec4899', dateFormat: 'MMM dd' },
   { period: 'run', label: 'Per Run', color: '#8b5cf6', dateFormat: 'MMM dd' },
   { period: 'daily', label: 'Daily', color: '#10b981', dateFormat: 'MMM dd' },
   { period: 'weekly', label: 'Weekly', color: '#f59e0b', dateFormat: 'MMM dd' },
@@ -371,15 +394,26 @@ export function prepareTimeSeriesData(
   metric: 'coins' | 'cells'
 ): ChartDataPoint[] {
   switch (period) {
+    case 'hourly':
+      return metric === 'coins' ? prepareCoinsPerHourData(runs) : prepareCellsPerHourData(runs)
     case 'run':
       return metric === 'coins' ? prepareCoinsPerRunData(runs) : prepareCellsPerRunData(runs)
     case 'daily':
-      const dailyData = metric === 'coins' ? prepareCoinsPerDayData(runs) : prepareCellsPerDayData(runs)
-      return dailyData.map(point => ({
-        date: point.date,
-        value: metric === 'coins' ? point.totalCoins : point.totalCells,
-        timestamp: point.timestamp
-      }))
+      if (metric === 'coins') {
+        const dailyData = prepareCoinsPerDayData(runs)
+        return dailyData.map(point => ({
+          date: point.date,
+          value: point.totalCoins,
+          timestamp: point.timestamp
+        }))
+      } else {
+        const dailyData = prepareCellsPerDayData(runs)
+        return dailyData.map(point => ({
+          date: point.date,
+          value: point.totalCells,
+          timestamp: point.timestamp
+        }))
+      }
     case 'weekly':
       const weeklyData = prepareWeeklyData(runs)
       return weeklyData.map(point => ({
@@ -518,4 +552,55 @@ export function prepareYearlyData(runs: ParsedGameRun[]): YearlyAggregatePoint[]
   })
 
   return yearlyData.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+}
+
+// Function to determine which time periods should be available based on data span
+export function getAvailableTimePeriods(runs: ParsedGameRun[]): TimePeriodConfig[] {
+  if (runs.length === 0) {
+    // Always show hourly and per run when no data
+    return TIME_PERIOD_CONFIGS.filter(config => 
+      config.period === 'hourly' || config.period === 'run'
+    )
+  }
+
+  // Group runs by day, week, month, year to check for multiple periods
+  const uniqueDays = new Set(
+    runs.map(run => format(startOfDay(run.timestamp), 'yyyy-MM-dd'))
+  )
+  const uniqueWeeks = new Set(
+    runs.map(run => format(startOfWeek(run.timestamp, { weekStartsOn: 1 }), 'yyyy-MM-dd'))
+  )
+  const uniqueMonths = new Set(
+    runs.map(run => format(startOfMonth(run.timestamp), 'yyyy-MM'))
+  )
+  const uniqueYears = new Set(
+    runs.map(run => format(startOfYear(run.timestamp), 'yyyy'))
+  )
+
+  // Always include hourly and per run
+  const availablePeriods: TimePeriod[] = ['hourly', 'run']
+  
+  if (uniqueDays.size > 1) {
+    availablePeriods.push('daily')
+  }
+  
+
+  if (uniqueWeeks.size > 1) {
+    availablePeriods.push('weekly')
+  }
+  
+
+  if (uniqueMonths.size > 1) {
+    availablePeriods.push('monthly')
+  }
+  
+
+  if (uniqueYears.size > 1) {
+    availablePeriods.push('yearly')
+  }
+
+  // Return configurations for available periods in original order
+  return TIME_PERIOD_CONFIGS.filter(config => 
+    availablePeriods.includes(config.period)
+  )
 }

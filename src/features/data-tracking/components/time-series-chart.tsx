@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react'
-import { Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from 'recharts'
+import { useState, useMemo, useEffect } from 'react'
+import { Area, AreaChart, XAxis, YAxis } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../components/ui'
 import { Button } from '../../../components/ui'
 import { useData } from '../hooks/use-data'
-import { prepareTimeSeriesData, formatLargeNumber, generateYAxisTicks, TIME_PERIOD_CONFIGS, TimePeriod } from '../utils/chart-data'
+import { prepareTimeSeriesData, formatLargeNumber, generateYAxisTicks, TimePeriod, getAvailableTimePeriods } from '../utils/chart-data'
 
 interface TimeSeriesChartProps {
   metric: 'coins' | 'cells'
@@ -27,7 +27,20 @@ export function TimeSeriesChart({
   const { runs } = useData()
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
   
-  const currentConfig = TIME_PERIOD_CONFIGS.find(config => config.period === selectedPeriod)!
+  // Get available periods based on data span
+  const availablePeriodConfigs = useMemo(() => {
+    return getAvailableTimePeriods(runs)
+  }, [runs])
+  
+  // Reset period if current selection is not available
+  useEffect(() => {
+    const isCurrentPeriodAvailable = availablePeriodConfigs.some(config => config.period === selectedPeriod)
+    if (!isCurrentPeriodAvailable && availablePeriodConfigs.length > 0) {
+      setSelectedPeriod(availablePeriodConfigs[0].period)
+    }
+  }, [availablePeriodConfigs, selectedPeriod])
+  
+  const currentConfig = availablePeriodConfigs.find(config => config.period === selectedPeriod) || availablePeriodConfigs[0]
   
   const chartData = useMemo(() => {
     return prepareTimeSeriesData(runs, selectedPeriod, metric)
@@ -68,7 +81,7 @@ export function TimeSeriesChart({
         
         {/* Period selector */}
         <div className="flex flex-wrap gap-2">
-          {TIME_PERIOD_CONFIGS.map((config) => (
+          {availablePeriodConfigs.map((config) => (
             <Button
               key={config.period}
               variant={selectedPeriod === config.period ? "default" : "outline"}
@@ -127,7 +140,11 @@ export function TimeSeriesChart({
           
           <ChartTooltip 
             content={<ChartTooltipContent 
-              formatter={(value) => [formatLargeNumber(Number(value)), title]}
+              formatter={(value) => {
+                const formattedValue = formatLargeNumber(Number(value))
+                const suffix = selectedPeriod === 'hourly' ? '/hour' : ''
+                return [formattedValue + suffix, title]
+              }}
               labelFormatter={(label) => `${currentConfig.label}: ${label}`}
               className="bg-slate-800/95 border-slate-600 backdrop-blur-sm"
             />} 

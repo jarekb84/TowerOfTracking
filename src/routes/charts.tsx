@@ -69,7 +69,7 @@ function ChartsPage() {
                     metric="coins"
                     title="Coins Earned"
                     subtitle="Track your coin earnings over different time periods"
-                    defaultPeriod="run"
+                    defaultPeriod="hourly"
                   />
                 </div>
               </CardContent>
@@ -87,7 +87,7 @@ function ChartsPage() {
                     metric="cells"
                     title="Cells Earned"
                     subtitle="Track your cell earnings over different time periods"
-                    defaultPeriod="run"
+                    defaultPeriod="hourly"
                   />
                 </div>
               </CardContent>
