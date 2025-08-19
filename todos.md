@@ -2,6 +2,7 @@ Bugs
 - fix the game game time stat showing up and being under misc
 
 Features
+- Mobile designs
 - add support for milestone run types (not just the runType field, but a new table as well)
 - split up Game runs by types, ie 3 tables with different cols shown which would be relevant to each type
     farming runs focus on econ related data
@@ -19,6 +20,9 @@ Features
     - rename import/export modals to use term bulk
 - only persist raw data to local storage not the full transformed payloads we use in app state
 - make fields editable
+- Tier trends screen
+    add ability to only show certain categories of stats
+        ie economic or combat or ... need to come up with names for these catogires caue the stuff the game spits out doesn't make sense
 
 Tech Debt
 - update file structure
@@ -42,3 +46,5 @@ Tech Debt
     also keep noticing that secondary buttons don't handle inverted color scheme well
     so you frequently have issues with light text on light background
 - Add E2E which uploads dataset and verifies stuff renders
+- enforce seperation of presenation and application logic, too many tsx files have waaay too much logic code in them
+- push for getting 100% code coverage of all .ts files, where logic should be in, should help with avoiding regressions
