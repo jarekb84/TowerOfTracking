@@ -10,5 +10,8 @@
       "Bash(npm run test:*)"
     ],
     "defaultMode": "acceptEdits"
-  }
+  },
+  "disabledMcpjsonServers": [
+    "example"
+  ]
 }

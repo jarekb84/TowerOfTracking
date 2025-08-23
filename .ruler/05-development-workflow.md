@@ -55,6 +55,8 @@ You are not just implementing features—you are stewarding the evolution of a c
 Implement the minimal solution that satisfies requirements:
 - Focus on making it work first
 - Follow existing patterns and conventions
+- **MANDATORY**: Apply React separation doctrine—no logic in `.tsx` files
+- Generate unit tests for all new logic (`.ts`) and hook orchestration (`use*.ts`)
 - Use TodoWrite to track implementation steps
 - Maintain test coverage
 
@@ -78,7 +80,10 @@ Implement the minimal solution that satisfies requirements:
 - Complex lookup patterns that defeat data structure benefits
 - Missing normalization opportunities
 
-**Separation of Concerns:**
-- Business logic mixed with presentation logic
-- Components doing too many things
-- Missing abstraction layers
+**React Separation Violations:**
+- Business logic mixed with presentation logic in `.tsx` files
+- Components over 200 lines without extraction
+- Missing abstraction layers (hooks, pure functions)
+- Logic directly in event handlers instead of hook callbacks
+- Pure functions importing React or testing libraries
+- Cross-feature imports bypassing public APIs

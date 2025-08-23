@@ -24,14 +24,11 @@ Features
 
 Tech Debt
 - Add versioning
-- add unit tests around parsing game run stats from clipboard
-- add linting for no unused exports/fields
-- enforce seperation of presenation and application logic, too many tsx files have waaay too much logic code in them
-- push for getting 100% code coverage of all .ts files, where logic should be in, should help with avoiding regressions
 - setup TS config to
     - Avoid `any` type - use proper typing or `unknown` with type guards
     - Enable strict mode in TypeScript configuration
     - Prefer explicit return types for functions
+    - add linting for no unused exports/fields
 - update file structure
     don't have file type specific dir (ie a hooks or a types dir)
     break up features

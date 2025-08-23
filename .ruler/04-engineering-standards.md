@@ -16,14 +16,34 @@
 **Type Organization**:
 - Use descriptive interface/type names with clear business domain language
 
-## Component Architecture
+## Component Architecture & React Separation
 
-**Decomposition Strategy**:
-- When a component grows beyond 200 lines, look for extraction opportunities
-- Extract logical sections into sub-components
-- Create feature sub-directories when 3+ closely related components emerge
-- Prefer hooks for stateful logic extraction
+**CRITICAL**: Enforce strict logic-presentation separation in all React code.
 
-**Independence & Low Coupling**:
-- Minimize prop drilling with appropriate context boundaries
-- Design components to be easily testable in isolation
+**Component Layer (*.tsx)**:
+- **Ultra-thin**: DOM/JSX markup ONLY
+- Event handlers must be one-liners delegating to hook callbacks
+- **Hard limit: 200 lines** - extract sub-components when exceeded
+- NO business logic, validation, transforms, or complex branching
+- Import only: same-feature hooks (`use*.ts`), types, presentational helpers
+
+**Hook Layer (use*.ts)**:
+- React state/effects/context orchestration
+- Delegate transforms/validation/calculation to pure functions (`*.ts`)
+- Handle React-specific needs: state, effects, context consumption
+- NO JSX (React imports allowed for hooks/effects)
+
+**Logic Layer (*.ts)**:
+- Pure, deterministic functions: transforms, validation, calculation, mapping, parsing
+- Small, composable, fully unit-tested functions
+- **MUST NOT** import React or testing libraries
+- Single responsibility per function
+
+**Import Flow**: `*.tsx → use*.ts → *.ts` (within feature)
+
+**Testing Requirements**:
+- **~100% coverage** for all `.ts` logic files
+- **~100% coverage** for hook orchestration code
+- **One happy-path** integration test per page (not exhaustive UI variants)
+
+**Boy-Scout Rule**: When touching any mixed-concern component, extract at least one logic chunk into hooks or pure functions with tests.
