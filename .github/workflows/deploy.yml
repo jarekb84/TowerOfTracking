@@ -32,6 +32,9 @@ jobs:
         
       - name: Build for GitHub Pages
         run: npm run build
+        env:
+          VITE_PUBLIC_POSTHOG_HOST: ${{ secrets.VITE_PUBLIC_POSTHOG_HOST }}
+          VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

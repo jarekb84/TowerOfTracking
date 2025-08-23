@@ -26,6 +26,7 @@
     "date-fns": "^4.1.0",
     "human-format": "^1.2.1",
     "lucide-react": "^0.541.0",
+    "posthog-js": "^1.260.2",
     "react": "^19.0.0",
     "react-day-picker": "^9.8.1",
     "react-dom": "^19.0.0",
