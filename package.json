@@ -1,6 +1,6 @@
 {
   "name": "TowerOfTracking",
-  "version": "0.1.0",  
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -25,7 +25,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "human-format": "^1.2.1",
-    "lucide-react": "^0.539.0",
+    "lucide-react": "^0.541.0",
     "react": "^19.0.0",
     "react-day-picker": "^9.8.1",
     "react-dom": "^19.0.0",
