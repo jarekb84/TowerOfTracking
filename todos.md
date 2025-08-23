@@ -1,4 +1,5 @@
 Bugs
+- fix issues with warning about invalid values in notes filed and then not doing anything about it
 
 Features
 - Mobile designs
@@ -21,9 +22,10 @@ Features
 - make fields editable
 - Tier trends screen
     add ability to only show certain categories of stats
-        ie economic or combat or ... need to come up with names for these catogires caue the stuff the game spits out doesn't make sense
+        ie economic or combat or ... need to come up with names for these categories cause the stuff the game spits out doesn't make sense
 
 Tech Debt
+- Add versioning
 - update file structure
     don't have file type specific dir (ie a hooks or a types dir)
     break up features
