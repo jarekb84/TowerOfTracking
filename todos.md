@@ -14,11 +14,9 @@ Features
     filter any property we store
     add group by
     support different chart types
-- add a section which highlights biggest deltas in past 5 runs
 - add ability to click a button to clear local storage
 - Extract the data import/export into a single page (bulk?)
     - rename import/export modals to use term bulk
-- only persist raw data to local storage not the full transformed payloads we use in app state
 - make fields editable
 - Tier trends screen
     add ability to only show certain categories of stats
@@ -26,6 +24,14 @@ Features
 
 Tech Debt
 - Add versioning
+- add unit tests around parsing game run stats from clipboard
+- add linting for no unused exports/fields
+- enforce seperation of presenation and application logic, too many tsx files have waaay too much logic code in them
+- push for getting 100% code coverage of all .ts files, where logic should be in, should help with avoiding regressions
+- setup TS config to
+    - Avoid `any` type - use proper typing or `unknown` with type guards
+    - Enable strict mode in TypeScript configuration
+    - Prefer explicit return types for functions
 - update file structure
     don't have file type specific dir (ie a hooks or a types dir)
     break up features
@@ -35,11 +41,7 @@ Tech Debt
             deaths analysis
             tier stats
         and all related code/logic for those sub features should be in the same dir
-- add unit tests around parsing game run stats from clipboard
-- add linting for no unused exports/fields
 - have claude run linting/tests
-- create a process to sync up ai instructions sets
-- extract claude agents/rules whatever into a user dir instead of having it in the proejct    
 - address duplicate implementation of functions between data-parser and the field utils
 - remove use of index.ts files
 - add some notes about creating common components and using them everywhere
@@ -47,5 +49,3 @@ Tech Debt
     also keep noticing that secondary buttons don't handle inverted color scheme well
     so you frequently have issues with light text on light background
 - Add E2E which uploads dataset and verifies stuff renders
-- enforce seperation of presenation and application logic, too many tsx files have waaay too much logic code in them
-- push for getting 100% code coverage of all .ts files, where logic should be in, should help with avoiding regressions
