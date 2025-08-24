@@ -1,5 +1,6 @@
 Bugs
 - fix issues with warning about invalid values in notes filed and then not doing anything about it
+- fix import with notes in the copy/data (use it as the src for the text area input)
 
 Features
 - Mobile designs
@@ -10,6 +11,7 @@ Features
     milestone runs...figure it out
 - Add support for importing data from the tower tools site    
 - Make runs table paginated or virtualized
+- Add feature to compare multiple runs, where all the fields of game stats are rows, and the cols are results from past X runs
 - Create a dynamic query builder page
     filter any property we store
     add group by
