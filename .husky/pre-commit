@@ -5,4 +5,4 @@
 npm run lint
 
 # If lint passes, update suppressions to track any improvements
-npm run lint:updateSuppress
+# npm run lint:updateSuppress
