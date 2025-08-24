@@ -152,7 +152,7 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
 }
 
 // Map tournament tier (with '+') to league label
-function getTournamentLeague(tierNumber: number): string | null {
+export function getTournamentLeague(tierNumber: number): string | null {
   if (!Number.isFinite(tierNumber) || tierNumber <= 0) return null;
   if (tierNumber >= 14) return 'Legend';
   if (tierNumber >= 11) return 'Champion';

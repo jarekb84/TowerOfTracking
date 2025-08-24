@@ -4,6 +4,7 @@ export { CsvImport } from './components/csv-import';
 export { CsvExport } from './components/csv-export';
 export { DataProvider } from './components/data-provider';
 export { RunsTable } from './components/runs-table';
+export { TabbedRunsTable } from './components/runs-table/tabbed-runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
 export { TierStatsTable } from './components/tier-stats-table';
 export { TimeSeriesChart } from './components/time-series-chart';

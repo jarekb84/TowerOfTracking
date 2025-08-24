@@ -1,7 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { DataInput, CsvImport, CsvExport, RunsTable } from '../features/data-tracking'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui'
-import { TrendingUp } from 'lucide-react'
+import { DataInput, CsvImport, CsvExport, TabbedRunsTable } from '../features/data-tracking'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -21,7 +19,7 @@ function App() {
 
       {/* Main Content */}
       <div className="space-y-6">
-        <RunsTable />
+        <TabbedRunsTable />
       </div>
     </div>
   )
