@@ -32,7 +32,6 @@ Tech Debt
             deaths analysis
             tier stats
         and all related code/logic for those sub features should be in the same dir
-- have claude run linting/tests
 - address duplicate implementation of functions between data-parser and the field utils
 - remove use of index.ts files
 - add some notes about creating common components and using them everywhere

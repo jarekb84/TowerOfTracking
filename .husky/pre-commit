@@ -1,5 +1,5 @@
 # Run tests
-# npm test
+npm run test
 
 # Run ESLint check - will fail commit if new violations are introduced
 npm run lint
