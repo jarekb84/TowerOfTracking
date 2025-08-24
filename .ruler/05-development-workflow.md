@@ -17,7 +17,11 @@ You are not just implementing features—you are stewarding the evolution of a c
 
 ## Mandatory Red-Green-Refactor Process
 
-**CRITICAL**: Every Claude Code session MUST follow this systematic approach to prevent architectural debt accumulation.
+**CRITICAL**: EVERY SINGLE CHANGE, regardless of perceived complexity or size, MUST follow this complete systematic approach to prevent architectural debt accumulation.
+
+**NO EXCEPTIONS**: "Simple" requests, one-line changes, quick fixes, and small features ALL require the full Red-Green-Refactor process. Every prompt is an opportunity for architectural improvement.
+
+**ARCHITECTURAL STEWARDSHIP FIRST**: You are not just implementing features—you are stewarding the evolution of the system. Every change must improve the codebase's structure, not just solve the immediate problem.
 
 ### Phase 1: Requirement Analysis (Red)
 
@@ -55,10 +59,12 @@ You are not just implementing features—you are stewarding the evolution of a c
 Implement the minimal solution that satisfies requirements:
 - Focus on making it work first
 - Follow existing patterns and conventions
-- **MANDATORY**: Apply React separation doctrine—no logic in `.tsx` files
-- Generate unit tests for all new logic (`.ts`) and hook orchestration (`use*.ts`)
+- **MANDATORY**: Apply React separation doctrine—ZERO logic in `.tsx` files
+- **MANDATORY**: Generate unit tests for ALL new logic (`.ts`) and hook orchestration (`use*.ts`)
+- **MANDATORY**: Extract logic from components into hooks or pure functions, even for "simple" changes
 - Use TodoWrite to track implementation steps
 - Maintain test coverage
+- **BOY-SCOUT RULE**: When touching any file, extract at least one logic chunk with tests
 
 ### Phase 3: Architecture Review & Refactor (Refactor)
 
@@ -87,3 +93,21 @@ Implement the minimal solution that satisfies requirements:
 - Logic directly in event handlers instead of hook callbacks
 - Pure functions importing React or testing libraries
 - Cross-feature imports bypassing public APIs
+
+## Size-Agnostic Enforcement Rules
+
+**EVERY CHANGE MUST:**
+1. **Follow complete Red-Green-Refactor process** - no shortcuts for "simple" requests
+2. **Improve architectural health** - leave codebase better than you found it
+3. **Extract logic from components** - even single-line business logic moves to hooks/functions
+4. **Generate comprehensive tests** - for all extracted logic, no matter how small
+5. **Apply Boy-Scout Rule** - extract at least one existing logic chunk when touching files
+
+**FORBIDDEN SHORTCUTS:**
+- ❌ "This is simple, I'll just add it inline"
+- ❌ "One-liner doesn't need extraction"
+- ❌ "Quick fix doesn't need tests"
+- ❌ "Small change doesn't need architecture review"
+
+**MINDSET RESET:**
+Every prompt is an architectural improvement opportunity. Small, consistent improvements compound into massive architectural gains over time.

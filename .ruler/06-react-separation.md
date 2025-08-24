@@ -1,8 +1,16 @@
 # React Architecture: Logic-Presentation Separation
 
+## ABSOLUTE ZERO TOLERANCE POLICY
+
+**CRITICAL MANDATE**: React `.tsx` components must be ultra-thin—DOM markup only. Extract ALL business logic, data transforms, and complex handlers into pure functions and custom hooks.
+
+**NO SIZE EXCEPTIONS**: Single expressions, one-liners, "simple" transforms, basic calculations—ALL must be extracted. Size does not matter. Complexity does not matter. Every piece of business logic lives outside `.tsx` files.
+
+**MANDATORY TESTING**: Every extracted logic piece, no matter how trivial, requires comprehensive unit tests. No exceptions.
+
 ## Core Separation Doctrine
 
-**CRITICAL**: React `.tsx` components must be ultra-thin—DOM markup only. Extract ALL business logic, data transforms, and complex handlers into pure functions and custom hooks.
+**ENFORCEMENT PRIORITY**: Logic-presentation separation takes precedence over user convenience. Better to over-extract than under-extract.
 
 ### File Role Definitions
 
@@ -43,11 +51,20 @@
 
 ## Code Generation Rules (AI MUST Follow)
 
-### When Adding Logic to Components
-1. **STOP** - do not add logic inline
-2. Extract to hook (for React needs) or pure function (for transforms/validation)
-3. Generate unit tests for new logic
-4. Keep component as thin wrapper calling hook methods
+### ZERO TOLERANCE: When Adding Logic to Components
+1. **IMMEDIATE STOP** - NEVER add ANY business logic inline to `.tsx` files
+2. **MANDATORY EXTRACTION** - Extract to hook (for React needs) or pure function (for transforms/validation)
+3. **NO EXCEPTIONS** - Even single-line business logic, simple transforms, and "quick fixes" MUST be extracted
+4. **MANDATORY TESTS** - Generate comprehensive unit tests for ALL extracted logic
+5. **COMPONENT AS SHELL** - Keep component as ultra-thin wrapper calling hook methods only
+
+### SIZE-AGNOSTIC ENFORCEMENT
+**ALL LOGIC EXTRACTIONS, regardless of size:**
+- Single conditional expressions → extract to pure function
+- Simple data transformations → extract to pure function  
+- Basic validations → extract to pure function
+- Any calculation → extract to pure function
+- Event handler with business logic → extract to hook method
 
 ### New Hook Requirements
 - Generate unit tests for orchestration paths
@@ -82,20 +99,26 @@
 - Calculations and derived values
 - State update logic with branching
 
-## Hard Anti-Patterns (FAIL PR)
+## Hard Anti-Patterns (IMMEDIATE SESSION TERMINATION)
 
 ### In Components (*.tsx)
-- ❌ Inline data transforms: `data.map(item => transform(item))`
+- ❌ **ANY** inline data transforms: `data.map(item => transform(item))`
+- ❌ **ANY** conditional logic beyond basic rendering decisions
+- ❌ **ANY** calculations, even simple math operations
+- ❌ **ANY** string formatting or data manipulation
 - ❌ Multi-step branching handlers
 - ❌ Direct API calls or async operations
-- ❌ Complex state derivation logic
-- ❌ Business rule validation
+- ❌ **ANY** state derivation logic
+- ❌ **ANY** business rule validation
+- ❌ **ANY** form validation logic
 
-### In General
-- ❌ Adding features without unit tests for logic
+### In General (SESSION FAILURES)
+- ❌ Adding **ANY** logic without extracting and testing
+- ❌ Justifying inline logic as "too simple to extract"
 - ❌ Page tests validating every UI variant
 - ❌ Mixing React imports in pure function files
-- ❌ Complex components over 200 lines
+- ❌ Components over 200 lines
+- ❌ Skipping Red-Green-Refactor process for "small" changes
 
 ## Testing Strategy
 
@@ -118,11 +141,14 @@
 4. Proper import flow: tsx → hooks → pure functions
 5. Cross-feature imports only through public APIs
 
-### Automatic Failures  
-- Logic-heavy components without extraction
-- Missing tests for new business logic
+### Automatic Session Termination
+- **ANY** business logic added to `.tsx` files, regardless of size
+- **ANY** logic extraction without corresponding unit tests
+- Missing tests for **ANY** new business logic
 - Direct cross-feature deep imports
 - React imports in pure function files
+- Justifying shortcuts with "this is just a simple change"
+- Skipping architectural review for **ANY** change
 
 ## Migration Timeline
 
