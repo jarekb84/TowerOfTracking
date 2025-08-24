@@ -3,25 +3,22 @@ Bugs
 
 Features
 - Mobile designs
-- add support for milestone run types (not just the runType field, but a new table as well)
-- split up Game runs by types, ie 3 tables with different cols shown which would be relevant to each type
-    farming runs focus on econ related data
-    tournament runs focus on combat focused stuff
-    milestone runs...figure it out
-- Add support for importing data from the tower tools site    
-- Make runs table paginated or virtualized
-- Add feature to compare multiple runs, where all the fields of game stats are rows, and the cols are results from past X runs
-- Create a dynamic query builder page
-    filter any property we store
-    add group by
-    support different chart types
-- add ability to click a button to clear local storage
 - Extract the data import/export into a single page (bulk?)
     - rename import/export modals to use term bulk
+    - add ability to click a button to clear local storage
+- add support for milestone run types (not just the runType field, but a new table as well)
+- Add support for importing data from the tower tools site    
+- Make runs table paginated or virtualized
 - make fields editable
+    tournament placement
+    notes
 - Tier trends screen
     add ability to only show certain categories of stats
         ie economic or combat or ... need to come up with names for these categories cause the stuff the game spits out doesn't make sense
+- Create a dynamic query builder page
+    filter any property we store
+    add group by
+    support different chart types        
 
 Tech Debt
 - Add versioning

@@ -10,9 +10,9 @@ import {
 import { formatNumber } from '../utils/data-parser'
 import { RunTypeFilter } from '../utils/run-type-filter'
 import { RunTypeSelector } from './run-type-selector'
-import type { TierTrendsFilters, FieldTrendData } from '../types/game-run.types'
+import type { TierTrendsFilters, FieldTrendData, ComparisonColumn } from '../types/game-run.types'
 
-type SortField = 'fieldName' | 'change' | 'significance'
+type SortField = 'fieldName' | 'change'
 type SortDirection = 'asc' | 'desc'
 
 export function TierTrendsAnalysis() {
@@ -25,7 +25,9 @@ export function TierTrendsAnalysis() {
   const [filters, setFilters] = useState<TierTrendsFilters>({
     tier: 1, // Will be updated by useEffect
     changeThresholdPercent: 5,
-    runCount: 5
+    duration: 'per-run',
+    quantity: 3,
+    aggregationType: 'average'
   })
   
   // Auto-select first available tier when run type changes
@@ -58,11 +60,6 @@ export function TierTrendsAnalysis() {
         case 'change':
           aValue = Math.abs(a.change.percent)
           bValue = Math.abs(b.change.percent)
-          break
-        case 'significance':
-          const sigOrder = { high: 3, medium: 2, low: 1 }
-          aValue = sigOrder[a.significance]
-          bValue = sigOrder[b.significance]
           break
         default:
           return 0
@@ -117,7 +114,7 @@ export function TierTrendsAnalysis() {
             <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
             Tier {filters.tier} Trends Analysis
             <span className="text-sm font-normal text-slate-400 ml-auto">
-              Last {trendsData.runCount} {runTypeFilter === 'farming' ? 'Farming' : runTypeFilter === 'tournament' ? 'Tournament' : ''} Runs
+              Last {trendsData.periodCount} {filters.duration === 'per-run' ? 'Runs' : filters.duration === 'daily' ? 'Days' : filters.duration === 'weekly' ? 'Weeks' : 'Months'} - {runTypeFilter === 'farming' ? 'Farming' : runTypeFilter === 'tournament' ? 'Tournament' : ''} Mode
             </span>
           </h3>
           <p className="text-slate-400 text-sm">
@@ -125,90 +122,162 @@ export function TierTrendsAnalysis() {
           </p>
         </div>
         
-        {/* Controls */}
-        <div className="flex flex-wrap gap-4 items-center">
-          {/* Run Type Selector */}
-          <RunTypeSelector 
-            selectedType={runTypeFilter}
-            onTypeChange={setRunTypeFilter}
-          />
-          {/* Tier Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Tier:</label>
-            <div className="flex gap-1">
-              {availableTiers.map(tier => (
-                <Button
-                  key={tier}
-                  variant={filters.tier === tier ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilters(prev => ({ ...prev, tier }))}
-                  className={`border transition-all ${
-                    filters.tier === tier
-                      ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
-                      : 'border-slate-600 text-slate-400 hover:bg-slate-700'
-                  }`}
-                >
-                  {tier}
-                </Button>
-              ))}
+        {/* Filter Controls */}
+        <div className="space-y-4">
+          {/* Row 1: Run Type & Tier */}
+          <div className="flex flex-wrap gap-4 items-center">
+            <RunTypeSelector 
+              selectedType={runTypeFilter}
+              onTypeChange={setRunTypeFilter}
+            />
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-400">Tier:</label>
+              <div className="flex gap-1 flex-wrap">
+                {availableTiers.map(tier => (
+                  <Button
+                    key={tier}
+                    variant={filters.tier === tier ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({ ...prev, tier }))}
+                    className={`border transition-all ${
+                      filters.tier === tier
+                        ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
+                        : 'border-slate-600 text-slate-400 hover:bg-slate-700'
+                    }`}
+                  >
+                    {tier}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
-          
-          {/* Run Count */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Runs:</label>
-            <div className="flex gap-1">
-              {[3, 5, 7, 10].map(count => (
-                <Button
-                  key={count}
-                  variant={filters.runCount === count ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilters(prev => ({ ...prev, runCount: count }))}
-                  className={`border transition-all ${
-                    filters.runCount === count
-                      ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
-                      : 'border-slate-600 text-slate-400 hover:bg-slate-700'
-                  }`}
-                >
-                  {count}
-                </Button>
-              ))}
+
+          {/* Row 2: Duration, Quantity, Aggregation */}
+          <div className="flex flex-wrap gap-4 items-center">
+            {/* Duration Selector */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-400">Duration:</label>
+              <div className="flex gap-1">
+                {[
+                  { value: 'per-run', label: 'Per Run' },
+                  { value: 'daily', label: 'Daily' },
+                  { value: 'weekly', label: 'Weekly' },
+                  { value: 'monthly', label: 'Monthly' }
+                ].map(option => (
+                  <Button
+                    key={option.value}
+                    variant={filters.duration === option.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({ ...prev, duration: option.value as TierTrendsFilters['duration'] }))}
+                    className={`border transition-all ${
+                      filters.duration === option.value
+                        ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
+                        : 'border-slate-600 text-slate-400 hover:bg-slate-700'
+                    }`}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
             </div>
+            
+            {/* Quantity Selector */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-400">
+                Last {filters.duration === 'per-run' ? 'runs' : filters.duration === 'daily' ? 'days' : filters.duration === 'weekly' ? 'weeks' : 'months'}:
+              </label>
+              <div className="flex gap-1">
+                {[2, 3, 4, 5, 6, 7].map(count => (
+                  <Button
+                    key={count}
+                    variant={filters.quantity === count ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({ ...prev, quantity: count }))}
+                    className={`border transition-all ${
+                      filters.quantity === count
+                        ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
+                        : 'border-slate-600 text-slate-400 hover:bg-slate-700'
+                    }`}
+                  >
+                    {count}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Aggregation Selector - Only show when not per-run */}
+            {filters.duration !== 'per-run' && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-slate-400">Aggregation:</label>
+                <div className="flex gap-1">
+                  {[
+                    { value: 'sum', label: 'Sum' },
+                    { value: 'average', label: 'Avg' },
+                    { value: 'min', label: 'Min' },
+                    { value: 'max', label: 'Max' }
+                  ].map(option => (
+                    <Button
+                      key={option.value}
+                      variant={filters.aggregationType === option.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setFilters(prev => ({ ...prev, aggregationType: option.value as NonNullable<TierTrendsFilters['aggregationType']> }))}
+                      className={`border transition-all ${
+                        filters.aggregationType === option.value
+                          ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
+                          : 'border-slate-600 text-slate-400 hover:bg-slate-700'
+                      }`}
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          
-          {/* Threshold */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Min Change:</label>
-            <div className="flex gap-1">
-              {[1, 5, 10, 25].map(threshold => (
+
+          {/* Row 3: Change Threshold */}
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-400">Change Threshold:</label>
+              <div className="flex gap-1">
                 <Button
-                  key={threshold}
-                  variant={filters.changeThresholdPercent === threshold ? "default" : "outline"}
+                  variant={filters.changeThresholdPercent === 0 ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setFilters(prev => ({ ...prev, changeThresholdPercent: threshold }))}
+                  onClick={() => setFilters(prev => ({ ...prev, changeThresholdPercent: 0 }))}
                   className={`border transition-all ${
-                    filters.changeThresholdPercent === threshold
+                    filters.changeThresholdPercent === 0
                       ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
                       : 'border-slate-600 text-slate-400 hover:bg-slate-700'
                   }`}
                 >
-                  {threshold}%
+                  All
                 </Button>
-              ))}
+                {[1, 5, 10, 25].map(threshold => (
+                  <Button
+                    key={threshold}
+                    variant={filters.changeThresholdPercent === threshold ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({ ...prev, changeThresholdPercent: threshold }))}
+                    className={`border transition-all ${
+                      filters.changeThresholdPercent === threshold
+                        ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
+                        : 'border-slate-600 text-slate-400 hover:bg-slate-700'
+                    }`}
+                  >
+                    {threshold}%
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 border border-slate-600/50 rounded-lg p-4 backdrop-blur-sm">
-          <div className="text-sm text-slate-400 mb-1">Total Fields</div>
-          <div className="text-2xl font-bold text-slate-100">{trendsData.summary.totalFields}</div>
-        </div>
-        <div className="bg-gradient-to-br from-orange-800/20 to-orange-700/10 border border-orange-600/30 rounded-lg p-4 backdrop-blur-sm">
-          <div className="text-sm text-orange-400 mb-1">Significant Changes</div>
-          <div className="text-2xl font-bold text-orange-300">{trendsData.summary.significantChanges}</div>
+          <div className="text-sm text-slate-400 mb-1">Fields Changed</div>
+          <div className="text-2xl font-bold text-slate-100">{trendsData.summary.fieldsChanged}</div>
         </div>
         <div className="bg-gradient-to-br from-emerald-800/20 to-emerald-700/10 border border-emerald-600/30 rounded-lg p-4 backdrop-blur-sm">
           <div className="text-sm text-emerald-400 mb-1">Top Gainers</div>
@@ -238,7 +307,7 @@ export function TierTrendsAnalysis() {
                   </button>
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-slate-200">
-                  Trend Visualization
+                  Trend
                 </th>
                 <th className="px-6 py-4 text-right text-sm font-semibold text-slate-200">
                   <button 
@@ -254,25 +323,26 @@ export function TierTrendsAnalysis() {
                 <th className="px-6 py-4 text-right text-sm font-semibold text-slate-200">
                   Value Change
                 </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-200">
-                  <button 
-                    onClick={() => handleSort('significance')}
-                    className="flex items-center gap-1 hover:text-slate-100 transition-colors mx-auto"
-                  >
-                    Significance
-                    {sortField === 'significance' && (
-                      <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </button>
-                </th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-slate-200">
-                  Trend Type
-                </th>
+                {trendsData.comparisonColumns.map((column, index) => (
+                  <th key={index} className="px-3 py-4 text-center text-sm font-semibold text-slate-200 min-w-[80px]">
+                    <div className="flex flex-col">
+                      <div className="whitespace-nowrap">{column.header}</div>
+                      {column.subHeader && (
+                        <div className="text-xs text-slate-400 font-normal">{column.subHeader}</div>
+                      )}
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {sortedTrends.map((trend, index) => (
-                <TrendRow key={trend.fieldName} trend={trend} index={index} />
+                <TrendRow 
+                  key={trend.fieldName} 
+                  trend={trend} 
+                  index={index}
+                  comparisonColumns={trendsData.comparisonColumns}
+                />
               ))}
             </tbody>
           </table>
@@ -281,8 +351,10 @@ export function TierTrendsAnalysis() {
       
       {sortedTrends.length === 0 && (
         <div className="text-center py-8 text-slate-400">
-          No significant changes found with current threshold ({filters.changeThresholdPercent}%).
-          Try lowering the minimum change percentage.
+          {filters.changeThresholdPercent === 0 
+            ? "No data available for the selected filters."
+            : `No changes found above ${filters.changeThresholdPercent}% threshold. Try lowering the change threshold.`
+          }
         </div>
       )}
     </div>
@@ -292,9 +364,10 @@ export function TierTrendsAnalysis() {
 interface TrendRowProps {
   trend: FieldTrendData
   index: number
+  comparisonColumns: ComparisonColumn[]
 }
 
-function TrendRow({ trend, index }: TrendRowProps) {
+function TrendRow({ trend, index, comparisonColumns }: TrendRowProps) {
   const isEven = index % 2 === 0
   const rowBg = isEven 
     ? 'bg-gradient-to-r from-slate-800/20 via-slate-700/10 to-slate-800/20' 
@@ -302,31 +375,13 @@ function TrendRow({ trend, index }: TrendRowProps) {
   
   const sparklinePath = generateSparklinePath(trend.values, 60, 20)
   
-  // Color coding based on change direction and significance
-  const getChangeColor = (change: FieldTrendData['change'], significance: FieldTrendData['significance']) => {
-    if (significance === 'low') return 'text-slate-400'
+  // Color coding based on change direction
+  const getChangeColor = (change: FieldTrendData['change']) => {
     if (change.direction === 'up') return 'text-emerald-300'
     if (change.direction === 'down') return 'text-red-300'
     return 'text-slate-300'
   }
   
-  const getSignificanceColor = (significance: FieldTrendData['significance']) => {
-    switch (significance) {
-      case 'high': return 'bg-red-500/20 text-red-300 border-red-500/30'
-      case 'medium': return 'bg-orange-500/20 text-orange-300 border-orange-500/30'
-      case 'low': return 'bg-slate-500/20 text-slate-400 border-slate-500/30'
-    }
-  }
-  
-  const getTrendTypeColor = (trendType: FieldTrendData['trendType']) => {
-    switch (trendType) {
-      case 'upward': return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-      case 'downward': return 'bg-red-500/20 text-red-300 border-red-500/30'
-      case 'linear': return 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-      case 'volatile': return 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-      case 'stable': return 'bg-slate-500/20 text-slate-400 border-slate-500/30'
-    }
-  }
 
   return (
     <tr className={`border-b border-slate-700/30 transition-all duration-200 hover:bg-gradient-to-r hover:from-orange-500/10 hover:via-orange-500/5 hover:to-orange-500/10 ${rowBg}`}>
@@ -352,7 +407,7 @@ function TrendRow({ trend, index }: TrendRowProps) {
       </td>
       <td className="px-6 py-4 text-right">
         <div className="flex items-center gap-1 justify-end">
-          <span className={`font-mono text-lg ${getChangeColor(trend.change, trend.significance)}`}>
+          <span className={`font-mono text-lg ${getChangeColor(trend.change)}`}>
             {trend.change.percent > 0 ? '+' : ''}{trend.change.percent.toFixed(1)}%
           </span>
           <span className="text-lg">
@@ -361,20 +416,17 @@ function TrendRow({ trend, index }: TrendRowProps) {
         </div>
       </td>
       <td className="px-6 py-4 text-right">
-        <span className={`font-mono ${getChangeColor(trend.change, trend.significance)}`}>
+        <span className={`font-mono ${getChangeColor(trend.change)}`}>
           {trend.change.absolute > 0 ? '+' : ''}{formatNumber(trend.change.absolute)}
         </span>
       </td>
-      <td className="px-6 py-4 text-center">
-        <span className={`px-2 py-1 rounded text-xs font-medium border ${getSignificanceColor(trend.significance)}`}>
-          {trend.significance.toUpperCase()}
-        </span>
-      </td>
-      <td className="px-6 py-4 text-center">
-        <span className={`px-2 py-1 rounded text-xs font-medium border ${getTrendTypeColor(trend.trendType)}`}>
-          {trend.trendType.toUpperCase()}
-        </span>
-      </td>
+      {comparisonColumns.map((column, index) => (
+        <td key={index} className="px-3 py-4 text-center">
+          <span className="font-mono text-sm text-slate-200">
+            {formatNumber(column.values[trend.fieldName] || 0)}
+          </span>
+        </td>
+      ))}
     </tr>
   )
 }

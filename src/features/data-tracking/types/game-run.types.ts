@@ -87,7 +87,9 @@ export type CsvDelimiter = 'tab' | 'comma' | 'semicolon' | 'custom';
 export interface TierTrendsFilters {
   tier: number;
   changeThresholdPercent: number; // Only show fields with changes above this threshold
-  runCount: number; // Number of recent runs to analyze (default: 5)
+  duration: 'per-run' | 'daily' | 'weekly' | 'monthly'; // Time span for analysis
+  quantity: number; // Number of periods to analyze (2-7)
+  aggregationType?: 'sum' | 'min' | 'max' | 'average'; // Only used when duration is not 'per-run'
 }
 
 export interface FieldTrendData {
@@ -104,15 +106,21 @@ export interface FieldTrendData {
   significance: 'high' | 'medium' | 'low'; // Based on change threshold
 }
 
+export interface ComparisonColumn {
+  header: string; // Display header
+  subHeader?: string; // Optional second line for header
+  values: Record<string, number>; // fieldName -> value mapping
+}
+
 export interface TierTrendsData {
   tier: number;
-  runCount: number; // How many runs were actually analyzed (may be less than requested)
-  runIds: string[]; // IDs of runs analyzed (oldest to newest)
-  runTimestamps: Date[]; // Timestamps of runs analyzed
+  periodCount: number; // How many periods were actually analyzed
+  periodLabels: string[]; // Labels for each period (newest to oldest)
+  comparisonColumns: ComparisonColumn[]; // Dynamic comparison columns (2-7)
   fieldTrends: FieldTrendData[];
   summary: {
     totalFields: number;
-    significantChanges: number;
+    fieldsChanged: number; // Replaces significantChanges
     topGainers: FieldTrendData[]; // Top 3 fields with highest positive change
     topDecliners: FieldTrendData[]; // Top 3 fields with highest negative change
   };

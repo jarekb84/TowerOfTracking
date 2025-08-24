@@ -3,13 +3,21 @@ import type {
   TierTrendsFilters, 
   TierTrendsData, 
   FieldTrendData,
-  GameRunField 
+  GameRunField,
+  ComparisonColumn
 } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
-// Note: getFieldValue is available but not needed for this implementation
+
+interface PeriodData {
+  label: string;
+  subLabel?: string;
+  runs: ParsedGameRun[];
+  startDate: Date;
+  endDate: Date;
+}
 
 /**
- * Calculate tier trends analysis for the last N runs of a specific tier and run type
+ * Calculate tier trends analysis for the specified duration and quantity
  */
 export function calculateTierTrends(
   runs: ParsedGameRun[], 
@@ -20,38 +28,44 @@ export function calculateTierTrends(
   const filteredRuns = filterRunsByType(runs, runTypeFilter);
   const tierRuns = filteredRuns
     .filter(run => run.tier === filters.tier)
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
-    .slice(0, filters.runCount); // Take the N most recent runs
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   
-  if (tierRuns.length < 2) {
+  // Group runs by the specified duration
+  const periodsData = groupRunsByPeriod(tierRuns, filters.duration, filters.quantity);
+  
+  if (periodsData.length < 2) {
     return {
       tier: filters.tier,
-      runCount: tierRuns.length,
-      runIds: tierRuns.map(r => r.id),
-      runTimestamps: tierRuns.map(r => r.timestamp),
+      periodCount: periodsData.length,
+      periodLabels: periodsData.map(p => p.label),
+      comparisonColumns: [],
       fieldTrends: [],
       summary: {
         totalFields: 0,
-        significantChanges: 0,
+        fieldsChanged: 0,
         topGainers: [],
         topDecliners: []
       }
     };
   }
 
-  // Reverse to get oldest-to-newest order for analysis
-  const analyzedRuns = tierRuns.reverse();
+  // Get all numerical fields from all runs in all periods
+  const allNumericalFields = getNumericalFieldsFromPeriods(periodsData);
   
-  // Get all numerical fields from the runs
-  const allNumericalFields = getNumericalFields(analyzedRuns);
-  
-  // Calculate trends for each field
+  // Calculate comparison columns
+  const comparisonColumns = periodsData.map(period => ({
+    header: period.label,
+    subHeader: period.subLabel,
+    values: aggregatePeriodValues(period.runs, allNumericalFields, filters.aggregationType)
+  }));
+
+  // Calculate trends for each field across periods
   const fieldTrends = allNumericalFields.map(fieldName => 
-    calculateFieldTrend(analyzedRuns, fieldName, filters.changeThresholdPercent)
-  ).filter(trend => trend.significance !== 'low'); // Filter out insignificant changes
+    calculateFieldTrendFromPeriods(periodsData, fieldName, filters.changeThresholdPercent, filters.aggregationType)
+  ).filter(trend => filters.changeThresholdPercent === 0 || Math.abs(trend.change.percent) >= filters.changeThresholdPercent);
 
   // Generate summary statistics
-  const significantChanges = fieldTrends.filter(t => t.significance === 'high').length;
+  const fieldsChanged = fieldTrends.filter(t => Math.abs(t.change.percent) >= (filters.changeThresholdPercent || 1)).length;
   const topGainers = fieldTrends
     .filter(t => t.change.direction === 'up')
     .sort((a, b) => b.change.percent - a.change.percent)
@@ -63,13 +77,13 @@ export function calculateTierTrends(
 
   return {
     tier: filters.tier,
-    runCount: analyzedRuns.length,
-    runIds: analyzedRuns.map(r => r.id),
-    runTimestamps: analyzedRuns.map(r => r.timestamp),
+    periodCount: periodsData.length,
+    periodLabels: periodsData.map(p => p.label),
+    comparisonColumns,
     fieldTrends: fieldTrends.sort((a, b) => Math.abs(b.change.percent) - Math.abs(a.change.percent)),
     summary: {
       totalFields: allNumericalFields.length,
-      significantChanges,
+      fieldsChanged,
       topGainers,
       topDecliners
     }
@@ -84,7 +98,7 @@ function getNumericalFields(runs: ParsedGameRun[]): string[] {
   
   for (const run of runs) {
     for (const [fieldName, field] of Object.entries(run.fields)) {
-      if (field.dataType === 'number' && typeof field.value === 'number') {
+      if ((field.dataType === 'number' || field.dataType === 'duration') && typeof field.value === 'number') {
         allFields.add(fieldName);
       }
     }
@@ -249,4 +263,252 @@ export function generateSparklinePath(values: number[], width: number = 60, heig
   }
   
   return path;
+}
+
+/**
+ * Group runs by the specified time period
+ */
+function groupRunsByPeriod(
+  runs: ParsedGameRun[], 
+  duration: TierTrendsFilters['duration'], 
+  quantity: number
+): PeriodData[] {
+  if (duration === 'per-run') {
+    return runs.slice(0, quantity).map((run, index) => {
+      const date = run.timestamp.toLocaleDateString('en-US', { 
+        month: 'numeric', 
+        day: 'numeric' 
+      });
+      const time = run.timestamp.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      
+      return {
+        label: `Run ${runs.length - index}`,
+        subLabel: `${date} ${time}`,
+        runs: [run],
+        startDate: run.timestamp,
+        endDate: run.timestamp
+      };
+    });
+  }
+
+  const periods: PeriodData[] = [];
+  // Use the latest run's timestamp as the reference point instead of current time
+  const referenceDate = runs.length > 0 ? runs[0].timestamp : new Date();
+
+  for (let i = 0; i < quantity; i++) {
+    const { startDate, endDate, label } = getPeriodBounds(referenceDate, duration, i);
+    const periodRuns = runs.filter(run => 
+      run.timestamp >= startDate && run.timestamp <= endDate
+    );
+
+    // For time-based grouping, include periods even if empty to maintain consistency
+    periods.push({
+      label,
+      runs: periodRuns,
+      startDate,
+      endDate
+    });
+  }
+
+  return periods;
+}
+
+/**
+ * Get the start/end dates and label for a specific period
+ */
+function getPeriodBounds(now: Date, duration: TierTrendsFilters['duration'], periodOffset: number) {
+  const currentDate = new Date(now);
+  
+  switch (duration) {
+    case 'daily': {
+      const targetDate = new Date(currentDate);
+      targetDate.setDate(currentDate.getDate() - periodOffset);
+      
+      const startDate = new Date(targetDate);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(targetDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return {
+        startDate,
+        endDate,
+        label: targetDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
+      };
+    }
+    
+    case 'weekly': {
+      const targetDate = new Date(currentDate);
+      targetDate.setDate(currentDate.getDate() - (periodOffset * 7));
+      
+      // Get start of week (Sunday)
+      const startDate = new Date(targetDate);
+      startDate.setDate(targetDate.getDate() - targetDate.getDay());
+      startDate.setHours(0, 0, 0, 0);
+      
+      // Get end of week (Saturday)
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return {
+        startDate,
+        endDate,
+        label: `Week of ${startDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}`
+      };
+    }
+    
+    case 'monthly': {
+      const targetDate = new Date(currentDate);
+      targetDate.setMonth(currentDate.getMonth() - periodOffset);
+      
+      const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+      const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      return {
+        startDate,
+        endDate,
+        label: targetDate.toLocaleDateString('en-US', { month: 'short' })
+      };
+    }
+    
+    default:
+      throw new Error(`Unsupported duration: ${duration}`);
+  }
+}
+
+/**
+ * Get all numerical fields from all periods
+ */
+function getNumericalFieldsFromPeriods(periods: PeriodData[]): string[] {
+  const allFields = new Set<string>();
+  
+  for (const period of periods) {
+    for (const run of period.runs) {
+      for (const [fieldName, field] of Object.entries(run.fields)) {
+        if ((field.dataType === 'number' || field.dataType === 'duration') && typeof field.value === 'number') {
+          allFields.add(fieldName);
+        }
+      }
+    }
+  }
+  
+  // Filter out some fields that aren't meaningful for trend analysis
+  const excludedFields = new Set(['id', 'timestamp', 'tier', 'runType']);
+  
+  return Array.from(allFields).filter(field => !excludedFields.has(field));
+}
+
+/**
+ * Aggregate values for a period using the specified aggregation type
+ */
+function aggregatePeriodValues(
+  runs: ParsedGameRun[], 
+  fieldNames: string[], 
+  aggregationType?: TierTrendsFilters['aggregationType']
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  
+  for (const fieldName of fieldNames) {
+    const values: number[] = [];
+    
+    for (const run of runs) {
+      const field = run.fields[fieldName];
+      if (field && (field.dataType === 'number' || field.dataType === 'duration') && typeof field.value === 'number') {
+        values.push(field.value);
+      }
+    }
+    
+    if (values.length === 0) {
+      result[fieldName] = 0;
+      continue;
+    }
+    
+    switch (aggregationType) {
+      case 'sum':
+        result[fieldName] = values.reduce((sum, val) => sum + val, 0);
+        break;
+      case 'min':
+        result[fieldName] = Math.min(...values);
+        break;
+      case 'max':
+        result[fieldName] = Math.max(...values);
+        break;
+      case 'average':
+      default:
+        result[fieldName] = values.reduce((sum, val) => sum + val, 0) / values.length;
+        break;
+    }
+    
+  }
+  
+  return result;
+}
+
+/**
+ * Calculate field trend from aggregated period data
+ */
+function calculateFieldTrendFromPeriods(
+  periods: PeriodData[],
+  fieldName: string,
+  thresholdPercent: number,
+  aggregationType?: TierTrendsFilters['aggregationType']
+): FieldTrendData {
+  const values: number[] = [];
+  let displayName = fieldName;
+  let dataType: GameRunField['dataType'] = 'number';
+  
+  // Extract aggregated values for each period (oldest to newest)
+  const reversedPeriods = [...periods].reverse();
+  for (const period of reversedPeriods) {
+    const aggregatedValues = aggregatePeriodValues(period.runs, [fieldName], aggregationType);
+    values.push(aggregatedValues[fieldName] || 0);
+    
+    // Get display name from first available field
+    if (displayName === fieldName && period.runs.length > 0) {
+      const firstRun = period.runs[0];
+      const field = firstRun.fields[fieldName];
+      if (field) {
+        displayName = field.originalKey || fieldName;
+        dataType = field.dataType;
+      }
+    }
+  }
+  
+  // Calculate change metrics
+  const firstValue = values[0];
+  const lastValue = values[values.length - 1];
+  const absoluteChange = lastValue - firstValue;
+  const percentChange = firstValue === 0 ? 
+    (lastValue > 0 ? 100 : 0) : 
+    (absoluteChange / Math.abs(firstValue)) * 100;
+  
+  // Determine direction
+  const direction = Math.abs(percentChange) < 0.1 ? 'stable' : 
+                   percentChange > 0 ? 'up' : 'down';
+  
+  // Determine significance based on threshold
+  const significance = Math.abs(percentChange) >= thresholdPercent * 2 ? 'high' :
+                      Math.abs(percentChange) >= thresholdPercent ? 'medium' : 'low';
+  
+  // Analyze trend type
+  const trendType = analyzeTrendType(values);
+  
+  return {
+    fieldName,
+    displayName,
+    dataType,
+    values,
+    change: {
+      absolute: absoluteChange,
+      percent: percentChange,
+      direction
+    },
+    trendType,
+    significance
+  };
 }
