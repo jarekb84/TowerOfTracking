@@ -67,6 +67,14 @@ export function DataInput({ className }: DataInputProps) {
     }
   };
 
+  // Helper function to update notes UI field from parsed data
+  const updateNotesFromParsedData = (parsed: ParsedGameRun): void => {
+    const notesField = parsed.fields.notes;
+    if (notesField && notesField.rawValue) {
+      setNotes(notesField.rawValue);
+    }
+  };
+
   const handlePaste = async (): Promise<void> => {
     try {
       const text = await navigator.clipboard.readText();
@@ -76,6 +84,7 @@ export function DataInput({ className }: DataInputProps) {
         setPreviewData(parsed);
         setSelectedRunType(parsed.runType);
         updateDateTimeFromParsedData(parsed);
+        updateNotesFromParsedData(parsed);
       }
     } catch (error) {
       console.error('Failed to read clipboard:', error);
@@ -91,6 +100,7 @@ export function DataInput({ className }: DataInputProps) {
           setPreviewData(parsed);
           setSelectedRunType(parsed.runType);
           updateDateTimeFromParsedData(parsed);
+          updateNotesFromParsedData(parsed);
         } catch (error) {
           setPreviewData(null);
         }
@@ -109,6 +119,7 @@ export function DataInput({ className }: DataInputProps) {
         setPreviewData(parsed);
         setSelectedRunType(parsed.runType);
         updateDateTimeFromParsedData(parsed);
+        updateNotesFromParsedData(parsed);
       } catch (error) {
         setPreviewData(null);
       }
@@ -199,6 +210,7 @@ export function DataInput({ className }: DataInputProps) {
           const parsed = parseGameRun(inputData, dateTime);
           setPreviewData(parsed);
           setSelectedRunType(parsed.runType);
+          updateNotesFromParsedData(parsed);
         } catch (error) {
           setPreviewData(null);
         }
@@ -221,6 +233,7 @@ export function DataInput({ className }: DataInputProps) {
         const parsed = parseGameRun(inputData, dateTime);
         setPreviewData(parsed);
         setSelectedRunType(parsed.runType);
+        updateNotesFromParsedData(parsed);
       } catch (error) {
         setPreviewData(null);
       }

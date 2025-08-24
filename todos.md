@@ -1,6 +1,5 @@
 Bugs
 - fix issues with warning about invalid values in notes filed and then not doing anything about it
-- fix import with notes in the copy/data (use it as the src for the text area input)
 
 Features
 - Mobile designs
