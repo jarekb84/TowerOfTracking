@@ -105,7 +105,7 @@ function ChartsPage() {
                   <span className="text-sm font-normal text-slate-400 ml-auto">Spider/Radar Analysis</span>
                 </CardTitle>
                 <p className="text-slate-400 text-sm mt-2">
-                  Analyze what's killing you across different tiers. Toggle tiers on/off to compare death patterns.
+                  Analyze what${`'`}s killing you across different tiers. Toggle tiers on/off to compare death patterns.
                 </p>
               </CardHeader>
               <CardContent className="p-0">

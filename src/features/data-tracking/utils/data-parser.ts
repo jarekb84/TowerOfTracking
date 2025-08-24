@@ -19,7 +19,6 @@ import type {
   GameRunField,
   RunTypeValue
 } from '../types/game-run.types';
-import { RunType } from '../types/game-run.types';
 import { createGameRunField, toCamelCase } from './field-utils';
 import { determineRunType } from './run-type-filter';
 

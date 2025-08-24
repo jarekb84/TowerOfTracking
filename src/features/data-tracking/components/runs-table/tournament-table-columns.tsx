@@ -65,9 +65,7 @@ export function createTournamentTableColumns(removeRun: (id: string) => void) {
     columnHelper.accessor('tier', {
       header: 'League',
       cell: (info) => {
-        const row = info.row.original;
         const tierValue = info.getValue();
-        const tierField = row.fields.tier;
         
         // Extract numeric tier from string like "11+" or number
         let tierNumber: number;

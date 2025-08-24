@@ -4,7 +4,6 @@ import type {
   TierTrendsData, 
   FieldTrendData,
   GameRunField,
-  ComparisonColumn
 } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
 
@@ -87,85 +86,6 @@ export function calculateTierTrends(
       topGainers,
       topDecliners
     }
-  };
-}
-
-/**
- * Get all numerical field names that exist across the analyzed runs
- */
-function getNumericalFields(runs: ParsedGameRun[]): string[] {
-  const allFields = new Set<string>();
-  
-  for (const run of runs) {
-    for (const [fieldName, field] of Object.entries(run.fields)) {
-      if ((field.dataType === 'number' || field.dataType === 'duration') && typeof field.value === 'number') {
-        allFields.add(fieldName);
-      }
-    }
-  }
-  
-  // Filter out some fields that aren't meaningful for trend analysis
-  const excludedFields = new Set(['id', 'timestamp', 'tier', 'runType']);
-  
-  return Array.from(allFields).filter(field => !excludedFields.has(field));
-}
-
-/**
- * Calculate trend data for a specific field across the analyzed runs
- */
-function calculateFieldTrend(
-  runs: ParsedGameRun[], 
-  fieldName: string, 
-  thresholdPercent: number
-): FieldTrendData {
-  const values: number[] = [];
-  let displayName = fieldName;
-  let dataType: GameRunField['dataType'] = 'number';
-  
-  // Extract values and metadata
-  for (const run of runs) {
-    const field = run.fields[fieldName];
-    if (field && field.dataType === 'number' && typeof field.value === 'number') {
-      values.push(field.value);
-      displayName = field.originalKey || fieldName;
-      dataType = field.dataType;
-    } else {
-      // If a run is missing this field, use 0 (could be enhanced to use interpolation)
-      values.push(0);
-    }
-  }
-  
-  // Calculate change metrics
-  const firstValue = values[0];
-  const lastValue = values[values.length - 1];
-  const absoluteChange = lastValue - firstValue;
-  const percentChange = firstValue === 0 ? 
-    (lastValue > 0 ? 100 : 0) : 
-    (absoluteChange / Math.abs(firstValue)) * 100;
-  
-  // Determine direction
-  const direction = Math.abs(percentChange) < 0.1 ? 'stable' : 
-                   percentChange > 0 ? 'up' : 'down';
-  
-  // Determine significance based on threshold
-  const significance = Math.abs(percentChange) >= thresholdPercent * 2 ? 'high' :
-                      Math.abs(percentChange) >= thresholdPercent ? 'medium' : 'low';
-  
-  // Analyze trend type
-  const trendType = analyzeTrendType(values);
-  
-  return {
-    fieldName,
-    displayName,
-    dataType,
-    values,
-    change: {
-      absolute: absoluteChange,
-      percent: percentChange,
-      direction
-    },
-    trendType,
-    significance
   };
 }
 

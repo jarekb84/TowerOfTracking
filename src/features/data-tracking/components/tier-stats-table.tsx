@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useData } from '../hooks/use-data'
 import { prepareTierStatsData, formatLargeNumber, TierStatsData } from '../utils/chart-data'
 import { formatDuration } from '../utils/data-parser'

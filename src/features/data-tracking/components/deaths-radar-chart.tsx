@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react'
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts'
+import { useState, useMemo } from 'react'
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../components/ui'
 import { Button } from '../../../components/ui'
 import { useData } from '../hooks/use-data'

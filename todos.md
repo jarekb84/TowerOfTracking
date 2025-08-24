@@ -22,11 +22,7 @@ Features
 
 Tech Debt
 - Add versioning
-- setup TS config to
-    - Avoid `any` type - use proper typing or `unknown` with type guards
-    - Enable strict mode in TypeScript configuration
-    - Prefer explicit return types for functions
-    - add linting for no unused exports/fields
+- update usage of colors (in css and js) to used defined values so that we have consistent color usage across the app
 - update file structure
     don't have file type specific dir (ie a hooks or a types dir)
     break up features

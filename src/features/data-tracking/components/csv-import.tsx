@@ -161,7 +161,7 @@ export function CsvImport({ className }: CsvImportProps) {
           <DialogHeader>
             <DialogTitle>Import CSV/Tab-Delimited Data</DialogTitle>
             <DialogDescription>
-              Import game run data from any CSV format. Column headers will be automatically mapped to supported fields. Use any field names - they'll be converted to camelCase and validated against the 84 supported fields.
+              Import game run data from any CSV format. Column headers will be automatically mapped to supported fields. Use any field names - they${`'`}ll be converted to camelCase and validated against the 84 supported fields.
             </DialogDescription>
           </DialogHeader>
           
@@ -346,7 +346,7 @@ Column headers will be automatically converted to camelCase and matched against 
                 <CardHeader>
                   <CardTitle className="text-lg">Preview ({parseResult.success.length} runs)</CardTitle>
                   <CardDescription>
-                    Here's how your data will be imported
+                    Here${`'`}s how your data will be imported
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

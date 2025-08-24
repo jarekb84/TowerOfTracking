@@ -360,7 +360,7 @@ Cash Earned        $44.65B"
                 <CardHeader>
                   <CardTitle className="text-lg">Preview</CardTitle>
                   <CardDescription>
-                    Here's how your data will be interpreted
+                    Here${`'`}s how your data will be interpreted
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

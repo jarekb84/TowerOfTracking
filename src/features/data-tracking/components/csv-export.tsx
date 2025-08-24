@@ -188,7 +188,7 @@ export function CsvExport({ className }: CsvExportProps) {
                     <div className="flex flex-wrap gap-4 text-sm bg-blue-50 border border-blue-200 p-3 rounded">
                       <span className="text-gray-900"><strong className="text-blue-800">Rows:</strong> {exportResult.rowCount}</span>
                       <span className="text-gray-900"><strong className="text-blue-800">Columns:</strong> {exportResult.fieldCount}</span>
-                      <span className="text-gray-900"><strong className="text-blue-800">Delimiter:</strong> "{getDelimiterDisplayString()}"</span>
+                      <span className="text-gray-900"><strong className="text-blue-800">Delimiter:</strong> ${`"`}{getDelimiterDisplayString()}${`"`}</span>
                     </div>
                   )}
                 </div>

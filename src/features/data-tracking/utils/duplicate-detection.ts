@@ -1,8 +1,5 @@
 import type { ParsedGameRun } from '../types/game-run.types';
 
-// Tolerance for floating-point number comparisons (to handle minor precision differences)
-const FLOAT_TOLERANCE = 0.001;
-
 // Interface for duplicate detection result
 export interface DuplicateDetectionResult {
   isDuplicate: boolean;

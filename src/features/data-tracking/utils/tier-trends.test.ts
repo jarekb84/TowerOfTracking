@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateTierTrends, getAvailableTiersForTrends } from './tier-trends';
 import type { ParsedGameRun, TierTrendsFilters, GameRunField } from '../types/game-run.types';
-import { RunTypeFilter } from './run-type-filter';
 
 // Helper function to create a mock field
 function createMockField(

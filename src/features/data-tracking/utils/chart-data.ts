@@ -88,7 +88,7 @@ export function prepareCoinsPerRunData(runs: ParsedGameRun[]): ChartDataPoint[] 
 
 export function prepareCoinsPerDayData(runs: ParsedGameRun[]): DailyAggregatePoint[] {
   const dailyGroups = new Map<string, ParsedGameRun[]>()
-  
+
   // Group runs by day
   runs.forEach(run => {
     const dayKey = format(startOfDay(run.timestamp), 'yyyy-MM-dd')
@@ -100,13 +100,13 @@ export function prepareCoinsPerDayData(runs: ParsedGameRun[]): DailyAggregatePoi
 
   // Calculate daily aggregates
   const dailyData: DailyAggregatePoint[] = []
-  
+
   dailyGroups.forEach((dayRuns, dayKey) => {
     const totalCoins = dayRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
     const runCount = dayRuns.length
     const avgCoins = totalCoins / runCount
     const timestamp = new Date(dayKey)
-    
+
     dailyData.push({
       date: format(timestamp, 'MMM dd'),
       totalCoins,
@@ -153,7 +153,7 @@ export function prepareCellsPerHourData(runs: ParsedGameRun[]): ChartDataPoint[]
 
 export function prepareCellsPerDayData(runs: ParsedGameRun[]): DailyCellsAggregatePoint[] {
   const dailyGroups = new Map<string, ParsedGameRun[]>()
-  
+
   // Group runs by day
   runs.forEach(run => {
     const dayKey = format(startOfDay(run.timestamp), 'yyyy-MM-dd')
@@ -165,13 +165,13 @@ export function prepareCellsPerDayData(runs: ParsedGameRun[]): DailyCellsAggrega
 
   // Calculate daily aggregates
   const dailyData: DailyCellsAggregatePoint[] = []
-  
+
   dailyGroups.forEach((dayRuns, dayKey) => {
     const totalCells = dayRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
     const runCount = dayRuns.length
     const avgCells = totalCells / runCount
     const timestamp = new Date(dayKey)
-    
+
     dailyData.push({
       date: format(timestamp, 'MMM dd'),
       totalCells,
@@ -204,7 +204,7 @@ export function formatLargeNumber(value: number): string {
 export function generateYAxisTicks(maxValue: number): number[] {
   const magnitude = Math.pow(10, Math.floor(Math.log10(maxValue)))
   const normalizedMax = maxValue / magnitude
-  
+
   let step: number
   if (normalizedMax <= 2) {
     step = 0.5 * magnitude
@@ -213,22 +213,22 @@ export function generateYAxisTicks(maxValue: number): number[] {
   } else {
     step = 2 * magnitude
   }
-  
+
   const ticks: number[] = []
   for (let i = 0; i <= Math.ceil(maxValue / step); i++) {
     ticks.push(i * step)
   }
-  
+
   return ticks
 }
 
 export function prepareKilledByData(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'all'): TierKilledByData[] {
   // Filter runs by type first
   const filteredRuns = filterRunsByType(runs, runTypeFilter);
-  
+
   // Group runs by tier
   const tierGroups = new Map<number, ParsedGameRun[]>()
-  
+
   filteredRuns.forEach(run => {
     const killedBy = getFieldValue<string>(run, 'killedBy');
     if (run.tier && killedBy) {
@@ -241,18 +241,18 @@ export function prepareKilledByData(runs: ParsedGameRun[], runTypeFilter: RunTyp
 
   // Process each tier's killed-by data
   const tierData: TierKilledByData[] = []
-  
+
   tierGroups.forEach((tierRuns, tier) => {
     // Count deaths by type
     const deathCounts = new Map<string, number>()
-    
+
     tierRuns.forEach(run => {
       const killedBy = getFieldValue<string>(run, 'killedBy') || 'Unknown'
       deathCounts.set(killedBy, (deathCounts.get(killedBy) || 0) + 1)
     })
 
     const totalDeaths = tierRuns.length
-    
+
     // Convert to percentage-based data for radar chart
     const killedByStats: KilledByData[] = Array.from(deathCounts.entries())
       .map(([killedBy, count]) => ({
@@ -285,12 +285,12 @@ export function prepareRadarChartData(tierData: TierKilledByData[]): any[] {
   // Create radar chart data points
   return Array.from(allDeathCauses).map(deathCause => {
     const dataPoint: any = { killedBy: deathCause }
-    
+
     tierData.forEach(tier => {
       const stat = tier.killedByStats.find(s => s.killedBy === deathCause)
       dataPoint[`tier${tier.tier}`] = stat ? stat.percentage : 0
     })
-    
+
     return dataPoint
   })
 }
@@ -308,10 +308,10 @@ export interface TierStatsData {
 export function prepareTierStatsData(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'all'): TierStatsData[] {
   // Filter runs by type first
   const filteredRuns = filterRunsByType(runs, runTypeFilter);
-  
+
   // Group runs by tier
   const tierGroups = new Map<number, ParsedGameRun[]>()
-  
+
   filteredRuns.forEach(run => {
     if (run.tier) {
       if (!tierGroups.has(run.tier)) {
@@ -323,7 +323,7 @@ export function prepareTierStatsData(runs: ParsedGameRun[], runTypeFilter: RunTy
 
   // Calculate max stats for each tier
   const tierStats: TierStatsData[] = []
-  
+
   tierGroups.forEach((tierRuns, tier) => {
     let maxWave = 0
     let maxDuration = 0
@@ -396,7 +396,7 @@ export const TIME_PERIOD_CONFIGS: TimePeriodConfig[] = [
 
 // Generic function to prepare data for any time period
 export function prepareTimeSeriesData(
-  runs: ParsedGameRun[], 
+  runs: ParsedGameRun[],
   period: TimePeriod,
   metric: 'coins' | 'cells'
 ): ChartDataPoint[] {
@@ -421,27 +421,30 @@ export function prepareTimeSeriesData(
           timestamp: point.timestamp
         }))
       }
-    case 'weekly':
+    case 'weekly': {
       const weeklyData = prepareWeeklyData(runs)
       return weeklyData.map(point => ({
         date: point.date,
         value: metric === 'coins' ? point.totalCoins : point.totalCells,
         timestamp: point.timestamp
       }))
-    case 'monthly':
+    }
+    case 'monthly': {
       const monthlyData = prepareMonthlyData(runs)
       return monthlyData.map(point => ({
         date: point.date,
         value: metric === 'coins' ? point.totalCoins : point.totalCells,
         timestamp: point.timestamp
       }))
-    case 'yearly':
+    }
+    case 'yearly': {
       const yearlyData = prepareYearlyData(runs)
       return yearlyData.map(point => ({
         date: point.date,
         value: metric === 'coins' ? point.totalCoins : point.totalCells,
         timestamp: point.timestamp
       }))
+    }
     default:
       return []
   }
@@ -449,7 +452,7 @@ export function prepareTimeSeriesData(
 
 export function prepareWeeklyData(runs: ParsedGameRun[]): WeeklyAggregatePoint[] {
   const weeklyGroups = new Map<string, ParsedGameRun[]>()
-  
+
   // Group runs by week (starting Monday)
   runs.forEach(run => {
     const weekStart = startOfWeek(run.timestamp, { weekStartsOn: 1 })
@@ -462,7 +465,7 @@ export function prepareWeeklyData(runs: ParsedGameRun[]): WeeklyAggregatePoint[]
 
   // Calculate weekly aggregates
   const weeklyData: WeeklyAggregatePoint[] = []
-  
+
   weeklyGroups.forEach((weekRuns, weekKey) => {
     const totalCoins = weekRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
     const totalCells = weekRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
@@ -470,7 +473,7 @@ export function prepareWeeklyData(runs: ParsedGameRun[]): WeeklyAggregatePoint[]
     const avgCoins = totalCoins / runCount
     const avgCells = totalCells / runCount
     const timestamp = new Date(weekKey)
-    
+
     weeklyData.push({
       date: format(timestamp, 'MMM dd'),
       totalCoins,
@@ -487,7 +490,7 @@ export function prepareWeeklyData(runs: ParsedGameRun[]): WeeklyAggregatePoint[]
 
 export function prepareMonthlyData(runs: ParsedGameRun[]): MonthlyAggregatePoint[] {
   const monthlyGroups = new Map<string, ParsedGameRun[]>()
-  
+
   // Group runs by month
   runs.forEach(run => {
     const monthStart = startOfMonth(run.timestamp)
@@ -500,7 +503,7 @@ export function prepareMonthlyData(runs: ParsedGameRun[]): MonthlyAggregatePoint
 
   // Calculate monthly aggregates
   const monthlyData: MonthlyAggregatePoint[] = []
-  
+
   monthlyGroups.forEach((monthRuns, monthKey) => {
     const totalCoins = monthRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
     const totalCells = monthRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
@@ -508,7 +511,7 @@ export function prepareMonthlyData(runs: ParsedGameRun[]): MonthlyAggregatePoint
     const avgCoins = totalCoins / runCount
     const avgCells = totalCells / runCount
     const timestamp = new Date(monthKey + '-01')
-    
+
     monthlyData.push({
       date: format(timestamp, 'MMM yyyy'),
       totalCoins,
@@ -525,7 +528,7 @@ export function prepareMonthlyData(runs: ParsedGameRun[]): MonthlyAggregatePoint
 
 export function prepareYearlyData(runs: ParsedGameRun[]): YearlyAggregatePoint[] {
   const yearlyGroups = new Map<string, ParsedGameRun[]>()
-  
+
   // Group runs by year
   runs.forEach(run => {
     const yearStart = startOfYear(run.timestamp)
@@ -538,7 +541,7 @@ export function prepareYearlyData(runs: ParsedGameRun[]): YearlyAggregatePoint[]
 
   // Calculate yearly aggregates
   const yearlyData: YearlyAggregatePoint[] = []
-  
+
   yearlyGroups.forEach((yearRuns, yearKey) => {
     const totalCoins = yearRuns.reduce((sum, run) => sum + run.coinsEarned, 0)
     const totalCells = yearRuns.reduce((sum, run) => sum + run.cellsEarned, 0)
@@ -546,7 +549,7 @@ export function prepareYearlyData(runs: ParsedGameRun[]): YearlyAggregatePoint[]
     const avgCoins = totalCoins / runCount
     const avgCells = totalCells / runCount
     const timestamp = new Date(yearKey + '-01-01')
-    
+
     yearlyData.push({
       date: yearKey,
       totalCoins,
@@ -565,7 +568,7 @@ export function prepareYearlyData(runs: ParsedGameRun[]): YearlyAggregatePoint[]
 export function getAvailableTimePeriods(runs: ParsedGameRun[]): TimePeriodConfig[] {
   if (runs.length === 0) {
     // Always show hourly and per run when no data
-    return TIME_PERIOD_CONFIGS.filter(config => 
+    return TIME_PERIOD_CONFIGS.filter(config =>
       config.period === 'hourly' || config.period === 'run'
     )
   }
@@ -586,28 +589,28 @@ export function getAvailableTimePeriods(runs: ParsedGameRun[]): TimePeriodConfig
 
   // Always include hourly and per run
   const availablePeriods: TimePeriod[] = ['hourly', 'run']
-  
+
   if (uniqueDays.size > 1) {
     availablePeriods.push('daily')
   }
-  
+
 
   if (uniqueWeeks.size > 1) {
     availablePeriods.push('weekly')
   }
-  
+
 
   if (uniqueMonths.size > 1) {
     availablePeriods.push('monthly')
   }
-  
+
 
   if (uniqueYears.size > 1) {
     availablePeriods.push('yearly')
   }
 
   // Return configurations for available periods in original order
-  return TIME_PERIOD_CONFIGS.filter(config => 
+  return TIME_PERIOD_CONFIGS.filter(config =>
     availablePeriods.includes(config.period)
   )
 }
