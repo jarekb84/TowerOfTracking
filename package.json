@@ -12,7 +12,7 @@
     "knip": "knip",
     "lint": "eslint --prune-suppressions",
     "lint:fix": "eslint --fix",
-    "lint:updateSuppress": "eslint --fix --prune-suppressions",
+    "lint:updateSuppress": "eslint --fix --suppress-all",
     "prepare": "husky"
   },
   "dependencies": {
