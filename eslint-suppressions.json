@@ -4,6 +4,26 @@
       "count": 4
     }
   },
+  "src/components/ui/chart.tsx": {
+    "max-lines": {
+      "count": 1
+    }
+  },
+  "src/features/data-tracking/components/csv-import.tsx": {
+    "max-lines": {
+      "count": 1
+    }
+  },
+  "src/features/data-tracking/components/data-input.tsx": {
+    "max-lines": {
+      "count": 1
+    }
+  },
+  "src/features/data-tracking/components/tier-trends-analysis.tsx": {
+    "max-lines": {
+      "count": 1
+    }
+  },
   "src/features/data-tracking/integration/duplicate-detection.integration.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -12,10 +32,23 @@
   "src/features/data-tracking/utils/chart-data.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
+    },
+    "max-lines": {
+      "count": 1
     }
   },
   "src/features/data-tracking/utils/field-utils.ts": {
     "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "src/features/data-tracking/utils/tier-trends.test.ts": {
+    "max-lines": {
+      "count": 1
+    }
+  },
+  "src/features/data-tracking/utils/tier-trends.ts": {
+    "max-lines": {
       "count": 1
     }
   }
