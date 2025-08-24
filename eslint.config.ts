@@ -32,6 +32,11 @@ export default defineConfig([
         "args": "after-used",
         "caughtErrors": "none",
         "destructuredArrayIgnorePattern": "^_"
+      }],
+      "max-lines": ["error", {
+        "max": 500,
+        "skipBlankLines": true,
+        "skipComments": true
       }]
     }
   }

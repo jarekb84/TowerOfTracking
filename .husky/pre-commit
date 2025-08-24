@@ -1,0 +1,8 @@
+# Run tests
+# npm test
+
+# Run ESLint check - will fail commit if new violations are introduced
+npm run lint
+
+# If lint passes, update suppressions to track any improvements
+npm run lint:updateSuppress

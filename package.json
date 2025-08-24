@@ -10,9 +10,10 @@
     "serve": "vite preview",
     "test": "vitest run",
     "knip": "knip",
-    "lint": "eslint",
+    "lint": "eslint --prune-suppressions",
     "lint:fix": "eslint --fix",
-    "lint:updateSuppress": "eslint --fix --suppress-all"
+    "lint:updateSuppress": "eslint --fix --prune-suppressions",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -46,6 +47,7 @@
     "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.3.0",
+    "husky": "^9.1.7",
     "jiti": "^2.5.1",
     "jsdom": "^26.0.0",
     "knip": "^5.62.0",
