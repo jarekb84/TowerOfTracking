@@ -1,6 +1,15 @@
 // Raw data structure as pasted from clipboard (flexible to handle any property names)
 export type RawGameRunData = Record<string, string>;
 
+// Run type enumeration for type safety
+export enum RunType {
+  FARM = 'farm',
+  TOURNAMENT = 'tournament'
+}
+
+// Type alias for backwards compatibility and union types
+export type RunTypeValue = `${RunType}`;
+
 
 // Main game run interface with enhanced field structure
 export interface ParsedGameRun {
@@ -16,7 +25,7 @@ export interface ParsedGameRun {
   readonly coinsEarned: number;
   readonly cellsEarned: number;
   readonly realTime: number;
-  readonly runType: 'farm' | 'tournament';
+  readonly runType: RunTypeValue;
 }
 
 export interface GameRunFilters {

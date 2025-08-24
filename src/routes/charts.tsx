@@ -68,8 +68,9 @@ function ChartsPage() {
                   <TimeSeriesChart 
                     metric="coins"
                     title="Coins Earned"
-                    subtitle="Track your coin earnings over different time periods"
+                    subtitle="Track your coin earnings from farming runs over different time periods"
                     defaultPeriod="hourly"
+                    showFarmingOnly={true}
                   />
                 </div>
               </CardContent>
@@ -86,8 +87,9 @@ function ChartsPage() {
                   <TimeSeriesChart 
                     metric="cells"
                     title="Cells Earned"
-                    subtitle="Track your cell earnings over different time periods"
+                    subtitle="Track your cell earnings from farming runs over different time periods"
                     defaultPeriod="hourly"
+                    showFarmingOnly={true}
                   />
                 </div>
               </CardContent>

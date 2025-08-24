@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Button } from '../../../components/ui'
 import { useData } from '../hooks/use-data'
 import { 
@@ -8,6 +8,8 @@ import {
   generateSparklinePath 
 } from '../utils/tier-trends'
 import { formatNumber } from '../utils/data-parser'
+import { RunTypeFilter } from '../utils/run-type-filter'
+import { RunTypeSelector } from './run-type-selector'
 import type { TierTrendsFilters, FieldTrendData } from '../types/game-run.types'
 
 type SortField = 'fieldName' | 'change' | 'significance'
@@ -16,21 +18,30 @@ type SortDirection = 'asc' | 'desc'
 export function TierTrendsAnalysis() {
   const { runs } = useData()
   
-  const availableTiers = useMemo(() => getAvailableTiersForTrends(runs), [runs])
+  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>('farming')
+  
+  const availableTiers = useMemo(() => getAvailableTiersForTrends(runs, runTypeFilter), [runs, runTypeFilter])
   
   const [filters, setFilters] = useState<TierTrendsFilters>({
-    tier: availableTiers[0] || 1,
+    tier: 1, // Will be updated by useEffect
     changeThresholdPercent: 5,
     runCount: 5
   })
+  
+  // Auto-select first available tier when run type changes
+  useEffect(() => {
+    if (availableTiers.length > 0 && !availableTiers.includes(filters.tier)) {
+      setFilters(prev => ({ ...prev, tier: availableTiers[0] }))
+    }
+  }, [availableTiers, filters.tier])
   
   const [sortField, setSortField] = useState<SortField>('change')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   
   const trendsData = useMemo(() => {
     if (availableTiers.length === 0) return null
-    return calculateTierTrends(runs, filters)
-  }, [runs, filters, availableTiers])
+    return calculateTierTrends(runs, filters, runTypeFilter)
+  }, [runs, filters, runTypeFilter, availableTiers])
   
   const sortedTrends = useMemo(() => {
     if (!trendsData) return []
@@ -81,7 +92,9 @@ export function TierTrendsAnalysis() {
       <div className="h-[400px] flex items-center justify-center text-muted-foreground">
         <div className="text-center">
           <p>No tier data available for trends analysis.</p>
-          <p className="text-sm mt-2">You need at least 2 farming runs in the same tier to see trends.</p>
+          <p className="text-sm mt-2">
+            You need at least 2 {runTypeFilter === 'farming' ? 'farming' : runTypeFilter === 'tournament' ? 'tournament' : ''} runs in the same tier to see trends.
+          </p>
         </div>
       </div>
     )
@@ -104,16 +117,21 @@ export function TierTrendsAnalysis() {
             <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
             Tier {filters.tier} Trends Analysis
             <span className="text-sm font-normal text-slate-400 ml-auto">
-              Last {trendsData.runCount} Farming Runs
+              Last {trendsData.runCount} {runTypeFilter === 'farming' ? 'Farming' : runTypeFilter === 'tournament' ? 'Tournament' : ''} Runs
             </span>
           </h3>
           <p className="text-slate-400 text-sm">
-            Statistical changes across your recent farming runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
+            Statistical changes across your recent {runTypeFilter === 'farming' ? 'farming' : runTypeFilter === 'tournament' ? 'tournament' : ''} runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
           </p>
         </div>
         
         {/* Controls */}
         <div className="flex flex-wrap gap-4 items-center">
+          {/* Run Type Selector */}
+          <RunTypeSelector 
+            selectedType={runTypeFilter}
+            onTypeChange={setRunTypeFilter}
+          />
           {/* Tier Selector */}
           <div className="flex items-center gap-2">
             <label className="text-sm text-slate-400">Tier:</label>

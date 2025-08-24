@@ -16,9 +16,12 @@ const BILLIONS_SCALE = new humanFormat.Scale({
 import type { 
   ParsedGameRun,
   RawClipboardData,
-  GameRunField
+  GameRunField,
+  RunTypeValue
 } from '../types/game-run.types';
+import { RunType } from '../types/game-run.types';
 import { createGameRunField, toCamelCase } from './field-utils';
+import { determineRunType } from './run-type-filter';
 
 
 // Parse tab-delimited data from clipboard
@@ -82,11 +85,21 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
   coinsEarned: number;
   cellsEarned: number;
   realTime: number;
-  runType: 'farm' | 'tournament';
+  runType: RunTypeValue;
 } {
-  const tier = (fields.tier?.value as number) || 0;
   const tierStr = (fields.tier?.rawValue) || '';
-  const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
+  const runType: RunTypeValue = determineRunType(tierStr);
+  
+  // Extract numeric tier value from both numeric fields and tournament strings like "8+"
+  let tier: number;
+  if (fields.tier?.dataType === 'number') {
+    tier = fields.tier.value as number;
+  } else {
+    // For tournament tiers like "8+", extract the numeric part
+    const match = tierStr.match(/^(\d+)/);
+    tier = match ? parseInt(match[1], 10) : 0;
+  }
+  tier = tier || 0;
   
   return {
     tier,
@@ -111,7 +124,7 @@ export function calculatePerHour(value: number, durationInSeconds: number): numb
 export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGameRun {
   try {
     const clipboardData = parseTabDelimitedData(rawInput);
-    console.log('Parsed clipboard data:', clipboardData);
+    // console.log('Parsed clipboard data:', clipboardData);
     
     // Generate field-based structure
     const fields: Record<string, GameRunField> = {};
@@ -153,12 +166,26 @@ function getTournamentLeague(tierNumber: number): string | null {
 export function formatTierLabel(camelTier: string | undefined, numericTier: number | undefined): string {
   const hasPlus = typeof camelTier === 'string' && /\+/.test(camelTier);
   if (hasPlus) {
-    const tierNum = Number(numericTier ?? parseInt((camelTier || '').replace(/[^0-9]/g, ''), 10));
-    const league = getTournamentLeague(tierNum);
-    const base = `${tierNum}+`;
-    return league ? `${base} ${league}` : base;
+    // For tournament tiers, use the numeric tier if available, otherwise extract from raw string
+    let tierNum: number;
+    if (numericTier && numericTier > 0) {
+      tierNum = numericTier;
+    } else {
+      // Extract numeric part from string like "8+"
+      const match = (camelTier || '').match(/^(\d+)/);
+      tierNum = match ? parseInt(match[1], 10) : 0;
+    }
+    
+    if (tierNum > 0) {
+      const league = getTournamentLeague(tierNum);
+      const base = `${tierNum}+`;
+      return league ? `${base} ${league}` : base;
+    } else {
+      // Fallback to raw string if we can't parse the number
+      return camelTier || '-';
+    }
   }
-  // Fallback to numeric tier if available, otherwise the raw string
+  // For regular farming tiers
   if (numericTier && numericTier > 0) return String(numericTier);
   return camelTier || '-';
 }

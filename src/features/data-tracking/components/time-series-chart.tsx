@@ -4,12 +4,15 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../comp
 import { Button } from '../../../components/ui'
 import { useData } from '../hooks/use-data'
 import { prepareTimeSeriesData, formatLargeNumber, generateYAxisTicks, TimePeriod, getAvailableTimePeriods } from '../utils/chart-data'
+import { getFarmingRuns } from '../utils/run-type-filter'
+import { FarmingOnlyIndicator } from './farming-only-indicator'
 
 interface TimeSeriesChartProps {
   metric: 'coins' | 'cells'
   title: string
   subtitle?: string
   defaultPeriod?: TimePeriod
+  showFarmingOnly?: boolean
 }
 
 const chartConfig = {
@@ -22,15 +25,21 @@ export function TimeSeriesChart({
   metric, 
   title, 
   subtitle = 'Track your performance over time',
-  defaultPeriod = 'run' 
+  defaultPeriod = 'run',
+  showFarmingOnly = false
 }: TimeSeriesChartProps) {
   const { runs } = useData()
+  
+  // Filter runs based on showFarmingOnly prop
+  const filteredRuns = useMemo(() => {
+    return showFarmingOnly ? getFarmingRuns(runs) : runs
+  }, [runs, showFarmingOnly])
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
   
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
-    return getAvailableTimePeriods(runs)
-  }, [runs])
+    return getAvailableTimePeriods(filteredRuns)
+  }, [filteredRuns])
   
   // Reset period if current selection is not available
   useEffect(() => {
@@ -43,8 +52,8 @@ export function TimeSeriesChart({
   const currentConfig = availablePeriodConfigs.find(config => config.period === selectedPeriod) || availablePeriodConfigs[0]
   
   const chartData = useMemo(() => {
-    return prepareTimeSeriesData(runs, selectedPeriod, metric)
-  }, [runs, selectedPeriod, metric])
+    return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
+  }, [filteredRuns, selectedPeriod, metric])
 
   const yAxisTicks = useMemo(() => {
     if (chartData.length === 0) return []
@@ -65,17 +74,20 @@ export function TimeSeriesChart({
       {/* Header with period selector */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
-            <div 
-              className="w-2 h-8 rounded-full shadow-lg"
-              style={{ 
-                background: `linear-gradient(to bottom, ${currentConfig.color}CC, ${currentConfig.color})`,
-                boxShadow: `0 4px 12px ${currentConfig.color}30`
-              }}
-            />
-            {title}
-            <span className="text-sm font-normal text-slate-400 ml-auto">{currentConfig.label}</span>
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+              <div 
+                className="w-2 h-8 rounded-full shadow-lg"
+                style={{ 
+                  background: `linear-gradient(to bottom, ${currentConfig.color}CC, ${currentConfig.color})`,
+                  boxShadow: `0 4px 12px ${currentConfig.color}30`
+                }}
+              />
+              {title}
+              <span className="text-sm font-normal text-slate-400 ml-auto">{currentConfig.label}</span>
+            </h3>
+            {showFarmingOnly && <FarmingOnlyIndicator />}
+          </div>
           <p className="text-slate-400 text-sm">{subtitle}</p>
         </div>
         

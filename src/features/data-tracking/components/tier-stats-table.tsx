@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useData } from '../hooks/use-data'
 import { prepareTierStatsData, formatLargeNumber, TierStatsData } from '../utils/chart-data'
 import { formatDuration } from '../utils/data-parser'
+import { FarmingOnlyIndicator } from './farming-only-indicator'
 
 type SortField = keyof TierStatsData
 type SortDirection = 'asc' | 'desc'
@@ -9,7 +10,7 @@ type SortDirection = 'asc' | 'desc'
 export function TierStatsTable() {
   const { runs } = useData()
   
-  const baseTierStats = useMemo(() => prepareTierStatsData(runs), [runs])
+  const baseTierStats = useMemo(() => prepareTierStatsData(runs, 'farming'), [runs])
   const [sortField, setSortField] = useState<SortField>('tier')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   
@@ -44,9 +45,12 @@ export function TierStatsTable() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-slate-100">Performance by Tier</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-slate-100">Performance by Tier</h3>
+          <FarmingOnlyIndicator />
+        </div>
         <p className="text-slate-400 text-sm">
-          Maximum values achieved across all runs for each tier. Rates calculated as per-hour metrics.
+          Maximum values achieved across farming runs for each tier. Rates calculated as per-hour metrics.
         </p>
       </div>
 

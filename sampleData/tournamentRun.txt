@@ -1,4 +1,4 @@
-"Game Time        7h 21m 26s
+Game Time        7h 21m 26s
 Real Time        1h 50m 21s
 Tier        8+
 Wave        871
@@ -79,4 +79,3 @@ Generator Shards        6
 Core Shards        6
 Common Modules        0
 Rare Modules        0
-"

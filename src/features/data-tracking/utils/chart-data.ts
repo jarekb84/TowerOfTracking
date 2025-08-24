@@ -1,6 +1,7 @@
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns'
 import { ParsedGameRun } from '../types/game-run.types'
 import { getFieldValue } from './field-utils'
+import { RunTypeFilter, filterRunsByType } from './run-type-filter'
 
 export interface ChartDataPoint {
   date: string
@@ -221,11 +222,14 @@ export function generateYAxisTicks(maxValue: number): number[] {
   return ticks
 }
 
-export function prepareKilledByData(runs: ParsedGameRun[]): TierKilledByData[] {
+export function prepareKilledByData(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'all'): TierKilledByData[] {
+  // Filter runs by type first
+  const filteredRuns = filterRunsByType(runs, runTypeFilter);
+  
   // Group runs by tier
   const tierGroups = new Map<number, ParsedGameRun[]>()
   
-  runs.forEach(run => {
+  filteredRuns.forEach(run => {
     const killedBy = getFieldValue<string>(run, 'killedBy');
     if (run.tier && killedBy) {
       if (!tierGroups.has(run.tier)) {
@@ -301,11 +305,14 @@ export interface TierStatsData {
   maxCellsPerHour: number
 }
 
-export function prepareTierStatsData(runs: ParsedGameRun[]): TierStatsData[] {
+export function prepareTierStatsData(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'all'): TierStatsData[] {
+  // Filter runs by type first
+  const filteredRuns = filterRunsByType(runs, runTypeFilter);
+  
   // Group runs by tier
   const tierGroups = new Map<number, ParsedGameRun[]>()
   
-  runs.forEach(run => {
+  filteredRuns.forEach(run => {
     if (run.tier) {
       if (!tierGroups.has(run.tier)) {
         tierGroups.set(run.tier, [])

@@ -2,6 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { Button } from '../../../../components/ui';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../../utils/data-parser';
 import { getFieldValue } from '../../utils/field-utils';
+import { getRunTypeDisplayLabel } from '../../utils/run-type-filter';
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { ChevronDown, ChevronRight, Trash2, StickyNote } from 'lucide-react';
 
@@ -89,7 +90,7 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
       header: 'Run Type',
       cell: (info) => {
         const rt = info.getValue();
-        return rt === 'tournament' ? 'Tournament' : 'Farm';
+        return getRunTypeDisplayLabel(rt);
       },
     }),
     columnHelper.accessor('coinsEarned', {

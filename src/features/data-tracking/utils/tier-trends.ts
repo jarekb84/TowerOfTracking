@@ -5,27 +5,30 @@ import type {
   FieldTrendData,
   GameRunField 
 } from '../types/game-run.types';
+import { RunTypeFilter, filterRunsByType } from './run-type-filter';
 // Note: getFieldValue is available but not needed for this implementation
 
 /**
- * Calculate tier trends analysis for the last N farming runs of a specific tier
+ * Calculate tier trends analysis for the last N runs of a specific tier and run type
  */
 export function calculateTierTrends(
   runs: ParsedGameRun[], 
-  filters: TierTrendsFilters
+  filters: TierTrendsFilters,
+  runTypeFilter: RunTypeFilter = 'farming'
 ): TierTrendsData {
-  // Filter to farming runs of the specified tier, sorted by timestamp (newest first)
-  const tierFarmingRuns = runs
-    .filter(run => run.tier === filters.tier && run.runType === 'farm')
+  // Filter runs by type and tier, sorted by timestamp (newest first)
+  const filteredRuns = filterRunsByType(runs, runTypeFilter);
+  const tierRuns = filteredRuns
+    .filter(run => run.tier === filters.tier)
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
     .slice(0, filters.runCount); // Take the N most recent runs
   
-  if (tierFarmingRuns.length < 2) {
+  if (tierRuns.length < 2) {
     return {
       tier: filters.tier,
-      runCount: tierFarmingRuns.length,
-      runIds: tierFarmingRuns.map(r => r.id),
-      runTimestamps: tierFarmingRuns.map(r => r.timestamp),
+      runCount: tierRuns.length,
+      runIds: tierRuns.map(r => r.id),
+      runTimestamps: tierRuns.map(r => r.timestamp),
       fieldTrends: [],
       summary: {
         totalFields: 0,
@@ -37,7 +40,7 @@ export function calculateTierTrends(
   }
 
   // Reverse to get oldest-to-newest order for analysis
-  const analyzedRuns = tierFarmingRuns.reverse();
+  const analyzedRuns = tierRuns.reverse();
   
   // Get all numerical fields from the runs
   const allNumericalFields = getNumericalFields(analyzedRuns);
@@ -191,14 +194,13 @@ function analyzeTrendType(values: number[]): FieldTrendData['trendType'] {
 /**
  * Get available tiers for trend analysis (tiers with at least 2 farming runs)
  */
-export function getAvailableTiersForTrends(runs: ParsedGameRun[]): number[] {
+export function getAvailableTiersForTrends(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'farming'): number[] {
   const tierCounts = new Map<number, number>();
   
-  runs
-    .filter(run => run.runType === 'farm')
-    .forEach(run => {
-      tierCounts.set(run.tier, (tierCounts.get(run.tier) || 0) + 1);
-    });
+  const filteredRuns = filterRunsByType(runs, runTypeFilter);
+  filteredRuns.forEach(run => {
+    tierCounts.set(run.tier, (tierCounts.get(run.tier) || 0) + 1);
+  });
   
   return Array.from(tierCounts.entries())
     .filter(([_, count]) => count >= 2)

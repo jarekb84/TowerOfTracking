@@ -4,6 +4,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../comp
 import { Button } from '../../../components/ui'
 import { useData } from '../hooks/use-data'
 import { prepareKilledByData, prepareRadarChartData } from '../utils/chart-data'
+import { RunTypeFilter } from '../utils/run-type-filter'
+import { RunTypeSelector } from './run-type-selector'
 
 // Colors for different tiers
 const tierColors = [
@@ -27,9 +29,10 @@ const chartConfig = {
 
 export function DeathsRadarChart() {
   const { runs } = useData()
+  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>('all')
   
   // Process the data
-  const tierKilledByData = useMemo(() => prepareKilledByData(runs), [runs])
+  const tierKilledByData = useMemo(() => prepareKilledByData(runs, runTypeFilter), [runs, runTypeFilter])
   const availableTiers = useMemo(() => 
     tierKilledByData.map(data => data.tier).sort((a, b) => b - a), // Sort highest tier first
     [tierKilledByData]
@@ -90,6 +93,14 @@ export function DeathsRadarChart() {
 
   return (
     <div className="space-y-6">
+      {/* Run Type Selector */}
+      <div className="flex justify-center">
+        <RunTypeSelector 
+          selectedType={runTypeFilter}
+          onTypeChange={setRunTypeFilter}
+        />
+      </div>
+      
       {/* Tier Controls */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">

@@ -101,20 +101,20 @@ function formatDuration(seconds: number): string {
   return parts.join(' ') || '0s';
 }
 
-function getFieldConfig(key: string): FieldConfig {
+function getFieldConfig(key: string, rawValue?: string): FieldConfig {
   const lowerKey = key.toLowerCase();
   
   if (lowerKey.includes('time')) return { type: 'duration' };
   if (lowerKey === 'date' || lowerKey === 'time' || lowerKey.includes('date')) return { type: 'date' };
   if (lowerKey === 'notes' || lowerKey === 'killed by') return { type: 'string' };
-  if (lowerKey === 'tier' && key.includes('+')) return { type: 'string' };
+  if (lowerKey === 'tier' && rawValue && rawValue.includes('+')) return { type: 'string' };
   
   return { type: 'number' };
 }
 
 // Create rich field object with all representations
 export function createGameRunField(originalKey: string, rawValue: string): GameRunField {
-  const fieldConfig = getFieldConfig(originalKey);
+  const fieldConfig = getFieldConfig(originalKey, rawValue);
   
   let processedValue: number | string | Date;
   let displayValue: string;

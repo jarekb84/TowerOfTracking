@@ -8,6 +8,8 @@ export { DeathsRadarChart } from './components/deaths-radar-chart';
 export { TierStatsTable } from './components/tier-stats-table';
 export { TimeSeriesChart } from './components/time-series-chart';
 export { TierTrendsAnalysis } from './components/tier-trends-analysis';
+export { RunTypeSelector } from './components/run-type-selector';
+export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
@@ -26,8 +28,11 @@ export type {
   CsvDelimiter,
   TierTrendsFilters,
   TierTrendsData,
-  FieldTrendData
+  FieldTrendData,
+  RunTypeValue
 } from './types/game-run.types';
+
+export { RunType } from './types/game-run.types';
 
 // Data Tracking Utilities
 export { 
@@ -91,6 +96,19 @@ export {
   formatFieldDisplayName,
   generateSparklinePath
 } from './utils/tier-trends';
+
+export {
+  filterRunsByType,
+  getFarmingRuns,
+  getTournamentRuns,
+  isFarmingRun,
+  determineRunType,
+  getRunTypeDisplayLabel
+} from './utils/run-type-filter';
+
+export type {
+  RunTypeFilter
+} from './utils/run-type-filter';
 
 export type {
   TierStatsData,
