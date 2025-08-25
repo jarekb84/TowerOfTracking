@@ -1,6 +1,7 @@
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { createTournamentTableColumns } from './tournament-table-columns';
 import { BaseRunsTable } from './base-runs-table';
+import { useTierFilter } from './use-tier-filter';
 
 interface TournamentRunsTableProps {
   runs: ParsedGameRun[];
@@ -9,6 +10,7 @@ interface TournamentRunsTableProps {
 
 export function TournamentRunsTable({ runs, removeRun }: TournamentRunsTableProps) {
   const columns = createTournamentTableColumns(removeRun);
+  const { selectedTier, setSelectedTier, filteredRuns, availableTiers, shouldShowFilter } = useTierFilter(runs);
 
   return (
     <BaseRunsTable
@@ -19,6 +21,11 @@ export function TournamentRunsTable({ runs, removeRun }: TournamentRunsTableProp
       emptyStateMessage="No tournament runs yet. Import some data or add runs manually to get started!"
       searchPlaceholder="Search tournament runs..."
       useCardStructure={false}
+      filteredRuns={filteredRuns}
+      selectedTier={selectedTier}
+      onTierChange={setSelectedTier}
+      availableTiers={availableTiers}
+      shouldShowTierFilter={shouldShowFilter}
     />
   );
 }

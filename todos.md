@@ -1,32 +1,36 @@
-Bugs
+# Bugs
 - fix issues with warning about invalid values in notes filed and then not doing anything about it
+- fix table headers not being sticky as implemented
 
-Features
+# Features
+
+## For v0.1.0
 - Mobile designs
-- make table headers sticky
 - Extract the data import/export into a single page (bulk?)
     - rename import/export modals to use term bulk
     - add ability to click a button to clear local storage
-- Add field search in tier trends tab
-- Add grouping/something of types of fields in the tier trends type (economy, combat, util?)    
-- add support for milestone run types (not just the runType field, but a new table as well)
 - Add support for importing data from the tower tools site    
 - Make runs table paginated or virtualized
 - Add discord link
-- make fields editable
-    tournament placement
-    notes
+- Add versioning
+        
+## Backlog
+- Add field search in tier trends tab
+- Add grouping/something of types of fields in the tier trends type (economy, combat, util?)
 - Tier trends screen
     add ability to only show certain categories of stats
         ie economic or combat or ... need to come up with names for these categories cause the stuff the game spits out doesn't make sense
 - Create a dynamic query builder page
     filter any property we store
     add group by
-    support different chart types        
+    support different chart types
+- make fields editable
+    tournament placement
+    notes
 
-Tech Debt
-- Add versioning
+# Tech Debt
 - Add agent focused on testing implmenation
+- Add agent to browse codebase and identify patterns which can be extracted
 - update usage of colors (in css and js) to used defined values so that we have consistent color usage across the app
 - update file structure
     don't have file type specific dir (ie a hooks or a types dir)

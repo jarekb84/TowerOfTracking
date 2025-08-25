@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader } from '../../../../components/ui';
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { TableHead } from './table-head';
 import { TableBody } from './table-body';
+import { TierFilter } from './tier-filter';
 
 interface BaseRunsTableProps {
   runs: ParsedGameRun[];
@@ -22,6 +23,11 @@ interface BaseRunsTableProps {
   emptyStateMessage: string;
   searchPlaceholder: string;
   useCardStructure?: boolean;
+  filteredRuns?: ParsedGameRun[];
+  selectedTier?: number | null;
+  onTierChange?: (tier: number | null) => void;
+  availableTiers?: number[];
+  shouldShowTierFilter?: boolean;
 }
 
 export function BaseRunsTable({
@@ -31,14 +37,22 @@ export function BaseRunsTable({
   columns,
   title,
   emptyStateMessage,
-  searchPlaceholder,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  searchPlaceholder: _searchPlaceholder,
   useCardStructure = false,
+  filteredRuns,
+  selectedTier,
+  onTierChange,
+  availableTiers,
+  shouldShowTierFilter,
 }: BaseRunsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
+  const displayRuns = filteredRuns || runs;
+
   const table = useReactTable({
-    data: runs,
+    data: displayRuns,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -53,7 +67,7 @@ export function BaseRunsTable({
     },
   });
 
-  if (runs.length === 0) {
+  if (displayRuns.length === 0) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -67,11 +81,14 @@ export function BaseRunsTable({
     return (
       <Card>
         <CardHeader className="pb-4">
-          <TableHead 
-            table={table} 
-            searchPlaceholder={searchPlaceholder} 
-            showSearch={runs.length > 3}
-          />
+          {onTierChange && shouldShowTierFilter && (
+            <TierFilter 
+              availableTiers={availableTiers || []}
+              selectedTier={selectedTier || null}
+              onTierChange={onTierChange}
+            />
+          )}
+          <TableHead table={table} />
         </CardHeader>
         <CardContent className="p-0">
           <TableBody table={table} />
@@ -87,10 +104,17 @@ export function BaseRunsTable({
           <div>
             <h3 className="text-2xl font-semibold leading-none tracking-tight">{title}</h3>
             <p className="text-sm text-muted-foreground">
-              {runs.length} runs
+              {displayRuns.length} runs{selectedTier !== null && selectedTier !== undefined ? ` (Tier ${selectedTier})` : ''}
             </p>
           </div>
         </div>
+        {onTierChange && shouldShowTierFilter && (
+          <TierFilter 
+            availableTiers={availableTiers || []}
+            selectedTier={selectedTier || null}
+            onTierChange={onTierChange}
+          />
+        )}
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">

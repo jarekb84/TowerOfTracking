@@ -26,7 +26,7 @@ export function calculateTierTrends(
   // Filter runs by type and tier, sorted by timestamp (newest first)
   const filteredRuns = filterRunsByType(runs, runTypeFilter);
   const tierRuns = filteredRuns
-    .filter(run => run.tier === filters.tier)
+    .filter(run => filters.tier === 0 || run.tier === filters.tier)
     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   
   // Group runs by the specified duration

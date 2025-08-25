@@ -1,6 +1,7 @@
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { createMilestoneTableColumns } from './milestone-table-columns';
 import { BaseRunsTable } from './base-runs-table';
+import { useTierFilter } from './use-tier-filter';
 
 interface MilestoneRunsTableProps {
   runs: ParsedGameRun[];
@@ -9,6 +10,7 @@ interface MilestoneRunsTableProps {
 
 export function MilestoneRunsTable({ runs, removeRun }: MilestoneRunsTableProps) {
   const columns = createMilestoneTableColumns(removeRun);
+  const { selectedTier, setSelectedTier, filteredRuns, availableTiers, shouldShowFilter } = useTierFilter(runs);
 
   return (
     <BaseRunsTable
@@ -19,6 +21,11 @@ export function MilestoneRunsTable({ runs, removeRun }: MilestoneRunsTableProps)
       emptyStateMessage="No milestone runs yet. Import some data or add runs manually to get started!"
       searchPlaceholder="Search milestone runs..."
       useCardStructure={true}
+      filteredRuns={filteredRuns}
+      selectedTier={selectedTier}
+      onTierChange={setSelectedTier}
+      availableTiers={availableTiers}
+      shouldShowTierFilter={shouldShowFilter}
     />
   );
 }

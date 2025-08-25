@@ -8,6 +8,8 @@ const localStorageMock = {
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
+  length: 0,
+  key: vi.fn(() => null),
 };
 
 // Mock global objects for Node.js environment

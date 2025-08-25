@@ -32,7 +32,7 @@ export function TierTrendsAnalysis() {
   
   // Auto-select first available tier when run type changes
   useEffect(() => {
-    if (availableTiers.length > 0 && !availableTiers.includes(filters.tier)) {
+    if (availableTiers.length > 0 && filters.tier !== 0 && !availableTiers.includes(filters.tier)) {
       setFilters(prev => ({ ...prev, tier: availableTiers[0] }))
     }
   }, [availableTiers, filters.tier])
@@ -112,7 +112,7 @@ export function TierTrendsAnalysis() {
         <div className="space-y-2">
           <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
             <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
-            Tier {filters.tier} Trends Analysis
+{filters.tier === 0 ? 'All Tiers' : `Tier ${filters.tier}`} Trends Analysis
             <span className="text-sm font-normal text-slate-400 ml-auto">
               Last {trendsData.periodCount} {filters.duration === 'per-run' ? 'Runs' : filters.duration === 'daily' ? 'Days' : filters.duration === 'weekly' ? 'Weeks' : 'Months'} - {runTypeFilter === 'farming' ? 'Farming' : runTypeFilter === 'tournament' ? 'Tournament' : ''} Mode
             </span>
@@ -133,6 +133,18 @@ export function TierTrendsAnalysis() {
             <div className="flex items-center gap-2">
               <label className="text-sm text-slate-400">Tier:</label>
               <div className="flex gap-1 flex-wrap">
+                <Button
+                  variant={filters.tier === 0 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilters(prev => ({ ...prev, tier: 0 }))}
+                  className={`border transition-all ${
+                    filters.tier === 0
+                      ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
+                      : 'border-slate-600 text-slate-400 hover:bg-slate-700'
+                  }`}
+                >
+                  All
+                </Button>
                 {availableTiers.map(tier => (
                   <Button
                     key={tier}
