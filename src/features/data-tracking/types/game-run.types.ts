@@ -4,7 +4,8 @@ export type RawGameRunData = Record<string, string>;
 // Run type enumeration for type safety
 export enum RunType {
   FARM = 'farm',
-  TOURNAMENT = 'tournament'
+  TOURNAMENT = 'tournament',
+  MILESTONE = 'milestone'
 }
 
 // Type alias for backwards compatibility and union types

@@ -3,6 +3,7 @@ Bugs
 
 Features
 - Mobile designs
+- make table headers sticky
 - Extract the data import/export into a single page (bulk?)
     - rename import/export modals to use term bulk
     - add ability to click a button to clear local storage
@@ -24,7 +25,7 @@ Features
     support different chart types        
 
 Tech Debt
-- Add versioningactor
+- Add versioning
 - Add agent focused on testing implmenation
 - update usage of colors (in css and js) to used defined values so that we have consistent color usage across the app
 - update file structure

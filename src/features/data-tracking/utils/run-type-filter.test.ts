@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { filterRunsByType, getFarmingRuns, getTournamentRuns, isFarmingRun } from './run-type-filter'
+import { filterRunsByType, getFarmingRuns, getTournamentRuns, getMilestoneRuns, isFarmingRun, isMilestoneRun } from './run-type-filter'
 import type { ParsedGameRun } from '../types/game-run.types'
 import { RunType } from '../types/game-run.types'
 
@@ -37,6 +37,17 @@ const mockRuns: ParsedGameRun[] = [
     cellsEarned: 600,
     realTime: 4200,
     runType: RunType.FARM
+  },
+  {
+    id: '4',
+    timestamp: new Date('2023-01-04'),
+    fields: {},
+    tier: 8,
+    wave: 200,
+    coinsEarned: 2000000,
+    cellsEarned: 800,
+    realTime: 7200,
+    runType: RunType.MILESTONE
   }
 ]
 
@@ -57,6 +68,12 @@ describe('filterRunsByType', () => {
     expect(result).toHaveLength(1)
     expect(result[0].runType).toBe(RunType.TOURNAMENT)
   })
+
+  it('returns only milestone runs when filter is "milestone"', () => {
+    const result = filterRunsByType(mockRuns, 'milestone')
+    expect(result).toHaveLength(1)
+    expect(result[0].runType).toBe(RunType.MILESTONE)
+  })
 })
 
 describe('isFarmingRun', () => {
@@ -67,6 +84,10 @@ describe('isFarmingRun', () => {
 
   it('returns false for tournament runs', () => {
     expect(isFarmingRun(mockRuns[1])).toBe(false)
+  })
+
+  it('returns false for milestone runs', () => {
+    expect(isFarmingRun(mockRuns[3])).toBe(false)
   })
 })
 
@@ -83,5 +104,28 @@ describe('getTournamentRuns', () => {
     const result = getTournamentRuns(mockRuns)
     expect(result).toHaveLength(1)
     expect(result[0].runType).toBe(RunType.TOURNAMENT)
+  })
+})
+
+describe('isMilestoneRun', () => {
+  it('returns true for milestone runs', () => {
+    expect(isMilestoneRun(mockRuns[3])).toBe(true)
+  })
+
+  it('returns false for farming runs', () => {
+    expect(isMilestoneRun(mockRuns[0])).toBe(false)
+    expect(isMilestoneRun(mockRuns[2])).toBe(false)
+  })
+
+  it('returns false for tournament runs', () => {
+    expect(isMilestoneRun(mockRuns[1])).toBe(false)
+  })
+})
+
+describe('getMilestoneRuns', () => {
+  it('returns only milestone runs', () => {
+    const result = getMilestoneRuns(mockRuns)
+    expect(result).toHaveLength(1)
+    expect(result[0].runType).toBe(RunType.MILESTONE)
   })
 })

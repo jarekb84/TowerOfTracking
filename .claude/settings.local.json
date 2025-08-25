@@ -9,7 +9,8 @@
       "Bash(npm run knip:*)",
       "Bash(npm run test:*)",
       "Bash(npm test:*)",
-      "Bash(npm lint:*)"
+      "Bash(npm lint:*)",
+      "Bash(npm run lint)"
     ],
     "defaultMode": "acceptEdits"
   },

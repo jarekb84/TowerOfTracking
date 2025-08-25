@@ -1,10 +1,8 @@
 ---
 name: architecture-review
-purpose: Analyze and refactor working implementations to improve architectural quality, maintainability, and extensibility
-trigger: Invoked after every feature implementation or code change to perform mandatory architectural review
-color: purple
-model: claude-3-5-sonnet-20241022
-inherit: []
+description: Invoked after every feature implementation or code change to perform mandatory architectural review
+model: inherit
+color: green
 ---
 
 <agent_role>

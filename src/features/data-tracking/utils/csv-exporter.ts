@@ -6,7 +6,8 @@ import { getDelimiterString } from './csv-parser';
 const APP_FIELD_MAPPINGS: Record<string, string> = {
   date: 'Date',
   time: 'Time', 
-  notes: 'Notes'
+  notes: 'Notes',
+  runType: 'Run Type'
 };
 
 // Interface for field information
@@ -101,6 +102,8 @@ export function detectDelimiterConflicts(
           value = format(run.timestamp, 'HH:mm:ss');
         } else if (fieldInfo.fieldName === 'notes') {
           value = run.fields.notes?.rawValue || '';
+        } else if (fieldInfo.fieldName === 'runType') {
+          value = run.runType;
         }
       } else {
         // Handle regular fields
@@ -185,6 +188,8 @@ export function exportToCsv(
           rawValue = format(run.timestamp, 'HH:mm:ss');
         } else if (fieldInfo.fieldName === 'notes') {
           rawValue = run.fields.notes?.rawValue || '';
+        } else if (fieldInfo.fieldName === 'runType') {
+          rawValue = run.runType;
         }
       } else {
         // Handle regular fields

@@ -7,6 +7,7 @@ import type {
   CsvDelimiter
 } from '../types/game-run.types';
 import { createGameRunField, toCamelCase } from './field-utils';
+import { detectRunTypeFromFields, extractNumericStats } from './run-type-detection';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
 // Load supported fields from JSON
@@ -209,19 +210,14 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
   coinsEarned: number;
   cellsEarned: number;
   realTime: number;
-  runType: 'farm' | 'tournament';
+  runType: 'farm' | 'tournament' | 'milestone';
 } {
-  const tier = (fields.tier?.value as number) || 0;
-  const tierStr = (fields.tier?.rawValue) || '';
-  const runType: 'farm' | 'tournament' = /\+/.test(tierStr) ? 'tournament' : 'farm';
+  const numericStats = extractNumericStats(fields);
+  const runType = detectRunTypeFromFields(fields);
   
   return {
-    tier,
-    wave: (fields.wave?.value as number) || 0,
-    coinsEarned: (fields.coinsEarned?.value as number) || 0,
-    cellsEarned: (fields.cellsEarned?.value as number) || 0,
-    realTime: (fields.realTime?.value as number) || 0,
-    runType
+    ...numericStats,
+    runType,
   };
 }
 

@@ -15,6 +15,7 @@ const RUN_TYPE_OPTIONS: Array<{
 }> = [
   { value: 'farming', label: getRunTypeDisplayLabel(RunType.FARM), color: '#10b981' },
   { value: 'tournament', label: getRunTypeDisplayLabel(RunType.TOURNAMENT), color: '#f59e0b' },
+  { value: 'milestone', label: getRunTypeDisplayLabel(RunType.MILESTONE), color: '#8b5cf6' },
   { value: 'all', label: 'All Types', color: '#6b7280' },
 ]
 

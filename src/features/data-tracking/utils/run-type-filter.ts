@@ -1,6 +1,6 @@
 import { ParsedGameRun, RunType, RunTypeValue } from '../types/game-run.types'
 
-export type RunTypeFilter = 'farming' | 'tournament' | 'all'
+export type RunTypeFilter = 'farming' | 'tournament' | 'milestone' | 'all'
 
 /**
  * Centralized function to determine run type from tier string
@@ -19,6 +19,8 @@ export function getRunTypeDisplayLabel(runType: RunTypeValue): string {
       return 'Tournament'
     case RunType.FARM:
       return 'Farm'
+    case RunType.MILESTONE:
+      return 'Milestone'
     default:
       return 'Unknown'
   }
@@ -33,8 +35,21 @@ export function filterRunsByType(runs: ParsedGameRun[], runType: RunTypeFilter):
   }
   
   return runs.filter(run => {
-    // Map 'farming' filter to 'farm' run type
-    const targetRunType = runType === 'farming' ? RunType.FARM : RunType.TOURNAMENT
+    // Map filter values to run type enum values
+    let targetRunType: RunTypeValue
+    switch (runType) {
+      case 'farming':
+        targetRunType = RunType.FARM
+        break
+      case 'tournament':
+        targetRunType = RunType.TOURNAMENT
+        break
+      case 'milestone':
+        targetRunType = RunType.MILESTONE
+        break
+      default:
+        return false
+    }
     return run.runType === targetRunType
   })
 }
@@ -58,4 +73,18 @@ export function getFarmingRuns(runs: ParsedGameRun[]): ParsedGameRun[] {
  */
 export function getTournamentRuns(runs: ParsedGameRun[]): ParsedGameRun[] {
   return runs.filter(run => run.runType === RunType.TOURNAMENT)
+}
+
+/**
+ * Check if a run is a milestone run
+ */
+export function isMilestoneRun(run: ParsedGameRun): boolean {
+  return run.runType === RunType.MILESTONE
+}
+
+/**
+ * Get milestone runs only
+ */
+export function getMilestoneRuns(runs: ParsedGameRun[]): ParsedGameRun[] {
+  return runs.filter(isMilestoneRun)
 }

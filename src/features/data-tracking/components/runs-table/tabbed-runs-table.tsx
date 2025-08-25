@@ -4,6 +4,7 @@ import { useData } from '../../hooks/use-data';
 import { RunType } from '../../types/game-run.types';
 import { FarmingRunsTable } from './farming-runs-table';
 import { TournamentRunsTable } from './tournament-runs-table';
+import { MilestoneRunsTable } from './milestone-runs-table';
 
 type TabValue = 'farming' | 'tournament' | 'milestone';
 
@@ -12,13 +13,15 @@ export function TabbedRunsTable() {
   const [activeTab, setActiveTab] = useState<TabValue>('farming');
 
   // Filter runs by type
-  const { farmingRuns, tournamentRuns } = useMemo(() => {
+  const { farmingRuns, tournamentRuns, milestoneRuns } = useMemo(() => {
     const farming = runs.filter(run => run.runType === RunType.FARM);
     const tournament = runs.filter(run => run.runType === RunType.TOURNAMENT);
+    const milestone = runs.filter(run => run.runType === RunType.MILESTONE);
     
     return {
       farmingRuns: farming,
       tournamentRuns: tournament,
+      milestoneRuns: milestone,
     };
   }, [runs]);
 
@@ -35,10 +38,10 @@ export function TabbedRunsTable() {
           <span className="sm:hidden">Tournament</span>
           <span className="ml-1">({tournamentRuns.length})</span>
         </TabsTrigger>
-        <TabsTrigger value="milestone" disabled className="flex-1 sm:flex-initial">
+        <TabsTrigger value="milestone" className="flex-1 sm:flex-initial">
           <span className="hidden sm:inline">Milestone Runs</span>
           <span className="sm:hidden">Milestone</span>
-          <span className="ml-1">(0)</span>
+          <span className="ml-1">({milestoneRuns.length})</span>
         </TabsTrigger>
       </TabsList>
 
@@ -51,9 +54,7 @@ export function TabbedRunsTable() {
       </TabsContent>
 
       <TabsContent value="milestone">
-        <div className="text-center py-12 text-muted-foreground">
-          Milestone runs feature coming soon...
-        </div>
+        <MilestoneRunsTable runs={milestoneRuns} removeRun={removeRun} />
       </TabsContent>
     </Tabs>
   );

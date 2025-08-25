@@ -19,7 +19,7 @@ vi.stubGlobal('crypto', {
 });
 
 // Create sample test data
-function createTestRun(id: string, notes?: string): ParsedGameRun {
+function createTestRun(id: string, notes?: string, runType: 'farm' | 'tournament' | 'milestone' = 'farm'): ParsedGameRun {
   const tierField: GameRunField = {
     value: 10,
     rawValue: '10',
@@ -81,7 +81,7 @@ function createTestRun(id: string, notes?: string): ParsedGameRun {
     coinsEarned: 1130000000000,
     cellsEarned: 45200,
     realTime: 27966,
-    runType: 'farm'
+    runType
   };
 }
 
@@ -170,6 +170,25 @@ describe('CSV Persistence', () => {
       if (runWithNotes) {
         expect(runWithNotes.fields.notes?.rawValue).toContain('Simple notes');
       }
+    });
+
+    it('should preserve milestone run type through round-trip conversion', () => {
+      const originalRuns = [
+        createTestRun('farm-1', undefined, 'farm'),
+        createTestRun('tournament-1', undefined, 'tournament'),
+        createTestRun('milestone-1', undefined, 'milestone')
+      ];
+
+      // Convert to CSV and back
+      const csv = runsToStorageCsv(originalRuns);
+      const parsedRuns = storageCsvToRuns(csv);
+
+      expect(parsedRuns).toHaveLength(3);
+      
+      // Check each run type is preserved (order should match original)
+      expect(parsedRuns[0].runType).toBe('farm');
+      expect(parsedRuns[1].runType).toBe('tournament');
+      expect(parsedRuns[2].runType).toBe('milestone');
     });
   });
 });

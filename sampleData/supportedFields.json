@@ -2,6 +2,7 @@
     "date",
     "time",
     "notes",
+    "runType",
     "gameTime",
     "realTime",
     "tier",

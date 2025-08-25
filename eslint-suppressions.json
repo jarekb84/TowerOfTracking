@@ -14,11 +14,6 @@
       "count": 1
     }
   },
-  "src/features/data-tracking/components/data-input.tsx": {
-    "max-lines": {
-      "count": 1
-    }
-  },
   "src/features/data-tracking/components/tier-trends-analysis.tsx": {
     "max-lines": {
       "count": 1
