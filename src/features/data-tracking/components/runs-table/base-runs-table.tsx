@@ -11,8 +11,7 @@ import {
 } from '@tanstack/react-table';
 import { Card, CardContent, CardHeader } from '../../../../components/ui';
 import type { ParsedGameRun } from '../../types/game-run.types';
-import { TableHead } from './table-head';
-import { TableBody } from './table-body';
+import { ScrollableTableContainer } from './scrollable-table-container';
 import { TierFilter } from './tier-filter';
 
 interface BaseRunsTableProps {
@@ -88,10 +87,9 @@ export function BaseRunsTable({
               onTierChange={onTierChange}
             />
           )}
-          <TableHead table={table} />
         </CardHeader>
         <CardContent className="p-0">
-          <TableBody table={table} />
+          <ScrollableTableContainer table={table} />
         </CardContent>
       </Card>
     );
@@ -116,13 +114,8 @@ export function BaseRunsTable({
           />
         )}
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <TableHead table={table} />
-            <TableBody table={table} />
-          </table>
-        </div>
+      <CardContent className="p-0">
+        <ScrollableTableContainer table={table} />
       </CardContent>
     </Card>
   );

@@ -13,7 +13,7 @@ export function TableHead({ table }: TableHeadProps) {
           {headerGroup.headers.map((header) => (
             <th
               key={header.id}
-              className="sticky top-[calc(3.5rem+1px)] z-30 text-left p-2 font-medium text-muted-foreground bg-card border-b border-border backdrop-blur-sm shadow-sm"
+              className="sticky top-0 z-30 text-left p-2 font-medium text-muted-foreground bg-card border-b border-border"
               style={{ width: header.getSize() }}
             >
               {header.isPlaceholder ? null : (
