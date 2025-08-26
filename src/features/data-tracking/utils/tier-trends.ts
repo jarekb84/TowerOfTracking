@@ -6,6 +6,7 @@ import type {
   GameRunField,
 } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
+import { createEnhancedRunHeader } from './run-header-formatting';
 
 interface PeriodData {
   label: string;
@@ -194,20 +195,13 @@ function groupRunsByPeriod(
   quantity: number
 ): PeriodData[] {
   if (duration === 'per-run') {
-    return runs.slice(0, quantity).map((run, index) => {
-      const date = run.timestamp.toLocaleDateString('en-US', { 
-        month: 'numeric', 
-        day: 'numeric' 
-      });
-      const time = run.timestamp.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      });
+    return runs.slice(0, quantity).map((run) => {
+      // Use enhanced headers for per-run analysis
+      const headerData = createEnhancedRunHeader(run);
       
       return {
-        label: `Run ${runs.length - index}`,
-        subLabel: `${date} ${time}`,
+        label: headerData.header,
+        subLabel: headerData.subHeader,
         runs: [run],
         startDate: run.timestamp,
         endDate: run.timestamp

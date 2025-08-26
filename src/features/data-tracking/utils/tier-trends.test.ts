@@ -134,8 +134,15 @@ describe('tier-trends', () => {
 
         expect(result.periodCount).toBe(3);
         expect(result.comparisonColumns).toHaveLength(3);
-        expect(result.comparisonColumns[0].header).toBe('Run 3');
-        expect(result.comparisonColumns[0].subHeader).toMatch(/\d+\/\d+ \d+:\d+ [AP]M/);
+        
+        // Check that the first column has enhanced header format (tier, wave, duration, date)
+        const firstColumn = result.comparisonColumns[0];
+        const headerLines = firstColumn.header.split('\n');
+        expect(headerLines).toHaveLength(3);
+        expect(headerLines[0]).toMatch(/T\d+ \d+,?\d*/); // T1 12 format
+        expect(headerLines[1]).toMatch(/\d+min|\d+hr \d+min/); // duration format
+        expect(headerLines[2]).toMatch(/\d+\/\d+ \d+:\d+ [AP]M/); // date format
+        expect(firstColumn.subHeader).toBeUndefined(); // subHeader not used for enhanced format
         
         // Should include both number and duration fields
         const fieldNames = result.fieldTrends.map(t => t.fieldName);

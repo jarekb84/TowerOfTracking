@@ -1,6 +1,7 @@
 import { formatNumber } from '../utils/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
 import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
+import { parseColumnHeader, getHeaderLineClasses } from './tier-trends-table/column-header-renderer'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]
@@ -72,16 +73,32 @@ export function TierTrendsTable({
               <th className="px-6 py-4 text-right text-sm font-semibold text-slate-200">
                 Value Change
               </th>
-              {comparisonColumns.map((column, index) => (
-                <th key={index} className="px-3 py-4 text-center text-sm font-semibold text-slate-200 min-w-[80px]">
-                  <div className="flex flex-col">
-                    <div className="whitespace-nowrap">{column.header}</div>
-                    {column.subHeader && (
-                      <div className="text-xs text-slate-400 font-normal">{column.subHeader}</div>
-                    )}
-                  </div>
-                </th>
-              ))}
+              {comparisonColumns.map((column, index) => {
+                const headerData = parseColumnHeader(column.header)
+                return (
+                  <th key={index} className="px-3 py-4 text-center text-sm font-semibold text-slate-200 min-w-[80px]">
+                    <div className="flex flex-col">
+                      {headerData.isMultiLine ? (
+                        <div className="flex flex-col">
+                          {headerData.lines.map((line, lineIndex) => (
+                            <div 
+                              key={lineIndex}
+                              className={getHeaderLineClasses(lineIndex, headerData.lines.length)}
+                            >
+                              {line}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="whitespace-nowrap">{column.header}</div>
+                      )}
+                      {column.subHeader && (
+                        <div className="text-xs text-slate-400 font-normal">{column.subHeader}</div>
+                      )}
+                    </div>
+                  </th>
+                )
+              })}
             </tr>
           </thead>
           <tbody>

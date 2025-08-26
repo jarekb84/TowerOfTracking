@@ -25,11 +25,17 @@
 - make fields editable
     tournament placement
     notes
+- Add filter to select minimum wave threshold to tier analysis 
+    lets you filter out runs that ended prematurely (for whatever reason)
+    so that you can more easily compare similar runs
+    ie if you have 5 runs that are 5900-6100 waves, and one that's 4500 cause you had bad perk order
+    filter out the 4500 one
+- Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
 
 # Tech Debt
 - Add react testing library setup to assist with better tests
     - cleanup bad tests in use-field-filter.test.ts
-- Add agent focused on testing implmenation
+- Add agent focused on testing implementation
 - Add agent to browse codebase and identify patterns which can be extracted
 - update usage of colors (in css and js) to used defined values so that we have consistent color usage across the app
 - update file structure
