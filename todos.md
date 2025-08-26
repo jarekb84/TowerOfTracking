@@ -7,9 +7,7 @@
 - Mobile designs
 - Extract the data import/export into a single page (bulk?)
     - rename import/export modals to use term bulk
-    - add ability to click a button to clear local storage
-- Add support for importing data from the tower tools site    
-- Make runs table paginated or virtualized
+    - add ability to click a button to clear local storage    
 - Add discord link
 - Add versioning
         
@@ -31,6 +29,8 @@
     ie if you have 5 runs that are 5900-6100 waves, and one that's 4500 cause you had bad perk order
     filter out the 4500 one
 - Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
+- Add support for importing data from the tower tools site
+- Make runs table paginated or virtualized
 
 # Tech Debt
 - Add agent focused on testing implementation
