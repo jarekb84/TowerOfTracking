@@ -14,7 +14,7 @@ The application focuses on:
 
 - **Development server**: `npm run dev`
 - **Build for production**: `npm run build`
-- **Run tests**: `npm run test` (uses Vitest)
+- **Run tests**: `npm run test` (uses Vitest with React Testing Library)
 - **Production server**: `npm run start` (serves built files)
 - **Preview production build**: `npm run serve`
 

@@ -67,9 +67,13 @@
 - Event handler with business logic → extract to hook method
 
 ### New Hook Requirements
-- Generate unit tests for orchestration paths
+- **CRITICAL**: Hook test files MUST use `.tsx` extension (not `.ts`) for React Testing Library compatibility
+- Generate unit tests for orchestration paths using `renderHook()` from `@testing-library/react`
+- Use `act()` for state updates, `vi.useFakeTimers()`/`vi.advanceTimersByTime()` for debounced functionality
 - Mock effects/services as needed
 - Test state transitions and error handling
+- Test consumer-focused behavior, not implementation details
+- Use realistic mock data matching actual TypeScript interfaces
 
 ### New Pure Function Requirements  
 - Generate unit tests covering all branches and edge cases
@@ -119,6 +123,7 @@
 - ❌ Mixing React imports in pure function files
 - ❌ Components over 200 lines
 - ❌ Skipping Red-Green-Refactor process for "small" changes
+- ❌ Using `.ts` extension for hook tests (MUST be `.tsx` for React Testing Library)
 
 ## Testing Strategy
 
@@ -128,8 +133,8 @@
 - **One happy-path** integration test per page
 
 ### Testing Approach
-- **Unit tests**: All business logic, transformations, validations
-- **Hook tests**: State management, effect orchestration, service integration
+- **Unit tests**: All business logic, transformations, validations (`.ts` files)
+- **Hook tests**: State management, effect orchestration, service integration (`.tsx` files with `renderHook()`)
 - **Integration tests**: Core user flows, not exhaustive UI combinations
 
 ## Enforcement in Code Reviews

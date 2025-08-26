@@ -32,6 +32,7 @@
 - Delegate transforms/validation/calculation to pure functions (`*.ts`)
 - Handle React-specific needs: state, effects, context consumption
 - NO JSX (React imports allowed for hooks/effects)
+- **CRITICAL**: Hook tests MUST use `.tsx` extension for React Testing Library compatibility
 
 **Logic Layer (*.ts)**:
 - Pure, deterministic functions: transforms, validation, calculation, mapping, parsing
@@ -43,7 +44,9 @@
 
 **Testing Requirements**:
 - **~100% coverage** for all `.ts` logic files
-- **~100% coverage** for hook orchestration code
+- **~100% coverage** for hook orchestration code (`use*.test.tsx` files)
 - **One happy-path** integration test per page (not exhaustive UI variants)
+- **React Hook Testing**: Use `renderHook()` from `@testing-library/react`, `act()` for state updates
+- **Realistic Mock Data**: Test with data matching actual TypeScript interfaces
 
 **Boy-Scout Rule**: When touching any mixed-concern component, extract at least one logic chunk into hooks or pure functions with tests.

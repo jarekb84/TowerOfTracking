@@ -9,6 +9,7 @@
 - **shadcn/ui**: Component library built on Radix UI primitives
 - **Radix UI**: Headless UI primitives (via shadcn/ui)
 - **TypeScript**: Full type safety throughout
+- **Vitest + React Testing Library**: Comprehensive testing infrastructure with hooks testing support
 
 ## Data Flow Architecture
 
@@ -46,6 +47,14 @@
 - Initial state loading from localStorage
 - Theme application to document element
 - Data persistence operations
+
+## Testing Infrastructure
+
+**React Hook Testing Requirements:**
+- Hook tests MUST use `.tsx` extension (not `.ts`) for React Testing Library's `renderHook()`
+- Use `renderHook()` from `@testing-library/react` for hook testing
+- Use `act()` for state updates, `vi.useFakeTimers()`/`vi.advanceTimersByTime()` for debounced functionality
+- Test consumer-focused behavior, not implementation details
 
 ## Styling System
 

@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
@@ -28,6 +29,11 @@ const config = defineConfig({
     __GIT_HASH__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) || 'dev'),
   },
   base: process.env.CI === 'true' ? '/TowerOfTracking/' : '/',
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test-setup.ts',
+  },
 })
 
 export default config

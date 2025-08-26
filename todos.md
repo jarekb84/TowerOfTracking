@@ -33,8 +33,6 @@
 - Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
 
 # Tech Debt
-- Add react testing library setup to assist with better tests
-    - cleanup bad tests in use-field-filter.test.ts
 - Add agent focused on testing implementation
 - Add agent to browse codebase and identify patterns which can be extracted
 - update usage of colors (in css and js) to used defined values so that we have consistent color usage across the app
