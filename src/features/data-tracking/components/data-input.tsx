@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Calendar, Popover, PopoverContent, PopoverTrigger, Input } from '../../../components/ui';
+import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Calendar, Popover, PopoverContent, PopoverTrigger, Input, FormField, FormLabel, FormControl, ButtonGroup } from '../../../components/ui';
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../utils/data-parser';
@@ -56,21 +56,24 @@ export function DataInput({ className }: DataInputProps) {
             Add Game Run
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Game Run</DialogTitle>
-            <DialogDescription>
-              Paste your game stats below. The data should be tab-delimited with each stat on a new line.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="fixed inset-0 w-full h-full max-w-none max-h-none p-0 m-0 rounded-none translate-x-0 translate-y-0 md:inset-auto md:top-[50%] md:left-[50%] md:translate-x-[-50%] md:translate-y-[-50%] md:w-auto md:h-auto md:max-w-4xl md:max-h-[80vh] md:p-6 md:m-4 md:rounded-lg overflow-y-auto flex flex-col">
+          <div className="p-4 md:p-0 pb-0 md:pb-0">
+            <DialogHeader>
+              <DialogTitle>Add New Game Run</DialogTitle>
+              <DialogDescription>
+                Paste your game stats below. The data should be tab-delimited with each stat on a new line.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-2">
+          <div className="flex-1 overflow-y-auto p-4 md:p-0 pt-4 md:pt-4">
+            <div className="space-y-6">
+              <ButtonGroup spacing="normal">
                 <Button 
                   variant="outline" 
                   onClick={form.handlePaste}
                   className="gap-2"
+                  fullWidthOnMobile
                 >
                   <Upload className="h-4 w-4" />
                   Paste from Clipboard
@@ -79,20 +82,21 @@ export function DataInput({ className }: DataInputProps) {
                   variant="outline" 
                   onClick={importFile}
                   className="gap-2"
+                  fullWidthOnMobile
                 >
                   <FileText className="h-4 w-4" />
                   Import from File
                 </Button>
-              </div>
+              </ButtonGroup>
               
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Date:</span>
+              <div className="flex flex-col lg:flex-row gap-4">
+                <FormControl label="Date" className="lg:min-w-[240px]">
                   <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="gap-2 min-w-[180px] justify-start"
+                        className="gap-2 justify-start"
+                        fullWidthOnMobile
                       >
                         <CalendarIcon className="h-4 w-4" />
                         {format(form.selectedDate, "MMM d, yyyy")}
@@ -107,66 +111,70 @@ export function DataInput({ className }: DataInputProps) {
                       />
                     </PopoverContent>
                   </Popover>
-                </div>
+                </FormControl>
                 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Time:</span>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="number"
-                      min="0"
-                      max="23"
-                      value={form.selectedTime.hours}
-                      onChange={(e) => form.handleTimeChange('hours', e.target.value)}
-                      className="w-16 text-center"
-                      placeholder="HH"
-                    />
-                    <span className="text-muted-foreground">:</span>
-                    <Input
-                      type="number"
-                      min="0"
-                      max="59"
-                      value={form.selectedTime.minutes}
-                      onChange={(e) => form.handleTimeChange('minutes', e.target.value)}
-                      className="w-16 text-center"
-                      placeholder="MM"
-                    />
+                <FormControl label="Time" className="lg:min-w-[200px]">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="23"
+                        value={form.selectedTime.hours}
+                        onChange={(e) => form.handleTimeChange('hours', e.target.value)}
+                        className="w-16 text-center"
+                        placeholder="HH"
+                      />
+                      <span className="text-muted-foreground">:</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={form.selectedTime.minutes}
+                        onChange={(e) => form.handleTimeChange('minutes', e.target.value)}
+                        className="w-16 text-center"
+                        placeholder="MM"
+                      />
+                    </div>
                   </div>
-                </div>
+                </FormControl>
               </div>
               
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Run Type:</span>
-                <div className="flex gap-1">
+              <FormControl label="Run Type">
+                <ButtonGroup spacing="tight">
                   <Button
-                    variant={form.selectedRunType === 'farm' ? 'default' : 'outline'}
+                    variant={form.selectedRunType === 'farm' ? 'outline-selected' : 'outline'}
                     size="sm"
                     onClick={() => form.setSelectedRunType('farm')}
-                    className="h-8 px-3"
+                    fullWidthOnMobile
                   >
                     Farm
                   </Button>
                   <Button
-                    variant={form.selectedRunType === 'tournament' ? 'default' : 'outline'}
+                    variant={form.selectedRunType === 'tournament' ? 'outline-selected' : 'outline'}
                     size="sm"
                     onClick={() => form.setSelectedRunType('tournament')}
-                    className="h-8 px-3"
+                    fullWidthOnMobile
                   >
                     Tournament
                   </Button>
                   <Button
-                    variant={form.selectedRunType === 'milestone' ? 'default' : 'outline'}
+                    variant={form.selectedRunType === 'milestone' ? 'outline-selected' : 'outline'}
                     size="sm"
                     onClick={() => form.setSelectedRunType('milestone')}
-                    className="h-8 px-3"
+                    fullWidthOnMobile
                   >
                     Milestone
                   </Button>
-                </div>
-              </div>
-              <Textarea
-                placeholder="Paste your game stats here...
+                </ButtonGroup>
+              </FormControl>
+              <FormField>
+                <FormLabel required>
+                  Game Stats Data
+                </FormLabel>
+                <Textarea
+                  placeholder="Paste your game stats here...
 Example format:
 Game Time        1d 13h 24m 51s
 Real Time        7h 46m 6s
@@ -174,22 +182,23 @@ Tier        10
 Wave        5881
 Coins Earned        1.13T
 Cash Earned        $44.65B"
-                value={form.inputData}
-                onChange={(e) => form.handleInputChange(e.target.value)}
-                className="font-mono text-sm h-48 resize-none"
-              />
+                  value={form.inputData}
+                  onChange={(e) => form.handleInputChange(e.target.value)}
+                  className="font-mono text-sm h-40 md:h-48 resize-none w-full"
+                />
+              </FormField>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+              <FormField>
+                <FormLabel>
                   Notes (optional)
-                </label>
+                </FormLabel>
                 <Textarea
                   placeholder="Add any notes about this run..."
                   value={form.notes}
                   onChange={(e) => form.setNotes(e.target.value)}
-                  className="text-sm h-20 resize-none"
+                  className="text-sm h-16 md:h-20 resize-none w-full"
                 />
-              </div>
+              </FormField>
             </div>
 
             {form.previewData && (
@@ -248,20 +257,27 @@ Cash Earned        $44.65B"
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSave} 
-              disabled={!form.previewData}
-            >
-              {form.duplicateResult?.isDuplicate 
-                ? (form.resolution === 'overwrite' ? 'Overwrite Existing' : 'Skip Duplicate')
-                : 'Save Run'
-              }
-            </Button>
-          </DialogFooter>
+          <div className="p-4 md:p-0 pt-0 md:pt-4 border-t md:border-t-0 bg-background/95 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none sticky bottom-0 md:relative">
+            <DialogFooter className="gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleCancel} 
+                fullWidthOnMobile
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSave} 
+                disabled={!form.previewData}
+                fullWidthOnMobile
+              >
+                {form.duplicateResult?.isDuplicate 
+                  ? (form.resolution === 'overwrite' ? 'Overwrite Existing' : 'Skip Duplicate')
+                  : 'Save Run'
+                }
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

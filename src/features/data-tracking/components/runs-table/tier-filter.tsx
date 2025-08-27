@@ -1,4 +1,4 @@
-import { Button } from '../../../../components/ui';
+import { SelectionButtonGroup, SelectionOption } from '../../../../components/ui';
 
 interface TierFilterProps {
   availableTiers: number[];
@@ -12,38 +12,21 @@ export function TierFilter({ availableTiers, selectedTier, onTierChange, shouldS
     return null;
   }
 
+  const options: SelectionOption<number | null>[] = [
+    { value: null, label: 'All' },
+    ...availableTiers.map(tier => ({ value: tier, label: tier.toString() }))
+  ];
+
   return (
     <div className="flex items-center gap-2 mb-4">
       <label className="text-sm text-muted-foreground">Filter by tier:</label>
-      <div className="flex gap-1 flex-wrap">
-        <Button
-          variant={selectedTier === null ? "default" : "outline"}
-          size="sm"
-          onClick={() => onTierChange(null)}
-          className={`border transition-all ${
-            selectedTier === null
-              ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
-              : 'border-slate-600 text-muted-foreground hover:bg-muted'
-          }`}
-        >
-          All
-        </Button>
-        {availableTiers.map(tier => (
-          <Button
-            key={tier}
-            variant={selectedTier === tier ? "default" : "outline"}
-            size="sm"
-            onClick={() => onTierChange(tier)}
-            className={`border transition-all ${
-              selectedTier === tier
-                ? 'bg-orange-500/20 border-orange-500/50 text-orange-100' 
-                : 'border-slate-600 text-muted-foreground hover:bg-muted'
-            }`}
-          >
-            {tier}
-          </Button>
-        ))}
-      </div>
+      <SelectionButtonGroup<number | null>
+        options={options}
+        selectedValue={selectedTier}
+        onSelectionChange={onTierChange}
+        size="sm"
+        fullWidthOnMobile={false}
+      />
     </div>
   );
 }
