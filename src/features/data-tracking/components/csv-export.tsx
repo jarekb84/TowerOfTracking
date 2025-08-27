@@ -1,11 +1,21 @@
-import { useState, useEffect } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '../../../components/ui';
+import { useState } from 'react';
+import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui';
 import { Download, Copy, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import { exportToCsv, generateExportFilename, copyToClipboard, downloadAsFile } from '../utils/csv-exporter';
-import type { CsvDelimiter } from '../types/game-run.types';
-import type { CsvExportConfig, CsvExportResult, DelimiterConflict } from '../utils/csv-exporter';
-import { getDelimiterString } from '../utils/csv-parser';
+import type { DelimiterConflict } from '../utils/csv-exporter';
 import { useData } from '../hooks/use-data';
+import { useCsvExport } from '../hooks/use-csv-export';
+import { 
+  getCopyButtonClassName, 
+  getDownloadButtonClassName,
+  isExportDisabled,
+  formatConflictExamples,
+  getCopyButtonText,
+  getDownloadButtonText
+} from '../utils/csv-export-helpers';
+import {
+  ExportControls,
+  ExportStats,
+} from './csv-export-dialog-sections';
 
 interface CsvExportProps {
   className?: string;
@@ -13,107 +23,30 @@ interface CsvExportProps {
 
 export function CsvExport({ className }: CsvExportProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDelimiter, setSelectedDelimiter] = useState<CsvDelimiter>('tab');
-  const [customDelimiter, setCustomDelimiter] = useState('');
-  const [includeAppFields, setIncludeAppFields] = useState(true);
-  const [exportResult, setExportResult] = useState<CsvExportResult | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
   const { runs } = useData();
-
-  // Generate export on settings change
-  const generateExport = (): void => {
-    if (runs.length === 0) return;
-    
-    setIsGenerating(true);
-    setError(null);
-    setCopySuccess(false);
-    setDownloadSuccess(false);
-    
-    try {
-      const config: CsvExportConfig = {
-        delimiter: selectedDelimiter,
-        customDelimiter: selectedDelimiter === 'custom' ? customDelimiter : undefined,
-        includeAppFields
-      };
-      
-      const result = exportToCsv(runs, config);
-      setExportResult(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate export');
-      setExportResult(null);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  // Auto-regenerate export when settings change
-  useEffect(() => {
-    if (isDialogOpen && runs.length > 0) {
-      generateExport();
-    }
-  }, [selectedDelimiter, customDelimiter, includeAppFields, isDialogOpen]);
-
-  const handleDelimiterChange = (delimiter: CsvDelimiter): void => {
-    setSelectedDelimiter(delimiter);
-  };
-
-  const handleCustomDelimiterChange = (value: string): void => {
-    setCustomDelimiter(value);
-  };
-
-  const handleIncludeAppFieldsChange = (checked: boolean): void => {
-    setIncludeAppFields(checked);
-  };
-
-  const handleCopyToClipboard = async (): Promise<void> => {
-    if (!exportResult?.csvContent) return;
-    
-    try {
-      await copyToClipboard(exportResult.csvContent);
-      setCopySuccess(true);
-      setError(null);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to copy to clipboard');
-      setCopySuccess(false);
-    }
-  };
-
-  const handleDownloadFile = async (): Promise<void> => {
-    if (!exportResult?.csvContent) return;
-    
-    try {
-      const filename = generateExportFilename(exportResult.rowCount);
-      await downloadAsFile(exportResult.csvContent, filename);
-      setDownloadSuccess(true);
-      setError(null);
-      setTimeout(() => setDownloadSuccess(false), 2000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download file');
-      setDownloadSuccess(false);
-    }
-  };
+  
+  const {
+    selectedDelimiter,
+    customDelimiter,
+    includeAppFields,
+    exportResult,
+    isGenerating,
+    copySuccess,
+    downloadSuccess,
+    error,
+    setSelectedDelimiter,
+    setCustomDelimiter,
+    setIncludeAppFields,
+    handleCopyToClipboard,
+    handleDownloadFile,
+    resetState
+  } = useCsvExport(runs, isDialogOpen);
 
   const handleDialogOpenChange = (open: boolean): void => {
     setIsDialogOpen(open);
     if (!open) {
-      // Reset state when dialog closes
-      setExportResult(null);
-      setError(null);
-      setCopySuccess(false);
-      setDownloadSuccess(false);
+      resetState();
     }
-  };
-
-  const getDelimiterDisplayString = (): string => {
-    if (selectedDelimiter === 'custom') {
-      return customDelimiter || ',';
-    }
-    return getDelimiterString(selectedDelimiter);
   };
 
   return (
@@ -123,7 +56,7 @@ export function CsvExport({ className }: CsvExportProps) {
           <Button 
             variant="outline" 
             className="gap-2"
-            disabled={runs.length === 0}
+            disabled={isExportDisabled(runs.length)}
           >
             <Download className="h-4 w-4" />
             Export CSV
@@ -145,51 +78,21 @@ export function CsvExport({ className }: CsvExportProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">Delimiter:</span>
-                      <select 
-                        value={selectedDelimiter} 
-                        onChange={(e) => handleDelimiterChange(e.target.value as CsvDelimiter)}
-                        className="w-32 px-2 py-1 border rounded text-sm bg-background"
-                      >
-                        <option value="tab">Tab</option>
-                        <option value="comma">Comma</option>
-                        <option value="semicolon">Semicolon</option>
-                        <option value="custom">Custom</option>
-                      </select>
-                      
-                      {selectedDelimiter === 'custom' && (
-                        <Input
-                          placeholder="Enter delimiter"
-                          value={customDelimiter}
-                          onChange={(e) => handleCustomDelimiterChange(e.target.value)}
-                          className="w-20"
-                          maxLength={1}
-                        />
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id="includeAppFields"
-                        checked={includeAppFields}
-                        onChange={(e) => handleIncludeAppFieldsChange(e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      <label htmlFor="includeAppFields" className="text-sm text-muted-foreground">
-                        Include Date/Time columns
-                      </label>
-                    </div>
-                  </div>
+                  <ExportControls
+                    selectedDelimiter={selectedDelimiter}
+                    customDelimiter={customDelimiter}
+                    includeAppFields={includeAppFields}
+                    onDelimiterChange={setSelectedDelimiter}
+                    onCustomDelimiterChange={setCustomDelimiter}
+                    onIncludeAppFieldsChange={setIncludeAppFields}
+                  />
                   
                   {exportResult && (
-                    <div className="flex flex-wrap gap-4 text-sm bg-blue-50 border border-blue-200 p-3 rounded">
-                      <span className="text-gray-900"><strong className="text-blue-800">Rows:</strong> {exportResult.rowCount}</span>
-                      <span className="text-gray-900"><strong className="text-blue-800">Columns:</strong> {exportResult.fieldCount}</span>
-                      <span className="text-gray-900"><strong className="text-blue-800">Delimiter:</strong> ${`"`}{getDelimiterDisplayString()}${`"`}</span>
-                    </div>
+                    <ExportStats
+                      exportResult={exportResult}
+                      selectedDelimiter={selectedDelimiter}
+                      customDelimiter={customDelimiter}
+                    />
                   )}
                 </div>
               </CardContent>
@@ -215,8 +118,7 @@ export function CsvExport({ className }: CsvExportProps) {
                           {conflict.originalKey} ({conflict.affectedRunCount} runs affected)
                         </div>
                         <div className="text-sm text-orange-700">
-                          Examples: {conflict.conflictingValues.slice(0, 2).map(v => `"${v}"`).join(', ')}
-                          {conflict.conflictingValues.length > 2 && '...'}
+                          Examples: {formatConflictExamples(conflict.conflictingValues)}
                         </div>
                       </div>
                     ))}
@@ -250,28 +152,28 @@ export function CsvExport({ className }: CsvExportProps) {
                       <Button
                         onClick={handleCopyToClipboard}
                         disabled={isGenerating}
-                        className={`gap-2 ${copySuccess ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                        className={getCopyButtonClassName(copySuccess)}
                       >
                         {copySuccess ? (
                           <CheckCircle className="h-4 w-4" />
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}
-                        {copySuccess ? 'Copied!' : 'Copy to Clipboard'}
+                        {getCopyButtonText(copySuccess)}
                       </Button>
                       
                       <Button
                         onClick={handleDownloadFile}
                         disabled={isGenerating}
                         variant="outline"
-                        className={`gap-2 ${downloadSuccess ? 'border-green-600 text-green-600' : ''}`}
+                        className={getDownloadButtonClassName(downloadSuccess)}
                       >
                         {downloadSuccess ? (
                           <CheckCircle className="h-4 w-4" />
                         ) : (
                           <Download className="h-4 w-4" />
                         )}
-                        {downloadSuccess ? 'Downloaded!' : 'Download File'}
+                        {getDownloadButtonText(downloadSuccess)}
                       </Button>
                     </div>
                   </div>
