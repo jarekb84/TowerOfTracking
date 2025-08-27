@@ -1,13 +1,10 @@
-# Engineering Standards & Code Architecture Guidelines
+# Core Engineering Standards
 
-## File Organization & Structure
+**Purpose**: Define fundamental patterns and quality standards that ALL agents must follow.
+
+## File Organization Principles
 
 **Feature-Based Architecture**: Organize code by business features, not file types. Group related components, types, styles, and utilities together.
-
-**File Size Limits**: Keep files focused and maintainable
-- **Maximum 300 lines per file** - decompose when approaching this limit
-- Apply **Single Responsibility Principle** - each file should have one primary reason to change
-- **Composition over complexity** - break down complex components into smaller, focused pieces
 
 **Co-location**: Keep related code together. If components, types, and utilities are tightly coupled to a specific feature, place them in the same feature directory.
 

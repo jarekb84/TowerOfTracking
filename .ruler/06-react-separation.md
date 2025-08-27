@@ -1,12 +1,17 @@
-# React Architecture: Logic-Presentation Separation
+# React Logic-Presentation Separation Standards
 
-## ABSOLUTE ZERO TOLERANCE POLICY
+## Core Separation Principle
 
 **CRITICAL MANDATE**: React `.tsx` components must be ultra-thin—DOM markup only. Extract ALL business logic, data transforms, and complex handlers into pure functions and custom hooks.
 
-**NO SIZE EXCEPTIONS**: Single expressions, one-liners, "simple" transforms, basic calculations—ALL must be extracted. Size does not matter. Complexity does not matter. Every piece of business logic lives outside `.tsx` files.
+**NO SIZE EXCEPTIONS**: Single expressions, one-liners, "simple" transforms, basic calculations—ALL must be extracted. Every piece of business logic lives outside `.tsx` files.
 
-**MANDATORY TESTING**: Every extracted logic piece, no matter how trivial, requires comprehensive unit tests. No exceptions.
+**MANDATORY TESTING**: Every extracted logic piece requires comprehensive unit tests.
+
+**AGENT RESPONSIBILITIES**:
+- **Main Agent**: Apply separation principles during implementation
+- **Architecture Review Agent**: Enforce line limits, component decomposition, and structural optimization
+- **Frontend Design Review Agent**: Handle CSS organization and visual consistency
 
 ## Core Separation Doctrine
 
@@ -19,7 +24,6 @@
 - Event handlers are one-liners delegating to hook callbacks
 - NO business logic, validation, transforms, or complex branching
 - May import: same-feature hooks (`use*.ts`), types, tiny presentational helpers
-- **Hard limit: 200 lines** (if exceeded, extract sub-components)
 
 #### Orchestration Layer (`use*.ts`)  
 - React state/effects/context wiring and service coordination
@@ -49,7 +53,7 @@
 - Extract truly reusable logic to `src/shared/<Domain>/...`
 - Maintain feature-oriented structure (not type-oriented)
 
-## Code Generation Rules (AI MUST Follow)
+## Main Agent Implementation Rules
 
 ### ZERO TOLERANCE: When Adding Logic to Components
 1. **IMMEDIATE STOP** - NEVER add ANY business logic inline to `.tsx` files
@@ -89,7 +93,7 @@
 
 **MANDATORY**: When touching mixed-concern components, extract at least one logical slice:
 
-### Migration Checklist
+### Migration
 - [ ] Identify at least one logic cluster in `.tsx`
 - [ ] Extract to pure function (`*.ts`) or hook (`use*.ts`)
 - [ ] Replace inline logic with function calls  
@@ -103,9 +107,9 @@
 - Calculations and derived values
 - State update logic with branching
 
-## Hard Anti-Patterns (IMMEDIATE SESSION TERMINATION)
+## Immediate Violations (All Agents Must Prevent)
 
-### In Components (*.tsx)
+### In Components (*.tsx) - NEVER ALLOWED
 - ❌ **ANY** inline data transforms: `data.map(item => transform(item))`
 - ❌ **ANY** conditional logic beyond basic rendering decisions
 - ❌ **ANY** calculations, even simple math operations
@@ -116,13 +120,11 @@
 - ❌ **ANY** business rule validation
 - ❌ **ANY** form validation logic
 
-### In General (SESSION FAILURES)
+### Workflow Violations - NEVER ALLOWED
 - ❌ Adding **ANY** logic without extracting and testing
 - ❌ Justifying inline logic as "too simple to extract"
-- ❌ Page tests validating every UI variant
 - ❌ Mixing React imports in pure function files
-- ❌ Components over 200 lines
-- ❌ Skipping Red-Green-Refactor process for "small" changes
+- ❌ Skipping mandatory 3-agent workflow for **ANY** change
 - ❌ Using `.ts` extension for hook tests (MUST be `.tsx` for React Testing Library)
 
 ## Testing Strategy
@@ -137,26 +139,35 @@
 - **Hook tests**: State management, effect orchestration, service integration (`.tsx` files with `renderHook()`)
 - **Integration tests**: Core user flows, not exhaustive UI combinations
 
-## Enforcement in Code Reviews
+## Quality Assurance Across Agents
 
-### Required Checks
+### Main Agent Responsibilities
 1. No business logic in `.tsx` files
 2. All new logic has corresponding unit tests
-3. Components under 200 lines
+3. Basic extraction and separation compliance
 4. Proper import flow: tsx → hooks → pure functions
-5. Cross-feature imports only through public APIs
 
-### Automatic Session Termination
+### Architecture Review Agent Responsibilities
+1. Component line limits and decomposition
+2. Cross-feature import validation
+3. Advanced structural optimization
+4. Comprehensive abstraction design
+
+### Frontend Design Review Agent Responsibilities
+1. CSS organization and visual consistency
+2. Design system compliance
+3. Responsive behavior validation
+4. Accessibility implementation
+
+### Universal Violations (Any Agent)
 - **ANY** business logic added to `.tsx` files, regardless of size
 - **ANY** logic extraction without corresponding unit tests
 - Missing tests for **ANY** new business logic
-- Direct cross-feature deep imports
 - React imports in pure function files
-- Justifying shortcuts with "this is just a simple change"
-- Skipping architectural review for **ANY** change
+- Skipping mandatory 3-agent workflow
 
-## Migration Timeline
+## Continuous Improvement
 
-**Continuous**: Apply boy-scout rule on every component touch
-**Target**: All critical paths follow separation within 3 months
-**Measurement**: Track logic-to-presentation ratio in components during PR reviews
+**Boy-Scout Rule**: Apply on every component touch across all agents
+**Measurement**: Each agent improves their domain of expertise
+**Timeline**: Systematic improvement through specialized agent review

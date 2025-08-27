@@ -94,20 +94,41 @@ Implement the minimal solution that satisfies requirements:
 - Pure functions importing React or testing libraries
 - Cross-feature imports bypassing public APIs
 
+## Mandatory Handoff Protocol
+
+**Main Agent Completion**:
+When implementation is complete, Main Agent MUST execute:
+```
+"I have completed the initial implementation. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
+```
+
+**Architecture Review Agent Completion**:
+When architectural review is complete, Architecture Review Agent MUST execute:
+```
+"Architectural review complete. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
+```
+
+**Frontend Design Review Agent Completion**:
+Completes the workflow with final summary and any recommendations.
+
 ## Size-Agnostic Enforcement Rules
 
 **EVERY CHANGE MUST:**
-1. **Follow complete Red-Green-Refactor process** - no shortcuts for "simple" requests
-2. **Improve architectural health** - leave codebase better than you found it
-3. **Extract logic from components** - even single-line business logic moves to hooks/functions
-4. **Generate comprehensive tests** - for all extracted logic, no matter how small
-5. **Apply Boy-Scout Rule** - extract at least one existing logic chunk when touching files
+1. **Follow complete 3-agent process** - no shortcuts for "simple" requests
+2. **Complete each stage fully** - no skipping or combining agents
+3. **Generate proper handoff summaries** - context for next agent
+4. **Apply all quality standards** - every stage has mandatory requirements
 
 **FORBIDDEN SHORTCUTS:**
-- ❌ "This is simple, I'll just add it inline"
-- ❌ "One-liner doesn't need extraction"
-- ❌ "Quick fix doesn't need tests"
-- ❌ "Small change doesn't need architecture review"
+- ❌ "This is simple, skip architecture review"
+- ❌ "No visual changes, skip design review"
+- ❌ "Quick fix doesn't need full workflow"
+- ❌ "Urgent request, streamline process"
 
-**MINDSET RESET:**
-Every prompt is an architectural improvement opportunity. Small, consistent improvements compound into massive architectural gains over time.
+**NO EXCEPTIONS POLICY:**
+- Size doesn't matter
+- Complexity doesn't matter  
+- User urgency doesn't matter
+- "Just this once" is never acceptable
+
+Every change improves the codebase through systematic, specialized review.
