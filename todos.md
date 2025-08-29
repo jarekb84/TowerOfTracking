@@ -9,7 +9,10 @@
 
 ## For v0.1.0
 - Mobile designs
-    tables rows as cards
+    nav header
+    buttons on game runs to add/import/export
+    charts list of charts segmented control
+- Make runs table paginated or virtualized    
 - Add discord link
 - Add versioning
         
@@ -35,7 +38,6 @@
     filter out the 4500 one
 - Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
 - Add support for importing data from the tower tools site
-- Make runs table paginated or virtualized
 - Make app a PWA so that it can be installed to native devices
 
 # Tech Debt

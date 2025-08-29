@@ -1,7 +1,10 @@
 import { formatNumber } from '../utils/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
+import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../utils/trend-indicators'
 import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
 import { parseColumnHeader, getHeaderLineClasses } from './tier-trends-table/column-header-renderer'
+import { TierTrendsMobileCard } from './tier-trends-mobile-card'
+import { getResponsiveTableClasses } from './runs-table/responsive-table-pattern'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]
@@ -39,10 +42,17 @@ export function TierTrendsTable({
     )
   }
 
+  const responsiveClasses = getResponsiveTableClasses({ 
+    breakpoint: 'md', 
+    mobilePadding: 'px-2 py-4' // Reduce horizontal padding to maximize data space
+  })
+
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <>
+      {/* Desktop Table View */}
+      <div className={`${responsiveClasses.desktopTable} overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm`}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
           <thead>
             <tr className="border-b border-slate-700/50 bg-gradient-to-r from-slate-700/20 via-slate-600/10 to-slate-700/20">
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-200">
@@ -111,9 +121,23 @@ export function TierTrendsTable({
               />
             ))}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
-    </div>
+
+      {/* Mobile Card View */}
+      <div className={`${responsiveClasses.mobileContainer} max-w-none`}>
+        <div className="space-y-4">
+          {trends.map((trend) => (
+            <TierTrendsMobileCard 
+              key={trend.fieldName}
+              trend={trend}
+              comparisonColumns={comparisonColumns}
+            />
+          ))}
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -131,15 +155,9 @@ function TrendRow({ trend, index, comparisonColumns }: TrendRowProps) {
   
   const sparklinePath = generateSparklinePath(trend.values, 60, 20)
   
-  // Color coding based on change direction
-  const getChangeColor = (change: FieldTrendData['change']) => {
-    if (change.direction === 'up') return 'text-emerald-300'
-    if (change.direction === 'down') return 'text-red-300'
-    return 'text-slate-300'
-  }
 
   return (
-    <tr className={`border-b border-slate-700/30 transition-all duration-200 hover:bg-gradient-to-r hover:from-orange-500/10 hover:via-orange-500/5 hover:to-orange-500/10 ${rowBg}`}>
+    <tr className={`border-b border-slate-700/30 transition-all duration-300 hover:bg-gradient-to-r hover:from-orange-500/10 hover:via-orange-500/5 hover:to-orange-500/10 hover:border-orange-500/20 ${rowBg}`}>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
           <div className="w-2 h-6 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-sm"></div>
@@ -152,7 +170,7 @@ function TrendRow({ trend, index, comparisonColumns }: TrendRowProps) {
             <svg width="60" height="20" className="opacity-70">
               <path
                 d={sparklinePath}
-                stroke={trend.change.direction === 'up' ? '#10b981' : trend.change.direction === 'down' ? '#ef4444' : '#64748b'}
+                stroke={getTrendSparklineColor(trend.change.direction)}
                 strokeWidth="2"
                 fill="none"
               />
@@ -161,23 +179,26 @@ function TrendRow({ trend, index, comparisonColumns }: TrendRowProps) {
         </div>
       </td>
       <td className="px-6 py-4 text-right">
-        <div className="flex items-center gap-1 justify-end">
-          <span className={`font-mono text-lg ${getChangeColor(trend.change)}`}>
-            {trend.change.percent > 0 ? '+' : ''}{trend.change.percent.toFixed(1)}%
+        <div className="flex items-center gap-1.5 justify-end">
+          <span className={`font-mono text-base font-semibold ${getTrendChangeColor(trend.change)}`}>
+            {trend.change.percent > 0 ? '+' : ''}
+            {Math.abs(trend.change.percent) >= 1000 
+              ? `${(trend.change.percent / 1000).toFixed(1)}K` 
+              : trend.change.percent.toFixed(1)}%
           </span>
-          <span className="text-lg">
-            {trend.change.direction === 'up' ? '↗' : trend.change.direction === 'down' ? '↘' : '→'}
+          <span className={`text-base ${getTrendChangeColor(trend.change)}`}>
+            {getTrendChangeIcon(trend.change.direction)}
           </span>
         </div>
       </td>
       <td className="px-6 py-4 text-right">
-        <span className={`font-mono ${getChangeColor(trend.change)}`}>
+        <span className={`font-mono text-sm font-medium ${getTrendChangeColor(trend.change)}`}>
           {trend.change.absolute > 0 ? '+' : ''}{formatNumber(trend.change.absolute)}
         </span>
       </td>
       {comparisonColumns.map((column, index) => (
         <td key={index} className="px-3 py-4 text-center">
-          <span className="font-mono text-sm text-slate-200">
+          <span className="font-mono text-sm text-foreground font-medium">
             {formatNumber(column.values[trend.fieldName] || 0)}
           </span>
         </td>

@@ -149,7 +149,7 @@ function ChartsPage() {
                 </p>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="p-8 w-full">
+                <div className="p-0 md:p-8 w-full">
                   <TierTrendsAnalysis />
                 </div>
               </CardContent>
