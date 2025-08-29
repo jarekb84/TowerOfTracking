@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui';
+import { Button, Textarea, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
 import { Download, Copy, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import type { DelimiterConflict } from '../utils/csv-exporter';
 import { useData } from '../hooks/use-data';
@@ -51,9 +51,12 @@ export function CsvExport({ className }: CsvExportProps) {
 
   return (
     <div className={className}>
-      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogTrigger asChild>
-          <Button 
+      <ResponsiveDialog 
+        open={isDialogOpen} 
+        onOpenChange={handleDialogOpenChange}
+        trigger={
+          <DialogTrigger asChild>
+            <Button 
             variant="outline" 
             className="gap-2"
             disabled={isExportDisabled(runs.length)}
@@ -61,16 +64,17 @@ export function CsvExport({ className }: CsvExportProps) {
             <Download className="h-4 w-4" />
             Export CSV
           </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-7xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Export CSV Data</DialogTitle>
-            <DialogDescription>
-              Export your game run data to CSV format using original field names for easy re-import.
-            </DialogDescription>
-          </DialogHeader>
+          </DialogTrigger>
+        }
+      >
+        <ResponsiveDialogContent className="sm:max-w-7xl">
+          <ResponsiveDialogHeader
+            title="Export CSV Data"
+            description="Export your game run data to CSV format using original field names for easy re-import."
+          />
           
-          <div className="space-y-4">
+          <ResponsiveDialogBody>
+            <div className="space-y-4">
             {/* Configuration */}
             <Card>
               <CardHeader>
@@ -204,18 +208,20 @@ export function CsvExport({ className }: CsvExportProps) {
                 </CardContent>
               </Card>
             )}
-          </div>
+            </div>
+          </ResponsiveDialogBody>
 
-          <DialogFooter>
+          <ResponsiveDialogFooter>
             <Button 
               variant="outline" 
               onClick={() => setIsDialogOpen(false)}
+              className="h-11"
             >
               Close
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </div>
   );
 }

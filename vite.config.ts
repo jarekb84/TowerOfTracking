@@ -29,6 +29,12 @@ const config = defineConfig({
     __GIT_HASH__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) || 'dev'),
   },
   base: process.env.CI === 'true' ? '/TowerOfTracking/' : '/',
+    server: {
+    host: '127.0.0.1',
+    port: 3000,
+    strictPort: true,
+    hmr: { host: '127.0.0.1', clientPort: 3000, protocol: 'ws' }
+  },
   test: {
     globals: true,
     environment: 'jsdom',

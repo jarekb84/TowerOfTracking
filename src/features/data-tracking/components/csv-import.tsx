@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Textarea, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Input } from '../../../components/ui';
+import { Button, Textarea, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
 import { format } from 'date-fns';
 import { Upload, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { parseGenericCsv, getDelimiterString } from '../utils/csv-parser';
@@ -150,22 +150,26 @@ export function CsvImport({ className }: CsvImportProps) {
 
   return (
     <div className={className}>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="gap-2">
-            <FileText className="h-4 w-4" />
-            Import CSV/TSV
-          </Button>
+      <ResponsiveDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen}
+        trigger={
+          <DialogTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Import CSV/TSV
+            </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-7xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Import CSV/Tab-Delimited Data</DialogTitle>
-            <DialogDescription>
-              Import game run data from any CSV format. Column headers will be automatically mapped to supported fields. Use any field names - they${`'`}ll be converted to camelCase and validated against the 84 supported fields.
-            </DialogDescription>
-          </DialogHeader>
+        }
+      >
+        <ResponsiveDialogContent className="sm:max-w-7xl">
+          <ResponsiveDialogHeader
+            title="Import CSV/Tab-Delimited Data"
+            description="Import game run data from any CSV format. Column headers will be automatically mapped to supported fields. Use any field names - they'll be converted to camelCase and validated against the 84 supported fields."
+          />
           
-          <div className="space-y-4">
+          <ResponsiveDialogBody>
+            <div className="space-y-4">
             <div className="space-y-3">
               <div className="flex flex-wrap gap-3 items-center">
                 <Button 
@@ -386,15 +390,21 @@ Column headers will be automatically converted to camelCase and matched against 
                 className="mt-4"
               />
             )}
-          </div>
+            </div>
+          </ResponsiveDialogBody>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancel}>
+          <ResponsiveDialogFooter mobileLayout="1-2">
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+              className="h-11"
+            >
               Cancel
             </Button>
             <Button 
               onClick={handleImport} 
               disabled={!parseResult?.success || parseResult.success.length === 0}
+              className="h-11"
             >
               {duplicateResult && duplicateResult.duplicates.length > 0
                 ? (resolution === 'overwrite' 
@@ -404,9 +414,9 @@ Column headers will be automatically converted to camelCase and matched against 
                 : `Import ${parseResult?.success?.length || 0} Runs`
               }
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </ResponsiveDialogFooter>
+        </ResponsiveDialogContent>
+      </ResponsiveDialog>
     </div>
   );
 }

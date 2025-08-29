@@ -9,9 +9,7 @@
 
 ## For v0.1.0
 - Mobile designs
-- Extract the data import/export into a single page (bulk?)
-    - rename import/export modals to use term bulk
-    - add ability to click a button to clear local storage    
+    tables rows as cards
 - Add discord link
 - Add versioning
         
@@ -20,6 +18,9 @@
 - Tier trends screen
     add ability to only show certain categories of stats
         ie economic or combat or ... need to come up with names for these categories cause the stuff the game spits out doesn't make sense
+- Extract the data import/export into a single page (bulk?)
+    - rename import/export modals to use term bulk
+    - add ability to click a button to clear local storage            
 - Create a dynamic query builder page
     filter any property we store
     add group by
@@ -35,6 +36,7 @@
 - Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
 - Add support for importing data from the tower tools site
 - Make runs table paginated or virtualized
+- Make app a PWA so that it can be installed to native devices
 
 # Tech Debt
 - Add agent focused on testing implementation
