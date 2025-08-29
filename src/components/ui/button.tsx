@@ -28,7 +28,7 @@ const buttonVariants = cva(
         sm: "h-9 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
         lg: "h-11 rounded-md px-6 has-[>svg]:px-4",
         icon: "size-10",
-        compact: "h-8 px-2.5 py-1.5 text-xs gap-1 has-[>svg]:px-2",
+        compact: "h-8 px-2.5 py-1.5 text-xs gap-1 has-[>svg]:px-2 [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:px-3",
       },
       fullWidthOnMobile: {
         true: "w-full sm:w-auto flex-1 sm:flex-initial",

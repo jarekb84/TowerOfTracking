@@ -52,11 +52,11 @@ function StatSection({ title, fieldsData }: {
       <h5 className="font-semibold text-base text-primary border-b border-border pb-1">
         {title}
       </h5>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2">
         {fieldsData.map(({ key, displayName, value }) => (
           <div
             key={key}
-            className="flex justify-between items-center p-2 bg-background rounded border"
+            className="flex justify-between items-center p-3 bg-muted/20 rounded-md border-border/30 border transition-colors hover:bg-muted/30"
           >
             <span className="font-mono text-sm text-muted-foreground">
               {displayName}
@@ -112,7 +112,7 @@ export function RunDetails({ run }: RunDetailsProps) {
   
   return (
     <div className="space-y-6">
-      <h4 className="font-medium text-lg">Complete Run Data</h4>
+      <h4 className="font-medium text-lg text-primary border-b border-border/30 pb-2">Complete Run Data</h4>
       {Object.entries(STAT_GROUPS).filter(([groupTitle]) => groupTitle !== "__SKIP__").map(([groupTitle, fields]) => (
         <StatGroup
           key={groupTitle}

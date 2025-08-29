@@ -31,8 +31,7 @@ interface BaseRunsTableProps {
 
 export function BaseRunsTable({
   runs,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  removeRun: _,
+  removeRun,
   columns,
   title,
   emptyStateMessage,
@@ -89,7 +88,7 @@ export function BaseRunsTable({
           )}
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollableTableContainer table={table} />
+          <ScrollableTableContainer table={table} removeRun={removeRun} />
         </CardContent>
       </Card>
     );
@@ -115,7 +114,7 @@ export function BaseRunsTable({
         )}
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollableTableContainer table={table} />
+        <ScrollableTableContainer table={table} removeRun={removeRun} />
       </CardContent>
     </Card>
   );

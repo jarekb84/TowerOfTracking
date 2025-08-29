@@ -54,7 +54,7 @@ export function RunsTable() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <TableHead table={table} />
-            <TableBody table={table} />
+            <TableBody table={table} removeRun={removeRun} />
           </table>
         </div>
       </CardContent>

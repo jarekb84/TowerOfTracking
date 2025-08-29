@@ -8,6 +8,7 @@ export * from "./dialog";
 export * from "./form-field";
 export * from "./form-label";
 export * from "./input";
+export * from "./mobile-card";
 export * from "./popover";
 export * from "./responsive-dialog";
 export * from "./selection-button-group";
