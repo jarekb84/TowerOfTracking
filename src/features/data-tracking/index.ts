@@ -3,6 +3,7 @@ export { DataInput } from './components/data-input';
 export { CsvImport } from './components/csv-import';
 export { CsvExport } from './components/csv-export';
 export { DataProvider } from './components/data-provider';
+export { DataSettings } from './components/data-settings';
 export { RunsTable } from './components/runs-table';
 export { TabbedRunsTable } from './components/runs-table/tabbed-runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
@@ -14,6 +15,7 @@ export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
+export { useDataSettings } from './hooks/use-data-settings';
 export { useFileImport } from './hooks/use-file-import';
 
 // Data Tracking Types
