@@ -12,11 +12,17 @@
     nav header
     buttons on game runs to add/import/export
     charts list of charts segmented control
-- Make runs table paginated or virtualized    
+    make import/export modals not as wide in tablet
 - Add discord link
 - Add versioning
-        
+
+## For v0.2.0
+- Add google drive api integration
+- Make app a PWA so that it can be installed to native devices
+- Make runs table paginated or virtualized    
+
 ## Backlog
+- support different aggregations in coins/cell analytics (sum, avg, min, max)
 - Add grouping/something of types of fields in the tier trends type (economy, combat, util?)
 - Tier trends screen
     add ability to only show certain categories of stats
@@ -24,10 +30,6 @@
 - Extract the data import/export into a single page (bulk?)
     - rename import/export modals to use term bulk
     - add ability to click a button to clear local storage            
-- Create a dynamic query builder page
-    filter any property we store
-    add group by
-    support different chart types
 - make fields editable
     tournament placement
     notes
@@ -38,7 +40,11 @@
     filter out the 4500 one
 - Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
 - Add support for importing data from the tower tools site
-- Make app a PWA so that it can be installed to native devices
+
+- Create a dynamic query builder page
+    filter any property we store
+    add group by
+    support different chart types
 
 # Tech Debt
 - Add agent focused on testing implementation

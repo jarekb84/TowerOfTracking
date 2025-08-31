@@ -77,14 +77,21 @@ export function TimeSeriesChart({
           <div className="flex items-center justify-between">
             <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
               <div 
-                className="w-2 h-8 rounded-full shadow-lg"
+                className="w-2 h-8 rounded-full shadow-lg animate-pulse"
                 style={{ 
                   background: `linear-gradient(to bottom, ${currentConfig.color}CC, ${currentConfig.color})`,
                   boxShadow: `0 4px 12px ${currentConfig.color}30`
                 }}
               />
               {title}
-              <span className="text-sm font-normal text-slate-400 ml-auto">{currentConfig.label}</span>
+              <span className="text-sm font-normal text-slate-400 ml-auto">
+                {currentConfig.label}
+                {chartData.length > 0 && (
+                  <span className="ml-2 text-xs px-2 py-1 bg-slate-700/50 rounded-md">
+                    {chartData.length} points
+                  </span>
+                )}
+              </span>
             </h3>
             {showFarmingOnly && <FarmingOnlyIndicator />}
           </div>
@@ -92,39 +99,48 @@ export function TimeSeriesChart({
         </div>
         
         {/* Period selector */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           {availablePeriodConfigs.map((config) => (
             <Button
               key={config.period}
-              variant={selectedPeriod === config.period ? "default" : "outline"}
+              variant={selectedPeriod === config.period ? "outline-selected" : "outline"}
               size="sm"
+              fullWidthOnMobile={false}
               onClick={() => setSelectedPeriod(config.period)}
-              className={`border transition-all ${
-                selectedPeriod === config.period
-                  ? `text-slate-100` 
-                  : 'border-slate-600 text-slate-400 hover:bg-slate-700'
-              }`}
+              className="transition-all duration-200 group min-w-0 flex-shrink-0"
               style={{
-                backgroundColor: selectedPeriod === config.period ? `${config.color}33` : undefined,
-                borderColor: selectedPeriod === config.period ? `${config.color}80` : undefined,
+                '--period-color': config.color,
+                backgroundColor: selectedPeriod === config.period 
+                  ? `color-mix(in srgb, ${config.color} 15%, transparent)` 
+                  : undefined,
+                borderColor: selectedPeriod === config.period 
+                  ? `color-mix(in srgb, ${config.color} 60%, transparent)` 
+                  : undefined,
+                color: selectedPeriod === config.period ? '#e2e8f0' : '#94a3b8'
               }}
             >
               <div 
-                className="w-3 h-3 rounded-full mr-2" 
-                style={{ backgroundColor: config.color }}
+                className="w-3 h-3 rounded-full mr-2 transition-all duration-200 flex-shrink-0" 
+                style={{ 
+                  backgroundColor: config.color,
+                  filter: selectedPeriod === config.period 
+                    ? 'none' 
+                    : 'opacity(0.6)'
+                }}
               />
-              {config.label}
+              <span className="whitespace-nowrap">{config.label}</span>
             </Button>
           ))}
         </div>
       </div>
 
       {/* Chart */}
-      <ChartContainer config={chartConfig} className="h-[400px] w-full">
-        <AreaChart 
-          data={chartData} 
-          margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-        >
+      <div className="transition-all duration-300 ease-in-out">
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <AreaChart 
+            data={chartData} 
+            margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+          >
           <defs>
             <linearGradient id={`gradient-${metric}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={currentConfig.color} stopOpacity={0.3}/>
@@ -158,7 +174,10 @@ export function TimeSeriesChart({
                 return [formattedValue + suffix, title]
               }}
               labelFormatter={(label) => `${currentConfig.label}: ${label}`}
-              className="bg-slate-800/95 border-slate-600 backdrop-blur-sm"
+              className="bg-slate-800/95 border-slate-600 backdrop-blur-sm shadow-lg shadow-black/20"
+              style={{
+                borderColor: `color-mix(in srgb, ${currentConfig.color} 40%, transparent)`
+              }}
             />} 
           />
           
@@ -177,8 +196,9 @@ export function TimeSeriesChart({
               filter: `drop-shadow(0 0 6px ${currentConfig.color}50)`
             }}
           />
-        </AreaChart>
-      </ChartContainer>
+          </AreaChart>
+        </ChartContainer>
+      </div>
     </div>
   )
 }

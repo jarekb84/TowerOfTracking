@@ -22,9 +22,6 @@
   "src/features/data-tracking/utils/chart-data.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
-    },
-    "max-lines": {
-      "count": 1
     }
   },
   "src/features/data-tracking/utils/field-utils.ts": {

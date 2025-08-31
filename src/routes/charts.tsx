@@ -24,36 +24,41 @@ function ChartsPage() {
         {/* Analytics Tabs */}
         <Tabs defaultValue="coins" className="w-full">
           <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-5 w-[1000px] bg-slate-800/50 border border-slate-700/50 p-1">
+            <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 w-full max-w-4xl bg-slate-800/50 border border-slate-700/50 p-1 backdrop-blur-sm gap-1 sm:gap-0">
               <TabsTrigger 
                 value="coins" 
-                className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-100 data-[state=active]:border-purple-500/50"
+                className="data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-100 data-[state=active]:border-emerald-500/50 transition-all duration-200 hover:bg-emerald-500/10 text-xs sm:text-sm"
               >
-                💰 Coins Analytics
+                <span className="hidden sm:inline">💰 Coins Analytics</span>
+                <span className="sm:hidden">💰 Coins</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="cells" 
-                className="data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-100 data-[state=active]:border-pink-500/50"
+                className="data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-100 data-[state=active]:border-pink-500/50 transition-all duration-200 hover:bg-pink-500/10 text-xs sm:text-sm"
               >
-                🔬 Cells Analytics
+                <span className="hidden sm:inline">🔬 Cells Analytics</span>
+                <span className="sm:hidden">🔬 Cells</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="deaths" 
-                className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-100 data-[state=active]:border-red-500/50"
+                className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-100 data-[state=active]:border-red-500/50 transition-all duration-200 hover:bg-red-500/10 text-xs sm:text-sm"
               >
-                💀 Deaths Analysis
+                <span className="hidden sm:inline">💀 Deaths Analysis</span>
+                <span className="sm:hidden">💀 Deaths</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="tiers" 
-                className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-100 data-[state=active]:border-blue-500/50"
+                className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-100 data-[state=active]:border-blue-500/50 transition-all duration-200 hover:bg-blue-500/10 text-xs sm:text-sm"
               >
-                🏆 Tier Stats
+                <span className="hidden sm:inline">🏆 Tier Stats</span>
+                <span className="sm:hidden">🏆 Stats</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="trends" 
-                className="data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-100 data-[state=active]:border-orange-500/50"
+                className="data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-100 data-[state=active]:border-orange-500/50 transition-all duration-200 hover:bg-orange-500/10 text-xs sm:text-sm"
               >
-                📈 Tier Trends
+                <span className="hidden sm:inline">📈 Tier Trends</span>
+                <span className="sm:hidden">📈 Trends</span>
               </TabsTrigger>
             </TabsList>
           </div>

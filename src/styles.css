@@ -90,4 +90,21 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+  
+  /* Enhanced focus states for analytics components */
+  .analytics-button:focus-visible {
+    outline: 2px solid theme('colors.ring');
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px theme('colors.ring/20');
+  }
+  
+  /* Pulse animation for current period indicators */
+  .period-indicator {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+  }
 }
