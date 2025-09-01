@@ -14,12 +14,14 @@ import { createRunsTableColumns } from './table-columns';
 import { TableHeader } from './table-header';
 import { TableHead } from './table-head';
 import { TableBody } from './table-body';
+import { useViewport } from '@/shared/hooks/use-viewport';
 
 export function RunsTable() {
   const { runs, removeRun } = useData();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const viewportSize = useViewport({ breakpoint: 'md' });
 
   const columns = createRunsTableColumns(removeRun);
 
@@ -52,13 +54,14 @@ export function RunsTable() {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full hidden md:table">
-            <TableHead table={table} />
-            <TableBody table={table} removeRun={removeRun} variant="desktop" />
-          </table>
-          <div className="md:hidden">
+          {viewportSize === 'desktop' ? (
+            <table className="w-full">
+              <TableHead table={table} />
+              <TableBody table={table} removeRun={removeRun} variant="desktop" />
+            </table>
+          ) : (
             <TableBody table={table} removeRun={removeRun} variant="mobile" />
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>

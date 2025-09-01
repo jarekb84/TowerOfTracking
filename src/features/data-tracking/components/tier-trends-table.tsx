@@ -4,7 +4,7 @@ import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from 
 import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
 import { parseColumnHeader, getHeaderLineClasses } from './tier-trends-table/column-header-renderer'
 import { TierTrendsMobileCard } from './tier-trends-mobile-card'
-import { getResponsiveTableClasses } from './runs-table/responsive-table-pattern'
+import { useViewport } from '@/shared/hooks/use-viewport'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]
@@ -29,6 +29,8 @@ export function TierTrendsTable({
   hasMatches,
   changeThreshold = 0
 }: TierTrendsTableProps) {
+  const viewportSize = useViewport({ breakpoint: 'md' });
+
   if (trends.length === 0) {
     return (
       <div className="text-center py-8 text-slate-400">
@@ -42,15 +44,11 @@ export function TierTrendsTable({
     )
   }
 
-  const responsiveClasses = getResponsiveTableClasses({ 
-    breakpoint: 'md', 
-    mobilePadding: 'px-2 py-4' // Reduce horizontal padding to maximize data space
-  })
-
   return (
     <>
-      {/* Desktop Table View */}
-      <div className={`${responsiveClasses.desktopTable} overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm`}>
+      {viewportSize === 'desktop' ? (
+        /* Desktop Table View */
+        <div className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
           <thead>
@@ -123,20 +121,21 @@ export function TierTrendsTable({
           </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Mobile Card View */}
-      <div className={`${responsiveClasses.mobileContainer} max-w-none`}>
-        <div className="space-y-4">
-          {trends.map((trend) => (
-            <TierTrendsMobileCard 
-              key={trend.fieldName}
-              trend={trend}
-              comparisonColumns={comparisonColumns}
-            />
-          ))}
         </div>
-      </div>
+      ) : (
+        /* Mobile Card View */
+        <div className="px-2 py-4 space-y-4 max-w-none">
+          <div className="space-y-4">
+            {trends.map((trend) => (
+              <TierTrendsMobileCard 
+                key={trend.fieldName}
+                trend={trend}
+                comparisonColumns={comparisonColumns}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </>
   )
 }
