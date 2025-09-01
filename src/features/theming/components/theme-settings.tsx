@@ -14,27 +14,31 @@ export function ThemeSettings() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium">Display Mode</label>
+          <label htmlFor="display-mode-button" className="text-sm font-medium">Display Mode</label>
           <Button
+            id="display-mode-button"
             variant={theme.mode === 'condensed' ? 'default' : 'outline'}
             onClick={toggleCondensed}
             className="w-full"
+            aria-label={`Display mode: ${theme.mode === 'condensed' ? 'Condensed' : 'Normal'}`}
           >
             {theme.mode === 'condensed' ? 'Condensed' : 'Normal'}
           </Button>
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm font-medium">Base Spacing (rem)</label>
+          <label htmlFor="spacing-base-input" className="text-sm font-medium">Base Spacing (rem)</label>
           <Input
+            id="spacing-base-input"
             type="number"
             min="0.1"
             max="1"
             step="0.05"
             value={theme.spacingBase}
             onChange={(e) => setTheme({ spacingBase: parseFloat(e.target.value) || 0.25 })}
+            aria-describedby="spacing-base-description"
           />
-          <p className="text-xs text-muted-foreground">
+          <p id="spacing-base-description" className="text-xs text-muted-foreground">
             Controls the base unit for all spacing throughout the app
           </p>
         </div>

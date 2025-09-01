@@ -24,6 +24,22 @@ export function TableHead({ table }: TableHeadProps) {
                       : ''
                   }
                   onClick={header.column.getToggleSortingHandler()}
+                  onKeyDown={(e) => {
+                    if (header.column.getCanSort() && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      const handler = header.column.getToggleSortingHandler();
+                      if (handler) handler();
+                    }
+                  }}
+                  role={header.column.getCanSort() ? 'button' : undefined}
+                  tabIndex={header.column.getCanSort() ? 0 : undefined}
+                  aria-sort={
+                    header.column.getIsSorted() === 'asc' 
+                      ? 'ascending' 
+                      : header.column.getIsSorted() === 'desc' 
+                      ? 'descending' 
+                      : 'none'
+                  }
                 >
                   {flexRender(
                     header.column.columnDef.header,

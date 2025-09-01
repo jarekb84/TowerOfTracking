@@ -18,8 +18,8 @@ export function TierFilter({ availableTiers, selectedTier, onTierChange, shouldS
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
-      <label className="text-sm text-muted-foreground whitespace-nowrap">Filter by tier:</label>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4" role="group" aria-labelledby="tier-filter-label">
+      <span id="tier-filter-label" className="text-sm text-muted-foreground whitespace-nowrap">Filter by tier:</span>
       <SelectionButtonGroup<number | null>
         options={options}
         selectedValue={selectedTier}

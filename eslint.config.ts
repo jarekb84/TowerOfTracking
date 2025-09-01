@@ -2,6 +2,7 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
+import pluginJsxA11y from "eslint-plugin-jsx-a11y";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
@@ -26,6 +27,7 @@ export default defineConfig([
   tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
+  pluginJsxA11y.flatConfigs.recommended,
   {
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", {
@@ -37,7 +39,20 @@ export default defineConfig([
         "max": 300,
         "skipBlankLines": true,
         "skipComments": true
-      }]
+      }],
+      // React rules to catch structural issues
+      "react/no-unknown-property": "error",
+      "react/void-dom-elements-no-children": "error",
+      "react/no-danger-with-children": "error",
+      "react/no-unescaped-entities": "error",
+      "react/no-children-prop": "error",
+      // JSX accessibility rules that also catch HTML structure issues
+      "jsx-a11y/alt-text": "error",
+      "jsx-a11y/heading-has-content": "error",
+      "jsx-a11y/anchor-has-content": "error",
+      "jsx-a11y/iframe-has-title": "error",
+      "jsx-a11y/img-redundant-alt": "error",
+      "jsx-a11y/no-redundant-roles": "error"
     }
   }
 ]);
