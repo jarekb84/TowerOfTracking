@@ -6,7 +6,6 @@ interface NavLinkProps {
   to: string
   children: React.ReactNode
   onClick?: () => void
-  isCollapsed?: boolean
   className?: string
   'aria-label'?: string
   title?: string

@@ -56,7 +56,6 @@ export function Sidebar() {
                     ref={sectionIndex === 0 && itemIndex === 0 ? firstLinkRef : undefined}
                     to={item.href || '#'}
                     onClick={closeSidebar}
-                    isCollapsed={isCollapsed}
                     aria-label={isCollapsed ? item.label : undefined}
                     title={isCollapsed ? item.label : undefined}
                   >
