@@ -13,10 +13,10 @@ export function ScrollableTableContainer({ table, removeRun }: ScrollableTableCo
     <div className="overflow-x-auto overflow-y-auto max-h-[65vh]">
       <table className="w-full hidden md:table">
         <TableHead table={table} />
-        <TableBody table={table} removeRun={removeRun} />
+        <TableBody table={table} removeRun={removeRun} variant="desktop" />
       </table>
       <div className="md:hidden">
-        <TableBody table={table} removeRun={removeRun} />
+        <TableBody table={table} removeRun={removeRun} variant="mobile" />
       </div>
     </div>
   );

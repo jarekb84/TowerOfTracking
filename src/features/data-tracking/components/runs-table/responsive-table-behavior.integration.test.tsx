@@ -61,19 +61,30 @@ describe('Responsive Table Behavior', () => {
     return <div>{children}</div>;
   }
   
-  it('should render both desktop and mobile structures', () => {
+  it('should render desktop view with variant="desktop"', () => {
     const mockRuns = [createMockRun({ id: '1' })];
     const table = createMockTable(mockRuns);
     
     render(
       <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} />
+        <TableBody table={table} removeRun={mockRemoveRun} variant="desktop" />
       </TestWrapper>
     );
     
     // Desktop table structure should be present
     const tableBody = screen.getByRole('rowgroup');
     expect(tableBody).toBeInTheDocument();
+  });
+
+  it('should render mobile view with variant="mobile"', () => {
+    const mockRuns = [createMockRun({ id: '1' })];
+    const table = createMockTable(mockRuns);
+    
+    render(
+      <TestWrapper>
+        <TableBody table={table} removeRun={mockRemoveRun} variant="mobile" />
+      </TestWrapper>
+    );
     
     // Mobile card container should be present
     const mobileContainer = screen.getByTestId('mobile-cards-container');
@@ -94,7 +105,7 @@ describe('Responsive Table Behavior', () => {
     
     render(
       <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} />
+        <TableBody table={table} removeRun={mockRemoveRun} variant="mobile" />
       </TestWrapper>
     );
     
@@ -109,7 +120,7 @@ describe('Responsive Table Behavior', () => {
     
     render(
       <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} />
+        <TableBody table={table} removeRun={mockRemoveRun} variant="desktop" />
       </TestWrapper>
     );
     
@@ -131,7 +142,7 @@ describe('Responsive Table Behavior', () => {
     
     render(
       <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} />
+        <TableBody table={table} removeRun={mockRemoveRun} variant="mobile" />
       </TestWrapper>
     );
     
