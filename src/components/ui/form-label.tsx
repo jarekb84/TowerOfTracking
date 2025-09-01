@@ -12,7 +12,7 @@ export function FormLabel({ children, htmlFor, required, className }: FormLabelP
     <label
       htmlFor={htmlFor}
       className={cn(
-        "text-sm font-medium text-slate-400",
+        "text-sm font-medium text-muted-foreground",
         className
       )}
     >

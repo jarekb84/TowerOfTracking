@@ -43,6 +43,13 @@
   --breakpoint-2xl: 1536px;
 }
 
+@layer components {
+  /* Form input styling patterns */
+  .form-textarea {
+    @apply resize-none w-full bg-background border-input/60 hover:border-accent/50 focus:border-orange-500/60 focus:bg-orange-500/5 transition-all duration-200 placeholder:text-muted-foreground/60;
+  }
+}
+
 @layer base {
   :root {
     /* Configurable spacing system */

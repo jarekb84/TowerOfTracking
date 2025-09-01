@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { GlobalDataInputContext, GlobalDataInputContextType } from '../hooks/use-global-data-input'
 
 interface GlobalDataInputProviderProps {
@@ -16,11 +16,11 @@ export function GlobalDataInputProvider({ children }: GlobalDataInputProviderPro
     setIsDialogOpen(false)
   }, [])
 
-  const contextValue: GlobalDataInputContextType = {
+  const contextValue: GlobalDataInputContextType = useMemo(() => ({
     isDialogOpen,
     openDialog,
     closeDialog,
-  }
+  }), [isDialogOpen, openDialog, closeDialog])
 
   return (
     <GlobalDataInputContext.Provider value={contextValue}>

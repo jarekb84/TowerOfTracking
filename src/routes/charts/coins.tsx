@@ -17,7 +17,7 @@ function CoinsChartPage() {
             </h1>
             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600/20 to-green-600/20 blur-lg -z-10 rounded-lg"></div>
           </div>
-          <p className="text-slate-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             Track your coin earnings from farming runs over different time periods
           </p>
         </div>

@@ -15,7 +15,7 @@ export function DataInputActionsSection({
       <Button 
         variant="outline" 
         onClick={onPaste}
-        className="flex-1 gap-2 h-11 px-4 hover:bg-accent/80 transition-all duration-200"
+        className="flex-1 gap-2 h-10 px-4 hover:bg-accent/50 transition-all duration-200"
       >
         <Upload className="h-4 w-4" />
         <span>Paste from Clipboard</span>
@@ -23,7 +23,7 @@ export function DataInputActionsSection({
       <Button 
         variant="outline" 
         onClick={onImportFile}
-        className="flex-1 gap-2 h-11 px-4 hover:bg-accent/80 transition-all duration-200"
+        className="flex-1 gap-2 h-10 px-4 hover:bg-accent/50 transition-all duration-200"
       >
         <FileText className="h-4 w-4" />
         <span>Import from File</span>

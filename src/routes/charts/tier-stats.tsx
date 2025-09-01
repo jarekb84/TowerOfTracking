@@ -17,7 +17,7 @@ function TierStatsPage() {
             </h1>
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 blur-lg -z-10 rounded-lg"></div>
           </div>
-          <p className="text-slate-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             See your best performance metrics for each tier. Shows maximum wave, duration, coins, cells, and hourly rates achieved.
           </p>
         </div>
@@ -27,7 +27,7 @@ function TierStatsPage() {
             <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
               <div className="w-2 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full shadow-lg shadow-blue-500/30"></div>
               Tier Performance Statistics
-              <span className="text-sm font-normal text-slate-400 ml-auto">Maximum Values per Tier</span>
+              <span className="text-sm font-normal text-muted-foreground ml-auto">Maximum Values per Tier</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">

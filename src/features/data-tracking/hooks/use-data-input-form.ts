@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { parseGameRun } from '../utils/data-parser';
 import { extractTimestampFromFields } from '../utils/field-utils';
+import { 
+  createInitialFormState, 
+  createInitialDateTimeState,
+  formatTimeFromDate,
+  createDateTimeFromComponents 
+} from '../utils/data-input-state';
 import type { ParsedGameRun } from '../types/game-run.types';
 import type { DuplicateDetectionResult } from '../utils/duplicate-detection';
 import type { DuplicateResolution } from '../components/duplicate-info';
@@ -34,40 +40,29 @@ export interface DataInputFormActions {
 }
 
 export function useDataInputForm(): DataInputFormState & DataInputFormActions {
-  const [inputData, setInputData] = useState('');
+  const initialFormState = createInitialFormState();
+  const initialDateTime = createInitialDateTimeState();
+  
+  const [inputData, setInputData] = useState(initialFormState.inputData);
   const [previewData, setPreviewData] = useState<ParsedGameRun | null>(null);
-  const [selectedRunType, setSelectedRunType] = useState<'farm' | 'tournament' | 'milestone'>('farm');
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTime, setSelectedTime] = useState<{ hours: string; minutes: string }>(() => {
-    const now = new Date();
-    return {
-      hours: now.getHours().toString().padStart(2, '0'),
-      minutes: now.getMinutes().toString().padStart(2, '0')
-    };
-  });
-  const [notes, setNotes] = useState('');
-  const [duplicateResult, setDuplicateResult] = useState<DuplicateDetectionResult | null>(null);
-  const [resolution, setResolution] = useState<DuplicateResolution>('new-only');
+  const [selectedRunType, setSelectedRunType] = useState(initialFormState.selectedRunType);
+  const [selectedDate, setSelectedDate] = useState(initialDateTime.selectedDate);
+  const [selectedTime, setSelectedTime] = useState(initialDateTime.selectedTime);
+  const [notes, setNotes] = useState(initialFormState.notes);
+  const [duplicateResult, setDuplicateResult] = useState(initialFormState.duplicateResult);
+  const [resolution, setResolution] = useState(initialFormState.resolution);
   
   const { addRun, checkDuplicate, overwriteRun } = useData();
 
   const getDateTimeFromSelection = (): Date => {
-    const dateTime = new Date(selectedDate);
-    dateTime.setHours(parseInt(selectedTime.hours, 10));
-    dateTime.setMinutes(parseInt(selectedTime.minutes, 10));
-    dateTime.setSeconds(0);
-    dateTime.setMilliseconds(0);
-    return dateTime;
+    return createDateTimeFromComponents(selectedDate, selectedTime);
   };
 
   const updateDateTimeFromParsedData = (parsed: ParsedGameRun): void => {
     const extractedTimestamp = extractTimestampFromFields(parsed.fields);
     if (extractedTimestamp) {
       setSelectedDate(extractedTimestamp);
-      setSelectedTime({
-        hours: extractedTimestamp.getHours().toString().padStart(2, '0'),
-        minutes: extractedTimestamp.getMinutes().toString().padStart(2, '0')
-      });
+      setSelectedTime(formatTimeFromDate(extractedTimestamp));
       parsed.timestamp = extractedTimestamp;
     }
   };
@@ -180,11 +175,17 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   };
 
   const resetForm = (): void => {
-    setInputData('');
+    const newFormState = createInitialFormState();
+    const newDateTime = createInitialDateTimeState();
+    
+    setInputData(newFormState.inputData);
     setPreviewData(null);
-    setNotes('');
-    setDuplicateResult(null);
-    setResolution('new-only');
+    setSelectedRunType(newFormState.selectedRunType);
+    setSelectedDate(newDateTime.selectedDate);
+    setSelectedTime(newDateTime.selectedTime);
+    setNotes(newFormState.notes);
+    setDuplicateResult(newFormState.duplicateResult);
+    setResolution(newFormState.resolution);
   };
 
   return {

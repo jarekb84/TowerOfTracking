@@ -17,7 +17,7 @@ function TierTrendsPage() {
             </h1>
             <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/20 to-yellow-600/20 blur-lg -z-10 rounded-lg"></div>
           </div>
-          <p className="text-slate-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             Compare statistical changes across your recent farming runs for the same tier. Identify performance improvements and upgrade impacts.
           </p>
         </div>
@@ -27,7 +27,7 @@ function TierTrendsPage() {
             <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
               <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
               Statistical Trends Analysis
-              <span className="text-sm font-normal text-slate-400 ml-auto">Recent Run Comparison</span>
+              <span className="text-sm font-normal text-muted-foreground ml-auto">Recent Run Comparison</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">

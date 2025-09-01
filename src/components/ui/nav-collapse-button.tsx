@@ -14,7 +14,7 @@ export function NavCollapseButton({ isCollapsed, onClick, className }: NavCollap
         className={cn(
           "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200",
           // Subtle color scheme
-          "text-slate-400 hover:text-slate-200",
+          "text-muted-foreground hover:text-foreground",
           // Enhanced hover state
           "hover:bg-slate-800/40 hover:shadow-sm",
           // Focus accessibility

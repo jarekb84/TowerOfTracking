@@ -17,7 +17,7 @@ function DeathsChartPage() {
             </h1>
             <div className="absolute -inset-1 bg-gradient-to-r from-red-600/20 to-rose-600/20 blur-lg -z-10 rounded-lg"></div>
           </div>
-          <p className="text-slate-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             Analyze what&apos;s killing you across different tiers. Toggle tiers on/off to compare death patterns.
           </p>
         </div>
@@ -27,7 +27,7 @@ function DeathsChartPage() {
             <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
               <div className="w-2 h-8 bg-gradient-to-b from-red-400 to-red-600 rounded-full shadow-lg shadow-red-500/30"></div>
               Death Causes by Tier
-              <span className="text-sm font-normal text-slate-400 ml-auto">Spider/Radar Analysis</span>
+              <span className="text-sm font-normal text-muted-foreground ml-auto">Spider/Radar Analysis</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">

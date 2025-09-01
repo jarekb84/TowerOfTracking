@@ -1,5 +1,6 @@
 // Data Tracking Components
 export { DataInput } from './components/data-input';
+export { DataInputErrorBoundary } from './components/data-input-error-boundary';
 export { CsvImport } from './components/csv-import';
 export { CsvExport } from './components/csv-export';
 export { DataProvider } from './components/data-provider';
@@ -105,6 +106,13 @@ export {
   formatFieldDisplayName,
   generateSparklinePath
 } from './utils/tier-trends';
+
+export {
+  createInitialFormState,
+  createInitialDateTimeState,
+  formatTimeFromDate,
+  createDateTimeFromComponents
+} from './utils/data-input-state';
 
 export {
   filterRunsByType,

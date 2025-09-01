@@ -12,7 +12,10 @@
     charts list of charts segmented control
     make import/export modals not as wide in tablet
     reduce nesting of indentations from cards
-    fix console warnings
+    turn tier stats table into card layout on mobile
+    optimize rendering of runs table
+    Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
+    add back the icons for chart links (ie skull for deaths analysis)
 - Add discord link
 - Add versioning
 
@@ -22,6 +25,8 @@
 - Make runs table paginated or virtualized    
 
 ## Backlog
+- click row to expand
+- click card to expand
 - support different aggregations in coins/cell analytics (sum, avg, min, max)
 - Add grouping/something of types of fields in the tier trends type (economy, combat, util?)
 - Tier trends screen
@@ -38,9 +43,7 @@
     so that you can more easily compare similar runs
     ie if you have 5 runs that are 5900-6100 waves, and one that's 4500 cause you had bad perk order
     filter out the 4500 one
-- Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
 - Add support for importing data from the tower tools site
-
 - Create a dynamic query builder page
     filter any property we store
     add group by
@@ -59,10 +62,4 @@
             deaths analysis
             tier stats
         and all related code/logic for those sub features should be in the same dir
-- address duplicate implementation of functions between data-parser and the field utils
-- remove use of index.ts files
-- add some notes about creating common components and using them everywhere
-    ie we have <button> usage all over while we have a Button component
-    also keep noticing that secondary buttons don't handle inverted color scheme well
-    so you frequently have issues with light text on light background
 - Add E2E which uploads dataset and verifies stuff renders
