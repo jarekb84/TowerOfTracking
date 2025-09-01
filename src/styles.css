@@ -29,6 +29,12 @@
   --color-chart-4: #ffbe0b; /* Golden Yellow */
   --color-chart-5: #3a86ff; /* Electric Blue */
   
+  /* Navigation enhanced color palette */
+  --color-nav-active: #f97316; /* Orange primary */
+  --color-nav-active-bg: rgba(249, 115, 22, 0.15);
+  --color-nav-hover-bg: rgba(148, 163, 184, 0.1);
+  --color-nav-border: rgba(148, 163, 184, 0.3);
+  
   /* Container breakpoints */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
@@ -73,6 +79,16 @@
 }
 
 @layer utilities {
+  /* Enhanced navigation animations */
+  .nav-slide-in {
+    animation: navSlideIn 0.3s ease-out;
+  }
+  
+  @keyframes navSlideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
   /* Chart animations and transitions */
   .chart-container {
     animation: fadeIn 0.6s ease-out;
@@ -83,6 +99,18 @@
     to { opacity: 1; transform: translateY(0); }
   }
   
+  /* Navigation specific color states */
+  .nav-active {
+    background: linear-gradient(135deg, theme('colors.orange.500/15'), theme('colors.orange.400/10'));
+    border-left: 2px solid theme('colors.orange.400');
+    box-shadow: 0 2px 8px theme('colors.orange.500/10');
+  }
+  
+  .nav-hover {
+    background: linear-gradient(135deg, theme('colors.slate.800/60'), theme('colors.slate.700/40'));
+    border-left: 2px solid theme('colors.slate.600/50');
+  }
+  
   /* Gradient text utilities for enhanced typography */
   .gradient-text {
     background: linear-gradient(135deg, #8b5cf6, #ec4899, #ef4444);
@@ -91,11 +119,16 @@
     -webkit-text-fill-color: transparent;
   }
   
-  /* Enhanced focus states for analytics components */
-  .analytics-button:focus-visible {
-    outline: 2px solid theme('colors.ring');
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px theme('colors.ring/20');
+  /* Enhanced focus states for navigation and analytics */
+  .focus-ring {
+    outline: none;
+    box-shadow: 0 0 0 2px theme('colors.orange.400/50');
+  }
+  
+  /* Subtle backdrop blur for navigation elements */
+  .nav-backdrop {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   
   /* Pulse animation for current period indicators */

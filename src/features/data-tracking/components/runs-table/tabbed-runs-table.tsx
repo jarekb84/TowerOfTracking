@@ -1,16 +1,19 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/ui';
 import { useData } from '../../hooks/use-data';
 import { RunType } from '../../types/game-run.types';
 import { FarmingRunsTable } from './farming-runs-table';
 import { TournamentRunsTable } from './tournament-runs-table';
 import { MilestoneRunsTable } from './milestone-runs-table';
-
-type TabValue = 'farming' | 'tournament' | 'milestone';
+import { useRunsNavigation, RunsTabType } from '../../hooks/use-runs-navigation';
 
 export function TabbedRunsTable() {
   const { runs, removeRun } = useData();
-  const [activeTab, setActiveTab] = useState<TabValue>('farming');
+  const { activeTab, setActiveTab } = useRunsNavigation();
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as RunsTabType);
+  };
 
   // Filter runs by type
   const { farmingRuns, tournamentRuns, milestoneRuns } = useMemo(() => {
@@ -26,7 +29,7 @@ export function TabbedRunsTable() {
   }, [runs]);
 
   return (
-    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabValue)}>
+    <Tabs value={activeTab} onValueChange={handleTabChange}>
       <TabsList className="mb-6 w-full sm:w-auto">
         <TabsTrigger value="farming" className="flex-1 sm:flex-initial">
           <span className="hidden sm:inline">Farming Runs</span>

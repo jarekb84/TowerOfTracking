@@ -17,6 +17,12 @@ export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
 export { useDataSettings } from './hooks/use-data-settings';
 export { useFileImport } from './hooks/use-file-import';
+export { useGlobalDataInput } from './hooks/use-global-data-input';
+export { GlobalDataInputProvider } from './components/global-data-input-provider';
+export { useChartNavigation } from './hooks/use-chart-navigation';
+export { useRunsNavigation } from './hooks/use-runs-navigation';
+export type { ChartType } from './hooks/use-chart-navigation';
+export type { RunsTabType } from './hooks/use-runs-navigation';
 
 // Data Tracking Types
 export type { 

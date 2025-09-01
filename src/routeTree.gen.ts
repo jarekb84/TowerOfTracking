@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsDataManagementRouteImport } from './routes/settings/data-management'
+import { Route as ChartsTierTrendsRouteImport } from './routes/charts/tier-trends'
+import { Route as ChartsTierStatsRouteImport } from './routes/charts/tier-stats'
+import { Route as ChartsDeathsRouteImport } from './routes/charts/deaths'
+import { Route as ChartsCoinsRouteImport } from './routes/charts/coins'
+import { Route as ChartsCellsRouteImport } from './routes/charts/cells'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RunsRoute = RunsRouteImport.update({
+  id: '/runs',
+  path: '/runs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChartsRoute = ChartsRouteImport.update({
@@ -28,35 +40,118 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsDataManagementRoute = SettingsDataManagementRouteImport.update({
+  id: '/data-management',
+  path: '/data-management',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const ChartsTierTrendsRoute = ChartsTierTrendsRouteImport.update({
+  id: '/tier-trends',
+  path: '/tier-trends',
+  getParentRoute: () => ChartsRoute,
+} as any)
+const ChartsTierStatsRoute = ChartsTierStatsRouteImport.update({
+  id: '/tier-stats',
+  path: '/tier-stats',
+  getParentRoute: () => ChartsRoute,
+} as any)
+const ChartsDeathsRoute = ChartsDeathsRouteImport.update({
+  id: '/deaths',
+  path: '/deaths',
+  getParentRoute: () => ChartsRoute,
+} as any)
+const ChartsCoinsRoute = ChartsCoinsRouteImport.update({
+  id: '/coins',
+  path: '/coins',
+  getParentRoute: () => ChartsRoute,
+} as any)
+const ChartsCellsRoute = ChartsCellsRouteImport.update({
+  id: '/cells',
+  path: '/cells',
+  getParentRoute: () => ChartsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/charts': typeof ChartsRoute
-  '/settings': typeof SettingsRoute
+  '/charts': typeof ChartsRouteWithChildren
+  '/runs': typeof RunsRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/charts/cells': typeof ChartsCellsRoute
+  '/charts/coins': typeof ChartsCoinsRoute
+  '/charts/deaths': typeof ChartsDeathsRoute
+  '/charts/tier-stats': typeof ChartsTierStatsRoute
+  '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/charts': typeof ChartsRoute
-  '/settings': typeof SettingsRoute
+  '/charts': typeof ChartsRouteWithChildren
+  '/runs': typeof RunsRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/charts/cells': typeof ChartsCellsRoute
+  '/charts/coins': typeof ChartsCoinsRoute
+  '/charts/deaths': typeof ChartsDeathsRoute
+  '/charts/tier-stats': typeof ChartsTierStatsRoute
+  '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/charts': typeof ChartsRoute
-  '/settings': typeof SettingsRoute
+  '/charts': typeof ChartsRouteWithChildren
+  '/runs': typeof RunsRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/charts/cells': typeof ChartsCellsRoute
+  '/charts/coins': typeof ChartsCoinsRoute
+  '/charts/deaths': typeof ChartsDeathsRoute
+  '/charts/tier-stats': typeof ChartsTierStatsRoute
+  '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/charts' | '/settings'
+  fullPaths:
+    | '/'
+    | '/charts'
+    | '/runs'
+    | '/settings'
+    | '/charts/cells'
+    | '/charts/coins'
+    | '/charts/deaths'
+    | '/charts/tier-stats'
+    | '/charts/tier-trends'
+    | '/settings/data-management'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/charts' | '/settings'
-  id: '__root__' | '/' | '/charts' | '/settings'
+  to:
+    | '/'
+    | '/charts'
+    | '/runs'
+    | '/settings'
+    | '/charts/cells'
+    | '/charts/coins'
+    | '/charts/deaths'
+    | '/charts/tier-stats'
+    | '/charts/tier-trends'
+    | '/settings/data-management'
+  id:
+    | '__root__'
+    | '/'
+    | '/charts'
+    | '/runs'
+    | '/settings'
+    | '/charts/cells'
+    | '/charts/coins'
+    | '/charts/deaths'
+    | '/charts/tier-stats'
+    | '/charts/tier-trends'
+    | '/settings/data-management'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChartsRoute: typeof ChartsRoute
-  SettingsRoute: typeof SettingsRoute
+  ChartsRoute: typeof ChartsRouteWithChildren
+  RunsRoute: typeof RunsRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/runs': {
+      id: '/runs'
+      path: '/runs'
+      fullPath: '/runs'
+      preLoaderRoute: typeof RunsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/charts': {
@@ -82,13 +184,87 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/data-management': {
+      id: '/settings/data-management'
+      path: '/data-management'
+      fullPath: '/settings/data-management'
+      preLoaderRoute: typeof SettingsDataManagementRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/charts/tier-trends': {
+      id: '/charts/tier-trends'
+      path: '/tier-trends'
+      fullPath: '/charts/tier-trends'
+      preLoaderRoute: typeof ChartsTierTrendsRouteImport
+      parentRoute: typeof ChartsRoute
+    }
+    '/charts/tier-stats': {
+      id: '/charts/tier-stats'
+      path: '/tier-stats'
+      fullPath: '/charts/tier-stats'
+      preLoaderRoute: typeof ChartsTierStatsRouteImport
+      parentRoute: typeof ChartsRoute
+    }
+    '/charts/deaths': {
+      id: '/charts/deaths'
+      path: '/deaths'
+      fullPath: '/charts/deaths'
+      preLoaderRoute: typeof ChartsDeathsRouteImport
+      parentRoute: typeof ChartsRoute
+    }
+    '/charts/coins': {
+      id: '/charts/coins'
+      path: '/coins'
+      fullPath: '/charts/coins'
+      preLoaderRoute: typeof ChartsCoinsRouteImport
+      parentRoute: typeof ChartsRoute
+    }
+    '/charts/cells': {
+      id: '/charts/cells'
+      path: '/cells'
+      fullPath: '/charts/cells'
+      preLoaderRoute: typeof ChartsCellsRouteImport
+      parentRoute: typeof ChartsRoute
+    }
   }
 }
 
+interface ChartsRouteChildren {
+  ChartsCellsRoute: typeof ChartsCellsRoute
+  ChartsCoinsRoute: typeof ChartsCoinsRoute
+  ChartsDeathsRoute: typeof ChartsDeathsRoute
+  ChartsTierStatsRoute: typeof ChartsTierStatsRoute
+  ChartsTierTrendsRoute: typeof ChartsTierTrendsRoute
+}
+
+const ChartsRouteChildren: ChartsRouteChildren = {
+  ChartsCellsRoute: ChartsCellsRoute,
+  ChartsCoinsRoute: ChartsCoinsRoute,
+  ChartsDeathsRoute: ChartsDeathsRoute,
+  ChartsTierStatsRoute: ChartsTierStatsRoute,
+  ChartsTierTrendsRoute: ChartsTierTrendsRoute,
+}
+
+const ChartsRouteWithChildren =
+  ChartsRoute._addFileChildren(ChartsRouteChildren)
+
+interface SettingsRouteChildren {
+  SettingsDataManagementRoute: typeof SettingsDataManagementRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsDataManagementRoute: SettingsDataManagementRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChartsRoute: ChartsRoute,
-  SettingsRoute: SettingsRoute,
+  ChartsRoute: ChartsRouteWithChildren,
+  RunsRoute: RunsRoute,
+  SettingsRoute: SettingsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

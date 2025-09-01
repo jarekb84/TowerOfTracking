@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Textarea, DialogTrigger, FormField, FormLabel, FormControl, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
 import { useFileImport } from '../hooks/use-file-import';
 import { useDataInputForm } from '../hooks/use-data-input-form';
+import { useGlobalDataInput } from '../hooks/use-global-data-input';
 import { Plus } from 'lucide-react';
 import { DuplicateInfo } from './duplicate-info';
 import { DataInputPreview } from './data-input-preview';
@@ -13,7 +14,7 @@ interface DataInputProps {
 }
 
 export function DataInput({ className }: DataInputProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { isDialogOpen, closeDialog } = useGlobalDataInput();
   const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
   
   const form = useDataInputForm();
@@ -31,12 +32,12 @@ export function DataInput({ className }: DataInputProps) {
 
   const handleCancel = (): void => {
     form.resetForm();
-    setIsDialogOpen(false);
+    closeDialog();
   };
 
   const handleSave = (): void => {
     form.handleSave();
-    setIsDialogOpen(false);
+    closeDialog();
   };
 
   const handleDateSelect = (date: Date | undefined): void => {
@@ -50,7 +51,7 @@ export function DataInput({ className }: DataInputProps) {
     <div className={className}>
       <ResponsiveDialog 
         open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={(open) => { if (!open) closeDialog(); }}
         trigger={
           <DialogTrigger asChild>
             <Button className="gap-2 shadow-sm hover:shadow-md transition-shadow">

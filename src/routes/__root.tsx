@@ -1,8 +1,9 @@
-import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { PostHogProvider } from 'posthog-js/react'
 
 import { ThemeProvider } from '../features/theming'
-import { DataProvider } from '../features/data-tracking'
+import { DataProvider, GlobalDataInputProvider } from '../features/data-tracking'
+import { NavigationProvider, AppLayout } from '../features/navigation'
 
 import { useEffect, useState } from 'react'
 
@@ -66,25 +67,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <PostHogClientProvider>
           <ThemeProvider>
             <DataProvider>
-              <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-6">
-                  <Link to="/" className="flex items-center gap-2 font-semibold">
-                    <span className="text-xl">Tower of Tracking</span>
-                  </Link>
-                  <nav className="flex items-center gap-6 text-sm">
-                    <Link to="/" className="text-muted-foreground hover:text-foreground">
-                      Game Runs
-                    </Link>
-                    <Link to="/charts" className="text-muted-foreground hover:text-foreground">
-                      Charts
-                    </Link>
-                    <Link to="/settings" className="text-muted-foreground hover:text-foreground">
-                      Settings
-                    </Link>
-                  </nav>
-                </div>
-              </header>
-              {children}
+              <GlobalDataInputProvider>
+                <NavigationProvider>
+                  <AppLayout>
+                    {children}
+                  </AppLayout>
+                </NavigationProvider>
+              </GlobalDataInputProvider>
             </DataProvider>
           </ThemeProvider>
         </PostHogClientProvider>

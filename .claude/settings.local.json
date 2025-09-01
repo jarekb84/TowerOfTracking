@@ -11,7 +11,8 @@
       "Bash(npm test:*)",
       "Bash(npm lint:*)",
       "Bash(npm run lint)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(find:*)"
     ],
     "defaultMode": "acceptEdits"
   },

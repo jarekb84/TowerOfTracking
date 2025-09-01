@@ -9,10 +9,10 @@
 
 ## For v0.1.0
 - Mobile designs
-    nav header
-    buttons on game runs to add/import/export
     charts list of charts segmented control
     make import/export modals not as wide in tablet
+    reduce nesting of indentations from cards
+    fix console warnings
 - Add discord link
 - Add versioning
 
