@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useUrlSearchParam } from './use-url-search-param'
 
 // Mock TanStack Router hooks
@@ -11,7 +11,7 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mockNavigate
 }))
 
-interface TestSearchParams {
+interface TestSearchParams extends Record<string, unknown> {
   param1?: string
   param2?: string
   param3?: string

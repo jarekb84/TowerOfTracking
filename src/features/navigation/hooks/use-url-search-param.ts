@@ -8,14 +8,15 @@ export function useUrlSearchParam<T extends Record<string, unknown>>(
   fromRoute: string,
   defaultValue: Partial<T> = {}
 ) {
-  const search = useSearch({ from: fromRoute })
-  const navigate = useNavigate({ from: fromRoute })
+  // Type assertion for TanStack Router compatibility
+  const search = useSearch({ from: fromRoute } as Parameters<typeof useSearch>[0]) as Partial<T>
+  const navigate = useNavigate({ from: fromRoute } as Parameters<typeof useNavigate>[0])
 
   const currentSearch = { ...defaultValue, ...search } as T
 
   const updateSearch = useCallback((newSearch: Partial<T>) => {
     navigate({
-      search: { ...currentSearch, ...newSearch }
+      search: ({ ...currentSearch, ...newSearch } as unknown) as Parameters<typeof navigate>[0]['search']
     })
   }, [navigate, currentSearch])
 

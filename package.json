@@ -13,6 +13,8 @@
     "lint": "eslint --prune-suppressions",
     "lint:fix": "eslint --fix",
     "lint:updateSuppress": "eslint --fix --suppress-all",
+    "type-check": "tsc --noEmit",
+    "integration-precheck": "npm run lint && npm run test",
     "prepare": "husky"
   },
   "dependencies": {

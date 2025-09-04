@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DataInputErrorBoundary } from './data-input-error-boundary';
 
@@ -19,13 +19,18 @@ describe('DataInputErrorBoundary', () => {
     console.error = vi.fn();
 
     // Mock window.location.reload
-    delete (window as unknown as { location: unknown }).location;
-    window.location = { ...originalLocation, reload: vi.fn() };
+    Object.defineProperty(window, 'location', {
+      value: { ...originalLocation, reload: vi.fn() },
+      writable: true
+    });
   });
 
   afterEach(() => {
     console.error = originalConsoleError;
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true
+    });
   });
 
   it('should render children when no error occurs', () => {

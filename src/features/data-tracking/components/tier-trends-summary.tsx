@@ -1,7 +1,7 @@
-import type { TierTrendsResult } from '../types/game-run.types'
+import type { TierTrendsData } from '../types/game-run.types'
 
 interface TierTrendsSummaryProps {
-  trendsData: TierTrendsResult
+  trendsData: TierTrendsData
 }
 
 export function TierTrendsSummary({ trendsData }: TierTrendsSummaryProps) {

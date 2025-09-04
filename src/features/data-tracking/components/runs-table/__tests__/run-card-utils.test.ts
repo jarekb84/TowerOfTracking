@@ -22,12 +22,9 @@ vi.mock('../../../utils/data-parser', () => ({
 }));
 
 vi.mock('../../../utils/field-utils', () => ({
-  getFieldValue: <T>(run: ParsedGameRun, field: string): T | undefined => {
-    const fieldMap: Record<string, unknown> = {
-      notes: run.notes,
-      killedBy: run.killedBy,
-    };
-    return fieldMap[field] as T;
+  getFieldValue: <T>(run: ParsedGameRun, fieldName: string): T | undefined => {
+    const field = run.fields?.[fieldName];
+    return field ? field.value as T : undefined;
   },
 }));
 
@@ -39,8 +36,23 @@ const createMockRun = (overrides: Partial<ParsedGameRun> = {}): ParsedGameRun =>
   coinsEarned: 150000,
   cellsEarned: 2500,
   realTime: 7200, // 2 hours
-  notes: 'Test notes',
-  killedBy: 'Fire Orc',
+  runType: 'farm',
+  fields: {
+    notes: {
+      value: overrides.fields?.notes?.value || 'Test notes',
+      rawValue: 'Test notes',
+      displayValue: 'Test notes',
+      originalKey: 'notes',
+      dataType: 'string'
+    },
+    killedBy: {
+      value: overrides.fields?.killedBy?.value || 'Fire Orc',
+      rawValue: 'Fire Orc',
+      displayValue: 'Fire Orc',
+      originalKey: 'killedBy',
+      dataType: 'string'
+    }
+  },
   ...overrides,
 } as ParsedGameRun);
 
@@ -63,14 +75,20 @@ describe('extractCardHeaderData', () => {
   });
 
   it('should handle empty notes', () => {
-    const run = createMockRun({ notes: undefined });
+    const run = createMockRun({ fields: {} });
     const result = extractCardHeaderData(run);
     
     expect(result.hasNotes).toBe(false);
   });
 
   it('should handle whitespace-only notes', () => {
-    const run = createMockRun({ notes: '   ' });
+    const run = createMockRun({ fields: { notes: {
+      value: '   ',
+      rawValue: '   ',
+      displayValue: '   ',
+      originalKey: 'notes',
+      dataType: 'string'
+    }}});
     const result = extractCardHeaderData(run);
     
     expect(result.hasNotes).toBe(false);
@@ -96,7 +114,7 @@ describe('extractProgressData', () => {
   });
 
   it('should handle missing killedBy', () => {
-    const run = createMockRun({ killedBy: undefined });
+    const run = createMockRun({ fields: {} });
     const result = extractProgressData(run);
     
     expect(result.killedBy).toBeUndefined();

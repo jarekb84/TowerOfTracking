@@ -1,8 +1,5 @@
-# Run tests
-npm run test
-
-# Run ESLint check - will fail commit if new violations are introduced
-npm run lint
+# Run unified integration pre-check (lint and test)
+npm run integration-precheck
 
 # Add suppressions file to commit if it was modified by lint
 git add eslint-suppressions.json

@@ -14,7 +14,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         },
         {
@@ -25,7 +25,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -51,7 +51,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         },
         {
@@ -62,7 +62,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -95,7 +95,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -119,7 +119,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -143,7 +143,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -165,7 +165,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         },
         {
@@ -176,7 +176,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -198,7 +198,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]
@@ -220,7 +220,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         },
         // Sunday Aug 31, 2025 (should be in next week)
@@ -232,7 +232,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
-          rawData: {},
+          fields: {},
           runType: 'farm'
         }
       ]

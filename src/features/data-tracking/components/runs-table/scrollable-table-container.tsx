@@ -23,7 +23,6 @@ export function ScrollableTableContainer({ table, removeRun }: ScrollableTableCo
             table={table} 
             removeRun={removeRun} 
             variant="desktop"
-            containerRef={containerRef}
           />
         </table>
       ) : (
@@ -31,7 +30,6 @@ export function ScrollableTableContainer({ table, removeRun }: ScrollableTableCo
           table={table} 
           removeRun={removeRun} 
           variant="mobile"
-          containerRef={containerRef}
         />
       )}
     </div>

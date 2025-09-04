@@ -24,9 +24,9 @@ describe('trend-indicators', () => {
       expect(getTrendChangeColor(change)).toBe('text-red-400')
     })
 
-    it('should return slate for flat trends', () => {
+    it('should return slate for stable trends', () => {
       const change: FieldTrendData['change'] = {
-        direction: 'flat',
+        direction: 'stable',
         percent: 0,
         absolute: 0
       }
@@ -44,8 +44,8 @@ describe('trend-indicators', () => {
       expect(getTrendChangeIcon('down')).toBe('↘')
     })
 
-    it('should return right arrow for flat direction', () => {
-      expect(getTrendChangeIcon('flat')).toBe('→')
+    it('should return right arrow for stable direction', () => {
+      expect(getTrendChangeIcon('stable')).toBe('→')
     })
   })
 
@@ -58,8 +58,8 @@ describe('trend-indicators', () => {
       expect(getTrendSparklineColor('down')).toBe('#f87171')
     })
 
-    it('should return slate hex for flat trends', () => {
-      expect(getTrendSparklineColor('flat')).toBe('#94a3b8')
+    it('should return slate hex for stable trends', () => {
+      expect(getTrendSparklineColor('stable')).toBe('#94a3b8')
     })
   })
 })

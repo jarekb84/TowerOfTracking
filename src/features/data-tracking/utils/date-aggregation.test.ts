@@ -10,7 +10,7 @@ const mockRun1: ParsedGameRun = {
   coinsEarned: 1000000,
   cellsEarned: 50000,
   realTime: 3600,
-  rawData: {},
+  fields: {},
   runType: 'farm'
 }
 
@@ -22,7 +22,7 @@ const mockRun2: ParsedGameRun = {
   coinsEarned: 1200000,
   cellsEarned: 60000,
   realTime: 4000,
-  rawData: {},
+  fields: {},
   runType: 'farm'
 }
 
@@ -34,7 +34,7 @@ const mockRun3: ParsedGameRun = {
   coinsEarned: 1500000,
   cellsEarned: 75000,
   realTime: 4500,
-  rawData: {},
+  fields: {},
   runType: 'tournament'
 }
 

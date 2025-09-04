@@ -6,6 +6,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { VirtualizedTableBody } from './virtualized-table-body';
 import type { ParsedGameRun } from '../../types/game-run.types';
+import type { Table } from '@tanstack/react-table';
 import { useRef } from 'react';
 
 // Mock utility functions 
@@ -17,12 +18,9 @@ vi.mock('../../utils/data-parser', () => ({
 }));
 
 vi.mock('../../utils/field-utils', () => ({
-  getFieldValue: (run: ParsedGameRun, field: string) => {
-    const fieldMap: Record<string, unknown> = {
-      notes: run.notes,
-      killedBy: run.killedBy,
-    };
-    return fieldMap[field];
+  getFieldValue: (run: ParsedGameRun, fieldName: string) => {
+    const field = run.fields?.[fieldName];
+    return field ? field.value : undefined;
   },
 }));
 
@@ -47,8 +45,24 @@ const createMockRun = (overrides: Partial<ParsedGameRun> = {}): ParsedGameRun =>
   coinsEarned: 150000,
   cellsEarned: 2500,
   realTime: 7200,
-  notes: 'Test notes',
-  killedBy: 'Fire Orc',
+  runType: 'farm',
+  fields: {
+    notes: {
+      value: 'Test notes',
+      rawValue: 'Test notes',
+      displayValue: 'Test notes',
+      originalKey: 'notes',
+      dataType: 'string'
+    },
+    killedBy: {
+      value: 'Fire Orc',
+      rawValue: 'Fire Orc',
+      displayValue: 'Fire Orc',
+      originalKey: 'killedBy',
+      dataType: 'string'
+    },
+    ...overrides.fields
+  },
   ...overrides,
 } as ParsedGameRun);
 
@@ -90,18 +104,16 @@ describe('Responsive Table Behavior', () => {
         {variant === 'desktop' ? (
           <table>
             <VirtualizedTableBody 
-              table={table} 
+              table={(table as unknown) as Table<ParsedGameRun>} 
               removeRun={removeRun} 
               variant={variant}
-              containerRef={containerRef}
             />
           </table>
         ) : (
           <VirtualizedTableBody 
-            table={table} 
+            table={(table as unknown) as Table<ParsedGameRun>} 
             removeRun={removeRun} 
             variant={variant}
-            containerRef={containerRef}
           />
         )}
       </div>
@@ -191,7 +203,15 @@ describe('Responsive Table Behavior', () => {
       wave: 2500,
       coinsEarned: 150000,
       cellsEarned: 3500,
-      killedBy: 'Fire Orc'
+      fields: {
+        killedBy: {
+          value: 'Fire Orc',
+          rawValue: 'Fire Orc',
+          displayValue: 'Fire Orc',
+          originalKey: 'killedBy',
+          dataType: 'string'
+        }
+      }
     });
     const table = createMockTable([testRun]);
     

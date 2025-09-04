@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useViewport } from './use-viewport';
 
@@ -67,8 +67,8 @@ describe('useViewport', () => {
 
     // Simulate window resize
     globalThis.window.innerWidth = 600;
-    const resizeHandler = (globalThis.window.addEventListener as vi.Mock).mock.calls
-      .find(([event]: [string, ...unknown[]]) => event === 'resize')?.[1] as () => void;
+    const resizeHandler = (globalThis.window.addEventListener as Mock).mock.calls
+      .find((call: unknown[]) => call[0] === 'resize')?.[1] as () => void;
     
     act(() => {
       resizeHandler();
@@ -89,8 +89,8 @@ describe('useViewport', () => {
     globalThis.window.innerWidth = 800;
     const { result } = renderHook(() => useViewport({ debounceMs: 150 }));
     
-    const resizeHandler = (globalThis.window.addEventListener as vi.Mock).mock.calls
-      .find(([event]: [string, ...unknown[]]) => event === 'resize')?.[1] as () => void;
+    const resizeHandler = (globalThis.window.addEventListener as Mock).mock.calls
+      .find((call: unknown[]) => call[0] === 'resize')?.[1] as () => void;
 
     // Rapid resize events
     globalThis.window.innerWidth = 600;
@@ -129,8 +129,8 @@ describe('useViewport', () => {
     globalThis.window.innerWidth = 800;
     const { result } = renderHook(() => useViewport({ debounceMs: 200 }));
     
-    const resizeHandler = (globalThis.window.addEventListener as vi.Mock).mock.calls
-      .find(([event]: [string, ...unknown[]]) => event === 'resize')?.[1] as () => void;
+    const resizeHandler = (globalThis.window.addEventListener as Mock).mock.calls
+      .find((call: unknown[]) => call[0] === 'resize')?.[1] as () => void;
 
     globalThis.window.innerWidth = 600;
     act(() => {
@@ -155,8 +155,8 @@ describe('useViewport', () => {
     const { result } = renderHook(() => useViewport({ breakpoint: 'lg' }));
     expect(result.current).toBe('mobile');
 
-    const resizeHandler = (globalThis.window.addEventListener as vi.Mock).mock.calls
-      .find(([event]: [string, ...unknown[]]) => event === 'resize')?.[1] as () => void;
+    const resizeHandler = (globalThis.window.addEventListener as Mock).mock.calls
+      .find((call: unknown[]) => call[0] === 'resize')?.[1] as () => void;
 
     globalThis.window.innerWidth = 1100;
     act(() => {

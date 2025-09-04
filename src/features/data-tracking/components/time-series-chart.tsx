@@ -117,7 +117,7 @@ export function TimeSeriesChart({
                   ? `color-mix(in srgb, ${config.color} 60%, transparent)` 
                   : undefined,
                 color: selectedPeriod === config.period ? '#e2e8f0' : '#94a3b8'
-              }}
+              } as React.CSSProperties}
             >
               <div 
                 className="w-3 h-3 rounded-full mr-2 transition-all duration-200 flex-shrink-0" 

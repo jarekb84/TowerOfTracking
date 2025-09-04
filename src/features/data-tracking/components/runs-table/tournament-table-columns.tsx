@@ -1,4 +1,4 @@
-import { createColumnHelper } from '@tanstack/react-table';
+import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import { formatDuration, getTournamentLeague } from '../../utils/data-parser';
 import { getFieldValue } from '../../utils/field-utils';
 import type { ParsedGameRun } from '../../types/game-run.types';
@@ -7,7 +7,7 @@ import { ExpandButton, DeleteButton } from './table-action-buttons';
 
 const columnHelper = createColumnHelper<ParsedGameRun>();
 
-export function createTournamentTableColumns(removeRun: (id: string) => void) {
+export function createTournamentTableColumns(removeRun: (id: string) => void): ColumnDef<ParsedGameRun>[] {
   return [
     columnHelper.display({
       id: 'expander',
@@ -109,5 +109,5 @@ export function createTournamentTableColumns(removeRun: (id: string) => void) {
       ),
       size: 40,
     }),
-  ];
+  ] as ColumnDef<ParsedGameRun>[];
 }

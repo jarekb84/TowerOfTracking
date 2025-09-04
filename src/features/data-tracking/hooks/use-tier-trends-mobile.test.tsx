@@ -7,12 +7,15 @@ describe('useTierTrendsMobile', () => {
   const mockTrend: FieldTrendData = {
     fieldName: 'coins',
     displayName: 'Total Coins',
+    dataType: 'number',
     values: [100, 120, 150, 140],
     change: {
       direction: 'up',
       percent: 15.5,
       absolute: 1000
-    }
+    },
+    trendType: 'upward',
+    significance: 'high'
   }
 
   it('should not use compact layout (always single column)', () => {

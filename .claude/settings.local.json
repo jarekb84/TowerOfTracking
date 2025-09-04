@@ -12,7 +12,9 @@
       "Bash(npm lint:*)",
       "Bash(npm run lint)",
       "Bash(git log:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(npm run type-check:*)"
     ],
     "defaultMode": "acceptEdits"
   },

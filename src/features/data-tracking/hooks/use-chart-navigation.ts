@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 export type ChartType = 'coins' | 'cells' | 'deaths' | 'tiers' | 'trends'
 
-interface ChartSearchParams {
+interface ChartSearchParams extends Record<string, unknown> {
   chart?: ChartType
 }
 

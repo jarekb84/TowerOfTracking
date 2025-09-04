@@ -1,6 +1,7 @@
 # Bugs
 - fix issues with warning about invalid values in notes filed and then not doing anything about it
 - runtype import has issues, default paste has type set to Farm, when you select run type button it changes type to Farming
+- expanding table details doesn't work
 
 # Periodic 
 - Ask the architecture-review or the frontend-design-reviewer to

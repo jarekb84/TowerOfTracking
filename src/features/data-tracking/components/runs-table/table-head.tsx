@@ -28,7 +28,7 @@ export function TableHead({ table }: TableHeadProps) {
                     if (header.column.getCanSort() && (e.key === 'Enter' || e.key === ' ')) {
                       e.preventDefault();
                       const handler = header.column.getToggleSortingHandler();
-                      if (handler) handler();
+                      if (handler) handler(e);
                     }
                   }}
                   role={header.column.getCanSort() ? 'button' : undefined}

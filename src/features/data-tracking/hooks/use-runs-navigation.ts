@@ -2,7 +2,7 @@ import { useUrlSearchParam } from '../../navigation/hooks/use-url-search-param'
 
 export type RunsTabType = 'farming' | 'tournament' | 'milestone'
 
-interface RunsSearchParams {
+interface RunsSearchParams extends Record<string, unknown> {
   type?: RunsTabType
 }
 

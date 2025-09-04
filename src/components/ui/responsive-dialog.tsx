@@ -46,8 +46,8 @@ export function ResponsiveDialog({
       {/* Pass className to children if they accept it */}
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child) && child.type === ResponsiveDialogContent) {
-          return React.cloneElement(child, { 
-            className: cn(child.props.className, className) 
+          return React.cloneElement(child as React.ReactElement<ResponsiveDialogContentProps>, { 
+            className: cn((child.props as ResponsiveDialogContentProps).className, className) 
           });
         }
         return child;

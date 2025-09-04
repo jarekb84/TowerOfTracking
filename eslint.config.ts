@@ -27,7 +27,7 @@ export default defineConfig([
   tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
-  pluginJsxA11y.flatConfigs.recommended,
+  (pluginJsxA11y.flatConfigs as Record<string, unknown>).recommended as Record<string, unknown>,
   {
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", {
