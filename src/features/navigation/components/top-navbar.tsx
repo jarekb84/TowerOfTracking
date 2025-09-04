@@ -48,7 +48,7 @@ export function TopNavbar() {
         <div className="flex items-center">
           <button
             onClick={openDialog}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-slate-900 shadow-md shadow-orange-500/20 hover:bg-orange-400 hover:shadow-lg hover:shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition-all duration-200 hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-slate-900 shadow-md shadow-orange-500/20 hover:bg-orange-400 hover:shadow-lg hover:shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition-all duration-200"
             aria-label="Add a new game run"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

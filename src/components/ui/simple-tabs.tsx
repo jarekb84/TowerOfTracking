@@ -98,7 +98,7 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
         // Active state - subtle but noticeable
         isActive 
           ? 'bg-slate-700/80 text-slate-100 shadow-md shadow-slate-950/30 scale-[1.02]' 
-          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40 hover:shadow-sm hover:scale-[1.01]',
+          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40 hover:shadow-sm',
         className
       )}
     >

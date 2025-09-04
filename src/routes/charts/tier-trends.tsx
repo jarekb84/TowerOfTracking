@@ -22,7 +22,7 @@ function TierTrendsPage() {
           </p>
         </div>
 
-        <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-orange-500/10 transition-all duration-300">
+        <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50">
           <CardHeader className="bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10 border-b border-slate-700/50">
             <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
               <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>

@@ -1,10 +1,10 @@
+import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
+import { TierTrendsMobileCard } from './tier-trends-mobile-card'
+import { useViewport } from '@/shared/hooks/use-viewport'
 import { formatNumber } from '../utils/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../utils/trend-indicators'
-import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
 import { parseColumnHeader, getHeaderLineClasses } from './tier-trends-table/column-header-renderer'
-import { TierTrendsMobileCard } from './tier-trends-mobile-card'
-import { useViewport } from '@/shared/hooks/use-viewport'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]
@@ -30,7 +30,7 @@ export function TierTrendsTable({
   changeThreshold = 0
 }: TierTrendsTableProps) {
   const viewportSize = useViewport({ breakpoint: 'md' });
-
+  
   if (trends.length === 0) {
     return (
       <div className="text-center py-8 text-slate-400">
@@ -47,80 +47,80 @@ export function TierTrendsTable({
   return (
     <>
       {viewportSize === 'desktop' ? (
-        /* Desktop Table View */
-        <div className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-700/50 bg-gradient-to-r from-slate-700/20 via-slate-600/10 to-slate-700/20">
-              <th className="px-6 py-4 text-left text-sm font-semibold text-slate-200">
-                <button 
-                  onClick={() => onSort('fieldName')}
-                  className="flex items-center gap-1 hover:text-slate-100 transition-colors"
-                >
-                  Field Name
-                  {sortField === 'fieldName' && (
-                    <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </button>
-              </th>
-              <th className="px-6 py-4 text-center text-sm font-semibold text-slate-200">
-                Trend
-              </th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-slate-200">
-                <button 
-                  onClick={() => onSort('change')}
-                  className="flex items-center gap-1 hover:text-slate-100 transition-colors ml-auto"
-                >
-                  Change %
-                  {sortField === 'change' && (
-                    <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </button>
-              </th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-slate-200">
-                Value Change
-              </th>
-              {comparisonColumns.map((column, index) => {
-                const headerData = parseColumnHeader(column.header)
-                return (
-                  <th key={index} className="px-3 py-4 text-center text-sm font-semibold text-slate-200 min-w-[80px]">
-                    <div className="flex flex-col">
-                      {headerData.isMultiLine ? (
-                        <div className="flex flex-col">
-                          {headerData.lines.map((line, lineIndex) => (
-                            <div 
-                              key={lineIndex}
-                              className={getHeaderLineClasses(lineIndex, headerData.lines.length)}
-                            >
-                              {line}
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="whitespace-nowrap">{column.header}</div>
+        /* Desktop Table View - Non-Virtualized for Reliability */
+        <div className="overflow-hidden rounded-lg border border-border/50 bg-card/30 backdrop-blur-sm shadow-sm">
+          <div className="overflow-x-auto overflow-y-auto max-h-[65vh]">
+            <table className="w-full">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-border/50 bg-background/95 backdrop-blur-sm">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+                    <button 
+                      onClick={() => onSort('fieldName')}
+                      className="flex items-center gap-1 hover:text-foreground/90 transition-colors"
+                    >
+                      Field Name
+                      {sortField === 'fieldName' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                       )}
-                      {column.subHeader && (
-                        <div className="text-xs text-slate-400 font-normal">{column.subHeader}</div>
-                      )}
-                    </div>
+                    </button>
                   </th>
-                )
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {trends.map((trend, index) => (
-              <TrendRow 
-                key={trend.fieldName} 
-                trend={trend} 
-                index={index}
-                comparisonColumns={comparisonColumns}
-              />
-            ))}
-          </tbody>
-          </table>
-        </div>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
+                    Trend
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">
+                    <button 
+                      onClick={() => onSort('change')}
+                      className="flex items-center gap-1 hover:text-foreground/90 transition-colors ml-auto"
+                    >
+                      Change %
+                      {sortField === 'change' && (
+                        <span className="text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </button>
+                  </th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">
+                    Value Change
+                  </th>
+                  {comparisonColumns.map((column, index) => {
+                    const headerData = parseColumnHeader(column.header);
+                    return (
+                      <th key={index} className="px-3 py-4 text-center text-sm font-semibold text-foreground min-w-[80px]">
+                        <div className="flex flex-col">
+                          {headerData.isMultiLine ? (
+                            <div className="flex flex-col">
+                              {headerData.lines.map((line, lineIndex) => (
+                                <div 
+                                  key={lineIndex}
+                                  className={getHeaderLineClasses(lineIndex, headerData.lines.length)}
+                                >
+                                  {line}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="whitespace-nowrap">{column.header}</div>
+                          )}
+                          {column.subHeader && (
+                            <div className="text-xs text-muted-foreground font-normal">{column.subHeader}</div>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                {trends.map((trend, index) => (
+                  <SimpleTrendRow 
+                    key={trend.fieldName}
+                    trend={trend} 
+                    index={index}
+                    comparisonColumns={comparisonColumns}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         /* Mobile Card View */
@@ -140,33 +140,32 @@ export function TierTrendsTable({
   )
 }
 
-interface TrendRowProps {
-  trend: FieldTrendData
-  index: number
-  comparisonColumns: ComparisonColumn[]
+interface SimpleTrendRowProps {
+  trend: FieldTrendData;
+  index: number;
+  comparisonColumns: ComparisonColumn[];
 }
 
-function TrendRow({ trend, index, comparisonColumns }: TrendRowProps) {
-  const isEven = index % 2 === 0
+function SimpleTrendRow({ trend, index, comparisonColumns }: SimpleTrendRowProps) {
+  const isEven = index % 2 === 0;
   const rowBg = isEven 
-    ? 'bg-gradient-to-r from-slate-800/20 via-slate-700/10 to-slate-800/20' 
-    : 'bg-gradient-to-r from-slate-700/20 via-slate-600/10 to-slate-700/20'
+    ? 'bg-gradient-to-r from-muted/15 via-muted/8 to-muted/15' 
+    : 'bg-gradient-to-r from-muted/25 via-muted/12 to-muted/25';
   
-  const sparklinePath = generateSparklinePath(trend.values, 60, 20)
-  
+  const sparklinePath = generateSparklinePath(trend.values, 60, 20);
 
   return (
-    <tr className={`border-b border-slate-700/30 transition-all duration-300 hover:bg-gradient-to-r hover:from-orange-500/10 hover:via-orange-500/5 hover:to-orange-500/10 hover:border-orange-500/20 ${rowBg}`}>
+    <tr className={`border-b border-border/40 transition-all duration-200 hover:bg-gradient-to-r hover:from-orange-500/8 hover:via-orange-500/4 hover:to-orange-500/8 hover:border-orange-500/30 ${rowBg}`}>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
           <div className="w-2 h-6 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-sm"></div>
-          <span className="font-medium text-slate-100">{formatFieldDisplayName(trend.fieldName, trend.displayName)}</span>
+          <span className="font-medium text-foreground">{formatFieldDisplayName(trend.fieldName, trend.displayName)}</span>
         </div>
       </td>
       <td className="px-6 py-4 text-center">
         <div className="flex justify-center">
           {sparklinePath && (
-            <svg width="60" height="20" className="opacity-70">
+            <svg width="60" height="20" className="opacity-80 transition-opacity duration-200 hover:opacity-100">
               <path
                 d={sparklinePath}
                 stroke={getTrendSparklineColor(trend.change.direction)}
@@ -203,5 +202,5 @@ function TrendRow({ trend, index, comparisonColumns }: TrendRowProps) {
         </td>
       ))}
     </tr>
-  )
+  );
 }

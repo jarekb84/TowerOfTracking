@@ -70,7 +70,7 @@ function ChartsPage() {
           </div>
 
           <TabsContent value="coins" className="space-y-8 lg:space-y-12">
-            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 hover:scale-[1.01]">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10 border-b border-slate-700/30">
                 <CardTitle className="text-xl font-semibold text-slate-100 flex items-center gap-3">
                   <div className="w-2 h-6 bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-full shadow-lg shadow-emerald-500/30"></div>
@@ -92,7 +92,7 @@ function ChartsPage() {
           </TabsContent>
 
           <TabsContent value="cells" className="space-y-8 lg:space-y-12">
-            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-pink-500/10 transition-all duration-300 hover:scale-[1.01]">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-pink-500/10 transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-pink-500/10 via-transparent to-pink-500/10 border-b border-slate-700/30">
                 <CardTitle className="text-xl font-semibold text-slate-100 flex items-center gap-3">
                   <div className="w-2 h-6 bg-gradient-to-b from-pink-400 to-pink-600 rounded-full shadow-lg shadow-pink-500/30"></div>
@@ -114,7 +114,7 @@ function ChartsPage() {
           </TabsContent>
 
           <TabsContent value="deaths" className="space-y-8 lg:space-y-12">
-            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-red-500/10 transition-all duration-300 hover:scale-[1.01]">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-red-500/10 transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-red-500/10 via-transparent to-red-500/10 border-b border-slate-700/50">
                 <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
                   <div className="w-2 h-8 bg-gradient-to-b from-red-400 to-red-600 rounded-full shadow-lg shadow-red-500/30"></div>
@@ -134,7 +134,7 @@ function ChartsPage() {
           </TabsContent>
 
           <TabsContent value="tiers" className="space-y-8 lg:space-y-12">
-            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 hover:scale-[1.01]">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-blue-500/10 transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-blue-500/10 via-transparent to-blue-500/10 border-b border-slate-700/50">
                 <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
                   <div className="w-2 h-8 bg-gradient-to-b from-blue-400 to-blue-600 rounded-full shadow-lg shadow-blue-500/30"></div>
@@ -154,7 +154,7 @@ function ChartsPage() {
           </TabsContent>
 
           <TabsContent value="trends" className="space-y-8 lg:space-y-12">
-            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-orange-500/10 transition-all duration-300 hover:scale-[1.01]">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-orange-500/10 transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10 border-b border-slate-700/50">
                 <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
                   <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>

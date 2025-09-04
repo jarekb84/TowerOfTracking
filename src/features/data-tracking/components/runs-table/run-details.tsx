@@ -56,7 +56,7 @@ function StatSection({ title, fieldsData }: {
         {fieldsData.map(({ key, displayName, value }) => (
           <div
             key={key}
-            className="flex justify-between items-center p-3 bg-muted/20 rounded-md border-border/30 border transition-colors hover:bg-muted/30"
+            className="flex justify-between items-center p-3 bg-muted/15 rounded-md border-border/20 border transition-colors duration-200 hover:bg-muted/25"
           >
             <span className="font-mono text-sm text-muted-foreground">
               {displayName}

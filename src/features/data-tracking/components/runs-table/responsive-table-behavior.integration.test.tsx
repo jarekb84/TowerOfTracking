@@ -4,8 +4,9 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { TableBody } from './table-body';
+import { VirtualizedTableBody } from './virtualized-table-body';
 import type { ParsedGameRun } from '../../types/game-run.types';
+import { useRef } from 'react';
 
 // Mock utility functions 
 vi.mock('../../utils/data-parser', () => ({
@@ -23,6 +24,19 @@ vi.mock('../../utils/field-utils', () => ({
     };
     return fieldMap[field];
   },
+}));
+
+// Mock @tanstack/react-virtual to always render all items in tests
+vi.mock('@tanstack/react-virtual', () => ({
+  useVirtualizer: ({ count }: { count: number }) => ({
+    getTotalSize: () => count * 200,
+    getVirtualItems: () => Array.from({ length: count }, (_, index) => ({
+      key: index,
+      index,
+      start: index * 200,
+      size: 200,
+    })),
+  }),
 }));
 
 const createMockRun = (overrides: Partial<ParsedGameRun> = {}): ParsedGameRun => ({
@@ -57,8 +71,41 @@ function createMockTable(data: ParsedGameRun[]) {
 describe('Responsive Table Behavior', () => {
   const mockRemoveRun = vi.fn();
 
-  function TestWrapper({ children }: { children: React.ReactNode }) {
-    return <div>{children}</div>;
+  function VirtualizedTestComponent({ 
+    table, 
+    variant, 
+    removeRun 
+  }: { 
+    table: ReturnType<typeof createMockTable>; 
+    variant: 'desktop' | 'mobile'; 
+    removeRun: (id: string) => void; 
+  }) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    return (
+      <div 
+        ref={containerRef} 
+        style={{ height: '400px', width: '100%', overflow: 'auto' }}
+      >
+        {variant === 'desktop' ? (
+          <table>
+            <VirtualizedTableBody 
+              table={table} 
+              removeRun={removeRun} 
+              variant={variant}
+              containerRef={containerRef}
+            />
+          </table>
+        ) : (
+          <VirtualizedTableBody 
+            table={table} 
+            removeRun={removeRun} 
+            variant={variant}
+            containerRef={containerRef}
+          />
+        )}
+      </div>
+    );
   }
   
   it('should render desktop view with variant="desktop"', () => {
@@ -66,9 +113,11 @@ describe('Responsive Table Behavior', () => {
     const table = createMockTable(mockRuns);
     
     render(
-      <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} variant="desktop" />
-      </TestWrapper>
+      <VirtualizedTestComponent 
+        table={table} 
+        removeRun={mockRemoveRun} 
+        variant="desktop" 
+      />
     );
     
     // Desktop table structure should be present
@@ -81,9 +130,11 @@ describe('Responsive Table Behavior', () => {
     const table = createMockTable(mockRuns);
     
     render(
-      <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} variant="mobile" />
-      </TestWrapper>
+      <VirtualizedTestComponent 
+        table={table} 
+        removeRun={mockRemoveRun} 
+        variant="mobile" 
+      />
     );
     
     // Mobile card container should be present
@@ -104,9 +155,11 @@ describe('Responsive Table Behavior', () => {
     const table = createMockTable(mockRuns);
     
     render(
-      <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} variant="mobile" />
-      </TestWrapper>
+      <VirtualizedTestComponent 
+        table={table} 
+        removeRun={mockRemoveRun} 
+        variant="mobile" 
+      />
     );
     
     // Should find card content indicators
@@ -119,9 +172,11 @@ describe('Responsive Table Behavior', () => {
     const table = createMockTable([]);
     
     render(
-      <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} variant="desktop" />
-      </TestWrapper>
+      <VirtualizedTestComponent 
+        table={table} 
+        removeRun={mockRemoveRun} 
+        variant="desktop" 
+      />
     );
     
     // Should show appropriate empty states
@@ -141,9 +196,11 @@ describe('Responsive Table Behavior', () => {
     const table = createMockTable([testRun]);
     
     render(
-      <TestWrapper>
-        <TableBody table={table} removeRun={mockRemoveRun} variant="mobile" />
-      </TestWrapper>
+      <VirtualizedTestComponent 
+        table={table} 
+        removeRun={mockRemoveRun} 
+        variant="mobile" 
+      />
     );
     
     // Key data should be present in mobile cards

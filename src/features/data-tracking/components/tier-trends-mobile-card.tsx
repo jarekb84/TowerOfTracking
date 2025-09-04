@@ -76,7 +76,7 @@ export function TierTrendsMobileCard({ trend, comparisonColumns }: TierTrendsMob
                 {leftColumns.map((column, index) => {
                   const dataItem = columnData.find(d => d.column === column)!
                   return (
-                    <div key={index} className="bg-muted/20 hover:bg-muted/30 rounded-lg p-3 transition-all duration-200 hover:scale-[1.02] border border-muted/10">
+                    <div key={index} className="bg-muted/20 hover:bg-muted/30 rounded-lg p-3 transition-all duration-200 border border-muted/10">
                       <div className="text-xs text-muted-foreground font-medium truncate mb-1">
                         {dataItem.headerInfo.display}
                       </div>
@@ -91,7 +91,7 @@ export function TierTrendsMobileCard({ trend, comparisonColumns }: TierTrendsMob
                 {rightColumns.map((column, index) => {
                   const dataItem = columnData.find(d => d.column === column)!
                   return (
-                    <div key={index} className="bg-muted/20 hover:bg-muted/30 rounded-lg p-3 transition-all duration-200 hover:scale-[1.02] border border-muted/10">
+                    <div key={index} className="bg-muted/20 hover:bg-muted/30 rounded-lg p-3 transition-all duration-200 border border-muted/10">
                       <div className="text-xs text-muted-foreground font-medium truncate mb-1">
                         {dataItem.headerInfo.display}
                       </div>

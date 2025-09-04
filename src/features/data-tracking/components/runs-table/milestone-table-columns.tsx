@@ -1,9 +1,9 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button } from '../../../../components/ui';
 import { formatNumber, formatDuration } from '../../utils/data-parser';
 import { getFieldValue } from '../../utils/field-utils';
 import type { ParsedGameRun } from '../../types/game-run.types';
-import { ChevronDown, ChevronRight, Trash2, StickyNote } from 'lucide-react';
+import { StickyNote } from 'lucide-react';
+import { ExpandButton, DeleteButton } from './table-action-buttons';
 
 const columnHelper = createColumnHelper<ParsedGameRun>();
 
@@ -13,18 +13,10 @@ export function createMilestoneTableColumns(removeRun: (id: string) => void) {
       id: 'expander',
       header: '',
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={row.getToggleExpandedHandler()}
-          className="p-1"
-        >
-          {row.getIsExpanded() ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </Button>
+        <ExpandButton 
+          isExpanded={row.getIsExpanded()}
+          onToggle={row.getToggleExpandedHandler()}
+        />
       ),
       size: 40,
     }),
@@ -103,14 +95,7 @@ export function createMilestoneTableColumns(removeRun: (id: string) => void) {
       id: 'actions',
       header: '',
       cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => removeRun(row.original.id)}
-          className="p-1 hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <DeleteButton onDelete={() => removeRun(row.original.id)} />
       ),
       size: 40,
     }),

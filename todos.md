@@ -13,10 +13,9 @@
     charts list of charts segmented control
     make import/export modals not as wide in tablet
     reduce nesting of indentations from cards
-    turn tier stats table into card layout on mobile    
-    Remove the hover over effect that causes the cards to like pop out and grow in size slightly. Though I do like the effect of the border/background color like a highlight, keep that
+    turn tier stats table into card layout on mobile        
     add back the icons for chart links (ie skull for deaths analysis)
-- Make runs table paginated or virtualized        
+- find and clean out dead code    
 - Add discord link
 - Add versioning
 
@@ -54,6 +53,7 @@
     support different chart types
 
 # Tech Debt
+- figure out way to stop agents from spawning instances of vite dev server over and over
 - Add agent focused on testing implementation
 - Add agent to browse codebase and identify patterns which can be extracted
 - Add performance testing/tracking/something to ensure a good rendering exp

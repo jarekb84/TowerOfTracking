@@ -13,8 +13,9 @@ import { useData } from '../../hooks/use-data';
 import { createRunsTableColumns } from './table-columns';
 import { TableHeader } from './table-header';
 import { TableHead } from './table-head';
-import { TableBody } from './table-body';
+import { VirtualizedTableBody } from './virtualized-table-body';
 import { useViewport } from '@/shared/hooks/use-viewport';
+import { useRef } from 'react';
 
 export function RunsTable() {
   const { runs, removeRun } = useData();
@@ -22,6 +23,7 @@ export function RunsTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
   const viewportSize = useViewport({ breakpoint: 'md' });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const columns = createRunsTableColumns(removeRun);
 
@@ -53,14 +55,22 @@ export function RunsTable() {
         />
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div ref={containerRef} className="overflow-x-auto overflow-y-auto max-h-[65vh]">
           {viewportSize === 'desktop' ? (
             <table className="w-full">
               <TableHead table={table} />
-              <TableBody table={table} removeRun={removeRun} variant="desktop" />
+              <VirtualizedTableBody 
+                table={table} 
+                removeRun={removeRun} 
+                variant="desktop"
+              />
             </table>
           ) : (
-            <TableBody table={table} removeRun={removeRun} variant="mobile" />
+            <VirtualizedTableBody 
+              table={table} 
+              removeRun={removeRun} 
+              variant="mobile"
+            />
           )}
         </div>
       </CardContent>

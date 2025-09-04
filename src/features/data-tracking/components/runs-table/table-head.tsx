@@ -9,19 +9,19 @@ export function TableHead({ table }: TableHeadProps) {
   return (
     <thead>
       {table.getHeaderGroups().map((headerGroup) => (
-        <tr key={headerGroup.id} className="border-b">
+        <tr key={headerGroup.id} className="border-b border-border/50">
           {headerGroup.headers.map((header) => (
             <th
               key={header.id}
-              className="sticky top-0 z-30 text-left p-2 font-medium text-muted-foreground bg-card border-b border-border"
+              className="sticky top-0 z-30 text-left px-4 py-3 font-semibold text-foreground bg-background/95 border-b border-border/50"
               style={{ width: header.getSize() }}
             >
               {header.isPlaceholder ? null : (
                 <div
                   className={
                     header.column.getCanSort()
-                      ? 'cursor-pointer select-none flex items-center gap-1'
-                      : ''
+                      ? 'cursor-pointer select-none flex items-center gap-1 hover:text-foreground/90 transition-colors'
+                      : 'flex items-center'
                   }
                   onClick={header.column.getToggleSortingHandler()}
                   onKeyDown={(e) => {

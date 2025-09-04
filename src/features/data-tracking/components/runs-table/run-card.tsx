@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
-import { Button, MobileCard, MobileCardHeader, MobileCardContent, MobileCardSection } from '../../../../components/ui';
-import { ChevronDown, ChevronRight, Trash2, StickyNote, Skull } from 'lucide-react';
+import { MobileCard, MobileCardHeader, MobileCardContent, MobileCardSection } from '../../../../components/ui';
+import { StickyNote, Skull } from 'lucide-react';
 import { RunDetails } from './run-details';
 import { extractRunCardData } from './run-card-utils';
+import { ExpandButton, DeleteButton } from './table-action-buttons';
 import type { ParsedGameRun } from '../../types/game-run.types';
 
 interface RunCardProps {
@@ -32,26 +33,12 @@ export function RunCard({ run, onToggleExpanded, isExpanded, onRemove }: RunCard
             {header.hasNotes && (
               <StickyNote className="h-4 w-4 text-orange-400" />
             )}
-            <Button
-              variant="ghost"
+            <ExpandButton 
+              isExpanded={isExpanded}
+              onToggle={onToggleExpanded}
               size="compact"
-              onClick={onToggleExpanded}
-              className="p-1.5 h-8 w-8 hover:bg-accent/60 hover:scale-105 transition-all duration-200"
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="compact"
-              onClick={onRemove}
-              className="p-1.5 h-8 w-8 hover:bg-destructive/60 hover:text-destructive-foreground hover:scale-105 transition-all duration-200"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            />
+            <DeleteButton onDelete={onRemove} size="compact" />
           </div>
         </MobileCardHeader>
         
@@ -80,7 +67,7 @@ export function RunCard({ run, onToggleExpanded, isExpanded, onRemove }: RunCard
         {/* Economy Row */}
         <MobileCardSection>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-muted/30 rounded-md p-3 space-y-1.5 transition-all duration-200 hover:bg-muted/40 hover:scale-[1.02]">
+            <div className="bg-muted/20 rounded-md p-3 space-y-1.5 transition-colors duration-200 hover:bg-muted/30">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-muted-foreground font-medium">Coins</span>
                 <span className="font-semibold text-foreground">{economy.coins}</span>
@@ -90,7 +77,7 @@ export function RunCard({ run, onToggleExpanded, isExpanded, onRemove }: RunCard
                 <span className="text-muted-foreground">{economy.coinsPerHour}</span>
               </div>
             </div>
-            <div className="bg-muted/30 rounded-md p-3 space-y-1.5 transition-all duration-200 hover:bg-muted/40 hover:scale-[1.02]">
+            <div className="bg-muted/20 rounded-md p-3 space-y-1.5 transition-colors duration-200 hover:bg-muted/30">
               <div className="flex justify-between items-center">
                 <span className="text-xs text-muted-foreground font-medium">Cells</span>
                 <span className="font-semibold text-foreground">{economy.cells}</span>
