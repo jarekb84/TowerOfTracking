@@ -1,6 +1,8 @@
-import { flexRender, type Table } from '@tanstack/react-table';
+import { type Table } from '@tanstack/react-table';
 import { RunCard } from './run-card';
 import { TableEmptyState } from './table-empty-state';
+import { RunDetails } from './run-details';
+import { ExpandableTableRow } from './expandable-table-row';
 import type { ParsedGameRun } from '../../types/game-run.types';
 
 interface VirtualizedTableBodyProps {
@@ -26,13 +28,9 @@ export function VirtualizedTableBody({
     return (
       <tbody>
         {rows.map((row) => (
-          <tr key={row.id} className="border-b border-border/40 hover:bg-muted/30 transition-colors duration-200">
-            {row.getVisibleCells().map((cell) => (
-              <td key={cell.id} className="p-2">
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
-            ))}
-          </tr>
+          <ExpandableTableRow key={row.id} row={row}>
+            <RunDetails run={row.original} />
+          </ExpandableTableRow>
         ))}
       </tbody>
     );

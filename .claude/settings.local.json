@@ -14,7 +14,8 @@
       "Bash(git log:*)",
       "Bash(find:*)",
       "Bash(dir:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Read(/C:\\Source\\TowerOfTracking/**)"
     ],
     "defaultMode": "acceptEdits"
   },

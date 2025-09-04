@@ -48,20 +48,21 @@ function StatSection({ title, fieldsData }: {
   if (fieldsData.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <h5 className="font-semibold text-base text-primary border-b border-border pb-1">
+    <div className="space-y-4">
+      <h5 className="font-semibold text-base text-primary border-b border-border/40 pb-2 flex items-center gap-2">
         {title}
+        <span className="text-xs text-muted-foreground font-normal">({fieldsData.length} items)</span>
       </h5>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
         {fieldsData.map(({ key, displayName, value }) => (
           <div
             key={key}
-            className="flex justify-between items-center p-3 bg-muted/15 rounded-md border-border/20 border transition-colors duration-200 hover:bg-muted/25"
+            className="flex justify-between items-center p-3 bg-muted/15 rounded-md border border-border/20 transition-all duration-200 hover:bg-muted/25 hover:border-accent/30 hover:shadow-sm"
           >
-            <span className="font-mono text-sm text-muted-foreground">
+            <span className="font-mono text-sm text-muted-foreground truncate flex-1 mr-3">
               {displayName}
             </span>
-            <span className="font-mono text-sm font-medium">
+            <span className="font-mono text-sm font-medium text-foreground shrink-0">
               {value}
             </span>
           </div>
@@ -112,7 +113,11 @@ export function RunDetails({ run }: RunDetailsProps) {
   
   return (
     <div className="space-y-6">
-      <h4 className="font-medium text-lg text-primary border-b border-border/30 pb-2">Complete Run Data</h4>
+      <div className="border-b border-border/40 pb-3 mb-6">
+        <h4 className="font-semibold text-lg text-primary">Complete Run Data</h4>
+        <p className="text-sm text-muted-foreground mt-1">Detailed statistics and information for this run</p>
+      </div>
+      
       {Object.entries(STAT_GROUPS).filter(([groupTitle]) => groupTitle !== "__SKIP__").map(([groupTitle, fields]) => (
         <StatGroup
           key={groupTitle}

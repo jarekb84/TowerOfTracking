@@ -1,9 +1,8 @@
 # Bugs
 - fix issues with warning about invalid values in notes filed and then not doing anything about it
 - runtype import has issues, default paste has type set to Farm, when you select run type button it changes type to Farming
-- expanding table details doesn't work
 
-# Periodic 
+# Periodic
 - Ask the architecture-review or the frontend-design-reviewer to
     Make one area of the code more beautiful without changing functionality
 
@@ -30,8 +29,6 @@
     notes
 
 ## Backlog
-- click row to expand
-- click card to expand
 - click to expand/collapse sidenav when clicking on empty space between links
 - support different aggregations in coins/cell analytics (sum, avg, min, max)
 - Add grouping/something of types of fields in the tier trends type (economy, combat, util?)

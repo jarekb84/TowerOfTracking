@@ -8,17 +8,23 @@ interface ExpandButtonProps {
 }
 
 export function ExpandButton({ isExpanded, onToggle, size = 'sm' }: ExpandButtonProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggle();
+  };
+
   return (
     <Button
       variant="ghost"
       size={size}
-      onClick={onToggle}
-      className="p-1 text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-colors duration-200"
+      onClick={handleClick}
+      className="p-1 text-muted-foreground hover:bg-accent/40 hover:text-foreground transition-all duration-200 hover:scale-105"
     >
       {isExpanded ? (
-        <ChevronDown className="h-4 w-4" />
+        <ChevronDown className="h-4 w-4 transition-transform duration-200" />
       ) : (
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 transition-transform duration-200" />
       )}
     </Button>
   );
@@ -30,11 +36,17 @@ interface DeleteButtonProps {
 }
 
 export function DeleteButton({ onDelete, size = 'sm' }: DeleteButtonProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete();
+  };
+
   return (
     <Button
       variant="ghost"
       size={size}
-      onClick={onDelete}
+      onClick={handleClick}
       className="p-1 text-muted-foreground hover:bg-destructive/60 hover:text-destructive-foreground transition-colors duration-200"
     >
       <Trash2 className="h-4 w-4" />

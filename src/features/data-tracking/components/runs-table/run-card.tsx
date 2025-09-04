@@ -16,8 +16,21 @@ interface RunCardProps {
 export function RunCard({ run, onToggleExpanded, isExpanded, onRemove }: RunCardProps) {
   const { header, progress, economy } = useMemo(() => extractRunCardData(run), [run]);
   
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't expand if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    onToggleExpanded();
+  };
+  
   return (
-    <MobileCard variant="elevated" interactive className="p-4">
+    <MobileCard 
+      variant="elevated" 
+      interactive 
+      className="p-4 cursor-pointer" 
+      onClick={handleCardClick}
+    >
       <MobileCardContent>
         {/* Card Header - Date, Time, Duration */}
         <MobileCardHeader>
