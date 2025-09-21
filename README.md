@@ -1,7 +1,5 @@
 # Tower of Tracking
 
-**Unlock the full potential of your tower defense game performance!**
-
 Tower of Tracking is a browser based web app designed for The Tower players who want to analyze their gameplay, track progression, and optimize their strategies. Transform your raw game data into actionable insights with beautiful charts, detailed statistics, and comprehensive trend analysis.
 
 ## ✨ Key Features
