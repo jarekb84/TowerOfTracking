@@ -9,13 +9,6 @@
 # Features
 
 ## For v0.1.0
-- Mobile designs
-    charts list of charts segmented control
-    make import/export modals not as wide in tablet
-    reduce nesting of indentations from cards
-    turn tier stats table into card layout on mobile        
-    add back the icons for chart links (ie skull for deaths analysis)
-- find and clean out dead code    
 - Add discord link
 - Add versioning
 
@@ -27,8 +20,10 @@
 - make fields editable
     tournament placement
     notes
+  
 
 ## Backlog
+- Switch to DuckDB WASM for aggrigations/analytics
 - click to expand/collapse sidenav when clicking on empty space between links
 - support different aggregations in coins/cell analytics (sum, avg, min, max)
 - Add grouping/something of types of fields in the tier trends type (economy, combat, util?)
@@ -49,8 +44,15 @@
     filter any property we store
     add group by
     support different chart types
+- Mobile designs
+    charts list of charts segmented control
+    make import/export modals not as wide in tablet
+    reduce nesting of indentations from cards
+    turn tier stats table into card layout on mobile        
+    add back the icons for chart links (ie skull for deaths analysis)
 
 # Tech Debt
+- find and clean out dead code    
 - figure out way to stop agents from spawning instances of vite dev server over and over
 - Add agent focused on testing implementation
 - Add agent to browse codebase and identify patterns which can be extracted

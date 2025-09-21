@@ -22,7 +22,7 @@ export function NavSection({
       {/* Section header - only shown when expanded */}
       {!isCollapsed && (
         <h3 
-          className="px-4 mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide"
+          className="px-4 mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide"
           id={`section-${id}`}
         >
           {label}

@@ -12,13 +12,12 @@ export function NavCollapseButton({ isCollapsed, onClick, className }: NavCollap
       <button
         onClick={onClick}
         className={cn(
-          "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200",
-          // Subtle color scheme
-          "text-muted-foreground hover:text-foreground",
+          "w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all duration-200",          
+          "text-slate-400 hover:text-slate-100",
           // Enhanced hover state
           "hover:bg-slate-800/40 hover:shadow-sm",
           // Focus accessibility
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/50 focus-visible:bg-slate-800/40"
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/50 focus-visible:bg-slate-800/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
         )}
         aria-label={isCollapsed ? 'Expand sidebar navigation' : 'Collapse sidebar navigation'}
       >

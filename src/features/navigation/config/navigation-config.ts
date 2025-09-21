@@ -90,5 +90,23 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         icon: 'data-management'
       }
     ]
+  },
+  {
+    id: 'community',
+    label: 'Community',
+    items: [
+      {
+        id: 'discord',
+        label: 'Join Discord',
+        href: 'https://discord.gg/J444xGFbTt',
+        icon: 'discord'
+      },
+      {
+        id: 'github',
+        label: 'View Source',
+        href: 'https://github.com/jarekb84/TowerOfTracking',
+        icon: 'github'
+      }
+    ]
   }
 ]

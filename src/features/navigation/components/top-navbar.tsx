@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { useNavigation } from '../contexts/navigation-context'
 import { useGlobalDataInput } from '../../data-tracking'
+import { NavIcon } from './nav-icon'
+import { COMMUNITY_LINKS, createCommunityLinkClassName } from '../config/community-links'
 
 export function TopNavbar() {
   const { toggleSidebar, isSidebarOpen } = useNavigation()
@@ -38,23 +40,46 @@ export function TopNavbar() {
           {/* App title */}
           <Link 
             to="/runs" 
-            className="flex items-center gap-2 font-semibold rounded-lg px-2 py-1 -ml-2 hover:bg-slate-800/40 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/50 focus-visible:ring-offset-2"
+            className="flex items-center gap-2 font-semibold rounded-lg px-2 py-1 -ml-2 hover:bg-slate-800/40 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+            aria-label="Return to main page - Tower of Tracking"
           >
             <h1 className="text-xl text-slate-100">Tower of Tracking</h1>
           </Link>
         </div>
 
-        {/* Right side - Add Game Run button */}
+        {/* Center - Community Links - Enhanced responsiveness */}
+        <div className="hidden sm:flex items-center gap-3">
+          {COMMUNITY_LINKS.map((link) => (
+            <a
+              key={link.id}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={createCommunityLinkClassName(link)}
+              aria-label={link.ariaLabel}
+              title={link.title}
+            >
+              <NavIcon type={link.icon} className="w-5 h-5" />              
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={3} 
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" 
+              />
+              
+            </a>
+          ))}
+        </div>
         <div className="flex items-center">
           <button
             onClick={openDialog}
-            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-slate-900 shadow-md shadow-orange-500/20 hover:bg-orange-400 hover:shadow-lg hover:shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition-all duration-200"
+            className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-3 sm:px-4 py-2 text-sm font-medium text-slate-900 shadow-md shadow-orange-500/20 hover:bg-orange-400 hover:shadow-lg hover:shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition-all duration-200 min-w-[80px] sm:min-w-[140px]"
             aria-label="Add a new game run"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            <span className="hidden sm:inline">Add Game Run</span>
+            <span className="hidden sm:inline whitespace-nowrap">Add Game Run</span>
             <span className="sm:hidden">Add</span>
           </button>
         </div>
