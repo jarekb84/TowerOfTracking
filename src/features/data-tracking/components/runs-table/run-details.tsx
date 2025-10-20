@@ -1,4 +1,6 @@
 import type { ParsedGameRun } from '../../types/game-run.types';
+import { getFieldDisplayConfig } from './field-display-config';
+import { buildContainerClassName, buildValueClassName } from './field-rendering-utils';
 
 interface RunDetailsProps {
   run: ParsedGameRun;
@@ -67,19 +69,21 @@ function StatSection({ title, fieldsData }: {
         <span className="text-xs text-muted-foreground font-normal">({fieldsData.length} items)</span>
       </h5>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
-        {fieldsData.map(({ key, displayName, value }) => (
-          <div
-            key={key}
-            className="flex justify-between items-center p-3 bg-muted/15 rounded-md border border-border/20 transition-all duration-200 hover:bg-muted/25 hover:border-accent/30 hover:shadow-sm"
-          >
-            <span className="font-mono text-sm text-muted-foreground truncate flex-1 mr-3">
-              {displayName}
-            </span>
-            <span className="font-mono text-sm font-medium text-foreground shrink-0">
-              {value}
-            </span>
-          </div>
-        ))}
+        {fieldsData.map(({ key, displayName, value }) => {
+          const config = getFieldDisplayConfig(key);
+          return (
+            <div key={key} className={buildContainerClassName(config)}>
+              {!config.hideLabel && (
+                <span className="font-mono text-sm text-muted-foreground truncate flex-1 mr-3">
+                  {displayName}
+                </span>
+              )}
+              <span className={buildValueClassName(config)}>
+                {value}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
