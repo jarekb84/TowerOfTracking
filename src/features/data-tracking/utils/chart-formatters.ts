@@ -1,18 +1,5 @@
-// Format large numbers for Y-axis (like 100B, 1.5T, etc.)
-export function formatLargeNumber(value: number): string {
-  if (value >= 1e15) {
-    return `${(value / 1e15).toFixed(1)}Q`
-  } else if (value >= 1e12) {
-    return `${(value / 1e12).toFixed(1)}T`
-  } else if (value >= 1e9) {
-    return `${(value / 1e9).toFixed(1)}B`
-  } else if (value >= 1e6) {
-    return `${(value / 1e6).toFixed(1)}M`
-  } else if (value >= 1e3) {
-    return `${(value / 1e3).toFixed(1)}K`
-  }
-  return value.toString()
-}
+import { formatLargeNumber } from '../../../shared/formatting/number-scale';
+export { formatLargeNumber };
 
 // Generate nice Y-axis ticks for large numbers
 export function generateYAxisTicks(maxValue: number): number[] {

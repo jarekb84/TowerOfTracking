@@ -1,18 +1,4 @@
-import humanFormat from 'human-format';
-
-// Custom scale mapping using 'B' for billions instead of 'G'
-const BILLIONS_SCALE = new humanFormat.Scale({
-  '': 1,
-  K: 1e3,
-  M: 1e6,
-  B: 1e9,
-  T: 1e12,
-  Q: 1e15,
-  q: 1e18,
-  S: 1e21,
-  s: 1e24,
-  O: 1e27,
-});
+import { formatLargeNumber } from '../../../shared/formatting/number-scale';
 import type {
   ParsedGameRun,
   RawClipboardData,
@@ -284,11 +270,8 @@ export function formatTierLabel(camelTier: string | undefined, numericTier: numb
   return camelTier || '-';
 }
 
-// Format numbers back to human-readable format
-export function formatNumber(value: number): string {
-  if (Math.abs(value) < 1000) return Math.round(value).toString();
-  return humanFormat(value, { decimals: 1, separator: '', scale: BILLIONS_SCALE });
-}
+// Re-export formatLargeNumber as formatNumber for backward compatibility
+export { formatLargeNumber as formatNumber };
 
 // Format duration in seconds back to readable format
 export function formatDuration(seconds: number): string {

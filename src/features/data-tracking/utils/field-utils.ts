@@ -1,19 +1,8 @@
 import type { GameRunField, ParsedGameRun } from '../types/game-run.types';
-import humanFormat from 'human-format';
-
-// Custom scale for formatting numbers
-const BILLIONS_SCALE = new humanFormat.Scale({
-  '': 1,
-  K: 1e3,
-  M: 1e6,
-  B: 1e9,
-  T: 1e12,
-  Q: 1e15,
-  q: 1e18,
-  S: 1e21,
-  s: 1e24,
-  O: 1e27,
-});
+import {
+  parseShorthandNumber,
+  formatLargeNumber
+} from '../../../shared/formatting/number-scale';
 
 // Field configuration for processing rules
 interface FieldConfig {
@@ -23,66 +12,18 @@ interface FieldConfig {
 // Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
 function parseDuration(duration: string): number {
   if (!duration || typeof duration !== 'string') return 0;
-  
+
   const regex = /(?:(\d+)d)?\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?/i;
   const match = duration.match(regex);
-  
+
   if (!match) return 0;
-  
+
   const days = parseInt(match[1] || '0', 10);
   const hours = parseInt(match[2] || '0', 10);
   const minutes = parseInt(match[3] || '0', 10);
   const seconds = parseInt(match[4] || '0', 10);
-  
+
   return days * 86400 + hours * 3600 + minutes * 60 + seconds;
-}
-
-// Parse shorthand numbers like "100K", "10.9M", "15.2B"
-function parseShorthandNumber(value: string): number {
-  if (!value || typeof value !== 'string') return 0;
-  
-  // Remove $ signs, commas and trim
-  let cleaned = value.replace(/[$,]/g, '').trim();
-  
-  // Handle x multipliers like "x8.00"
-  if (cleaned.startsWith('x')) {
-    cleaned = cleaned.substring(1);
-  }
-  
-  // If it's just a number, return it
-  if (/^\d+\.?\d*$/.test(cleaned)) {
-    return parseFloat(cleaned);
-  }
-  
-  // Check for shorthand notation (case sensitive for q vs Q)
-  const shorthandRegex = /^(\d+\.?\d*)\s*([KMBTQqSsO]?)$/;
-  const match = cleaned.match(shorthandRegex);
-  
-  if (!match) return 0;
-  
-  const number = parseFloat(match[1]);
-  const suffix = match[2];
-  
-  const multipliers: Record<string, number> = {
-    '': 1,
-    'K': 1e3,
-    'M': 1e6,
-    'B': 1e9,
-    'T': 1e12,
-    'Q': 1e15,
-    'q': 1e18,
-    'S': 1e21,
-    's': 1e24,
-    'O': 1e27
-  };
-  
-  return number * (multipliers[suffix] || 1);
-}
-
-// Format numbers back to human-readable format
-function formatNumber(value: number): string {
-  if (Math.abs(value) < 1000) return Math.round(value).toString();
-  return humanFormat(value, { decimals: 1, separator: '', scale: BILLIONS_SCALE });
 }
 
 // Format duration in seconds back to readable format
@@ -151,7 +92,7 @@ export function createGameRunField(originalKey: string, rawValue: string): GameR
       
     case 'number':
       processedValue = parseShorthandNumber(rawValue);
-      displayValue = formatNumber(processedValue as number);
+      displayValue = formatLargeNumber(processedValue as number);
       dataType = 'number';
       break;
       

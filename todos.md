@@ -10,7 +10,6 @@
 
 ## For v0.1.0
 - Add versioning
-- Add large number handling (q, Q,s,S,O,N,D)
 
 ## For v0.2.0
 - Add google drive api integration

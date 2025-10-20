@@ -3,9 +3,14 @@ import { formatLargeNumber, generateYAxisTicks } from './chart-formatters'
 
 describe('Chart Formatters', () => {
   describe('formatLargeNumber', () => {
-    it('should format numbers in quadrillions', () => {
-      expect(formatLargeNumber(1.5e15)).toBe('1.5Q')
-      expect(formatLargeNumber(2.34e15)).toBe('2.3Q')
+    it('should format numbers in quadrillions (lowercase q)', () => {
+      expect(formatLargeNumber(1.5e15)).toBe('1.5q')
+      expect(formatLargeNumber(2.34e15)).toBe('2.3q')
+    })
+
+    it('should format numbers in quintillions (uppercase Q)', () => {
+      expect(formatLargeNumber(1.5e18)).toBe('1.5Q')
+      expect(formatLargeNumber(2.34e18)).toBe('2.3Q')
     })
 
     it('should format numbers in trillions', () => {
