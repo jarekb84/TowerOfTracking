@@ -1,8 +1,12 @@
 name: Deploy to GitHub Pages
 
 on:
+  # Trigger deployment when a new version tag is created
+  # This ensures the deployment always has a consistent version
   push:
-    branches: [ main ]
+    tags:
+      - 'v*'
+  # Allow manual deployment trigger for emergency situations
   workflow_dispatch:
 
 permissions:
@@ -20,21 +24,49 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        
+        with:
+          fetch-depth: 0
+
+      - name: Get version from git tag
+        id: get_version
+        run: |
+          # Get the latest version tag (semver format: vX.Y.Z)
+          # This should always exist when triggered by tag push, but fallback to dev version for manual dispatch
+          LATEST_TAG=$(git tag -l "v*" --sort=-v:refname | head -n 1)
+
+          # Validate tag format if it exists
+          if [ -n "$LATEST_TAG" ]; then
+            # Remove 'v' prefix for validation
+            VERSION_CHECK="${LATEST_TAG#v}"
+            if ! echo "$VERSION_CHECK" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "Warning: Latest tag '$LATEST_TAG' has invalid format. Using dev version."
+              LATEST_TAG="v0.0.0-dev"
+            fi
+          else
+            # No tags found - use dev version (should only happen on manual dispatch before first tag)
+            LATEST_TAG="v0.0.0-dev"
+          fi
+
+          # Remove 'v' prefix for build injection
+          VERSION="${LATEST_TAG#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Build for GitHub Pages
         run: npm run build
         env:
           VITE_PUBLIC_POSTHOG_HOST: ${{ secrets.VITE_PUBLIC_POSTHOG_HOST }}
           VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
+          VITE_APP_VERSION: ${{ steps.get_version.outputs.version }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

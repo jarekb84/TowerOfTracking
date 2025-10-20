@@ -1,12 +1,14 @@
 import { Link } from '@tanstack/react-router'
 import { useNavigation } from '../contexts/navigation-context'
 import { useGlobalDataInput } from '../../data-tracking'
+import { useVersion } from '../../versioning'
 import { NavIcon } from './nav-icon'
 import { COMMUNITY_LINKS, createCommunityLinkClassName } from '../config/community-links'
 
 export function TopNavbar() {
   const { toggleSidebar, isSidebarOpen } = useNavigation()
   const { openDialog } = useGlobalDataInput()
+  const version = useVersion()
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-700/30 bg-slate-900/90 backdrop-blur-md shadow-lg shadow-slate-950/20 animate-in slide-in-from-top-2 duration-300">
@@ -38,12 +40,20 @@ export function TopNavbar() {
           </button>
 
           {/* App title */}
-          <Link 
-            to="/runs" 
+          <Link
+            to="/runs"
             className="flex items-center gap-2 font-semibold rounded-lg px-2 py-1 -ml-2 hover:bg-slate-800/40 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
             aria-label="Return to main page - Tower of Tracking"
           >
-            <h1 className="text-xl text-slate-100">Tower of Tracking</h1>
+            <h1 className="flex items-baseline gap-2 text-xl text-slate-100">
+              <span>Tower of Tracking</span>
+              <span
+                className="hidden sm:inline text-xs text-slate-500 font-normal tracking-wide"
+                aria-label={`Version ${version}`}
+              >
+                {version}
+              </span>
+            </h1>
           </Link>
         </div>
 

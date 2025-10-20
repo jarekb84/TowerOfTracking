@@ -15,7 +15,8 @@
       "Bash(find:*)",
       "Bash(dir:*)",
       "Bash(npm run type-check:*)",
-      "Read(/C:\\Source\\TowerOfTracking/**)"
+      "Read(/C:\\Source\\TowerOfTracking/**)",
+      "Bash(npm run integration-precheck:*)"
     ],
     "defaultMode": "acceptEdits"
   },
