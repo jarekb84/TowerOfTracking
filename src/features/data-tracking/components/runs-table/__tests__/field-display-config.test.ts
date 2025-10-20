@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   getFieldDisplayConfig,
-  isFullWidthField,
-  shouldHideLabel,
-  shouldLeftAlignValue,
   FIELD_DISPLAY_CONFIG,
 } from '../field-display-config';
 
@@ -63,62 +60,3 @@ describe('getFieldDisplayConfig', () => {
   });
 });
 
-describe('isFullWidthField', () => {
-  it('should return true for _notes field', () => {
-    expect(isFullWidthField('_notes')).toBe(true);
-  });
-
-  it('should return false for standard fields', () => {
-    expect(isFullWidthField('killedBy')).toBe(false);
-    expect(isFullWidthField('coinsEarned')).toBe(false);
-    expect(isFullWidthField('tier')).toBe(false);
-  });
-
-  it('should return false for unknown fields', () => {
-    expect(isFullWidthField('randomField')).toBe(false);
-  });
-
-  it('should handle empty string', () => {
-    expect(isFullWidthField('')).toBe(false);
-  });
-});
-
-describe('shouldHideLabel', () => {
-  it('should return true for _notes field', () => {
-    expect(shouldHideLabel('_notes')).toBe(true);
-  });
-
-  it('should return false for standard fields', () => {
-    expect(shouldHideLabel('killedBy')).toBe(false);
-    expect(shouldHideLabel('coinsEarned')).toBe(false);
-    expect(shouldHideLabel('tier')).toBe(false);
-  });
-
-  it('should return false for unknown fields', () => {
-    expect(shouldHideLabel('unknownField')).toBe(false);
-  });
-
-  it('should handle empty string', () => {
-    expect(shouldHideLabel('')).toBe(false);
-  });
-});
-
-describe('shouldLeftAlignValue', () => {
-  it('should return true for _notes field', () => {
-    expect(shouldLeftAlignValue('_notes')).toBe(true);
-  });
-
-  it('should return false for standard fields', () => {
-    expect(shouldLeftAlignValue('killedBy')).toBe(false);
-    expect(shouldLeftAlignValue('coinsEarned')).toBe(false);
-    expect(shouldLeftAlignValue('tier')).toBe(false);
-  });
-
-  it('should return false for unknown fields', () => {
-    expect(shouldLeftAlignValue('unknownField')).toBe(false);
-  });
-
-  it('should handle empty string', () => {
-    expect(shouldLeftAlignValue('')).toBe(false);
-  });
-});

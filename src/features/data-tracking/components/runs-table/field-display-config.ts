@@ -24,34 +24,15 @@ export const FIELD_DISPLAY_CONFIG: Record<string, FieldDisplayConfig> = {
     fullWidth: true,
     leftAlignValue: true,
     containerClassName: 'col-span-2',
-    valueClassName: 'text-left whitespace-pre-wrap break-words',
+    valueClassName: 'text-left whitespace-pre-wrap break-words leading-relaxed text-foreground/90',
   },
 };
 
 /**
  * Get display configuration for a specific field
+ * @param fieldKey - The camelCase field key to look up
+ * @returns Configuration object, or empty object if not found
  */
 export function getFieldDisplayConfig(fieldKey: string): FieldDisplayConfig {
   return FIELD_DISPLAY_CONFIG[fieldKey] || {};
-}
-
-/**
- * Check if a field should be displayed in full width
- */
-export function isFullWidthField(fieldKey: string): boolean {
-  return FIELD_DISPLAY_CONFIG[fieldKey]?.fullWidth ?? false;
-}
-
-/**
- * Check if a field should hide its label
- */
-export function shouldHideLabel(fieldKey: string): boolean {
-  return FIELD_DISPLAY_CONFIG[fieldKey]?.hideLabel ?? false;
-}
-
-/**
- * Check if a field value should be left-aligned
- */
-export function shouldLeftAlignValue(fieldKey: string): boolean {
-  return FIELD_DISPLAY_CONFIG[fieldKey]?.leftAlignValue ?? false;
 }

@@ -1,6 +1,7 @@
 import type { ParsedGameRun } from '../../types/game-run.types';
 import { getFieldDisplayConfig } from './field-display-config';
 import { buildContainerClassName, buildValueClassName } from './field-rendering-utils';
+import { StickyNote } from 'lucide-react';
 
 interface RunDetailsProps {
   run: ParsedGameRun;
@@ -61,16 +62,21 @@ function StatSection({ title, fieldsData }: {
   fieldsData: Array<{ key: string; displayName: string; value: string }>;
 }) {
   if (fieldsData.length === 0) return null;
+  
+  const isNotesSection = title === "Notes";
 
   return (
     <div className="space-y-4">
       <h5 className="font-semibold text-base text-primary border-b border-border/40 pb-2 flex items-center gap-2">
+        {isNotesSection && <StickyNote className="h-4 w-4 text-accent" />}
         {title}
         <span className="text-xs text-muted-foreground font-normal">({fieldsData.length} items)</span>
       </h5>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {fieldsData.map(({ key, displayName, value }) => {
           const config = getFieldDisplayConfig(key);
+          const isEmpty = !value || value.trim() === '';
+
           return (
             <div key={key} className={buildContainerClassName(config)}>
               {!config.hideLabel && (
@@ -79,7 +85,11 @@ function StatSection({ title, fieldsData }: {
                 </span>
               )}
               <span className={buildValueClassName(config)}>
-                {value}
+                {isEmpty && config.fullWidth ? (
+                  <span className="text-muted-foreground/50 italic text-xs">No notes for this run</span>
+                ) : (
+                  value
+                )}
               </span>
             </div>
           );
