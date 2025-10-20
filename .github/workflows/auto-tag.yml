@@ -54,13 +54,13 @@ jobs:
 
           # Determine version bump based on commit message
           # Use stricter patterns to avoid false positives (e.g., "Fix major bug" should not trigger major bump)
-          # Only recognize explicit markers: [major], [minor], or BREAKING CHANGE
-          if echo "$COMMIT_MSG" | grep -qE '\[major\]|^BREAKING CHANGE:'; then
+          # Only recognize explicit markers: [major], [minor], or BREAKING CHANGE (case-insensitive)
+          if echo "$COMMIT_MSG" | grep -qiE '\[major\]|^BREAKING CHANGE:'; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
             BUMP_TYPE="major"
-          elif echo "$COMMIT_MSG" | grep -qE '\[minor\]'; then
+          elif echo "$COMMIT_MSG" | grep -qiE '\[minor\]'; then
             MINOR=$((MINOR + 1))
             PATCH=0
             BUMP_TYPE="minor"
@@ -79,9 +79,13 @@ jobs:
           echo "New version: $NEW_VERSION (bump type: $BUMP_TYPE)"
 
       - name: Create and push tag
+        env:
+          # Use PAT to trigger deploy workflow (default GITHUB_TOKEN doesn't trigger workflows)
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "${{ steps.parse_version.outputs.new_tag }}" -m "Auto-tagged version ${{ steps.parse_version.outputs.new_version }} (${{ steps.parse_version.outputs.bump_type }} bump)"
-          git push origin "${{ steps.parse_version.outputs.new_tag }}"
+          # Push using PAT to trigger the deploy workflow
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git "${{ steps.parse_version.outputs.new_tag }}"
           echo "Created and pushed tag: ${{ steps.parse_version.outputs.new_tag }}"
