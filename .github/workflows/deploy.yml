@@ -5,7 +5,7 @@ on:
   # This ensures the deployment always has a consistent version
   push:
     tags:
-      - 'v*'
+      - v*.*.**
   # Allow manual deployment trigger for emergency situations
   workflow_dispatch:
 
