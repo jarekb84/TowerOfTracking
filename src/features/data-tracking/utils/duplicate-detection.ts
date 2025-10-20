@@ -1,4 +1,5 @@
 import type { ParsedGameRun } from '../types/game-run.types';
+import { formatIsoDateTimeMinute, formatDurationForKey } from './date-formatters';
 
 // Interface for duplicate detection result
 export interface DuplicateDetectionResult {
@@ -25,32 +26,33 @@ export interface BatchDuplicateDetectionResult {
 }
 
 /**
- * Generate composite key for duplicate detection using simplified strategy
- * 
- * Strategy: tier|wave|realTime (should be unique enough for most cases)
- * Format: "10|5006|7h 45m 33s" - human readable for debugging
+ * Generate composite key for duplicate detection using battle_date when available
+ *
+ * Strategy:
+ * - If battle_date exists: battleDate(minute precision)|tier|wave
+ * - Legacy: tier|wave|realTime (should be unique enough for most cases)
+ *
+ * Format: "2025-10-14T13:14|12|7639" or "10|5006|7h 45m 33s" - human readable for debugging
  */
 export function generateCompositeKey(run: ParsedGameRun): string {
   const tier = run.tier || 0;
   const wave = run.wave || 0;
-  const realTime = run.realTime || 0;
-  
-  // Format realTime as duration string for human readability
-  const duration = formatDurationForKey(realTime);
-  
-  return `${tier}|${wave}|${duration}`;
-}
 
-/**
- * Format duration in seconds to a consistent string format for keys
- * Format: "7h 45m 33s" (always includes all units for consistency)
- */
-function formatDurationForKey(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  
-  return `${hours}h ${minutes}m ${secs}s`;
+  // Check if battle_date field exists (new format)
+  if (run.fields.battleDate) {
+    // Use battle_date with minute precision
+    const battleDate = run.fields.battleDate.value;
+    if (battleDate instanceof Date) {
+      const dateTimeKey = formatIsoDateTimeMinute(battleDate);
+      return `${dateTimeKey}|${tier}|${wave}`;
+    }
+  }
+
+  // Legacy format: tier|wave|realTime
+  const realTime = run.realTime || 0;
+  const duration = formatDurationForKey(realTime);
+
+  return `${tier}|${wave}|${duration}`;
 }
 
 /**

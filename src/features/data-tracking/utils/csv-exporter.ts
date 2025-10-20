@@ -1,14 +1,12 @@
 import type { ParsedGameRun, CsvDelimiter } from '../types/game-run.types';
-import { format } from 'date-fns';
 import { getDelimiterString } from './csv-parser';
-
-// App-specific field mappings for generated fields
-const APP_FIELD_MAPPINGS: Record<string, string> = {
-  date: 'Date',
-  time: 'Time', 
-  notes: 'Notes',
-  runType: 'Run Type'
-};
+import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from './date-formatters';
+import {
+  INTERNAL_FIELD_MAPPINGS,
+  INTERNAL_FIELD_ORDER,
+  INTERNAL_FIELD_NAMES,
+  isInternalField
+} from './internal-field-config';
 
 // Interface for field information
 interface FieldInfo {
@@ -42,22 +40,30 @@ export interface CsvExportResult {
 
 /**
  * Get all unique field keys from runs with their original keys
+ * Orders fields: internal fields first (_date, _time, _notes, _runType), then battle_date, then alphabetically
  */
 function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
   const fieldMap = new Map<string, FieldInfo>();
-  
-  // Add app-generated fields if requested
-  for (const [fieldName, originalKey] of Object.entries(APP_FIELD_MAPPINGS)) {
-    fieldMap.set(fieldName, {
-      fieldName,
-      originalKey,
-      isAppGenerated: true
-    });
+
+  // Add internal fields if they exist in any run
+  for (const [fieldName, originalKey] of Object.entries(INTERNAL_FIELD_MAPPINGS)) {
+    // Check if any run has this internal field
+    const hasField = runs.some(run => run.fields[fieldName]);
+    if (hasField) {
+      fieldMap.set(fieldName, {
+        fieldName,
+        originalKey,
+        isAppGenerated: true
+      });
+    }
   }
-  
-  // Collect all fields from runs
+
+  // Collect all fields from runs (including battle_date and other game fields)
   for (const run of runs) {
     for (const [fieldName, field] of Object.entries(run.fields)) {
+      // Skip internal fields (already added above)
+      if (isInternalField(fieldName)) continue;
+
       if (!fieldMap.has(fieldName)) {
         fieldMap.set(fieldName, {
           fieldName,
@@ -67,11 +73,24 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
       }
     }
   }
-  
+
   return Array.from(fieldMap.values()).sort((a, b) => {
-    // Sort app-generated fields first (Date, Time, Notes), then alphabetically
-    if (a.isAppGenerated && !b.isAppGenerated) return -1;
-    if (!a.isAppGenerated && b.isAppGenerated) return 1;
+    // Sort internal fields first in specific order
+    const aIsInternal = INTERNAL_FIELD_ORDER.includes(a.fieldName);
+    const bIsInternal = INTERNAL_FIELD_ORDER.includes(b.fieldName);
+
+    if (aIsInternal && !bIsInternal) return -1;
+    if (!aIsInternal && bIsInternal) return 1;
+
+    if (aIsInternal && bIsInternal) {
+      return INTERNAL_FIELD_ORDER.indexOf(a.fieldName) - INTERNAL_FIELD_ORDER.indexOf(b.fieldName);
+    }
+
+    // battle_date comes first among game fields
+    if (a.fieldName === 'battleDate' && b.fieldName !== 'battleDate') return -1;
+    if (a.fieldName !== 'battleDate' && b.fieldName === 'battleDate') return 1;
+
+    // Then sort alphabetically
     return a.originalKey.localeCompare(b.originalKey);
   });
 }
@@ -95,18 +114,20 @@ export function detectDelimiterConflicts(
       let value = '';
       
       if (fieldInfo.isAppGenerated) {
-        // Handle app-generated fields
-        if (fieldInfo.fieldName === 'date') {
-          value = format(run.timestamp, 'yyyy-MM-dd');
-        } else if (fieldInfo.fieldName === 'time') {
-          value = format(run.timestamp, 'HH:mm:ss');
-        } else if (fieldInfo.fieldName === 'notes') {
-          value = run.fields.notes?.rawValue || '';
-        } else if (fieldInfo.fieldName === 'runType') {
-          value = run.runType;
+        // Handle internal app-generated fields
+        if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.DATE) {
+          const dateField = run.fields[INTERNAL_FIELD_NAMES.DATE];
+          value = dateField?.rawValue || formatIsoDate(run.timestamp);
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.TIME) {
+          const timeField = run.fields[INTERNAL_FIELD_NAMES.TIME];
+          value = timeField?.rawValue || formatIsoTime(run.timestamp);
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.NOTES) {
+          value = run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '';
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
+          value = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
         }
       } else {
-        // Handle regular fields
+        // Handle regular game fields (including battle_date)
         const field = run.fields[fieldInfo.fieldName];
         value = field?.rawValue || '';
       }
@@ -181,18 +202,20 @@ export function exportToCsv(
       let rawValue = '';
       
       if (fieldInfo.isAppGenerated) {
-        // Handle app-generated fields
-        if (fieldInfo.fieldName === 'date') {
-          rawValue = format(run.timestamp, 'yyyy-MM-dd');
-        } else if (fieldInfo.fieldName === 'time') {
-          rawValue = format(run.timestamp, 'HH:mm:ss');
-        } else if (fieldInfo.fieldName === 'notes') {
-          rawValue = run.fields.notes?.rawValue || '';
-        } else if (fieldInfo.fieldName === 'runType') {
-          rawValue = run.runType;
+        // Handle internal app-generated fields
+        if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.DATE) {
+          const dateField = run.fields[INTERNAL_FIELD_NAMES.DATE];
+          rawValue = dateField?.rawValue || formatIsoDate(run.timestamp);
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.TIME) {
+          const timeField = run.fields[INTERNAL_FIELD_NAMES.TIME];
+          rawValue = timeField?.rawValue || formatIsoTime(run.timestamp);
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.NOTES) {
+          rawValue = run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '';
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
+          rawValue = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
         }
       } else {
-        // Handle regular fields
+        // Handle regular game fields (including battle_date)
         const field = run.fields[fieldInfo.fieldName];
         rawValue = field?.rawValue || '';
       }
@@ -215,7 +238,7 @@ export function exportToCsv(
  * Generate filename for export
  */
 export function generateExportFilename(runCount: number): string {
-  const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+  const timestamp = formatFilenameDateTime(new Date());
   return `tower_tracking_export_${runCount}_runs_${timestamp}.csv`;
 }
 

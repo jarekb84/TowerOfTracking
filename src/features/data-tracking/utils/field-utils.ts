@@ -103,12 +103,22 @@ function formatDuration(seconds: number): string {
 
 function getFieldConfig(key: string, rawValue?: string): FieldConfig {
   const lowerKey = key.toLowerCase();
-  
+
+  // Handle internal fields (prefixed with underscore)
+  if (lowerKey === '_date' || lowerKey === 'date') return { type: 'date' };
+  if (lowerKey === '_time' || lowerKey === 'time') return { type: 'date' };
+  if (lowerKey === '_notes' || lowerKey === 'notes') return { type: 'string' };
+  if (lowerKey === '_runtype' || lowerKey === 'runtype' || lowerKey === '_run_type' || lowerKey === 'run_type') return { type: 'string' };
+
+  // Handle battle_date field from game (can be "Battle Date" with space or "battledate")
+  if (lowerKey === 'battle date' || lowerKey === 'battledate' || lowerKey === 'battle_date') return { type: 'date' };
+
+  // Existing game field detection
   if (lowerKey.includes('time')) return { type: 'duration' };
-  if (lowerKey === 'date' || lowerKey === 'time' || lowerKey.includes('date')) return { type: 'date' };
-  if (lowerKey === 'notes' || lowerKey === 'killed by') return { type: 'string' };
+  if (lowerKey.includes('date')) return { type: 'date' };
+  if (lowerKey === 'killed by') return { type: 'string' };
   if (lowerKey === 'tier' && rawValue && rawValue.includes('+')) return { type: 'string' };
-  
+
   return { type: 'number' };
 }
 

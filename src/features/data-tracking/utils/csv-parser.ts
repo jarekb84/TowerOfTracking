@@ -1,4 +1,4 @@
-import type { 
+import type {
   ParsedGameRun,
   CsvParseConfig,
   CsvParseResult,
@@ -8,6 +8,9 @@ import type {
 } from '../types/game-run.types';
 import { createGameRunField, toCamelCase } from './field-utils';
 import { detectRunTypeFromFields, extractNumericStats } from './run-type-detection';
+import { parseTimestampFromFields } from './date-formatters';
+import { isLegacyField, getMigratedFieldName } from './internal-field-config';
+import { detectDelimiter } from './csv-helpers';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
 // Load supported fields from JSON
@@ -31,7 +34,6 @@ export function parseGenericCsv(
   const fullConfig: CsvParseConfig = {
     delimiter: undefined, // Auto-detect if not provided
     supportedFields: SUPPORTED_FIELDS,
-    skipUnknownFields: true,
     ...config
   };
 
@@ -61,13 +63,32 @@ export function parseGenericCsv(
   const headers = firstLine.split(delimiter).map(h => h.trim().replace(/["']/g, ''));
   const fieldMappingReport = createFieldMappingReport(headers, fullConfig.supportedFields);
 
-  // Build mapping from CSV column index to camelCase field name (only for supported fields)
+  // Build mapping from CSV column index to camelCase field name (INCLUDE ALL FIELDS)
+  // Note: We no longer filter by supportedFields to ensure all game fields persist
   const columnToFieldMap = new Map<number, string>();
   headers.forEach((header, index) => {
-    const camelCase = toCamelCase(header);
-    if (fullConfig.supportedFields.includes(camelCase)) {
-      columnToFieldMap.set(index, camelCase);
+    let camelCase: string;
+
+    // Handle underscore-prefixed headers (new format): "_Date" → "_date"
+    // These are already in the correct format, just need camelCase conversion
+    if (header.startsWith('_')) {
+      // Keep the underscore and camelCase the rest
+      const withoutUnderscore = header.substring(1);
+      camelCase = '_' + toCamelCase(withoutUnderscore);
+    } else {
+      camelCase = toCamelCase(header);
+
+      // Apply legacy field migration for old headers (e.g., "Date" → "_date", "Notes" → "_notes")
+      if (isLegacyField(camelCase)) {
+        const migratedName = getMigratedFieldName(camelCase);
+        if (migratedName) {
+          camelCase = migratedName;
+        }
+      }
     }
+
+    // Always include the field, regardless of whether it's in supportedFields
+    columnToFieldMap.set(index, camelCase);
   });
 
   // Process data rows
@@ -99,9 +120,9 @@ export function parseGenericCsv(
         fields[fieldName] = field;
       }
 
-      // Parse timestamp if date/time fields are available
-      const timestamp = parseTimestamp(fields);
-      
+      // Parse timestamp using unified parsing logic
+      const timestamp = parseTimestampFromFields(fields);
+
       // Extract key stats from field structure
       const keyStats = extractKeyStatsFromFields(fields);
 
@@ -125,25 +146,6 @@ export function parseGenericCsv(
     errors, 
     fieldMappingReport 
   };
-}
-
-/**
- * Auto-detect delimiter from the first line
- */
-function detectDelimiter(firstLine: string): string {
-  // Count occurrences of potential delimiters
-  const tabCount = (firstLine.match(/\t/g) || []).length;
-  const commaCount = (firstLine.match(/,/g) || []).length;
-  const semicolonCount = (firstLine.match(/;/g) || []).length;
-
-  // Return the delimiter with the highest count
-  if (tabCount >= commaCount && tabCount >= semicolonCount) {
-    return '\t';
-  } else if (commaCount >= semicolonCount) {
-    return ',';
-  } else {
-    return ';';
-  }
 }
 
 /**
@@ -172,34 +174,6 @@ function createFieldMappingReport(
   };
 }
 
-/**
- * Parse timestamp from date and time fields if available
- */
-function parseTimestamp(fields: Record<string, GameRunField>): Date {
-  const dateField = fields.date;
-  const timeField = fields.time;
-
-  try {
-    if (dateField && timeField) {
-      const dateStr = dateField.rawValue;
-      const timeStr = timeField.rawValue;
-      const timestamp = new Date(`${dateStr} ${timeStr}`);
-      
-      if (!isNaN(timestamp.getTime())) {
-        return timestamp;
-      }
-    } else if (dateField) {
-      const timestamp = new Date(dateField.rawValue);
-      if (!isNaN(timestamp.getTime())) {
-        return timestamp;
-      }
-    }
-  } catch {
-    // Fall through to default
-  }
-
-  return new Date(); // Default to current time
-}
 
 /**
  * Extract key statistics from fields for cached properties
@@ -213,8 +187,16 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
   runType: 'farm' | 'tournament' | 'milestone';
 } {
   const numericStats = extractNumericStats(fields);
-  const runType = detectRunTypeFromFields(fields);
-  
+
+  // Check if _runType field exists (from CSV), otherwise detect from tier
+  let runType: 'farm' | 'tournament' | 'milestone';
+  const runTypeField = fields._runType;
+  if (runTypeField && runTypeField.rawValue) {
+    runType = runTypeField.rawValue as 'farm' | 'tournament' | 'milestone';
+  } else {
+    runType = detectRunTypeFromFields(fields);
+  }
+
   return {
     ...numericStats,
     runType,

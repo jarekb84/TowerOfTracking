@@ -62,7 +62,6 @@ export type DurationString = string; // Format: "1d 13h 24m 51s"
 export interface CsvParseConfig {
   delimiter?: string;
   supportedFields: string[];
-  skipUnknownFields?: boolean;
 }
 
 export interface CsvParseResult {

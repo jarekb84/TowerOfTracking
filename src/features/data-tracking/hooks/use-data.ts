@@ -12,10 +12,19 @@ import {
   saveRunsToStorage,
   loadRunsFromStorage,
 } from '../utils/csv-persistence';
+import { migrateDataIfNeeded } from '../utils/data-migrations';
+
+interface MigrationState {
+  migrated: boolean;
+  fromVersion: number;
+  toVersion: number;
+  error?: Error | null;
+}
 
 interface DataContextType {
   runs: ParsedGameRun[];
   compositeKeys: Set<string>;
+  migrationState: MigrationState | null;
   addRun: (run: ParsedGameRun) => void;
   addRuns: (runs: ParsedGameRun[], skipDuplicates?: boolean) => BatchDuplicateDetectionResult;
   removeRun: (id: string) => void;
@@ -39,19 +48,43 @@ export function useData(): DataContextType {
 export function useDataProvider(): DataContextType {
   const [runs, setRuns] = useState<ParsedGameRun[]>([]);
   const [compositeKeys, setCompositeKeys] = useState<Set<string>>(new Set());
+  const [migrationState, setMigrationState] = useState<MigrationState | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   // Initialize client state and load saved runs
   useEffect(() => {
     setIsClient(true);
     try {
+      // Perform one-time migration if needed (v1 → v2: add underscores to internal fields)
+      const migrationResult = migrateDataIfNeeded();
+
+      if (migrationResult.migrated) {
+        console.log(
+          `[Data Migration] Successfully migrated from v${migrationResult.fromVersion} to v${migrationResult.toVersion}`,
+          '\nInternal fields now use consistent naming (_Date, _Time, _Notes, _Run Type)'
+        );
+        setMigrationState({
+          migrated: true,
+          fromVersion: migrationResult.fromVersion,
+          toVersion: migrationResult.toVersion,
+          error: null
+        });
+        // TODO: Send PostHog event when analytics is set up
+      }
+
       const loadedRuns = loadRunsFromStorage();
       setRuns(loadedRuns);
-      
+
       // Generate composite keys set for loaded runs
       setCompositeKeys(generateCompositeKeysSet(loadedRuns));
     } catch (error) {
-      console.error('Failed to load runs from CSV storage:', error);
+      console.error('[Data Migration] Failed to load or migrate data:', error);
+      setMigrationState({
+        migrated: false,
+        fromVersion: 1,
+        toVersion: 2,
+        error: error instanceof Error ? error : new Error('Unknown migration error')
+      });
     }
   }, []);
 
@@ -192,6 +225,7 @@ export function useDataProvider(): DataContextType {
   return {
     runs,
     compositeKeys,
+    migrationState,
     addRun,
     addRuns,
     removeRun,

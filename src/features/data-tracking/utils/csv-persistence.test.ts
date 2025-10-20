@@ -22,6 +22,8 @@ vi.stubGlobal('crypto', {
 
 // Create sample test data
 function createTestRun(id: string, notes?: string, runType: 'farm' | 'tournament' | 'milestone' = 'farm'): ParsedGameRun {
+  const timestamp = new Date('2024-01-15T14:30:00');
+
   const tierField: GameRunField = {
     value: 10,
     rawValue: '10',
@@ -39,6 +41,29 @@ function createTestRun(id: string, notes?: string, runType: 'farm' | 'tournament
   } : undefined;
 
   const fields: Record<string, GameRunField> = {
+    // Internal fields (with underscore prefix)
+    _date: {
+      value: '2024-01-15',
+      rawValue: '2024-01-15',
+      displayValue: '2024-01-15',
+      originalKey: 'Date',
+      dataType: 'date'
+    },
+    _time: {
+      value: '14:30:00',
+      rawValue: '14:30:00',
+      displayValue: '14:30:00',
+      originalKey: 'Time',
+      dataType: 'date'
+    },
+    _runType: {
+      value: runType,
+      rawValue: runType,
+      displayValue: runType,
+      originalKey: 'Run Type',
+      dataType: 'string'
+    },
+    // Game fields
     tier: tierField,
     wave: {
       value: 5881,
@@ -71,12 +96,12 @@ function createTestRun(id: string, notes?: string, runType: 'farm' | 'tournament
   };
 
   if (notesField) {
-    fields.notes = notesField;
+    fields._notes = notesField;
   }
 
   return {
     id,
-    timestamp: new Date('2024-01-15T14:30:00'),
+    timestamp,
     fields,
     tier: 10,
     wave: 5881,

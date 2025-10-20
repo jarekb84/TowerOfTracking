@@ -11,6 +11,7 @@
 ## For v0.1.0
 - Add discord link
 - Add versioning
+- Add large number handling (q, Q,s,S,O,N,D)
 
 ## For v0.2.0
 - Add google drive api integration
@@ -23,6 +24,13 @@
   
 
 ## Backlog
+- Look into skipped field logic
+    how does it handle new fields from single game imports (new data/fixes/changes to names)
+    how does it handle bulk import
+- Migration cleanup
+    move/remove logic from csv-parser tied to legacy fields or field conversion
+        this should be done at app start for prior data
+        might need to be done for importing of legacy saves in bulk
 - Switch to DuckDB WASM for aggrigations/analytics
 - click to expand/collapse sidenav when clicking on empty space between links
 - support different aggregations in coins/cell analytics (sum, avg, min, max)

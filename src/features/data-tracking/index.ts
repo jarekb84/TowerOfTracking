@@ -5,6 +5,7 @@ export { CsvImport } from './components/csv-import';
 export { CsvExport } from './components/csv-export';
 export { DataProvider } from './components/data-provider';
 export { DataSettings } from './components/data-settings';
+export { MigrationAlert } from './components/migration-alert';
 export { RunsTable } from './components/runs-table';
 export { TabbedRunsTable } from './components/runs-table/tabbed-runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';

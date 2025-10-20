@@ -67,13 +67,15 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
                 onImportFile={importFile}
               />
               
-              <DataInputDateTimeSection 
+              <DataInputDateTimeSection
                 selectedDate={form.selectedDate}
                 selectedTime={form.selectedTime}
                 isDatePopoverOpen={isDatePopoverOpen}
                 onDatePopoverOpenChange={setIsDatePopoverOpen}
                 onDateSelect={handleDateSelect}
                 onTimeChange={form.handleTimeChange}
+                disabled={form.hasBattleDate}
+                disabledReason={form.hasBattleDate ? "Using game timestamp" : undefined}
               />
               
               <RunTypeSelector

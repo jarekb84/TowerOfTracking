@@ -21,6 +21,7 @@ export interface DataInputFormState {
   notes: string;
   duplicateResult: DuplicateDetectionResult | null;
   resolution: DuplicateResolution;
+  hasBattleDate: boolean;
 }
 
 export interface DataInputFormActions {
@@ -51,7 +52,8 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const [notes, setNotes] = useState(initialFormState.notes);
   const [duplicateResult, setDuplicateResult] = useState(initialFormState.duplicateResult);
   const [resolution, setResolution] = useState(initialFormState.resolution);
-  
+  const [hasBattleDate, setHasBattleDate] = useState(false);
+
   const { addRun, checkDuplicate, overwriteRun } = useData();
 
   const getDateTimeFromSelection = (): Date => {
@@ -68,7 +70,8 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   };
 
   const updateNotesFromParsedData = (parsed: ParsedGameRun): void => {
-    const notesField = parsed.fields.notes;
+    // Check both _notes (internal field) and notes (legacy)
+    const notesField = parsed.fields._notes || parsed.fields.notes;
     if (notesField && notesField.rawValue) {
       setNotes(notesField.rawValue);
     }
@@ -80,13 +83,19 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
         const parsed = parseGameRun(data, getDateTimeFromSelection());
         setPreviewData(parsed);
         setSelectedRunType(parsed.runType);
+
+        const hasBattleDateField = !!parsed.fields.battleDate;
+        setHasBattleDate(hasBattleDateField);
+
         updateDateTimeFromParsedData(parsed);
         updateNotesFromParsedData(parsed);
       } catch (error) {
         setPreviewData(null);
+        setHasBattleDate(false);
       }
     } else {
       setPreviewData(null);
+      setHasBattleDate(false);
     }
   };
 
@@ -147,7 +156,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     if (previewData) {
       const updatedFields = {
         ...previewData.fields,
-        notes: {
+        _notes: {
           value: notes,
           rawValue: notes,
           displayValue: notes,
@@ -155,7 +164,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
           dataType: 'string' as const
         }
       };
-      
+
       const runWithNotes = {
         ...previewData,
         runType: selectedRunType,
@@ -177,7 +186,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const resetForm = (): void => {
     const newFormState = createInitialFormState();
     const newDateTime = createInitialDateTimeState();
-    
+
     setInputData(newFormState.inputData);
     setPreviewData(null);
     setSelectedRunType(newFormState.selectedRunType);
@@ -186,6 +195,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     setNotes(newFormState.notes);
     setDuplicateResult(newFormState.duplicateResult);
     setResolution(newFormState.resolution);
+    setHasBattleDate(false);
   };
 
   return {
@@ -198,7 +208,8 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     notes,
     duplicateResult,
     resolution,
-    
+    hasBattleDate,
+
     // Actions
     setInputData,
     setSelectedRunType,

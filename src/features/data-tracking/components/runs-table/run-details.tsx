@@ -9,34 +9,47 @@ const STAT_GROUPS = {
     "notes"
   ],
   "Battle Report": [
-    "gameTime", "realTime", "tier", "wave", "killedBy", "coinsEarned", "cashEarned", "interestEarned", 
+    "gameTime", "realTime", "tier", "wave", "killedBy", 
+    "coinsEarned", "coinsPerHour", "cashEarned", "interestEarned", 
     "gemBlocksTapped", "cellsEarned", "rerollShardsEarned"
   ],
   "Combat": [
-    "damageTaken", "damageTakenWall", "damageTakenWhileBerserked", "damageGainFromBerserk", "deathDefy", 
-    "lifesteal", "damageDealt", "projectilesDamage", "projectilesCount", "thornDamage", "orbDamage", 
-    "landMineDamage", "landMinesSpawned", "rendArmorDamage", "deathRayDamage", "smartMissileDamage"
+    "damageDealt","damageTaken", "damageTakenWall", "damageTakenWhileBerserked", "damageGainFromBerserk", "deathDefy", 
+    "lifesteal", "projectilesDamage", "projectilesCount", "thornDamage",
+    "orbHits","orbDamage", "enemiesHitByOrbs", 
+    "landMineDamage", "landMinesSpawned", "rendArmorDamage", "deathRayDamage", 
+    "smartMissileDamage", "innerLandMineDamage", "chainLightningDamage", 
+    "deathWaveDamage", "taggedByDeathwave" ,"swampDamage", "blackHoleDamage", 
   ],
-  "Utility": [
-    "innerLandMineDamage", "chainLightningDamage", "deathWaveDamage", "swampDamage", "blackHoleDamage", 
-    "orbHits", "wavesSkipped", "recoveryPackages"
+  "Utility": [     
+    "wavesSkipped", "recoveryPackages", 
+    "freeAttackUpgrade", "freeDefenseUpgrade", "freeUtilityUpgrade", 
+    "hpFromDeathWave", "coinsFromDeathWave", 
+    "cashFromGoldenTower", "coinsFromGoldenTower", 
+    "coinsFromBlackHole", "coinsFromBlackhole", 
+    "coinsFromSpotlight", 
+    "coinsFromOrbs", "coinsFromOrb", 
+    "coinsFromCoinUpgrade", "coinsFromCoinBonuses",
   ],
   "Enemies Destroyed": [
-    "freeAttackUpgrade", "freeDefenseUpgrade", "freeUtilityUpgrade", "hpFromDeathWave", "coinsFromDeathWave", 
-    "cashFromGoldenTower", "coinsFromGoldenTower", "coinsFromBlackhole", "coinsFromSpotlight", "coinsFromOrbs", 
-    "coinsFromCoinUpgrade", "coinsFromCoinBonuses", "totalEnemies", "basic", "fast", "tank", "ranged", "boss", 
-    "protector", "totalElites", "vampires", "rays", "scatters", "saboteurs", "commanders", "overcharges", 
-    "destroyedByOrbs", "destroyedByThorns"
+    "totalEnemies", "basic", "fast", "tank", "ranged", "boss", "protector", 
+    "totalElites", "vampires", "rays", "scatters", "saboteurs", "saboteur", 
+    "commanders","commander", "overcharges", "overcharge", 
+    "destroyedByOrbs", "destroyedByThorns", "destroyedByDeathRay", "destroyedByLandMine", "destroyedInSpotlight"
   ],
   "BOTS": [
-    "destroyedByDeathRay", "destroyedByLandMine", "flameBotDamage", "thunderBotStuns", "goldenBotCoinsEarned"
+    "flameBotDamage", "thunderBotStuns", "goldenBotCoinsEarned", "destroyedInGoldenBot"
   ],
   "GUARDIAN": [
-    "damage", "coinsStolen", "guardianCatches", "coinsFetched", "gems", "medals", "rerollShards", 
-    "cannonShards", "armorShards", "generatorShards", "coreShards", "commonModules", "rareModules"
+    "damage","summonedEnemies", 
+    "guardianCoinsStolen", "guardianCatches", 
+    "coinsStolen", "coinsFetched", 
+    "gems", "medals", 
+    "rerollShards", "cannonShards", "armorShards", "generatorShards", "coreShards", 
+    "commonModules", "rareModules"
   ],
   "__SKIP__": [
-    "date", "time"
+    "_date", "_time","_runType", "battleDate"
   ]
 };
 

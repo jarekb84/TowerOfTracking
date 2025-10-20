@@ -13,7 +13,7 @@ const BILLIONS_SCALE = new humanFormat.Scale({
   s: 1e24,
   O: 1e27,
 });
-import type { 
+import type {
   ParsedGameRun,
   RawClipboardData,
   GameRunField,
@@ -21,60 +21,110 @@ import type {
 } from '../types/game-run.types';
 import { createGameRunField, toCamelCase } from './field-utils';
 import { determineRunType } from './run-type-filter';
+import {
+  parseBattleDate,
+  constructDate,
+  formatIsoDate,
+  formatIsoTime
+} from './date-formatters';
+import {
+  INTERNAL_FIELD_NAMES,
+  isLegacyField,
+  getMigratedFieldName
+} from './internal-field-config';
+
+/**
+ * Derive _date and _time fields from battle_date
+ * Returns { date: 'yyyy-MM-dd', time: 'HH:mm:ss' }
+ */
+export function deriveDateTimeFromBattleDate(battleDate: Date): { date: string; time: string } {
+  return {
+    date: formatIsoDate(battleDate),
+    time: formatIsoTime(battleDate)
+  };
+}
+
+/**
+ * Construct Date from legacy _date and _time fields
+ * Returns Date object or null if construction fails
+ *
+ * @deprecated Use constructDate from date-formatters.ts directly
+ */
+export function constructDateFromLegacyFields(dateStr: string, timeStr: string): Date | null {
+  return constructDate(dateStr, timeStr);
+}
 
 
 // Parse tab-delimited data from clipboard
 function parseTabDelimitedData(rawData: string): RawClipboardData {
   const lines = rawData.trim().split('\n');
   const parsed: Record<string, string> = {};
-  
+
   for (const line of lines) {
     // Skip empty lines
     if (!line.trim()) continue;
-    
+
     // Check for numbered arrow format: "     1→Game Time        1d 13h 24m 51s"
     const arrowIndex = line.indexOf('→');
     if (arrowIndex !== -1) {
       // Extract everything after the arrow and number
       const afterArrow = line.substring(arrowIndex + 1);
-      
-      // Find the first occurrence of multiple spaces to separate key from value
+
+      // Check if this is a header-only row (no tab delimiter)
+      if (!afterArrow.includes('\t')) {
+        // Skip header-only rows like "Battle Report", "Combat", "Utility"
+        continue;
+      }
+
+      // Find the first occurrence of tab to separate key from value
+      const tabIndex = afterArrow.indexOf('\t');
+      if (tabIndex !== -1) {
+        const key = afterArrow.substring(0, tabIndex).trim();
+        const value = afterArrow.substring(tabIndex + 1).trim();
+
+        if (key && value) {
+          parsed[key] = value;
+        }
+        continue;
+      }
+
+      // Fallback: Find the first occurrence of multiple spaces to separate key from value
       const match = afterArrow.match(/^(\S+(?:\s+\S+)*)\s{2,}(.+)$/);
       if (match) {
         const key = match[1].trim();
         const value = match[2].trim();
-        
+
         if (key && value) {
           parsed[key] = value;
         }
         continue;
       }
     }
-    
+
     // Handle simple format: "Game Time        1d 13h 24m 51s"
     const match = line.match(/^(\S+(?:\s+\S+)*)\s{2,}(.+)$/);
     if (match) {
       const key = match[1].trim();
       const value = match[2].trim();
-      
+
       if (key && value) {
         parsed[key] = value;
       }
       continue;
     }
-    
+
     // Handle tab-delimited format as fallback
     const tabIndex = line.indexOf('\t');
     if (tabIndex !== -1) {
       const key = line.substring(0, tabIndex).trim();
       const value = line.substring(tabIndex + 1).trim();
-      
+
       if (key && value) {
         parsed[key] = value;
       }
     }
   }
-  
+
   return parsed;
 }
 
@@ -119,28 +169,73 @@ export function calculatePerHour(value: number, durationInSeconds: number): numb
   return value / hours;
 }
 
-// Main parsing function with enhanced field structure
+// Main parsing function with enhanced field structure and battle_date support
 export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGameRun {
   try {
     const clipboardData = parseTabDelimitedData(rawInput);
-    // console.log('Parsed clipboard data:', clipboardData);
-    
+
     // Generate field-based structure
     const fields: Record<string, GameRunField> = {};
-    
+
     for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
       const camelKey = toCamelCase(originalKey);
       const field = createGameRunField(originalKey, rawValue);
-      
+
       fields[camelKey] = field;
     }
-    
+
+    // Determine timestamp using hierarchy: battle_date > customTimestamp > current time
+    let timestamp: Date;
+    let hasBattleDate = false;
+
+    // Check for battle_date field (new game export format)
+    if (fields.battleDate) {
+      const battleDate = parseBattleDate(fields.battleDate.rawValue);
+      if (battleDate) {
+        timestamp = battleDate;
+        hasBattleDate = true;
+
+        // Derive _date and _time from battle_date
+        const derived = deriveDateTimeFromBattleDate(battleDate);
+
+        // Add derived internal fields (these won't be in the original game export)
+        fields[INTERNAL_FIELD_NAMES.DATE] = createGameRunField('Date', derived.date);
+        fields[INTERNAL_FIELD_NAMES.TIME] = createGameRunField('Time', derived.time);
+      } else {
+        // battle_date parsing failed, fall back to customTimestamp or current time
+        timestamp = customTimestamp || new Date();
+      }
+    } else {
+      // No battle_date - use customTimestamp or current time
+      timestamp = customTimestamp || new Date();
+    }
+
+    // Handle legacy data migration: fields without underscore prefix
+    // Migrate legacy field names to new internal field names
+    for (const [fieldName, field] of Object.entries(fields)) {
+      if (isLegacyField(fieldName)) {
+        const migratedName = getMigratedFieldName(fieldName);
+        if (migratedName) {
+          // Special handling for date/time fields with battle_date present
+          if (hasBattleDate && (fieldName === 'date' || fieldName === 'time')) {
+            // Skip migration if battle_date is present (we already derived from battle_date)
+            delete fields[fieldName];
+            continue;
+          }
+
+          // Migrate field to internal name
+          fields[migratedName] = { ...field };
+          delete fields[fieldName];
+        }
+      }
+    }
+
     // Extract key stats from field structure
     const fieldKeyStats = extractKeyStatsFromFields(fields);
-    
+
     return {
       id: crypto.randomUUID(),
-      timestamp: customTimestamp || new Date(),
+      timestamp,
       fields,
       ...fieldKeyStats,
     };
