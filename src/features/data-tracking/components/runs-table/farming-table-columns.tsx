@@ -24,7 +24,7 @@ export function createFarmingTableColumns(removeRun: (id: string) => void): Colu
       id: 'notes',
       header: '',
       cell: ({ row }) => {
-        const notes = getFieldValue<string>(row.original, 'notes');
+        const notes = getFieldValue<string>(row.original, '_notes');
         if (!notes || notes.trim() === '') {
           return null;
         }

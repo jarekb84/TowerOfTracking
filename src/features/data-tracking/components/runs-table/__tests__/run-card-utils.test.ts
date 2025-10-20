@@ -38,11 +38,11 @@ const createMockRun = (overrides: Partial<ParsedGameRun> = {}): ParsedGameRun =>
   realTime: 7200, // 2 hours
   runType: 'farm',
   fields: {
-    notes: {
-      value: overrides.fields?.notes?.value || 'Test notes',
+    _notes: {
+      value: overrides.fields?._notes?.value || 'Test notes',
       rawValue: 'Test notes',
       displayValue: 'Test notes',
-      originalKey: 'notes',
+      originalKey: '_notes',
       dataType: 'string'
     },
     killedBy: {
@@ -82,15 +82,15 @@ describe('extractCardHeaderData', () => {
   });
 
   it('should handle whitespace-only notes', () => {
-    const run = createMockRun({ fields: { notes: {
+    const run = createMockRun({ fields: { _notes: {
       value: '   ',
       rawValue: '   ',
       displayValue: '   ',
-      originalKey: 'notes',
+      originalKey: '_notes',
       dataType: 'string'
     }}});
     const result = extractCardHeaderData(run);
-    
+
     expect(result.hasNotes).toBe(false);
   });
 });

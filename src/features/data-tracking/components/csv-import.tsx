@@ -367,7 +367,7 @@ Column headers will be automatically converted to camelCase and matched against 
                           <div>Coins: {formatNumber(run.coinsEarned)}</div>
                           {run.cellsEarned > 0 && <div>Cells: {formatNumber(run.cellsEarned)}</div>}
                           {getFieldValue<string>(run, 'killedBy') && <div>Killed By: {getFieldValue<string>(run, 'killedBy')}</div>}
-                          {getFieldValue<string>(run, 'notes') && <div>Notes: {getFieldValue<string>(run, 'notes')}</div>}
+                          {getFieldValue<string>(run, '_notes') && <div>Notes: {getFieldValue<string>(run, '_notes')}</div>}
                         </div>
                       </div>
                     ))}

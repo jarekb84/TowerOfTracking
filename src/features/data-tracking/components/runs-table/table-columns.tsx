@@ -25,7 +25,7 @@ export function createRunsTableColumns(removeRun: (id: string) => void) {
       id: 'notes',
       header: '',
       cell: ({ row }) => {
-        const notes = getFieldValue<string>(row.original, 'notes');
+        const notes = getFieldValue<string>(row.original, '_notes');
         if (!notes || notes.trim() === '') {
           return null;
         }

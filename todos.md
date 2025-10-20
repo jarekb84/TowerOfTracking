@@ -9,7 +9,6 @@
 # Features
 
 ## For v0.1.0
-- Add discord link
 - Add versioning
 - Add large number handling (q, Q,s,S,O,N,D)
 

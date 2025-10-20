@@ -9,12 +9,12 @@ export function extractCardHeaderData(run: ParsedGameRun) {
   const shortDuration = run.realTime ? formatDuration(run.realTime).replace(/(\d+)s?$/, '') : '-';
   const dateStr = run.timestamp.toLocaleDateString();
   const timeStr = run.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  
+
   return {
     shortDuration,
     dateStr,
     timeStr,
-    hasNotes: !!getFieldValue<string>(run, 'notes')?.trim(),
+    hasNotes: !!getFieldValue<string>(run, '_notes')?.trim(),
   };
 }
 

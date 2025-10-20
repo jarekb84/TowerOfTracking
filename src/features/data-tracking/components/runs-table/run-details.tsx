@@ -6,7 +6,7 @@ interface RunDetailsProps {
 
 const STAT_GROUPS = {
   "Notes": [
-    "notes"
+    "_notes"
   ],
   "Battle Report": [
     "gameTime", "realTime", "tier", "wave", "killedBy", 
