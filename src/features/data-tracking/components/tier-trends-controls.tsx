@@ -3,6 +3,8 @@ import { RunTypeSelector } from './run-type-selector'
 import type { RunTypeFilter } from '../utils/run-type-filter'
 import type { TierTrendsFilters } from '../types/game-run.types'
 import { TrendsDuration, TrendsAggregation } from '../types/game-run.types'
+import { getDefaultAggregationType, getQuantityLabel } from '../utils/tier-trends'
+import { getAggregationOptions } from '../logic/tier-trends-ui-options'
 
 interface TierTrendsControlsProps {
   runTypeFilter: RunTypeFilter
@@ -68,9 +70,7 @@ export function TierTrendsControls({
         </FormControl>
 
         {/* Quantity Selector */}
-        <FormControl
-          label={`Last ${filters.duration === TrendsDuration.PER_RUN ? 'runs' : filters.duration === TrendsDuration.DAILY ? 'days' : filters.duration === TrendsDuration.WEEKLY ? 'weeks' : 'months'}`}
-        >
+        <FormControl label={`Last ${getQuantityLabel(filters.duration)}`}>
           <SelectionButtonGroup<number>
             options={[2, 3, 4, 5, 6, 7].map(count => ({ value: count, label: count.toString() }))}
             selectedValue={filters.quantity}
@@ -80,23 +80,16 @@ export function TierTrendsControls({
           />
         </FormControl>
 
-        {/* Aggregation Selector - Only show when not per-run */}
-        {filters.duration !== TrendsDuration.PER_RUN && (
-          <FormControl label="Aggregation">
-            <SelectionButtonGroup<TrendsAggregation>
-              options={[
-                { value: TrendsAggregation.SUM, label: 'Sum' },
-                { value: TrendsAggregation.AVERAGE, label: 'Avg' },
-                { value: TrendsAggregation.MIN, label: 'Min' },
-                { value: TrendsAggregation.MAX, label: 'Max' }
-              ]}
-              selectedValue={filters.aggregationType || TrendsAggregation.SUM}
-              onSelectionChange={(aggregationType) => onFiltersChange({ ...filters, aggregationType })}
-              size="sm"
-              fullWidthOnMobile={false}
-            />
-          </FormControl>
-        )}
+        {/* Aggregation Selector */}
+        <FormControl label="Aggregation">
+          <SelectionButtonGroup<TrendsAggregation>
+            options={getAggregationOptions(filters.duration)}
+            selectedValue={filters.aggregationType || getDefaultAggregationType(filters.duration)}
+            onSelectionChange={(aggregationType) => onFiltersChange({ ...filters, aggregationType })}
+            size="sm"
+            fullWidthOnMobile={false}
+          />
+        </FormControl>
       </div>
 
       {/* Row 3: Change Threshold */}

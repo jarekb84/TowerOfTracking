@@ -18,6 +18,11 @@ import { TrendsDuration, TrendsAggregation } from '../types/game-run.types'
  * - When switching FROM per-run TO any other duration (daily/weekly/monthly), aggregationType defaults to sum
  * - When switching between non-per-run durations, aggregationType is preserved
  * - When switching back TO per-run, aggregationType is preserved but not used
+ *
+ * Hourly Rate Aggregation:
+ * - For PER_RUN mode: Shows "Raw Value" (AVERAGE) and "Hourly" (HOURLY) options
+ * - For time-based modes: Adds "Hourly" to existing aggregation options (Sum, Avg, Min, Max)
+ * - Hourly rate calculation: total_value / total_duration_hours
  */
 
 describe('TierTrendsAnalysis - Default Settings Documentation', () => {
@@ -67,5 +72,34 @@ describe('TierTrendsAnalysis - Default Settings Documentation', () => {
     expect(perRunToWeekly.to.aggregationType).toBe(TrendsAggregation.SUM)
     expect(perRunToMonthly.to.aggregationType).toBe(TrendsAggregation.SUM)
     expect(dailyToWeekly.to.aggregationType).toBe(TrendsAggregation.MAX)
+  })
+
+  it('documents hourly rate aggregation options', () => {
+    // Per-run mode shows only Raw Value and Hourly options
+    const perRunOptions = [
+      TrendsAggregation.AVERAGE, // "Raw Value"
+      TrendsAggregation.HOURLY    // "Hourly"
+    ]
+
+    // Time-based modes show all aggregation types including Hourly
+    const timeBasedOptions = [
+      TrendsAggregation.SUM,
+      TrendsAggregation.AVERAGE,
+      TrendsAggregation.MIN,
+      TrendsAggregation.MAX,
+      TrendsAggregation.HOURLY
+    ]
+
+    // Verify options are documented
+    expect(perRunOptions).toContain(TrendsAggregation.AVERAGE)
+    expect(perRunOptions).toContain(TrendsAggregation.HOURLY)
+    expect(perRunOptions).toHaveLength(2)
+
+    expect(timeBasedOptions).toContain(TrendsAggregation.SUM)
+    expect(timeBasedOptions).toContain(TrendsAggregation.AVERAGE)
+    expect(timeBasedOptions).toContain(TrendsAggregation.MIN)
+    expect(timeBasedOptions).toContain(TrendsAggregation.MAX)
+    expect(timeBasedOptions).toContain(TrendsAggregation.HOURLY)
+    expect(timeBasedOptions).toHaveLength(5)
   })
 })

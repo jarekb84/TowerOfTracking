@@ -102,7 +102,8 @@ export enum TrendsAggregation {
   SUM = 'sum',
   AVERAGE = 'average',
   MIN = 'min',
-  MAX = 'max'
+  MAX = 'max',
+  HOURLY = 'hourly'
 }
 
 export interface TierTrendsFilters {

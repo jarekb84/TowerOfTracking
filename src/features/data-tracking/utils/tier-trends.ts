@@ -8,6 +8,58 @@ import type {
 import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
 import { createEnhancedRunHeader } from './run-header-formatting';
+import {
+  sumAggregation,
+  averageAggregation,
+  minAggregation,
+  maxAggregation,
+  hourlyAggregation
+} from '../logic/aggregation-strategies';
+import {
+  calculateTotalDurationHours,
+  formatHoursSubheader
+} from '../logic/hourly-rate-calculations';
+
+/**
+ * Get the default aggregation type for a given duration mode
+ *
+ * @param duration - The selected duration mode
+ * @returns AVERAGE for per-run mode, SUM for all time-based modes
+ *
+ * @remarks
+ * Per-run mode defaults to AVERAGE to show actual raw values.
+ * Time-based modes default to SUM to show total accumulation over the period.
+ */
+export function getDefaultAggregationType(duration: TrendsDuration): TrendsAggregation {
+  return duration === TrendsDuration.PER_RUN
+    ? TrendsAggregation.AVERAGE
+    : TrendsAggregation.SUM;
+}
+
+/**
+ * Get the quantity label for a given duration mode
+ *
+ * @param duration - The selected duration mode
+ * @returns User-friendly label: "runs", "days", "weeks", or "months"
+ *
+ * @example
+ * getQuantityLabel(TrendsDuration.PER_RUN); // Returns "runs"
+ * getQuantityLabel(TrendsDuration.DAILY);   // Returns "days"
+ */
+export function getQuantityLabel(duration: TrendsDuration): string {
+  switch (duration) {
+    case TrendsDuration.PER_RUN:
+      return 'runs';
+    case TrendsDuration.DAILY:
+      return 'days';
+    case TrendsDuration.WEEKLY:
+      return 'weeks';
+    case TrendsDuration.MONTHLY:
+      return 'months';
+    default:
+      return 'periods';
+  }
+}
 
 interface PeriodData {
   label: string;
@@ -54,11 +106,21 @@ export function calculateTierTrends(
   const allNumericalFields = getNumericalFieldsFromPeriods(periodsData);
   
   // Calculate comparison columns
-  const comparisonColumns = periodsData.map(period => ({
-    header: period.label,
-    subHeader: period.subLabel,
-    values: aggregatePeriodValues(period.runs, allNumericalFields, filters.aggregationType)
-  }));
+  const comparisonColumns = periodsData.map(period => {
+    // For hourly aggregation on time-based periods, add total hours to subheader
+    let subHeader = period.subLabel;
+    if (filters.aggregationType === TrendsAggregation.HOURLY &&
+        filters.duration !== TrendsDuration.PER_RUN) {
+      const totalHours = calculateTotalDurationHours(period.runs);
+      subHeader = formatHoursSubheader(totalHours);
+    }
+
+    return {
+      header: period.label,
+      subHeader,
+      values: aggregatePeriodValues(period.runs, allNumericalFields, filters.aggregationType)
+    };
+  });
 
   // Calculate trends for each field across periods
   const fieldTrends = allNumericalFields.map(fieldName => 
@@ -322,46 +384,51 @@ function getNumericalFieldsFromPeriods(periods: PeriodData[]): string[] {
  * Aggregate values for a period using the specified aggregation type
  */
 function aggregatePeriodValues(
-  runs: ParsedGameRun[], 
-  fieldNames: string[], 
+  runs: ParsedGameRun[],
+  fieldNames: string[],
   aggregationType?: TierTrendsFilters['aggregationType']
 ): Record<string, number> {
   const result: Record<string, number> = {};
-  
+
   for (const fieldName of fieldNames) {
     const values: number[] = [];
-    
+
     for (const run of runs) {
       const field = run.fields[fieldName];
       if (field && (field.dataType === 'number' || field.dataType === 'duration') && typeof field.value === 'number') {
         values.push(field.value);
       }
     }
-    
-    if (values.length === 0) {
-      result[fieldName] = 0;
-      continue;
-    }
-    
-    switch (aggregationType) {
-      case TrendsAggregation.SUM:
-        result[fieldName] = values.reduce((sum, val) => sum + val, 0);
-        break;
-      case TrendsAggregation.MIN:
-        result[fieldName] = Math.min(...values);
-        break;
-      case TrendsAggregation.MAX:
-        result[fieldName] = Math.max(...values);
-        break;
-      case TrendsAggregation.AVERAGE:
-      default:
-        result[fieldName] = values.reduce((sum, val) => sum + val, 0) / values.length;
-        break;
-    }
-    
+
+    result[fieldName] = applyAggregationStrategy(values, runs, aggregationType);
   }
-  
+
   return result;
+}
+
+/**
+ * Apply the appropriate aggregation strategy to values
+ */
+function applyAggregationStrategy(
+  values: number[],
+  runs: ParsedGameRun[],
+  aggregationType?: TierTrendsFilters['aggregationType']
+): number {
+  if (values.length === 0) return 0;
+
+  switch (aggregationType) {
+    case TrendsAggregation.SUM:
+      return sumAggregation(values);
+    case TrendsAggregation.MIN:
+      return minAggregation(values);
+    case TrendsAggregation.MAX:
+      return maxAggregation(values);
+    case TrendsAggregation.HOURLY:
+      return hourlyAggregation(values, runs);
+    case TrendsAggregation.AVERAGE:
+    default:
+      return averageAggregation(values);
+  }
 }
 
 /**

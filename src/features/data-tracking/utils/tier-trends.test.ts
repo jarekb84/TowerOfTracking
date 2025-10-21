@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTierTrends, getAvailableTiersForTrends } from './tier-trends';
+import { calculateTierTrends, getAvailableTiersForTrends, getDefaultAggregationType, getQuantityLabel } from './tier-trends';
 import type { ParsedGameRun, TierTrendsFilters, GameRunField } from '../types/game-run.types';
 import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types';
 
@@ -135,7 +135,7 @@ describe('tier-trends', () => {
 
         expect(result.periodCount).toBe(3);
         expect(result.comparisonColumns).toHaveLength(3);
-        
+
         // Check that the first column has enhanced header format (tier, wave, duration, date)
         const firstColumn = result.comparisonColumns[0];
         const headerLines = firstColumn.header.split('\n');
@@ -144,7 +144,7 @@ describe('tier-trends', () => {
         expect(headerLines[1]).toMatch(/\d+min|\d+hr \d+min/); // duration format
         expect(headerLines[2]).toMatch(/\d+\/\d+ \d+:\d+ [AP]M/); // date format
         expect(firstColumn.subHeader).toBeUndefined(); // subHeader not used for enhanced format
-        
+
         // Should include both number and duration fields
         const fieldNames = result.fieldTrends.map(t => t.fieldName);
         expect(fieldNames).toContain('coinsEarned');
@@ -164,13 +164,56 @@ describe('tier-trends', () => {
         const result = calculateTierTrends(runs, filters, RunType.FARM);
 
         expect(result.comparisonColumns).toHaveLength(2);
-        
+
         // Check that values match expected run data
         const coinsCol1 = result.comparisonColumns[0].values.coinsEarned;
         const coinsCol2 = result.comparisonColumns[1].values.coinsEarned;
-        
+
         expect(coinsCol1).toBe(1100); // Run 2: 1000 * 1.1
         expect(coinsCol2).toBe(1000); // Run 1: 1000 * 1.0
+      });
+
+      it('should calculate hourly rates for per-run mode', () => {
+        const run1Time = new Date('2024-01-01T00:00:00Z');
+        const run2Time = new Date('2024-01-01T01:00:00Z');
+        const runs = [
+          createMockRun({
+            timestamp: run2Time,
+            coinsEarned: 10_000_000_000, // 10B
+            realTime: 36000, // 10 hours
+            fields: {
+              coinsEarned: createMockField(10_000_000_000, 'number', 'Coins Earned'),
+              realTime: createMockField(36000, 'duration', 'Real Time'),
+              tier: createMockField(String(1), 'number', 'Tier'),
+            },
+          }, run2Time, 1),
+          createMockRun({
+            timestamp: run1Time,
+            coinsEarned: 5_000_000_000, // 5B
+            realTime: 18000, // 5 hours
+            fields: {
+              coinsEarned: createMockField(5_000_000_000, 'number', 'Coins Earned'),
+              realTime: createMockField(18000, 'duration', 'Real Time'),
+              tier: createMockField(String(1), 'number', 'Tier'),
+            },
+          }, run1Time, 1),
+        ];
+
+        const filters: TierTrendsFilters = {
+          tier: 1,
+          changeThresholdPercent: 0,
+          duration: TrendsDuration.PER_RUN,
+          quantity: 2,
+          aggregationType: TrendsAggregation.HOURLY,
+        };
+
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
+
+        // Run 1 (most recent): 10B coins / 10 hours = 1B/hour
+        expect(result.comparisonColumns[0].values.coinsEarned).toBe(1_000_000_000);
+
+        // Run 2 (older): 5B coins / 5 hours = 1B/hour
+        expect(result.comparisonColumns[1].values.coinsEarned).toBe(1_000_000_000);
       });
     });
 
@@ -285,6 +328,61 @@ describe('tier-trends', () => {
         const maxResult = calculateTierTrends(runs, maxFilters, RunType.FARM);
         expect(maxResult.comparisonColumns[0].values.coinsEarned).toBe(300); // Day2: max(300) = 300
         expect(maxResult.comparisonColumns[1].values.coinsEarned).toBe(200); // Day1: max(100,200) = 200
+      });
+
+      it('should apply hourly rate aggregation correctly', () => {
+        const day1 = new Date('2024-01-01T00:00:00Z');
+        const day2 = new Date('2024-01-02T00:00:00Z');
+        const runs = [
+          // Day 1: 2 runs with 10 hours each
+          createMockRun({
+            timestamp: day1,
+            coinsEarned: 9_000_000_000, // 9B
+            realTime: 36000, // 10 hours
+            fields: {
+              coinsEarned: createMockField(9_000_000_000, 'number', 'Coins Earned'),
+              realTime: createMockField(36000, 'duration', 'Real Time'),
+              tier: createMockField(String(1), 'number', 'Tier'),
+            },
+          }, day1, 1),
+          createMockRun({
+            timestamp: day1,
+            coinsEarned: 10_000_000_000, // 10B
+            realTime: 36000, // 10 hours
+            fields: {
+              coinsEarned: createMockField(10_000_000_000, 'number', 'Coins Earned'),
+              realTime: createMockField(36000, 'duration', 'Real Time'),
+              tier: createMockField(String(1), 'number', 'Tier'),
+            },
+          }, day1, 1),
+          // Day 2: 1 run
+          createMockRun({
+            timestamp: day2,
+            coinsEarned: 5_000_000_000, // 5B
+            realTime: 18000, // 5 hours
+            fields: {
+              coinsEarned: createMockField(5_000_000_000, 'number', 'Coins Earned'),
+              realTime: createMockField(18000, 'duration', 'Real Time'),
+              tier: createMockField(String(1), 'number', 'Tier'),
+            },
+          }, day2, 1),
+        ];
+
+        const hourlyFilters: TierTrendsFilters = {
+          tier: 1,
+          changeThresholdPercent: 0,
+          duration: TrendsDuration.DAILY,
+          quantity: 2,
+          aggregationType: TrendsAggregation.HOURLY,
+        };
+
+        const result = calculateTierTrends(runs, hourlyFilters, RunType.FARM);
+
+        // Day 1: Total coins = 19B, Total duration = 20 hours, Hourly rate = 950M/hour
+        expect(result.comparisonColumns[1].values.coinsEarned).toBe(950_000_000);
+
+        // Day 2: Total coins = 5B, Total duration = 5 hours, Hourly rate = 1B/hour
+        expect(result.comparisonColumns[0].values.coinsEarned).toBe(1_000_000_000);
       });
     });
 
@@ -440,6 +538,50 @@ describe('tier-trends', () => {
         expect(coinsField!.change.percent).toBe(100); // 0 to 100 = 100% increase
         expect(coinsField!.change.direction).toBe('up');
       });
+    });
+  });
+
+  describe('getDefaultAggregationType', () => {
+    it('should return AVERAGE for per-run duration', () => {
+      const result = getDefaultAggregationType(TrendsDuration.PER_RUN);
+      expect(result).toBe(TrendsAggregation.AVERAGE);
+    });
+
+    it('should return SUM for daily duration', () => {
+      const result = getDefaultAggregationType(TrendsDuration.DAILY);
+      expect(result).toBe(TrendsAggregation.SUM);
+    });
+
+    it('should return SUM for weekly duration', () => {
+      const result = getDefaultAggregationType(TrendsDuration.WEEKLY);
+      expect(result).toBe(TrendsAggregation.SUM);
+    });
+
+    it('should return SUM for monthly duration', () => {
+      const result = getDefaultAggregationType(TrendsDuration.MONTHLY);
+      expect(result).toBe(TrendsAggregation.SUM);
+    });
+  });
+
+  describe('getQuantityLabel', () => {
+    it('should return "runs" for per-run duration', () => {
+      const result = getQuantityLabel(TrendsDuration.PER_RUN);
+      expect(result).toBe('runs');
+    });
+
+    it('should return "days" for daily duration', () => {
+      const result = getQuantityLabel(TrendsDuration.DAILY);
+      expect(result).toBe('days');
+    });
+
+    it('should return "weeks" for weekly duration', () => {
+      const result = getQuantityLabel(TrendsDuration.WEEKLY);
+      expect(result).toBe('weeks');
+    });
+
+    it('should return "months" for monthly duration', () => {
+      const result = getQuantityLabel(TrendsDuration.MONTHLY);
+      expect(result).toBe('months');
     });
   });
 });

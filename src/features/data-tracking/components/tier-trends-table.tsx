@@ -1,10 +1,11 @@
-import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
+import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '../types/game-run.types'
 import { TierTrendsMobileCard } from './tier-trends-mobile-card'
 import { useViewport } from '@/shared/hooks/use-viewport'
 import { formatNumber } from '../utils/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../utils/trend-indicators'
 import { parseColumnHeader, getHeaderLineClasses } from './tier-trends-table/column-header-renderer'
+import { formatTrendValue } from '../logic/trend-value-formatting'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]
@@ -16,6 +17,7 @@ interface TierTrendsTableProps {
   isSearchActive?: boolean
   hasMatches?: boolean
   changeThreshold?: number
+  aggregationType?: TrendsAggregation
 }
 
 export function TierTrendsTable({
@@ -27,7 +29,8 @@ export function TierTrendsTable({
   searchTerm,
   isSearchActive,
   hasMatches,
-  changeThreshold = 0
+  changeThreshold = 0,
+  aggregationType
 }: TierTrendsTableProps) {
   const viewportSize = useViewport({ breakpoint: 'md' });
   
@@ -111,11 +114,12 @@ export function TierTrendsTable({
               </thead>
               <tbody>
                 {trends.map((trend, index) => (
-                  <SimpleTrendRow 
+                  <SimpleTrendRow
                     key={trend.fieldName}
-                    trend={trend} 
+                    trend={trend}
                     index={index}
                     comparisonColumns={comparisonColumns}
+                    aggregationType={aggregationType}
                   />
                 ))}
               </tbody>
@@ -127,10 +131,11 @@ export function TierTrendsTable({
         <div className="px-2 py-4 space-y-4 max-w-none">
           <div className="space-y-4">
             {trends.map((trend) => (
-              <TierTrendsMobileCard 
+              <TierTrendsMobileCard
                 key={trend.fieldName}
                 trend={trend}
                 comparisonColumns={comparisonColumns}
+                aggregationType={aggregationType}
               />
             ))}
           </div>
@@ -144,9 +149,10 @@ interface SimpleTrendRowProps {
   trend: FieldTrendData;
   index: number;
   comparisonColumns: ComparisonColumn[];
+  aggregationType?: TrendsAggregation;
 }
 
-function SimpleTrendRow({ trend, index, comparisonColumns }: SimpleTrendRowProps) {
+function SimpleTrendRow({ trend, index, comparisonColumns, aggregationType }: SimpleTrendRowProps) {
   const isEven = index % 2 === 0;
   const rowBg = isEven 
     ? 'bg-gradient-to-r from-muted/15 via-muted/8 to-muted/15' 
@@ -197,7 +203,7 @@ function SimpleTrendRow({ trend, index, comparisonColumns }: SimpleTrendRowProps
       {comparisonColumns.map((column, index) => (
         <td key={index} className="px-3 py-4 text-center">
           <span className="font-mono text-sm text-foreground font-medium">
-            {formatNumber(column.values[trend.fieldName] || 0)}
+            {formatTrendValue(column.values[trend.fieldName] || 0, aggregationType)}
           </span>
         </td>
       ))}
