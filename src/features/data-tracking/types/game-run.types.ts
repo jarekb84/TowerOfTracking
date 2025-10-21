@@ -84,12 +84,33 @@ export interface FieldMappingReport {
 export type CsvDelimiter = 'tab' | 'comma' | 'semicolon' | 'custom';
 
 // Tier Trends Analysis Types
+
+/**
+ * Duration options for tier trends analysis
+ */
+export enum TrendsDuration {
+  PER_RUN = 'per-run',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly'
+}
+
+/**
+ * Aggregation methods for combining run data within time periods
+ */
+export enum TrendsAggregation {
+  SUM = 'sum',
+  AVERAGE = 'average',
+  MIN = 'min',
+  MAX = 'max'
+}
+
 export interface TierTrendsFilters {
   tier: number;
   changeThresholdPercent: number; // Only show fields with changes above this threshold
-  duration: 'per-run' | 'daily' | 'weekly' | 'monthly'; // Time span for analysis
+  duration: TrendsDuration; // Time span for analysis
   quantity: number; // Number of periods to analyze (2-7)
-  aggregationType?: 'sum' | 'min' | 'max' | 'average'; // Only used when duration is not 'per-run'
+  aggregationType?: TrendsAggregation; // Only used when duration is not 'per-run'
 }
 
 export interface FieldTrendData {

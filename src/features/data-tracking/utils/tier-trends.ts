@@ -5,7 +5,7 @@ import type {
   FieldTrendData,
   GameRunField,
 } from '../types/game-run.types';
-import { RunType } from '../types/game-run.types';
+import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
 import { createEnhancedRunHeader } from './run-header-formatting';
 
@@ -195,11 +195,11 @@ function groupRunsByPeriod(
   duration: TierTrendsFilters['duration'], 
   quantity: number
 ): PeriodData[] {
-  if (duration === 'per-run') {
+  if (duration === TrendsDuration.PER_RUN) {
     return runs.slice(0, quantity).map((run) => {
       // Use enhanced headers for per-run analysis
       const headerData = createEnhancedRunHeader(run);
-      
+
       return {
         label: headerData.header,
         subLabel: headerData.subHeader,
@@ -239,58 +239,58 @@ function getPeriodBounds(now: Date, duration: TierTrendsFilters['duration'], per
   const currentDate = new Date(now);
   
   switch (duration) {
-    case 'daily': {
+    case TrendsDuration.DAILY: {
       const targetDate = new Date(currentDate);
       targetDate.setDate(currentDate.getDate() - periodOffset);
-      
+
       const startDate = new Date(targetDate);
       startDate.setHours(0, 0, 0, 0);
-      
+
       const endDate = new Date(targetDate);
       endDate.setHours(23, 59, 59, 999);
-      
+
       return {
         startDate,
         endDate,
         label: targetDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
       };
     }
-    
-    case 'weekly': {
+
+    case TrendsDuration.WEEKLY: {
       const targetDate = new Date(currentDate);
       targetDate.setDate(currentDate.getDate() - (periodOffset * 7));
-      
+
       // Get start of week (Sunday)
       const startDate = new Date(targetDate);
       startDate.setDate(targetDate.getDate() - targetDate.getDay());
       startDate.setHours(0, 0, 0, 0);
-      
+
       // Get end of week (Saturday)
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
       endDate.setHours(23, 59, 59, 999);
-      
+
       return {
         startDate,
         endDate,
         label: `Week of ${startDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}`
       };
     }
-    
-    case 'monthly': {
+
+    case TrendsDuration.MONTHLY: {
       const targetDate = new Date(currentDate);
       targetDate.setMonth(currentDate.getMonth() - periodOffset);
-      
+
       const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
       const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0, 23, 59, 59, 999);
-      
+
       return {
         startDate,
         endDate,
         label: targetDate.toLocaleDateString('en-US', { month: 'short' })
       };
     }
-    
+
     default:
       throw new Error(`Unsupported duration: ${duration}`);
   }
@@ -344,16 +344,16 @@ function aggregatePeriodValues(
     }
     
     switch (aggregationType) {
-      case 'sum':
+      case TrendsAggregation.SUM:
         result[fieldName] = values.reduce((sum, val) => sum + val, 0);
         break;
-      case 'min':
+      case TrendsAggregation.MIN:
         result[fieldName] = Math.min(...values);
         break;
-      case 'max':
+      case TrendsAggregation.MAX:
         result[fieldName] = Math.max(...values);
         break;
-      case 'average':
+      case TrendsAggregation.AVERAGE:
       default:
         result[fieldName] = values.reduce((sum, val) => sum + val, 0) / values.length;
         break;

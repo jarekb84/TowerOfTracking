@@ -4,7 +4,7 @@ import {
   calculateTierTrends,
   getAvailableTiersForTrends
 } from '../utils/tier-trends'
-import { RunType } from '../types/game-run.types'
+import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types'
 import { RunTypeFilter } from '../utils/run-type-filter'
 import { TierTrendsSummary } from './tier-trends-summary'
 import { TierTrendsFilters as TierTrendsFiltersComponent } from './tier-trends-filters'
@@ -24,11 +24,11 @@ export function TierTrendsAnalysis() {
   const availableTiers = useMemo(() => getAvailableTiersForTrends(runs, runTypeFilter), [runs, runTypeFilter])
   
   const [filters, setFilters] = useState<TierTrendsFilters>({
-    tier: 1, // Will be updated by useEffect
-    changeThresholdPercent: 5,
-    duration: 'per-run',
-    quantity: 3,
-    aggregationType: 'average'
+    tier: 0, // 0 = All tiers
+    changeThresholdPercent: 0, // 0 = All (no threshold filtering)
+    duration: TrendsDuration.PER_RUN,
+    quantity: 4, // Default to 4 periods for better trending visibility
+    aggregationType: TrendsAggregation.AVERAGE
   })
   
   // Auto-select first available tier when run type changes
@@ -124,7 +124,7 @@ export function TierTrendsAnalysis() {
             <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
 {filters.tier === 0 ? 'All Tiers' : `Tier ${filters.tier}`} Trends Analysis
             <span className="text-sm font-normal text-slate-400 ml-auto">
-              Last {trendsData.periodCount} {filters.duration === 'per-run' ? 'Runs' : filters.duration === 'daily' ? 'Days' : filters.duration === 'weekly' ? 'Weeks' : 'Months'} - {runTypeFilter === RunType.FARM ? 'Farm' : runTypeFilter === RunType.TOURNAMENT ? 'Tournament' : runTypeFilter === RunType.MILESTONE ? 'Milestone' : ''} Mode
+              Last {trendsData.periodCount} {filters.duration === TrendsDuration.PER_RUN ? 'Runs' : filters.duration === TrendsDuration.DAILY ? 'Days' : filters.duration === TrendsDuration.WEEKLY ? 'Weeks' : 'Months'} - {runTypeFilter === RunType.FARM ? 'Farm' : runTypeFilter === RunType.TOURNAMENT ? 'Tournament' : runTypeFilter === RunType.MILESTONE ? 'Milestone' : ''} Mode
             </span>
           </h3>
           <p className="text-slate-400 text-sm">

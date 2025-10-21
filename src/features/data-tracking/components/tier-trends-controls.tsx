@@ -2,6 +2,7 @@ import { FormControl, SelectionButtonGroup } from '../../../components/ui'
 import { RunTypeSelector } from './run-type-selector'
 import type { RunTypeFilter } from '../utils/run-type-filter'
 import type { TierTrendsFilters } from '../types/game-run.types'
+import { TrendsDuration, TrendsAggregation } from '../types/game-run.types'
 
 interface TierTrendsControlsProps {
   runTypeFilter: RunTypeFilter
@@ -44,23 +45,31 @@ export function TierTrendsControls({
       <div className="flex flex-wrap gap-4 items-center">
         {/* Duration Selector */}
         <FormControl label="Duration">
-          <SelectionButtonGroup<TierTrendsFilters['duration']>
+          <SelectionButtonGroup<TrendsDuration>
             options={[
-              { value: 'per-run', label: 'Per Run' },
-              { value: 'daily', label: 'Daily' },
-              { value: 'weekly', label: 'Weekly' },
-              { value: 'monthly', label: 'Monthly' }
+              { value: TrendsDuration.PER_RUN, label: 'Per Run' },
+              { value: TrendsDuration.DAILY, label: 'Daily' },
+              { value: TrendsDuration.WEEKLY, label: 'Weekly' },
+              { value: TrendsDuration.MONTHLY, label: 'Monthly' }
             ]}
             selectedValue={filters.duration}
-            onSelectionChange={(duration) => onFiltersChange({ ...filters, duration })}
+            onSelectionChange={(duration) => {
+              // When switching from per-run to aggregated duration, default to sum
+              const shouldDefaultToSum = filters.duration === TrendsDuration.PER_RUN && duration !== TrendsDuration.PER_RUN
+              onFiltersChange({
+                ...filters,
+                duration,
+                aggregationType: shouldDefaultToSum ? TrendsAggregation.SUM : filters.aggregationType
+              })
+            }}
             size="sm"
             fullWidthOnMobile={false}
           />
         </FormControl>
 
         {/* Quantity Selector */}
-        <FormControl 
-          label={`Last ${filters.duration === 'per-run' ? 'runs' : filters.duration === 'daily' ? 'days' : filters.duration === 'weekly' ? 'weeks' : 'months'}`}
+        <FormControl
+          label={`Last ${filters.duration === TrendsDuration.PER_RUN ? 'runs' : filters.duration === TrendsDuration.DAILY ? 'days' : filters.duration === TrendsDuration.WEEKLY ? 'weeks' : 'months'}`}
         >
           <SelectionButtonGroup<number>
             options={[2, 3, 4, 5, 6, 7].map(count => ({ value: count, label: count.toString() }))}
@@ -72,16 +81,16 @@ export function TierTrendsControls({
         </FormControl>
 
         {/* Aggregation Selector - Only show when not per-run */}
-        {filters.duration !== 'per-run' && (
+        {filters.duration !== TrendsDuration.PER_RUN && (
           <FormControl label="Aggregation">
-            <SelectionButtonGroup<NonNullable<TierTrendsFilters['aggregationType']>>
+            <SelectionButtonGroup<TrendsAggregation>
               options={[
-                { value: 'sum', label: 'Sum' },
-                { value: 'average', label: 'Avg' },
-                { value: 'min', label: 'Min' },
-                { value: 'max', label: 'Max' }
+                { value: TrendsAggregation.SUM, label: 'Sum' },
+                { value: TrendsAggregation.AVERAGE, label: 'Avg' },
+                { value: TrendsAggregation.MIN, label: 'Min' },
+                { value: TrendsAggregation.MAX, label: 'Max' }
               ]}
-              selectedValue={filters.aggregationType || 'sum'}
+              selectedValue={filters.aggregationType || TrendsAggregation.SUM}
               onSelectionChange={(aggregationType) => onFiltersChange({ ...filters, aggregationType })}
               size="sm"
               fullWidthOnMobile={false}
