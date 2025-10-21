@@ -6,9 +6,9 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
     label: 'Game Runs',
     items: [
       {
-        id: 'farming-runs',
-        label: 'Farming Runs',
-        href: '/runs?type=farming',
+        id: 'farm-runs',
+        label: 'Farm Runs',
+        href: '/runs?type=farm',
         icon: 'farming'
       },
       {

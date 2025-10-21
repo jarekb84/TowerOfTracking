@@ -18,7 +18,7 @@ function CoinsChartPage() {
             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600/20 to-green-600/20 blur-lg -z-10 rounded-lg"></div>
           </div>
           <p className="text-muted-foreground text-lg">
-            Track your coin earnings from farming runs over different time periods
+            Track your coin earnings from farm runs over different time periods
           </p>
         </div>
 
@@ -28,10 +28,10 @@ function CoinsChartPage() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="p-8 w-full">
-              <TimeSeriesChart 
+              <TimeSeriesChart
                 metric="coins"
                 title="Coins Earned"
-                subtitle="Track your coin earnings from farming runs over different time periods"
+                subtitle="Track your coin earnings from farm runs over different time periods"
                 defaultPeriod="hourly"
                 showFarmingOnly={true}
               />

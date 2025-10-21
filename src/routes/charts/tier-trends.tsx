@@ -18,7 +18,7 @@ function TierTrendsPage() {
             <div className="absolute -inset-1 bg-gradient-to-r from-orange-600/20 to-yellow-600/20 blur-lg -z-10 rounded-lg"></div>
           </div>
           <p className="text-muted-foreground text-lg">
-            Compare statistical changes across your recent farming runs for the same tier. Identify performance improvements and upgrade impacts.
+            Compare statistical changes across your recent farm runs for the same tier. Identify performance improvements and upgrade impacts.
           </p>
         </div>
 

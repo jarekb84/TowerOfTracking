@@ -1,6 +1,6 @@
 import { ParsedGameRun, RunType, RunTypeValue } from '../types/game-run.types'
 
-export type RunTypeFilter = 'farming' | 'tournament' | 'milestone' | 'all'
+export type RunTypeFilter = RunTypeValue | 'all'
 
 /**
  * Centralized function to determine run type from tier string
@@ -34,24 +34,7 @@ export function filterRunsByType(runs: ParsedGameRun[], runType: RunTypeFilter):
     return runs
   }
   
-  return runs.filter(run => {
-    // Map filter values to run type enum values
-    let targetRunType: RunTypeValue
-    switch (runType) {
-      case 'farming':
-        targetRunType = RunType.FARM
-        break
-      case 'tournament':
-        targetRunType = RunType.TOURNAMENT
-        break
-      case 'milestone':
-        targetRunType = RunType.MILESTONE
-        break
-      default:
-        return false
-    }
-    return run.runType === targetRunType
-  })
+  return runs.filter(run => run.runType === runType)
 }
 
 /**

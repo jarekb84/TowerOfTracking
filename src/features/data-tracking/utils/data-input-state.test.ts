@@ -5,6 +5,7 @@ import {
   formatTimeFromDate,
   createDateTimeFromComponents,
 } from './data-input-state';
+import { RunType } from '../types/game-run.types';
 
 describe('data-input-state utilities', () => {
   let mockDate: Date;
@@ -21,16 +22,38 @@ describe('data-input-state utilities', () => {
   });
 
   describe('createInitialFormState', () => {
-    it('should return consistent initial state', () => {
+    it('should return consistent initial state with default farm type', () => {
       const state = createInitialFormState();
 
       expect(state).toEqual({
         inputData: '',
         notes: '',
-        selectedRunType: 'farm',
+        selectedRunType: RunType.FARM,
         duplicateResult: null,
         resolution: 'new-only',
       });
+    });
+
+    it('should accept tournament as default run type', () => {
+      const state = createInitialFormState(RunType.TOURNAMENT);
+
+      expect(state.selectedRunType).toBe(RunType.TOURNAMENT);
+      expect(state.inputData).toBe('');
+      expect(state.notes).toBe('');
+      expect(state.duplicateResult).toBeNull();
+      expect(state.resolution).toBe('new-only');
+    });
+
+    it('should accept milestone as default run type', () => {
+      const state = createInitialFormState(RunType.MILESTONE);
+
+      expect(state.selectedRunType).toBe(RunType.MILESTONE);
+    });
+
+    it('should default to farm when provided undefined', () => {
+      const state = createInitialFormState(undefined);
+
+      expect(state.selectedRunType).toBe(RunType.FARM);
     });
 
     it('should return new objects on each call', () => {

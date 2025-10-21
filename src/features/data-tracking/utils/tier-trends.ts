@@ -1,10 +1,11 @@
-import type { 
-  ParsedGameRun, 
-  TierTrendsFilters, 
-  TierTrendsData, 
+import type {
+  ParsedGameRun,
+  TierTrendsFilters,
+  TierTrendsData,
   FieldTrendData,
   GameRunField,
 } from '../types/game-run.types';
+import { RunType } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
 import { createEnhancedRunHeader } from './run-header-formatting';
 
@@ -20,9 +21,9 @@ interface PeriodData {
  * Calculate tier trends analysis for the specified duration and quantity
  */
 export function calculateTierTrends(
-  runs: ParsedGameRun[], 
+  runs: ParsedGameRun[],
   filters: TierTrendsFilters,
-  runTypeFilter: RunTypeFilter = 'farming'
+  runTypeFilter: RunTypeFilter = RunType.FARM
 ): TierTrendsData {
   // Filter runs by type and tier, sorted by timestamp (newest first)
   const filteredRuns = filterRunsByType(runs, runTypeFilter);
@@ -127,9 +128,9 @@ function analyzeTrendType(values: number[]): FieldTrendData['trendType'] {
 }
 
 /**
- * Get available tiers for trend analysis (tiers with at least 2 farming runs)
+ * Get available tiers for trend analysis (tiers with at least 2 runs of the specified type)
  */
-export function getAvailableTiersForTrends(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'farming'): number[] {
+export function getAvailableTiersForTrends(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = RunType.FARM): number[] {
   const tierCounts = new Map<number, number>();
   
   const filteredRuns = filterRunsByType(runs, runTypeFilter);

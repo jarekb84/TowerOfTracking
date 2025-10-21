@@ -57,20 +57,20 @@ describe('filterRunsByType', () => {
     expect(result).toEqual(mockRuns)
   })
 
-  it('returns only farming runs when filter is "farming"', () => {
-    const result = filterRunsByType(mockRuns, 'farming')
+  it('returns only farming runs when filter is RunType.FARM', () => {
+    const result = filterRunsByType(mockRuns, RunType.FARM)
     expect(result).toHaveLength(2)
     expect(result.every(run => run.runType === RunType.FARM)).toBe(true)
   })
 
-  it('returns only tournament runs when filter is "tournament"', () => {
-    const result = filterRunsByType(mockRuns, 'tournament')
+  it('returns only tournament runs when filter is RunType.TOURNAMENT', () => {
+    const result = filterRunsByType(mockRuns, RunType.TOURNAMENT)
     expect(result).toHaveLength(1)
     expect(result[0].runType).toBe(RunType.TOURNAMENT)
   })
 
-  it('returns only milestone runs when filter is "milestone"', () => {
-    const result = filterRunsByType(mockRuns, 'milestone')
+  it('returns only milestone runs when filter is RunType.MILESTONE', () => {
+    const result = filterRunsByType(mockRuns, RunType.MILESTONE)
     expect(result).toHaveLength(1)
     expect(result[0].runType).toBe(RunType.MILESTONE)
   })

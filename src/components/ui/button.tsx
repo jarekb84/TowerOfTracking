@@ -60,11 +60,15 @@ function Button({
   const Comp = asChild ? Slot : "button"
 
   const finalVariant = selected && variant === 'outline' ? 'outline-selected' : variant
-  
+
+  // Add aria-pressed for selection buttons to improve screen reader support
+  const ariaProps = selected !== undefined ? { 'aria-pressed': selected } : {}
+
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant: finalVariant, size, fullWidthOnMobile, className }))}
+      {...ariaProps}
       {...props}
     />
   )

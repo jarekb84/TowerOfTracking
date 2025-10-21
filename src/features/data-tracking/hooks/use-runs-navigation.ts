@@ -1,6 +1,7 @@
 import { useUrlSearchParam } from '../../navigation/hooks/use-url-search-param'
+import { RunType, RunTypeValue } from '../types/game-run.types'
 
-export type RunsTabType = 'farming' | 'tournament' | 'milestone'
+export type RunsTabType = RunTypeValue
 
 interface RunsSearchParams extends Record<string, unknown> {
   type?: RunsTabType
@@ -11,11 +12,11 @@ interface RunsSearchParams extends Record<string, unknown> {
  */
 export function useRunsNavigation() {
   const { search, updateSearch } = useUrlSearchParam<RunsSearchParams>(
-    '/runs', 
-    { type: 'farming' }
+    '/runs',
+    { type: RunType.FARM }
   )
 
-  const activeTab = search.type || 'farming'
+  const activeTab = search.type || RunType.FARM
 
   const setActiveTab = (type: RunsTabType) => {
     updateSearch({ type })

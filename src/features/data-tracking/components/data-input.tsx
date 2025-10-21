@@ -80,7 +80,8 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
               
               <RunTypeSelector
                 selectedType={form.selectedRunType as RunTypeFilter}
-                onTypeChange={(type) => form.setSelectedRunType(type === 'all' ? 'farm' : type as RunType)}
+                onTypeChange={(type) => form.setSelectedRunType(type === 'all' ? RunType.FARM : type)}
+                mode="selection"
               />
               <FormField>
                 <FormLabel required>

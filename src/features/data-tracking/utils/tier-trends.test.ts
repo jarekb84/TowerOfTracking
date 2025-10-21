@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateTierTrends, getAvailableTiersForTrends } from './tier-trends';
 import type { ParsedGameRun, TierTrendsFilters, GameRunField } from '../types/game-run.types';
+import { RunType } from '../types/game-run.types';
 
 // Helper function to create a mock field
 function createMockField(
@@ -88,7 +89,7 @@ describe('tier-trends', () => {
         createMockRun({}, undefined, 3),
       ];
 
-      const result = getAvailableTiersForTrends(runs, 'farming');
+      const result = getAvailableTiersForTrends(runs, RunType.FARM);
       expect(result).toEqual([3, 1]); // Sorted descending
     });
 
@@ -100,7 +101,7 @@ describe('tier-trends', () => {
         createMockRun({ runType: 'tournament' }, undefined, 2),
       ];
 
-      const farmingResult = getAvailableTiersForTrends(runs, 'farming');
+      const farmingResult = getAvailableTiersForTrends(runs, RunType.FARM);
       const tournamentResult = getAvailableTiersForTrends(runs, 'tournament');
       
       expect(farmingResult).toEqual([1]);
@@ -114,7 +115,7 @@ describe('tier-trends', () => {
         createMockRun({}, undefined, 3),
       ];
 
-      const result = getAvailableTiersForTrends(runs, 'farming');
+      const result = getAvailableTiersForTrends(runs, RunType.FARM);
       expect(result).toEqual([]);
     });
   });
@@ -130,7 +131,7 @@ describe('tier-trends', () => {
           quantity: 3,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
 
         expect(result.periodCount).toBe(3);
         expect(result.comparisonColumns).toHaveLength(3);
@@ -160,7 +161,7 @@ describe('tier-trends', () => {
           quantity: 2,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
 
         expect(result.comparisonColumns).toHaveLength(2);
         
@@ -184,7 +185,7 @@ describe('tier-trends', () => {
           aggregationType: 'sum',
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
 
         expect(result.periodCount).toBe(3);
         expect(result.comparisonColumns).toHaveLength(3);
@@ -241,7 +242,7 @@ describe('tier-trends', () => {
           aggregationType: 'sum',
         };
 
-        const sumResult = calculateTierTrends(runs, sumFilters, 'farming');
+        const sumResult = calculateTierTrends(runs, sumFilters, RunType.FARM);
         expect(sumResult.comparisonColumns.length).toBe(2);
         expect(sumResult.comparisonColumns[0].values.coinsEarned).toBe(300); // Day2: 300
         expect(sumResult.comparisonColumns[1].values.coinsEarned).toBe(300); // Day1: 100+200=300
@@ -255,7 +256,7 @@ describe('tier-trends', () => {
           aggregationType: 'average',
         };
 
-        const avgResult = calculateTierTrends(runs, avgFilters, 'farming');
+        const avgResult = calculateTierTrends(runs, avgFilters, RunType.FARM);
         expect(avgResult.comparisonColumns[0].values.coinsEarned).toBe(300); // Day2: 300/1 = 300
         expect(avgResult.comparisonColumns[1].values.coinsEarned).toBe(150); // Day1: (100+200)/2 = 150
 
@@ -268,7 +269,7 @@ describe('tier-trends', () => {
           aggregationType: 'min',
         };
 
-        const minResult = calculateTierTrends(runs, minFilters, 'farming');
+        const minResult = calculateTierTrends(runs, minFilters, RunType.FARM);
         expect(minResult.comparisonColumns[0].values.coinsEarned).toBe(300); // Day2: min(300) = 300
         expect(minResult.comparisonColumns[1].values.coinsEarned).toBe(100); // Day1: min(100,200) = 100
 
@@ -281,7 +282,7 @@ describe('tier-trends', () => {
           aggregationType: 'max',
         };
 
-        const maxResult = calculateTierTrends(runs, maxFilters, 'farming');
+        const maxResult = calculateTierTrends(runs, maxFilters, RunType.FARM);
         expect(maxResult.comparisonColumns[0].values.coinsEarned).toBe(300); // Day2: max(300) = 300
         expect(maxResult.comparisonColumns[1].values.coinsEarned).toBe(200); // Day1: max(100,200) = 200
       });
@@ -311,7 +312,7 @@ describe('tier-trends', () => {
           quantity: 2,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
         const coinsField = result.fieldTrends.find(f => f.fieldName === 'coinsEarned');
 
         expect(coinsField).toBeDefined();
@@ -331,7 +332,7 @@ describe('tier-trends', () => {
           quantity: 3,
         };
 
-        const lowResult = calculateTierTrends(runs, lowThreshold, 'farming');
+        const lowResult = calculateTierTrends(runs, lowThreshold, RunType.FARM);
         const lowFieldCount = lowResult.fieldTrends.length;
 
         // With high threshold, should include fewer fields
@@ -342,7 +343,7 @@ describe('tier-trends', () => {
           quantity: 3,
         };
 
-        const highResult = calculateTierTrends(runs, highThreshold, 'farming');
+        const highResult = calculateTierTrends(runs, highThreshold, RunType.FARM);
         const highFieldCount = highResult.fieldTrends.length;
 
         expect(lowFieldCount).toBeGreaterThan(highFieldCount);
@@ -359,7 +360,7 @@ describe('tier-trends', () => {
           quantity: 3,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
 
         expect(result.summary.totalFields).toBeGreaterThan(0);
         expect(result.summary.fieldsChanged).toBeGreaterThanOrEqual(0);
@@ -382,7 +383,7 @@ describe('tier-trends', () => {
           quantity: 3,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
 
         expect(result.periodCount).toBe(1);
         expect(result.fieldTrends).toHaveLength(0);
@@ -406,7 +407,7 @@ describe('tier-trends', () => {
           quantity: 2,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
         
         // Should not crash and should handle missing values as 0
         expect(result.fieldTrends.length).toBeGreaterThanOrEqual(0);
@@ -432,7 +433,7 @@ describe('tier-trends', () => {
           quantity: 2,
         };
 
-        const result = calculateTierTrends(runs, filters, 'farming');
+        const result = calculateTierTrends(runs, filters, RunType.FARM);
         const coinsField = result.fieldTrends.find(f => f.fieldName === 'coinsEarned');
 
         expect(coinsField).toBeDefined();

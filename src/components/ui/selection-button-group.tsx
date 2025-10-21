@@ -19,6 +19,7 @@ interface SelectionButtonGroupProps<T = string> {
   vertical?: boolean
   spacing?: 'tight' | 'normal' | 'loose'
   equalWidth?: boolean
+  ariaLabel?: string
 }
 
 export function SelectionButtonGroup<T = string>({
@@ -31,7 +32,8 @@ export function SelectionButtonGroup<T = string>({
   fullWidthOnMobile = true,
   vertical = false,
   spacing = 'tight',
-  equalWidth = false
+  equalWidth = false,
+  ariaLabel
 }: SelectionButtonGroupProps<T>) {
   const spacingClasses = {
     tight: 'gap-1',
@@ -39,13 +41,17 @@ export function SelectionButtonGroup<T = string>({
     loose: 'gap-3'
   };
   return (
-    <div className={cn(
-      "flex",
-      spacingClasses[spacing],
-      vertical ? "flex-col" : "flex-wrap",
-      equalWidth && "w-full",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex",
+        spacingClasses[spacing],
+        vertical ? "flex-col" : "flex-wrap",
+        equalWidth && "w-full",
+        className
+      )}
+      role="group"
+      aria-label={ariaLabel}
+    >
       {options.map((option) => (
         <Button
           key={String(option.value)}
@@ -62,7 +68,6 @@ export function SelectionButtonGroup<T = string>({
           style={option.color && selectedValue === option.value ? {
             backgroundColor: `${option.color}20`,
             borderColor: `${option.color}70`,
-            color: '#f1f5f9'
           } : undefined}
         >
           {option.color && option.icon && (

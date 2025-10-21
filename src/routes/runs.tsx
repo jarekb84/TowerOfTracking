@@ -1,15 +1,16 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { TabbedRunsTable } from '../features/data-tracking'
+import { RunTypeValue } from '../features/data-tracking/types/game-run.types'
 
 interface RunsSearchParams {
-  type?: 'farming' | 'tournament' | 'milestone'
+  type?: RunTypeValue
 }
 
 export const Route = createFileRoute('/runs')({
   component: RunsPage,
   validateSearch: (search): RunsSearchParams => {
     return {
-      type: search.type as 'farming' | 'tournament' | 'milestone' | undefined,
+      type: search.type as RunTypeValue | undefined,
     }
   },
 })
