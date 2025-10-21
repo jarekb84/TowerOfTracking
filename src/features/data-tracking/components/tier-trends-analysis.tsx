@@ -152,7 +152,7 @@ export function TierTrendsAnalysis() {
       />
 
       {/* Trends Table */}
-      <TierTrendsTable 
+      <TierTrendsTable
         trends={filteredTrends}
         comparisonColumns={trendsData.comparisonColumns}
         sortField={sortField}
@@ -162,6 +162,7 @@ export function TierTrendsAnalysis() {
         isSearchActive={isSearchActive}
         hasMatches={hasMatches}
         changeThreshold={filters.changeThresholdPercent}
+        aggregationType={filters.aggregationType}
       />
     </div>
   )

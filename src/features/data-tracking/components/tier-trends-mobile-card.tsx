@@ -3,14 +3,16 @@ import { formatNumber } from '../utils/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../utils/trend-indicators'
 import { useTierTrendsMobile } from '../hooks/use-tier-trends-mobile'
-import type { FieldTrendData, ComparisonColumn } from '../types/game-run.types'
+import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '../types/game-run.types'
+import { formatTrendValue } from '../logic/trend-value-formatting'
 
 interface TierTrendsMobileCardProps {
   trend: FieldTrendData
   comparisonColumns: ComparisonColumn[]
+  aggregationType?: TrendsAggregation
 }
 
-export function TierTrendsMobileCard({ trend, comparisonColumns }: TierTrendsMobileCardProps) {
+export function TierTrendsMobileCard({ trend, comparisonColumns, aggregationType }: TierTrendsMobileCardProps) {
   const sparklinePath = generateSparklinePath(trend.values, 60, 20)
   const { useCompact, leftColumns, rightColumns, columnData } = useTierTrendsMobile(trend, comparisonColumns)
 
@@ -81,7 +83,7 @@ export function TierTrendsMobileCard({ trend, comparisonColumns }: TierTrendsMob
                         {dataItem.headerInfo.display}
                       </div>
                       <div className="font-mono text-sm text-foreground font-semibold">
-                        {formatNumber(dataItem.value)}
+                        {formatTrendValue(dataItem.value, aggregationType)}
                       </div>
                     </div>
                   )
@@ -96,7 +98,7 @@ export function TierTrendsMobileCard({ trend, comparisonColumns }: TierTrendsMob
                         {dataItem.headerInfo.display}
                       </div>
                       <div className="font-mono text-sm text-foreground font-semibold">
-                        {formatNumber(dataItem.value)}
+                        {formatTrendValue(dataItem.value, aggregationType)}
                       </div>
                     </div>
                   )
@@ -118,7 +120,7 @@ export function TierTrendsMobileCard({ trend, comparisonColumns }: TierTrendsMob
                     )}
                   </div>
                   <span className="font-mono text-sm text-foreground font-semibold ml-3">
-                    {formatNumber(dataItem.value)}
+                    {formatTrendValue(dataItem.value, aggregationType)}
                   </span>
                 </div>
               ))}

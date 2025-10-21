@@ -36,7 +36,7 @@ describe('TierTrendsControls', () => {
     expect(screen.getByText(/Change Threshold:/i)).toBeInTheDocument()
   })
 
-  it('does not show aggregation selector when duration is per-run', () => {
+  it('shows aggregation selector with Actual and Per Hour options when duration is per-run', () => {
     const onRunTypeChange = vi.fn()
     const onFiltersChange = vi.fn()
 
@@ -50,10 +50,15 @@ describe('TierTrendsControls', () => {
       />
     )
 
-    expect(screen.queryByText(/Aggregation:/i)).not.toBeInTheDocument()
+    // Aggregation selector should be visible
+    expect(screen.getByText(/Aggregation:/i)).toBeInTheDocument()
+
+    // Should show Actual and Per Hour options for per-run
+    expect(screen.getByRole('button', { name: 'Actual' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Per Hour' })).toBeInTheDocument()
   })
 
-  it('shows aggregation selector when duration is not per-run', () => {
+  it('shows aggregation selector with all options when duration is not per-run', () => {
     const onRunTypeChange = vi.fn()
     const onFiltersChange = vi.fn()
 
@@ -73,6 +78,13 @@ describe('TierTrendsControls', () => {
     )
 
     expect(screen.getByText(/Aggregation:/i)).toBeInTheDocument()
+
+    // Should show all 5 aggregation options for time-based durations
+    expect(screen.getByRole('button', { name: 'Sum' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Avg' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Min' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Max' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Per Hour' })).toBeInTheDocument()
   })
 
   it('defaults aggregation to sum when switching from per-run to daily', async () => {
