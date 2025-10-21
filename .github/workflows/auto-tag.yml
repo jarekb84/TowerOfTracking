@@ -53,9 +53,10 @@ jobs:
           echo "Commit message: $COMMIT_MSG"
 
           # Determine version bump based on commit message
-          # Recognize: [major]/[MAJOR], [minor]/[MINOR], MAJOR/major at start, MINOR/minor at start, or BREAKING CHANGE
-          # Case-insensitive to support various styles
-          if echo "$COMMIT_MSG" | grep -qiE '\[major\]|^major\b|^BREAKING CHANGE:'; then
+          # Major bump ONLY if first line starts with: [major], [MAJOR], major, MAJOR, BREAKING CHANGE:, or BREAKING:
+          # Extract first line to prevent "BREAKING CHANGE:" appearing mid-message from triggering major bump
+          FIRST_LINE=$(echo "$COMMIT_MSG" | head -n 1)
+          if echo "$FIRST_LINE" | grep -qiE '^\[major\]|^major\b|^BREAKING CHANGE:|^BREAKING:'; then
             MAJOR=$((MAJOR + 1))
             MINOR=0
             PATCH=0
