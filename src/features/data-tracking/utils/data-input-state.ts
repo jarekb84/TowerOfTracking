@@ -1,10 +1,11 @@
 import type { DuplicateDetectionResult } from '../utils/duplicate-detection';
 import type { DuplicateResolution } from '../components/duplicate-info';
+import { RunType, RunTypeValue } from '../types/game-run.types';
 
 export interface DataInputFormInitialState {
   inputData: string;
   notes: string;
-  selectedRunType: 'farm' | 'tournament' | 'milestone';
+  selectedRunType: RunTypeValue;
   duplicateResult: DuplicateDetectionResult | null;
   resolution: DuplicateResolution;
 }
@@ -15,13 +16,14 @@ export interface DateTimeState {
 }
 
 /**
- * Creates the initial form state with default values
+ * Creates the initial form state with optional context-aware default run type
+ * @param defaultRunType - Optional default run type from URL context or other sources
  */
-export function createInitialFormState(): DataInputFormInitialState {
+export function createInitialFormState(defaultRunType?: RunTypeValue): DataInputFormInitialState {
   return {
     inputData: '',
     notes: '',
-    selectedRunType: 'farm',
+    selectedRunType: defaultRunType || RunType.FARM,
     duplicateResult: null,
     resolution: 'new-only',
   };

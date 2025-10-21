@@ -3,14 +3,15 @@ import { useData } from '../hooks/use-data'
 import { prepareTierStatsData, formatLargeNumber, TierStatsData } from '../utils/chart-data'
 import { formatDuration } from '../utils/data-parser'
 import { FarmingOnlyIndicator } from './farming-only-indicator'
+import { RunType } from '../types/game-run.types'
 
 type SortField = keyof TierStatsData
 type SortDirection = 'asc' | 'desc'
 
 export function TierStatsTable() {
   const { runs } = useData()
-  
-  const baseTierStats = useMemo(() => prepareTierStatsData(runs, 'farming'), [runs])
+
+  const baseTierStats = useMemo(() => prepareTierStatsData(runs, RunType.FARM), [runs])
   const [sortField, setSortField] = useState<SortField>('tier')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   

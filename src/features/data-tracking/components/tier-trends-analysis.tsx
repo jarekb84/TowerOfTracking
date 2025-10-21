@@ -1,9 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useData } from '../hooks/use-data'
-import { 
-  calculateTierTrends, 
+import {
+  calculateTierTrends,
   getAvailableTiersForTrends
 } from '../utils/tier-trends'
+import { RunType } from '../types/game-run.types'
 import { RunTypeFilter } from '../utils/run-type-filter'
 import { TierTrendsSummary } from './tier-trends-summary'
 import { TierTrendsFilters as TierTrendsFiltersComponent } from './tier-trends-filters'
@@ -17,8 +18,8 @@ type SortDirection = 'asc' | 'desc'
 
 export function TierTrendsAnalysis() {
   const { runs } = useData()
-  
-  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>('farming')
+
+  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>(RunType.FARM)
   
   const availableTiers = useMemo(() => getAvailableTiersForTrends(runs, runTypeFilter), [runs, runTypeFilter])
   
@@ -99,7 +100,7 @@ export function TierTrendsAnalysis() {
         <div className="text-center">
           <p>No tier data available for trends analysis.</p>
           <p className="text-sm mt-2">
-            You need at least 2 {runTypeFilter === 'farming' ? 'farming' : runTypeFilter === 'tournament' ? 'tournament' : ''} runs in the same tier to see trends.
+            You need at least 2 {runTypeFilter === RunType.FARM ? 'farm' : runTypeFilter === RunType.TOURNAMENT ? 'tournament' : runTypeFilter === RunType.MILESTONE ? 'milestone' : ''} runs in the same tier to see trends.
           </p>
         </div>
       </div>
@@ -123,11 +124,11 @@ export function TierTrendsAnalysis() {
             <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
 {filters.tier === 0 ? 'All Tiers' : `Tier ${filters.tier}`} Trends Analysis
             <span className="text-sm font-normal text-slate-400 ml-auto">
-              Last {trendsData.periodCount} {filters.duration === 'per-run' ? 'Runs' : filters.duration === 'daily' ? 'Days' : filters.duration === 'weekly' ? 'Weeks' : 'Months'} - {runTypeFilter === 'farming' ? 'Farming' : runTypeFilter === 'tournament' ? 'Tournament' : ''} Mode
+              Last {trendsData.periodCount} {filters.duration === 'per-run' ? 'Runs' : filters.duration === 'daily' ? 'Days' : filters.duration === 'weekly' ? 'Weeks' : 'Months'} - {runTypeFilter === RunType.FARM ? 'Farm' : runTypeFilter === RunType.TOURNAMENT ? 'Tournament' : runTypeFilter === RunType.MILESTONE ? 'Milestone' : ''} Mode
             </span>
           </h3>
           <p className="text-slate-400 text-sm">
-            Statistical changes across your recent {runTypeFilter === 'farming' ? 'farming' : runTypeFilter === 'tournament' ? 'tournament' : ''} runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
+            Statistical changes across your recent {runTypeFilter === RunType.FARM ? 'farm' : runTypeFilter === RunType.TOURNAMENT ? 'tournament' : runTypeFilter === RunType.MILESTONE ? 'milestone' : ''} runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
           </p>
         </div>
         

@@ -1,16 +1,11 @@
 # Bugs
 - fix issues with warning about invalid values in notes filed and then not doing anything about it
-- runtype import has issues, default paste has type set to Farm, when you select run type button it changes type to Farming
 
 # Periodic
 - Ask the architecture-review or the frontend-design-reviewer to
     Make one area of the code more beautiful without changing functionality
 
 # Features
-
-## For v0.1.0
-- Add versioning
-
 ## For v0.2.0
 - Add google drive api integration
 - Make app a PWA so that it can be installed to native devices

@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { parseGameRun } from '../utils/data-parser';
 import { extractTimestampFromFields } from '../utils/field-utils';
-import { 
-  createInitialFormState, 
+import {
+  createInitialFormState,
   createInitialDateTimeState,
   formatTimeFromDate,
-  createDateTimeFromComponents 
+  createDateTimeFromComponents
 } from '../utils/data-input-state';
-import type { ParsedGameRun } from '../types/game-run.types';
+import type { ParsedGameRun, RunTypeValue } from '../types/game-run.types';
 import type { DuplicateDetectionResult } from '../utils/duplicate-detection';
 import type { DuplicateResolution } from '../components/duplicate-info';
 import { useData } from './use-data';
+import { useRunTypeContext } from './use-run-type-context';
 
 export interface DataInputFormState {
   inputData: string;
   previewData: ParsedGameRun | null;
-  selectedRunType: 'farm' | 'tournament' | 'milestone';
+  selectedRunType: RunTypeValue;
   selectedDate: Date;
   selectedTime: { hours: string; minutes: string };
   notes: string;
@@ -26,7 +27,7 @@ export interface DataInputFormState {
 
 export interface DataInputFormActions {
   setInputData: (data: string) => void;
-  setSelectedRunType: (type: 'farm' | 'tournament' | 'milestone') => void;
+  setSelectedRunType: (type: RunTypeValue) => void;
   setSelectedDate: (date: Date) => void;
   setSelectedTime: (time: { hours: string; minutes: string }) => void;
   setNotes: (notes: string) => void;
@@ -41,9 +42,13 @@ export interface DataInputFormActions {
 }
 
 export function useDataInputForm(): DataInputFormState & DataInputFormActions {
-  const initialFormState = createInitialFormState();
-  const initialDateTime = createInitialDateTimeState();
-  
+  // Memoize the context-aware default run type to avoid recalculating on every render
+  const defaultRunType = useRunTypeContext();
+
+  // Memoize initial states to ensure they're only created once
+  const initialFormState = useMemo(() => createInitialFormState(defaultRunType), [defaultRunType]);
+  const initialDateTime = useMemo(() => createInitialDateTimeState(), []);
+
   const [inputData, setInputData] = useState(initialFormState.inputData);
   const [previewData, setPreviewData] = useState<ParsedGameRun | null>(null);
   const [selectedRunType, setSelectedRunType] = useState(initialFormState.selectedRunType);
@@ -55,6 +60,11 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const [hasBattleDate, setHasBattleDate] = useState(false);
 
   const { addRun, checkDuplicate, overwriteRun } = useData();
+
+  // Sync selectedRunType with URL context when it changes (e.g., switching tabs)
+  useEffect(() => {
+    setSelectedRunType(defaultRunType);
+  }, [defaultRunType]);
 
   const getDateTimeFromSelection = (): Date => {
     return createDateTimeFromComponents(selectedDate, selectedTime);
@@ -184,7 +194,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   };
 
   const resetForm = (): void => {
-    const newFormState = createInitialFormState();
+    const newFormState = createInitialFormState(defaultRunType);
     const newDateTime = createInitialDateTimeState();
 
     setInputData(newFormState.inputData);
