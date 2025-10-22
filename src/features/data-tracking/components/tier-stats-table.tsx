@@ -139,6 +139,7 @@ export function TierStatsTable() {
                       {table.columns.map(column => {
                         const tooltipData = table.getCellTooltipData(tierStats, column)
                         const displayValue = table.getCellDisplayValue(tierStats, column)
+                        const hasData = displayValue.main !== '-'
 
                         const cellClassName = getTierStatsCellClassName({
                           isHourlyRate: column.showHourlyRate,
@@ -147,7 +148,7 @@ export function TierStatsTable() {
 
                         return (
                           <td key={column.id} className="px-6 py-3.5 text-right">
-                            {tooltipData ? (
+                            {hasData && tooltipData ? (
                               <Tooltip.Root>
                                 <Tooltip.Trigger asChild>
                                   <button className={cellClassName}>
@@ -170,7 +171,7 @@ export function TierStatsTable() {
                                   </Tooltip.Content>
                                 </Tooltip.Portal>
                               </Tooltip.Root>
-                            ) : (
+                            ) : hasData ? (
                               <span className={cellClassName}>
                                 <div className="flex flex-col items-end gap-0.5">
                                   <div className="font-semibold">{displayValue.main}</div>
@@ -179,6 +180,8 @@ export function TierStatsTable() {
                                   )}
                                 </div>
                               </span>
+                            ) : (
+                              <span className="text-slate-500 font-mono text-sm">-</span>
                             )}
                           </td>
                         )

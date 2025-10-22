@@ -61,12 +61,11 @@ describe('tier-stats-config', () => {
       expect(fields).toEqual([])
     })
 
-    it('should discover all non-internal fields from runs', () => {
+    it('should discover all non-internal numeric fields from runs', () => {
       const runs = [createMockRun()]
       const fields = discoverAvailableFields(runs)
 
       const fieldNames = fields.map(f => f.fieldName)
-      expect(fieldNames).toContain('tier')
       expect(fieldNames).toContain('wave')
       expect(fieldNames).toContain('realTime')
       expect(fieldNames).toContain('coinsEarned')
@@ -82,6 +81,14 @@ describe('tier-stats-config', () => {
       const fieldNames = fields.map(f => f.fieldName)
 
       expect(fieldNames).not.toContain('_internalField')
+    })
+
+    it('should exclude tier field (used as row grouping)', () => {
+      const runs = [createMockRun()]
+      const fields = discoverAvailableFields(runs)
+      const fieldNames = fields.map(f => f.fieldName)
+
+      expect(fieldNames).not.toContain('tier')
     })
 
     it('should exclude date fields', () => {
@@ -100,6 +107,16 @@ describe('tier-stats-config', () => {
       const fieldNames = fields.map(f => f.fieldName)
 
       expect(fieldNames).not.toContain('runType')
+    })
+
+    it('should exclude string-only fields (not aggregatable)', () => {
+      const run = createMockRun()
+      run.fields.killedBy = createGameRunField('Killed By', 'Boss')
+
+      const fields = discoverAvailableFields([run])
+      const fieldNames = fields.map(f => f.fieldName)
+
+      expect(fieldNames).not.toContain('killedBy')
     })
 
     it('should mark numeric and duration fields as isNumeric', () => {
@@ -167,8 +184,8 @@ describe('tier-stats-config', () => {
 
   describe('validateColumnConfig', () => {
     const availableFields: AvailableField[] = [
-      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true },
-      { fieldName: 'coinsEarned', displayName: 'Coins Earned', dataType: 'number', isNumeric: true }
+      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true, canHaveHourlyRate: true },
+      { fieldName: 'coinsEarned', displayName: 'Coins Earned', dataType: 'number', isNumeric: true, canHaveHourlyRate: true }
     ]
 
     it('should keep valid columns', () => {
@@ -206,9 +223,9 @@ describe('tier-stats-config', () => {
 
   describe('isNumericField', () => {
     const availableFields: AvailableField[] = [
-      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true },
-      { fieldName: 'realTime', displayName: 'Real Time', dataType: 'duration', isNumeric: true },
-      { fieldName: 'killedBy', displayName: 'Killed By', dataType: 'string', isNumeric: false }
+      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true, canHaveHourlyRate: true },
+      { fieldName: 'realTime', displayName: 'Real Time', dataType: 'duration', isNumeric: true, canHaveHourlyRate: false },
+      { fieldName: 'killedBy', displayName: 'Killed By', dataType: 'string', isNumeric: false, canHaveHourlyRate: false }
     ]
 
     it('should return true for numeric fields', () => {
@@ -227,8 +244,8 @@ describe('tier-stats-config', () => {
 
   describe('getFieldDisplayName', () => {
     const availableFields: AvailableField[] = [
-      { fieldName: 'coinsEarned', displayName: 'Coins Earned', dataType: 'number', isNumeric: true },
-      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true }
+      { fieldName: 'coinsEarned', displayName: 'Coins Earned', dataType: 'number', isNumeric: true, canHaveHourlyRate: true },
+      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true, canHaveHourlyRate: true }
     ]
 
     it('should return display name for existing field', () => {
@@ -242,9 +259,9 @@ describe('tier-stats-config', () => {
 
   describe('getColumnDisplayName', () => {
     const availableFields: AvailableField[] = [
-      { fieldName: 'coinsEarned', displayName: 'Coins Earned', dataType: 'number', isNumeric: true },
-      { fieldName: 'realTime', displayName: 'Real Time', dataType: 'duration', isNumeric: true },
-      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true }
+      { fieldName: 'coinsEarned', displayName: 'Coins Earned', dataType: 'number', isNumeric: true, canHaveHourlyRate: true },
+      { fieldName: 'realTime', displayName: 'Real Time', dataType: 'duration', isNumeric: true, canHaveHourlyRate: false },
+      { fieldName: 'wave', displayName: 'Wave', dataType: 'number', isNumeric: true, canHaveHourlyRate: true }
     ]
 
     it('should return base display name when not hourly rate', () => {

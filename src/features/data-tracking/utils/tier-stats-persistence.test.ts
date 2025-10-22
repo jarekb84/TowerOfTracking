@@ -28,20 +28,22 @@ describe('tier-stats-persistence', () => {
       expect(config.configSectionCollapsed).toBe(defaultConfig.configSectionCollapsed)
     })
 
-    it('should load valid config from localStorage', () => {
+    it('should load valid config from localStorage but always start collapsed', () => {
       const savedConfig: TierStatsConfig = {
         selectedColumns: [
           { fieldName: 'wave', showHourlyRate: false },
           { fieldName: 'shards', showHourlyRate: true }
         ],
-        configSectionCollapsed: false,
+        configSectionCollapsed: false, // Saved as expanded
         lastUpdated: Date.now()
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(savedConfig))
 
       const loaded = loadTierStatsConfig()
-      expect(loaded).toEqual(savedConfig)
+      expect(loaded.selectedColumns).toEqual(savedConfig.selectedColumns)
+      // Should always load collapsed, regardless of saved state
+      expect(loaded.configSectionCollapsed).toBe(true)
     })
 
     it('should return default config for invalid JSON', () => {
@@ -188,22 +190,24 @@ describe('tier-stats-persistence', () => {
   })
 
   describe('roundtrip persistence', () => {
-    it('should preserve config through save and load', () => {
+    it('should preserve column config but not collapsed state through save and load', () => {
       const original: TierStatsConfig = {
         selectedColumns: [
           { fieldName: 'wave', showHourlyRate: false },
           { fieldName: 'coinsEarned', showHourlyRate: true },
           { fieldName: 'shards', showHourlyRate: false }
         ],
-        configSectionCollapsed: false,
+        configSectionCollapsed: false, // Saved as expanded
         lastUpdated: Date.now()
       }
 
       saveTierStatsConfig(original)
       const loaded = loadTierStatsConfig()
 
+      // Column config should persist
       expect(loaded.selectedColumns).toEqual(original.selectedColumns)
-      expect(loaded.configSectionCollapsed).toBe(original.configSectionCollapsed)
+      // But collapsed state should always be true on load (per PRD requirement 3.5)
+      expect(loaded.configSectionCollapsed).toBe(true)
       expect(loaded.lastUpdated).toBeGreaterThanOrEqual(original.lastUpdated)
     })
   })

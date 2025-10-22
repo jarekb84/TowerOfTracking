@@ -15,6 +15,7 @@ import {
   loadTierStatsConfig,
   saveTierStatsConfig
 } from '../utils/tier-stats-persistence'
+import { reorderColumns } from '../utils/column-reorder'
 
 export interface UseTierStatsConfigReturn {
   // Configuration state
@@ -28,6 +29,7 @@ export interface UseTierStatsConfigReturn {
   // Actions
   addColumn: (fieldName: string) => void
   removeColumn: (fieldName: string) => void
+  reorderColumns: (fromIndex: number, toIndex: number) => void
   toggleColumnHourlyRate: (fieldName: string) => void
   toggleConfigSection: () => void
   resetToDefaults: () => void
@@ -99,6 +101,14 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
     }))
   }, [])
 
+  // Reorder columns
+  const handleReorderColumns = useCallback((fromIndex: number, toIndex: number) => {
+    setConfig(prev => ({
+      ...prev,
+      selectedColumns: reorderColumns(prev.selectedColumns, fromIndex, toIndex)
+    }))
+  }, [])
+
   // Toggle hourly rate for a specific column
   const toggleColumnHourlyRate = useCallback((fieldName: string) => {
     setConfig(prev => ({
@@ -131,6 +141,7 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
     unselectedFields,
     addColumn,
     removeColumn,
+    reorderColumns: handleReorderColumns,
     toggleColumnHourlyRate,
     toggleConfigSection,
     resetToDefaults
