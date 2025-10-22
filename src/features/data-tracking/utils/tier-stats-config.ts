@@ -42,11 +42,17 @@ export function discoverAvailableFields(runs: ParsedGameRun[]): AvailableField[]
     // Skip internal fields
     if (fieldName.startsWith('_')) return
 
+    // Skip tier field (used as row grouping identifier)
+    if (fieldName === 'tier') return
+
     // Skip date/time fields (not useful for tier stats)
     if (field.dataType === 'date') return
 
     // Skip run type field (already filtered at higher level)
     if (fieldName === 'runType') return
+
+    // Skip string-only fields (not aggregatable)
+    if (field.dataType === 'string') return
 
     const isNumeric = field.dataType === 'number' || field.dataType === 'duration'
 

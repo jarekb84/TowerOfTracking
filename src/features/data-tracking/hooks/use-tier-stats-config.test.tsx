@@ -277,17 +277,22 @@ describe('useTierStatsConfig', () => {
       expect(coinsCol?.showHourlyRate).toBe(false)
     })
 
-    it('should persist config section state to localStorage', () => {
+    it('should NOT persist config section collapsed state to localStorage', () => {
       const runs = [createMockRun(5)]
       const { result } = renderHook(() => useTierStatsConfig(runs))
 
+      // Expand the config section
       act(() => {
         result.current.toggleConfigSection()
       })
 
+      expect(result.current.configSectionCollapsed).toBe(false)
+
+      // Create new hook instance (simulates page reload)
       const { result: result2 } = renderHook(() => useTierStatsConfig(runs))
 
-      expect(result2.current.configSectionCollapsed).toBe(false)
+      // Should always load collapsed, regardless of previous state
+      expect(result2.current.configSectionCollapsed).toBe(true)
     })
   })
 

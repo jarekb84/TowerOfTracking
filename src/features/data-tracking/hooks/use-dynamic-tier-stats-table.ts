@@ -9,6 +9,7 @@ import {
   calculateSummaryStats,
   type TierStatsSummary
 } from '../utils/tier-stats-calculator'
+import { sortTierStats, sortByTier } from '../utils/tier-stats-sort'
 import { filterRunsByType, RunTypeFilter } from '../utils/run-type-filter'
 import { getFieldValue } from '../utils/field-utils'
 import { formatLargeNumber } from '../utils/chart-data'
@@ -61,26 +62,21 @@ export function useDynamicTierStatsTable(
   const [sortField, setSortField] = useState<string>('tier')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
-  // Apply sorting
+  // Apply sorting with intelligent hourly rate prioritization
   const tierStats = useMemo(() => {
-    return [...baseTierStats].sort((a, b) => {
-      // Special case: tier always sorts by tier number
-      if (sortField === 'tier') {
-        return sortDirection === 'asc' ? a.tier - b.tier : b.tier - a.tier
-      }
+    // Special case: tier column sorting
+    if (sortField === 'tier') {
+      return sortByTier(baseTierStats, sortDirection)
+    }
 
-      // Find the column to sort by
-      const column = columns.find(col => col.id === sortField)
-      if (!column) return 0
+    // Find the column to sort by
+    const column = columns.find(col => col.id === sortField)
+    if (!column) {
+      return baseTierStats
+    }
 
-      // Always sort by base value (not hourly rate)
-      const aValue = getCellValue(a, column.fieldName, false) ?? -Infinity
-      const bValue = getCellValue(b, column.fieldName, false) ?? -Infinity
-
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
-      return 0
-    })
+    // Sort using intelligent logic (prioritizes hourly rate when enabled)
+    return sortTierStats(baseTierStats, column, sortDirection)
   }, [baseTierStats, sortField, sortDirection, columns])
 
   // Sort handler

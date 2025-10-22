@@ -6,6 +6,7 @@ const STORAGE_KEY = 'tower-tracking-tier-stats-config'
 /**
  * Load tier stats configuration from localStorage
  * Returns default config if none exists or if parsing fails
+ * NOTE: configSectionCollapsed always returns true (collapsed) on load
  */
 export function loadTierStatsConfig(): TierStatsConfig {
   if (typeof window === 'undefined') {
@@ -19,7 +20,13 @@ export function loadTierStatsConfig(): TierStatsConfig {
     }
 
     const parsed = JSON.parse(stored) as TierStatsConfig
-    return validateStoredConfig(parsed)
+    const validated = validateStoredConfig(parsed)
+
+    // Always start with collapsed state, regardless of what was saved
+    return {
+      ...validated,
+      configSectionCollapsed: true
+    }
   } catch (error) {
     console.warn('Failed to load tier stats config from localStorage:', error)
     return getDefaultConfig()

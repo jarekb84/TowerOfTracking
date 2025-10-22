@@ -1,36 +1,63 @@
-import { ChevronDown, ChevronUp, RotateCcw, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, RotateCcw, Settings } from 'lucide-react'
 import type { UseTierStatsConfigReturn } from '../hooks/use-tier-stats-config'
 import { getFieldDisplayName, canFieldHaveHourlyRate } from '../utils/tier-stats-config'
-import { ToggleSwitch } from '../../../components/ui/toggle-switch'
-import { AddItemButton } from '../../../components/ui/add-item-button'
+import { useColumnSearch } from '../hooks/use-column-search'
+import { useColumnReorder } from '../hooks/use-column-reorder'
+import { SelectedColumnItem } from './selected-column-item'
+import { SearchableColumnPicker } from './searchable-column-picker'
 import { Button } from '../../../components/ui/button'
+import { InfoBox } from '../../../components/ui/info-box'
+import { EmptyState } from '../../../components/ui/empty-state'
 
 interface TierStatsConfigPanelProps {
   config: UseTierStatsConfigReturn
 }
 
 export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
+  // Search functionality
+  const search = useColumnSearch(config.unselectedFields, 300)
+
+  // Drag and drop functionality
+  const dragDrop = useColumnReorder()
+
+  // Handle column drop
+  const handleDrop = () => {
+    const reordered = dragDrop.handleDrop(config.selectedColumns)
+    if (reordered !== config.selectedColumns && dragDrop.draggedIndex !== null && dragDrop.draggedOverIndex !== null) {
+      config.reorderColumns(dragDrop.draggedIndex, dragDrop.draggedOverIndex)
+    }
+    dragDrop.handleDragEnd()
+  }
+
   return (
     <div className="space-y-4">
-      {/* Toggle Button */}
+      {/* Enhanced Toggle Button with Visual Prominence */}
       <div className="flex items-center justify-between gap-4">
-        <Button
-          variant="ghost"
-          onClick={config.toggleConfigSection}
-          className="gap-2 text-slate-300 hover:text-slate-100 transition-colors text-sm font-medium px-0 hover:bg-transparent h-auto min-h-0"
-        >
-          {config.configSectionCollapsed ? (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              Customize Table Columns
-            </>
-          ) : (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              Hide Configuration
-            </>
+        <div className="flex flex-col gap-1">
+          <Button
+            variant="ghost"
+            onClick={config.toggleConfigSection}
+            className="gap-2 text-orange-300 hover:text-orange-100 transition-colors text-sm font-semibold px-0 hover:bg-transparent h-auto min-h-0"
+          >
+            <Settings className="w-4 h-4 text-orange-400" />
+            {config.configSectionCollapsed ? (
+              <>
+                <span>Customize Table Columns</span>
+                <ChevronDown className="w-4 h-4" />
+              </>
+            ) : (
+              <>
+                <span>Hide Configuration</span>
+                <ChevronUp className="w-4 h-4" />
+              </>
+            )}
+          </Button>
+          {config.configSectionCollapsed && (
+            <div className="text-xs text-slate-400 pl-6">
+              {config.selectedColumns.length} columns displayed • Click to customize
+            </div>
           )}
-        </Button>
+        </div>
 
         {!config.configSectionCollapsed && (
           <Button
@@ -48,98 +75,73 @@ export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
       {/* Configuration Section */}
       {!config.configSectionCollapsed && (
         <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-8 space-y-8">
-          {/* Selected Columns */}
+          {/* Selected Columns with Drag & Drop */}
           <div>
             <h4 className="text-sm font-semibold text-slate-100 mb-4">
               Selected Columns ({config.selectedColumns.length})
+              {config.selectedColumns.length > 0 && (
+                <span className="text-xs font-normal text-slate-400 ml-2">(drag to reorder)</span>
+              )}
             </h4>
 
             {config.selectedColumns.length === 0 ? (
-              <div className="bg-slate-700/30 border border-slate-600/30 rounded-lg p-4">
-                <p className="text-sm text-slate-400 text-center">
-                  No columns selected. Add columns below to customize your table.
-                </p>
-              </div>
+              <EmptyState>
+                No columns selected. Add columns below to customize your table.
+              </EmptyState>
             ) : (
-              <div className="space-y-3">
-                {config.selectedColumns.map(column => {
+              <div className="space-y-3" role="list" aria-label="Selected columns">
+                {config.selectedColumns.map((column, index) => {
                   const canHaveHourly = canFieldHaveHourlyRate(column.fieldName, config.availableFields)
                   const displayName = getFieldDisplayName(column.fieldName, config.availableFields)
+                  const isDragging = dragDrop.draggedIndex === index
+                  const isDraggedOver = dragDrop.draggedOverIndex === index
 
                   return (
-                    <div
+                    <SelectedColumnItem
                       key={column.fieldName}
-                      className="flex items-center justify-between gap-4 bg-slate-700/30 border border-slate-600/40 rounded-lg px-4 py-3 group hover:border-slate-500/60 transition-all"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <span className="text-sm text-slate-200 font-medium truncate">{displayName}</span>
-                        {column.showHourlyRate && (
-                          <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/30 whitespace-nowrap">
-                            + /hour
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        {canHaveHourly && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-400">Show /hour:</span>
-                            <ToggleSwitch
-                              checked={column.showHourlyRate}
-                              onCheckedChange={() => config.toggleColumnHourlyRate(column.fieldName)}
-                              aria-label={`Toggle hourly rate for ${displayName}`}
-                            />
-                          </div>
-                        )}
-                        <button
-                          onClick={() => config.removeColumn(column.fieldName)}
-                          className="text-slate-400 hover:text-red-400 transition-colors p-1 rounded hover:bg-red-500/10"
-                          aria-label={`Remove ${displayName} column`}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+                      column={column}
+                      index={index}
+                      isDragging={isDragging}
+                      isDraggedOver={isDraggedOver}
+                      canHaveHourly={canHaveHourly}
+                      displayName={displayName}
+                      onDragStart={dragDrop.handleDragStart}
+                      onDragEnter={dragDrop.handleDragEnter}
+                      onDrop={handleDrop}
+                      onDragEnd={dragDrop.handleDragEnd}
+                      onToggleHourlyRate={config.toggleColumnHourlyRate}
+                      onRemove={config.removeColumn}
+                    />
                   )
                 })}
               </div>
             )}
           </div>
 
-          {/* Add Column Section */}
+          {/* Add Column Section with Search */}
           <div>
             <h4 className="text-sm font-semibold text-slate-100 mb-4">
               Add Column
             </h4>
 
             {config.unselectedFields.length === 0 ? (
-              <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
-                <p className="text-sm text-emerald-400 text-center font-medium">
-                  All available columns are already selected
-                </p>
-              </div>
+              <InfoBox variant="success" icon={null}>
+                <span className="font-medium">All available columns are already selected</span>
+              </InfoBox>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                {config.unselectedFields.map(field => (
-                  <AddItemButton
-                    key={field.fieldName}
-                    onClick={() => config.addColumn(field.fieldName)}
-                  >
-                    {field.displayName}
-                  </AddItemButton>
-                ))}
-              </div>
+              <SearchableColumnPicker
+                search={search}
+                onAddColumn={config.addColumn}
+              />
             )}
           </div>
 
           {/* Help Text */}
           <div className="pt-6 border-t border-slate-700/50">
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-              <p className="text-xs text-blue-300 leading-relaxed">
-                <span className="font-semibold text-blue-200">Tip:</span> Column values show the maximum achieved for each tier.
-                Hourly rates are calculated from the specific run that achieved the maximum value.
-              </p>
-            </div>
+            <InfoBox variant="info" title="Tip">
+              Column values show the maximum achieved for each tier.
+              Hourly rates are calculated from the specific run that achieved the maximum value.
+            </InfoBox>
           </div>
         </div>
       )}
