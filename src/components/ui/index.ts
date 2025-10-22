@@ -1,3 +1,4 @@
+export * from "./add-item-button";
 export * from "./alert";
 export * from "./button";
 export * from "./button-group";
@@ -13,7 +14,9 @@ export * from "./nav-collapse-button";
 export * from "./nav-link";
 export * from "./nav-section";
 export * from "./popover";
+export * from "./removable-badge";
 export * from "./responsive-dialog";
 export * from "./selection-button-group";
 export * from "./tabs";
 export * from "./textarea";
+export * from "./toggle-switch";
