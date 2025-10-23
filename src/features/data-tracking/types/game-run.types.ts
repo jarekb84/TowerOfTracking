@@ -71,13 +71,33 @@ export interface CsvParseResult {
   fieldMappingReport: FieldMappingReport;
 }
 
+/**
+ * Enhanced field mapping report with similarity detection
+ */
 export interface FieldMappingReport {
-  mappedFields: Array<{ 
-    csvHeader: string; 
-    camelCase: string; 
+  /** All mapped fields with their classification */
+  mappedFields: Array<{
+    csvHeader: string;
+    camelCase: string;
     supported: boolean;
+    /** Field classification: exact-match, new-field, or similar-field */
+    status?: 'exact-match' | 'new-field' | 'similar-field';
+    /** If similar-field, the suggested existing field */
+    similarTo?: string;
+    /** Type of similarity detected */
+    similarityType?: 'exact' | 'normalized' | 'levenshtein' | 'case-variation';
   }>;
+  /** Fields that are completely new (no similar matches) */
+  newFields: string[];
+  /** Fields that are similar to existing fields */
+  similarFields: Array<{
+    importedField: string;
+    existingField: string;
+    similarityType: 'normalized' | 'levenshtein' | 'case-variation';
+  }>;
+  /** @deprecated Use newFields instead - fields are never actually skipped */
   unsupportedFields: string[];
+  /** @deprecated Fields are not skipped anymore, they're all imported */
   skippedFields: string[];
 }
 

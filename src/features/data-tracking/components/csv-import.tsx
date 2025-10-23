@@ -55,7 +55,13 @@ export function CsvImport({ className }: CsvImportProps) {
         success: [],
         failed: 0,
         errors: ['Failed to parse data: ' + (error instanceof Error ? error.message : 'Unknown error')],
-        fieldMappingReport: { mappedFields: [], unsupportedFields: [], skippedFields: [] }
+        fieldMappingReport: {
+          mappedFields: [],
+          newFields: [],
+          similarFields: [],
+          unsupportedFields: [],
+          skippedFields: []
+        }
       });
     }
   };
@@ -296,14 +302,55 @@ Column headers will be automatically converted to camelCase and matched against 
                       </table>
                     </div>
 
-                    {/* Unsupported fields warning */}
-                    {parseResult.fieldMappingReport.unsupportedFields.length > 0 && (
-                      <div className="bg-orange-50 border border-orange-200 rounded p-3">
-                        <p className="text-sm font-medium text-orange-800 mb-1">
-                          Unsupported fields will be skipped:
+                    {/* New Fields Info */}
+                    {parseResult.fieldMappingReport.newFields && parseResult.fieldMappingReport.newFields.length > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                        <p className="text-sm font-medium text-blue-800 mb-1">
+                          {parseResult.fieldMappingReport.newFields.length} new {parseResult.fieldMappingReport.newFields.length === 1 ? 'field' : 'fields'} will be added:
                         </p>
-                        <p className="text-xs text-orange-700">
-                          {parseResult.fieldMappingReport.unsupportedFields.join(', ')}
+                        <p className="text-xs text-blue-700">
+                          {parseResult.fieldMappingReport.newFields.join(', ')}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          These fields will be imported as new columns in your data.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Unsupported Fields Info (not in static list, but will still be imported) */}
+                    {parseResult.fieldMappingReport.unsupportedFields && parseResult.fieldMappingReport.unsupportedFields.length > 0 && (
+                      <div className="bg-slate-50 border border-slate-300 rounded p-3">
+                        <p className="text-sm font-medium text-slate-800 mb-1">
+                          {parseResult.fieldMappingReport.unsupportedFields.length} {parseResult.fieldMappingReport.unsupportedFields.length === 1 ? 'field is' : 'fields are'} not in our static list (but will still be imported):
+                        </p>
+                        <p className="text-xs text-slate-700 mb-2">
+                          {parseResult.fieldMappingReport.unsupportedFields.slice(0, 10).join(', ')}
+                          {parseResult.fieldMappingReport.unsupportedFields.length > 10 && ` ... and ${parseResult.fieldMappingReport.unsupportedFields.length - 10} more`}
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          These fields will be imported normally. &quot;Unsupported&quot; just means they&apos;re not in our pre-configured list - this is fine for new game fields or custom data.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Similar Fields Warning */}
+                    {parseResult.fieldMappingReport.similarFields && parseResult.fieldMappingReport.similarFields.length > 0 && (
+                      <div className="bg-yellow-50 border border-yellow-300 rounded p-3">
+                        <p className="text-sm font-medium text-yellow-900 mb-2">
+                          ⚠️ Similar fields detected - possible duplicates:
+                        </p>
+                        <div className="space-y-1">
+                          {parseResult.fieldMappingReport.similarFields.map((similar, index) => (
+                            <div key={index} className="text-xs text-yellow-800 flex items-center gap-1">
+                              <span className="font-mono font-medium">&apos;{similar.importedField}&apos;</span>
+                              <span>looks like</span>
+                              <span className="font-mono font-medium">&apos;{similar.existingField}&apos;</span>
+                              <span className="text-yellow-600">({similar.similarityType})</span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-yellow-700 mt-2">
+                          These will be imported as NEW columns unless you rename them to match existing fields.
                         </p>
                       </div>
                     )}
