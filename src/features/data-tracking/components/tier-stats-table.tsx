@@ -7,6 +7,7 @@ import { useTierStatsConfig } from '../hooks/use-tier-stats-config'
 import { useDynamicTierStatsTable } from '../hooks/use-dynamic-tier-stats-table'
 import { filterRunsByType } from '../utils/run-type-filter'
 import { getTierStatsCellClassName } from '../utils/tier-stats-cell-styles'
+import { LoadingState } from '../../../components/ui/loading-state'
 import * as Tooltip from '@radix-ui/react-tooltip'
 
 export function TierStatsTable() {
@@ -20,6 +21,24 @@ export function TierStatsTable() {
 
   // Dynamic table hook
   const table = useDynamicTierStatsTable(farmRuns, config, RunType.FARM)
+
+  // Show loading state while data is initializing
+  if (!config.isDataLoaded) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-100">Performance by Tier</h3>
+            <FarmingOnlyIndicator />
+          </div>
+          <p className="text-slate-400 text-sm">
+            Loading tier statistics...
+          </p>
+        </div>
+        <LoadingState rows={5} height="500px" />
+      </div>
+    )
+  }
 
   if (farmRuns.length === 0) {
     return (
@@ -40,6 +59,18 @@ export function TierStatsTable() {
   return (
     <Tooltip.Provider delayDuration={300}>
       <div className="space-y-6">
+        {/* ARIA live region for screen reader announcements */}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+        >
+          {config.isDataLoaded && config.selectedColumns.length > 0 && (
+            `Tier statistics loaded with ${config.selectedColumns.length} columns displayed.`
+          )}
+        </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-slate-100">Performance by Tier</h3>

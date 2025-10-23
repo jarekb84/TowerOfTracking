@@ -17,21 +17,22 @@ export function useTheme(): ThemeContextType {
 }
 
 export function useThemeProvider(): ThemeContextType {
-  const [theme, setThemeState] = useState<ThemeConfig>(defaultTheme);
-  const [isClient, setIsClient] = useState(false);
+  // Load initial theme from localStorage (synchronous to avoid re-render flash)
+  const [theme, setThemeState] = useState<ThemeConfig>(() => {
+    if (typeof window === 'undefined') {
+      return defaultTheme;
+    }
 
-  // Initialize client state and load saved theme
-  useEffect(() => {
-    setIsClient(true);
     try {
       const saved = localStorage.getItem('tower-tracking-theme');
       if (saved) {
-        setThemeState(JSON.parse(saved));
+        return JSON.parse(saved);
       }
     } catch {
       // Ignore localStorage errors
     }
-  }, []);
+    return defaultTheme;
+  });
 
   const setTheme = (updates: Partial<ThemeConfig>): void => {
     setThemeState(prev => ({ ...prev, ...updates }));
@@ -42,8 +43,8 @@ export function useThemeProvider(): ThemeContextType {
   };
 
   useEffect(() => {
-    if (!isClient) return;
-    
+    if (typeof window === 'undefined') return;
+
     // Save theme to localStorage
     try {
       localStorage.setItem('tower-tracking-theme', JSON.stringify(theme));
@@ -54,7 +55,7 @@ export function useThemeProvider(): ThemeContextType {
     // Apply theme to document
     document.documentElement.setAttribute('data-theme', theme.mode);
     document.documentElement.style.setProperty('--spacing-base', `${theme.spacingBase}rem`);
-    
+
     // For condensed mode, apply the scale factor
     if (theme.mode === 'condensed') {
       const scale = 0.6;
@@ -62,7 +63,7 @@ export function useThemeProvider(): ThemeContextType {
     } else {
       document.documentElement.style.setProperty('--spacing-scale', '1');
     }
-  }, [theme, isClient]);
+  }, [theme]);
 
   return { theme, setTheme, toggleCondensed };
 }

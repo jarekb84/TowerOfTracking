@@ -86,6 +86,19 @@
 }
 
 @layer utilities {
+  /* Screen reader only utility - hides content visually but keeps it accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
   /* Enhanced navigation animations */
   .nav-slide-in {
     animation: navSlideIn 0.3s ease-out;
@@ -146,5 +159,44 @@
   @keyframes glow {
     from { opacity: 0.8; }
     to { opacity: 1; }
+  }
+
+  /* Shimmer animation for loading skeletons */
+  .animate-shimmer {
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Smooth expand/collapse animations for configuration panels */
+  .animate-in {
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-top-2 {
+    animation-name: slideInFromTop;
+  }
+
+  @keyframes slideInFromTop {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .duration-300 {
+    animation-duration: 300ms;
   }
 }

@@ -26,6 +26,9 @@ export interface UseTierStatsConfigReturn {
   availableFields: AvailableField[]
   unselectedFields: AvailableField[]
 
+  // Data loading state
+  isDataLoaded: boolean
+
   // Actions
   addColumn: (fieldName: string) => void
   removeColumn: (fieldName: string) => void
@@ -42,32 +45,52 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
   // Discover available fields from runs data
   const availableFields = useMemo(() => discoverAvailableFields(runs), [runs])
 
+  // Create stable field name set for validation dependency tracking
+  // Only changes when actual field names change, not on array reference changes
+  const fieldNameSet = useMemo(
+    () => availableFields.map(f => f.fieldName).sort().join(','),
+    [availableFields]
+  )
+
   // Load initial configuration from localStorage
-  const [config, setConfig] = useState<TierStatsConfig>(() => {
-    const loaded = loadTierStatsConfig()
-    // Validate against current data
-    return {
-      ...loaded,
-      selectedColumns: validateColumnConfig(loaded.selectedColumns, availableFields)
-    }
-  })
+  // NOTE: Don't validate columns during initial state - availableFields may be empty during SSR/initial render
+  const [config, setConfig] = useState<TierStatsConfig>(() => loadTierStatsConfig())
 
   // Persist to localStorage whenever config changes
   useEffect(() => {
     saveTierStatsConfig(config)
   }, [config])
 
-  // Revalidate columns when available fields change
+  // Revalidate columns when available fields change (but only if we have fields)
+  // Uses fieldNameSet as dependency to avoid unnecessary re-runs when array reference changes
   useEffect(() => {
+    // Skip validation if no fields available yet (data still loading)
+    if (availableFields.length === 0) return
+
     setConfig(prev => {
       const validated = validateColumnConfig(prev.selectedColumns, availableFields)
-      // Only update if validation changed something
+
+      // Only update if validation actually changed the columns
+      // Check both length and content to avoid unnecessary state updates
       if (validated.length !== prev.selectedColumns.length) {
         return { ...prev, selectedColumns: validated }
       }
+
+      // Check if any column was actually removed (content changed)
+      const hasContentChange = prev.selectedColumns.some(
+        (col, idx) => validated[idx]?.fieldName !== col.fieldName
+      )
+
+      if (hasContentChange) {
+        return { ...prev, selectedColumns: validated }
+      }
+
       return prev
     })
-  }, [availableFields])
+  }, [fieldNameSet, availableFields])
+
+  // Track data loading state
+  const isDataLoaded = useMemo(() => availableFields.length > 0, [availableFields.length])
 
   // Calculate unselected fields
   const unselectedFields = useMemo(
@@ -139,6 +162,7 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
     configSectionCollapsed: config.configSectionCollapsed,
     availableFields,
     unselectedFields,
+    isDataLoaded,
     addColumn,
     removeColumn,
     reorderColumns: handleReorderColumns,
