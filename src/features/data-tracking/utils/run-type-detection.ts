@@ -14,10 +14,24 @@ export function detectRunTypeFromFields(fields: Record<string, GameRunField>): R
       return explicitType;
     }
   }
-  
+
   // Fallback to auto-detection from tier string
   const tierStr = fields.tier?.rawValue || '';
   return /\+/.test(tierStr) ? RunType.TOURNAMENT : RunType.FARM;
+}
+
+/**
+ * Checks if clipboard data contains an explicit run_type field
+ * Returns true if the data explicitly specifies a run type, false otherwise
+ */
+export function hasExplicitRunType(fields: Record<string, GameRunField>): boolean {
+  const runTypeField = fields.runType?.rawValue?.toLowerCase();
+  if (!runTypeField) {
+    return false;
+  }
+
+  const explicitType = mapExplicitRunType(runTypeField);
+  return explicitType !== null;
 }
 
 /**

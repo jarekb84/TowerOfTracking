@@ -103,4 +103,61 @@ describe('useRunTypeContext', () => {
 
     expect(result.current).toBe('farm')
   })
+
+  describe('production environment (with base path)', () => {
+    it('should return "tournament" when on /TowerOfTracking/runs page with type=tournament', () => {
+      mockUseLocation.mockReturnValue({
+        pathname: '/TowerOfTracking/runs',
+        search: { type: 'tournament' },
+      } as ReturnType<typeof TanStackRouter.useLocation>)
+
+      const { result } = renderHook(() => useRunTypeContext())
+
+      expect(result.current).toBe('tournament')
+    })
+
+    it('should return "milestone" when on /TowerOfTracking/runs page with type=milestone', () => {
+      mockUseLocation.mockReturnValue({
+        pathname: '/TowerOfTracking/runs',
+        search: { type: 'milestone' },
+      } as ReturnType<typeof TanStackRouter.useLocation>)
+
+      const { result } = renderHook(() => useRunTypeContext())
+
+      expect(result.current).toBe('milestone')
+    })
+
+    it('should return "farm" when on /TowerOfTracking/runs page with type=farm', () => {
+      mockUseLocation.mockReturnValue({
+        pathname: '/TowerOfTracking/runs',
+        search: { type: 'farm' },
+      } as ReturnType<typeof TanStackRouter.useLocation>)
+
+      const { result } = renderHook(() => useRunTypeContext())
+
+      expect(result.current).toBe('farm')
+    })
+
+    it('should return "farm" when on /TowerOfTracking/runs page without type parameter', () => {
+      mockUseLocation.mockReturnValue({
+        pathname: '/TowerOfTracking/runs',
+        search: {},
+      } as ReturnType<typeof TanStackRouter.useLocation>)
+
+      const { result } = renderHook(() => useRunTypeContext())
+
+      expect(result.current).toBe('farm')
+    })
+
+    it('should ignore type parameter when on /TowerOfTracking/dashboard', () => {
+      mockUseLocation.mockReturnValue({
+        pathname: '/TowerOfTracking/dashboard',
+        search: { type: 'tournament' },
+      } as ReturnType<typeof TanStackRouter.useLocation>)
+
+      const { result } = renderHook(() => useRunTypeContext())
+
+      expect(result.current).toBe('farm')
+    })
+  })
 })

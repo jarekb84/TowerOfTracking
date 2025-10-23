@@ -14,7 +14,8 @@ export function useRunTypeContext(): RunTypeValue {
   const location = useLocation()
 
   // Check if we're on the runs page and extract type parameter
-  const isRunsPage = location.pathname === '/runs'
+  // Use endsWith to support both local (/runs) and production (/TowerOfTracking/runs) paths
+  const isRunsPage = location.pathname.endsWith('/runs')
 
   if (isRunsPage) {
     const searchParams = location.search as RunsSearchParams
