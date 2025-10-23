@@ -12,6 +12,7 @@ import type { DuplicateDetectionResult } from '../utils/duplicate-detection';
 import type { DuplicateResolution } from '../components/duplicate-info';
 import { useData } from './use-data';
 import { useRunTypeContext } from './use-run-type-context';
+import { hasExplicitRunType } from '../utils/run-type-detection';
 
 export interface DataInputFormState {
   inputData: string;
@@ -92,7 +93,12 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
       try {
         const parsed = parseGameRun(data, getDateTimeFromSelection());
         setPreviewData(parsed);
-        setSelectedRunType(parsed.runType);
+
+        // Only override run type if clipboard data has explicit run_type field
+        // Otherwise preserve the context-aware default (e.g., tournament tab → tournament type)
+        if (hasExplicitRunType(parsed.fields)) {
+          setSelectedRunType(parsed.runType);
+        }
 
         const hasBattleDateField = !!parsed.fields.battleDate;
         setHasBattleDate(hasBattleDateField);

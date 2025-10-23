@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectRunTypeFromFields, extractNumericStats } from './run-type-detection';
+import { detectRunTypeFromFields, extractNumericStats, hasExplicitRunType } from './run-type-detection';
 import { RunType } from '../types/game-run.types';
 import type { GameRunField } from '../types/game-run.types';
 
@@ -207,6 +207,98 @@ describe('Run Type Detection', () => {
         cellsEarned: 0,
         realTime: 0
       });
+    });
+  });
+
+  describe('hasExplicitRunType', () => {
+    it('should return true when run_type field contains valid milestone value', () => {
+      const fields: Record<string, GameRunField> = {
+        runType: {
+          value: 'milestone',
+          rawValue: 'milestone',
+          displayValue: 'Milestone',
+          originalKey: 'Run Type',
+          dataType: 'string'
+        }
+      };
+
+      expect(hasExplicitRunType(fields)).toBe(true);
+    });
+
+    it('should return true when run_type field contains valid tournament value', () => {
+      const fields: Record<string, GameRunField> = {
+        runType: {
+          value: 'tournament',
+          rawValue: 'tournament',
+          displayValue: 'Tournament',
+          originalKey: 'Run Type',
+          dataType: 'string'
+        }
+      };
+
+      expect(hasExplicitRunType(fields)).toBe(true);
+    });
+
+    it('should return true when run_type field contains valid farm value', () => {
+      const fields: Record<string, GameRunField> = {
+        runType: {
+          value: 'farm',
+          rawValue: 'farm',
+          displayValue: 'Farm',
+          originalKey: 'Run Type',
+          dataType: 'string'
+        }
+      };
+
+      expect(hasExplicitRunType(fields)).toBe(true);
+    });
+
+    it('should be case insensitive', () => {
+      const fields: Record<string, GameRunField> = {
+        runType: {
+          value: 'MILESTONE',
+          rawValue: 'MILESTONE',
+          displayValue: 'MILESTONE',
+          originalKey: 'Run Type',
+          dataType: 'string'
+        }
+      };
+
+      expect(hasExplicitRunType(fields)).toBe(true);
+    });
+
+    it('should return false when run_type field is missing', () => {
+      const fields: Record<string, GameRunField> = {
+        tier: {
+          value: 10,
+          rawValue: '10+',
+          displayValue: 'Tier 10+',
+          originalKey: 'Tier',
+          dataType: 'number'
+        }
+      };
+
+      expect(hasExplicitRunType(fields)).toBe(false);
+    });
+
+    it('should return false when run_type field contains invalid value', () => {
+      const fields: Record<string, GameRunField> = {
+        runType: {
+          value: 'invalid',
+          rawValue: 'invalid',
+          displayValue: 'Invalid',
+          originalKey: 'Run Type',
+          dataType: 'string'
+        }
+      };
+
+      expect(hasExplicitRunType(fields)).toBe(false);
+    });
+
+    it('should return false when fields object is empty', () => {
+      const fields: Record<string, GameRunField> = {};
+
+      expect(hasExplicitRunType(fields)).toBe(false);
     });
   });
 });
