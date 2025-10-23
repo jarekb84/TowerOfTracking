@@ -11,6 +11,8 @@ import { detectRunTypeFromFields, extractNumericStats } from './run-type-detecti
 import { parseTimestampFromFields } from './date-formatters';
 import { isLegacyField, getMigratedFieldName } from './internal-field-config';
 import { detectDelimiter } from './csv-helpers';
+import { extractFieldNamesFromStorage } from './field-discovery';
+import { classifyFields } from './field-similarity';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
 // Load supported fields from JSON
@@ -45,6 +47,8 @@ export function parseGenericCsv(
       errors: ['No data provided'],
       fieldMappingReport: {
         mappedFields: [],
+        newFields: [],
+        similarFields: [],
         unsupportedFields: [],
         skippedFields: []
       }
@@ -149,28 +153,97 @@ export function parseGenericCsv(
 }
 
 /**
- * Create field mapping report showing which CSV headers map to supported fields
+ * Create enhanced field mapping report with similarity detection
+ *
+ * CRITICAL LOGIC:
+ * 1. Check if field is "supported" (in supportedFields.json) for UI indicators
+ * 2. Check if field exists in localStorage for "new field" detection
+ * 3. Compare display names for similarity warnings
+ *
+ * A field is NOT new if:
+ * - It's in supportedFields.json (recognized by system)
+ * - It's in localStorage (previously imported)
+ * - It's similar to something in localStorage (user warning, but not "new")
  */
 function createFieldMappingReport(
-  headers: string[], 
+  headers: string[],
   supportedFields: string[]
 ): FieldMappingReport {
-  const mappedFields = headers.map(header => {
-    const camelCase = toCamelCase(header);
-    const supported = supportedFields.includes(camelCase);
-    return { csvHeader: header, camelCase, supported };
+  // Get all known DISPLAY NAMES from localStorage CSV headers
+  const knownDisplayNames = extractFieldNamesFromStorage();
+  const knownDisplayNamesArray: string[] = Array.from(knownDisplayNames);
+
+  // Convert headers to camelCase for supportedFields.json lookups
+  const camelCaseHeaders = headers.map(header => {
+    // Handle underscore-prefixed headers (v2 internal fields)
+    if (header.startsWith('_')) {
+      const withoutUnderscore = header.substring(1);
+      return '_' + toCamelCase(withoutUnderscore);
+    } else {
+      let camelCase = toCamelCase(header);
+
+      // Apply legacy field migration
+      if (isLegacyField(camelCase)) {
+        const migratedName = getMigratedFieldName(camelCase);
+        if (migratedName) {
+          camelCase = migratedName;
+        }
+      }
+
+      return camelCase;
+    }
   });
 
+  // Classify each field using DISPLAY NAMES for similarity detection against localStorage
+  const classifications = classifyFields(headers, knownDisplayNamesArray);
+
+  // Build enhanced mapped fields
+  const mappedFields = headers.map((header, index) => {
+    const camelCase = camelCaseHeaders[index];
+    const classification = classifications[index];
+    const supported = supportedFields.includes(camelCase);
+
+    // Determine final status: supported fields are always "exact-match" even if not in localStorage
+    let finalStatus = classification.status;
+    if (supported && classification.status === 'new-field') {
+      finalStatus = 'exact-match'; // It's in supportedFields.json, so it's recognized
+    }
+
+    return {
+      csvHeader: header,
+      camelCase: header, // Show display name to user, not camelCase
+      supported,
+      status: finalStatus,
+      similarTo: classification.similarTo,
+      similarityType: classification.similarityType
+    };
+  });
+
+  // Collect TRULY new fields (not in localStorage AND not in supportedFields.json)
+  const newFields = mappedFields
+    .filter(f => f.status === 'new-field')
+    .map(f => f.csvHeader);
+
+  // Collect similar fields with their suggestions (only from localStorage comparison)
+  const similarFields = classifications
+    .filter(c => c.status === 'similar-field')
+    .map(c => ({
+      importedField: c.fieldName,
+      existingField: c.similarTo!,
+      similarityType: c.similarityType! as 'normalized' | 'levenshtein' | 'case-variation'
+    }));
+
+  // "Unsupported" fields = not in supportedFields.json (but will still be imported!)
   const unsupportedFields = mappedFields
     .filter(field => !field.supported)
     .map(field => field.csvHeader);
 
-  const skippedFields = unsupportedFields; // For now, all unsupported fields are skipped
-
   return {
     mappedFields,
+    newFields,
+    similarFields,
     unsupportedFields,
-    skippedFields
+    skippedFields: [] // No fields are skipped anymore
   };
 }
 
