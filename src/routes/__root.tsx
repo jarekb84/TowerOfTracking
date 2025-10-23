@@ -5,8 +5,6 @@ import { ThemeProvider } from '../features/theming'
 import { DataProvider, GlobalDataInputProvider } from '../features/data-tracking'
 import { NavigationProvider, AppLayout } from '../features/navigation'
 
-import { useEffect, useState } from 'react'
-
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
@@ -40,11 +38,8 @@ const options = {
 }
 
 function PostHogClientProvider({ children }: { children: React.ReactNode }) {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
+  // Use synchronous check to avoid re-render flash
+  const isClient = typeof window !== 'undefined'
 
   if (!isClient) {
     return <>{children}</>

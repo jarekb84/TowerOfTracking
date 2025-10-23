@@ -46,14 +46,34 @@ export function useData(): DataContextType {
 }
 
 export function useDataProvider(): DataContextType {
-  const [runs, setRuns] = useState<ParsedGameRun[]>([]);
-  const [compositeKeys, setCompositeKeys] = useState<Set<string>>(new Set());
-  const [migrationState, setMigrationState] = useState<MigrationState | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  // Load data once during initialization (synchronous to avoid re-render flash)
+  const initialData = (() => {
+    if (typeof window === 'undefined') {
+      return { runs: [], compositeKeys: new Set<string>() };
+    }
 
-  // Initialize client state and load saved runs
-  useEffect(() => {
-    setIsClient(true);
+    try {
+      const loadedRuns = loadRunsFromStorage();
+      return {
+        runs: loadedRuns,
+        compositeKeys: generateCompositeKeysSet(loadedRuns)
+      };
+    } catch (error) {
+      console.error('[Data Loading] Failed to load runs from storage:', error);
+      return { runs: [], compositeKeys: new Set<string>() };
+    }
+  })();
+
+  const [runs, setRuns] = useState<ParsedGameRun[]>(initialData.runs);
+  const [compositeKeys, setCompositeKeys] = useState<Set<string>>(initialData.compositeKeys);
+
+  // Migration state is computed once during initialization and never changes
+  // setMigrationState is intentionally unused - migrations are one-time operations
+  const [migrationState] = useState<MigrationState | null>(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
     try {
       // Perform one-time migration if needed (v1 → v2: add underscores to internal fields)
       const migrationResult = migrateDataIfNeeded();
@@ -63,30 +83,26 @@ export function useDataProvider(): DataContextType {
           `[Data Migration] Successfully migrated from v${migrationResult.fromVersion} to v${migrationResult.toVersion}`,
           '\nInternal fields now use consistent naming (_Date, _Time, _Notes, _Run Type)'
         );
-        setMigrationState({
+        // TODO: Send PostHog event when analytics is set up
+        return {
           migrated: true,
           fromVersion: migrationResult.fromVersion,
           toVersion: migrationResult.toVersion,
           error: null
-        });
-        // TODO: Send PostHog event when analytics is set up
+        };
       }
-
-      const loadedRuns = loadRunsFromStorage();
-      setRuns(loadedRuns);
-
-      // Generate composite keys set for loaded runs
-      setCompositeKeys(generateCompositeKeysSet(loadedRuns));
     } catch (error) {
-      console.error('[Data Migration] Failed to load or migrate data:', error);
-      setMigrationState({
+      console.error('[Data Migration] Failed to migrate data:', error);
+      return {
         migrated: false,
         fromVersion: 1,
         toVersion: 2,
         error: error instanceof Error ? error : new Error('Unknown migration error')
-      });
+      };
     }
-  }, []);
+
+    return null;
+  });
 
   const addRun = (run: ParsedGameRun): void => {
     const compositeKey = generateCompositeKey(run);
@@ -213,14 +229,14 @@ export function useDataProvider(): DataContextType {
 
   // Save runs to CSV storage whenever they change
   useEffect(() => {
-    if (!isClient) return;
-    
+    if (typeof window === 'undefined') return;
+
     try {
       saveRunsToStorage(runs);
     } catch (error) {
       console.error('Failed to save runs to CSV storage:', error);
     }
-  }, [runs, isClient]);
+  }, [runs]);
 
   return {
     runs,

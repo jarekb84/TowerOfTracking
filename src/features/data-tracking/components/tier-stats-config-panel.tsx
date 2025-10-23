@@ -74,7 +74,7 @@ export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
 
       {/* Configuration Section */}
       {!config.configSectionCollapsed && (
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-8 space-y-8">
+        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-8 space-y-8 animate-in fade-in slide-in-from-top-2 duration-300">
           {/* Selected Columns with Drag & Drop */}
           <div>
             <h4 className="text-sm font-semibold text-slate-100 mb-4">

@@ -44,6 +44,37 @@ describe('useTierStatsConfig', () => {
       expect(result.current.configSectionCollapsed).toBe(true)
     })
 
+    it('should preserve stored columns even when initialized with empty runs', () => {
+      // First, set up a custom configuration with data
+      const runsWithData = [createMockRun(5)]
+      const { result: setupResult } = renderHook(() => useTierStatsConfig(runsWithData))
+
+      act(() => {
+        setupResult.current.addColumn('shards')
+      })
+
+      // Verify shards was added
+      expect(setupResult.current.selectedColumns.some(col => col.fieldName === 'shards')).toBe(true)
+
+      // Now simulate page refresh with empty runs array (data not loaded yet)
+      const { result: emptyResult } = renderHook(() => useTierStatsConfig([]))
+
+      // Should still have all columns including shards from localStorage
+      expect(emptyResult.current.selectedColumns.some(col => col.fieldName === 'shards')).toBe(true)
+      expect(emptyResult.current.selectedColumns).toHaveLength(5) // 4 default + shards
+
+      // When data loads, columns should remain intact
+      const { result: finalResult, rerender } = renderHook(
+        ({ runs }) => useTierStatsConfig(runs),
+        { initialProps: { runs: [] } }
+      )
+
+      rerender({ runs: runsWithData })
+
+      expect(finalResult.current.selectedColumns.some(col => col.fieldName === 'shards')).toBe(true)
+      expect(finalResult.current.selectedColumns).toHaveLength(5)
+    })
+
     it('should discover available fields from runs', () => {
       const runs = [createMockRun(5)]
       const { result } = renderHook(() => useTierStatsConfig(runs))
