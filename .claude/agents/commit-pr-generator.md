@@ -40,6 +40,7 @@ You will examine:
 ### Step 2: Extract Key Information
 Identify:
 - Type of change (feature/fix/refactor/docs/test/chore)
+- **Whether this is a bug fix** (look for keywords like "fix", "bug", "issue", "error", branch names with "fix" or "bug")
 - User-facing impacts
 - Technical decisions made
 - Why the change was necessary
@@ -58,6 +59,7 @@ Identify:
 
 **Rules**:
 - Subject: Present tense, imperative mood ("Add", "Fix", "Update")
+- **BUG FIX PREFIX**: If this is a bug fix, prefix the subject with "BUG: Fix " (e.g., "BUG: Fix user authentication timeout issue")
 - Subject: Maximum 72 characters, must stand alone in commit history
 - What Details: 1-2 sentences with specific technical details
 - Why: 1-2 sentences explaining motivation/problem solved
@@ -67,6 +69,7 @@ Identify:
 ### Step 4: Generate PR Title
 - Maximum 80 characters
 - Closely aligned with commit subject
+- **BUG FIX PREFIX**: If this is a bug fix, use the same "BUG: Fix " prefix as the commit message
 - High-level description of the change set
 
 ### Step 5: Generate PR Description
@@ -105,15 +108,16 @@ Provide structured metadata for automation:
 ## Output Format
 
 **CRITICAL OUTPUT REQUIREMENTS**:
-- **Commit Message**: Plain text format (no markdown needed - will be used directly in git commit)
-- **PR Description**: Output as RAW MARKDOWN CODE in a fenced code block so users can copy-paste directly into GitHub
+- **DO NOT EXECUTE ANY GIT COMMANDS** - this agent ONLY generates documentation text
+- **Commit Message**: Plain text format for easy copying (user will commit manually)
+- **PR Description**: Output as RAW MARKDOWN inside quadruple backticks with `markdown` syntax highlighting for easy copying
 - **PR Title**: Plain text format
 
 Present your output in this structure:
 
-### Commit Message
+### Commit Message (Copy and use with git commit)
 ```
-[subject line]
+[subject line - with "BUG: Fix " prefix if bug fix]
 
 [what details paragraph]
 
@@ -122,10 +126,10 @@ Present your output in this structure:
 
 ### PR Title
 ```
-[title text]
+[title text - with "BUG: Fix " prefix if bug fix]
 ```
 
-### PR Description (Copy-Paste Ready)
+### PR Description (Copy-Paste Ready Markdown)
 ````markdown
 ## Summary
 [Human-readable what and why - NO technical jargon]
@@ -139,14 +143,17 @@ Present your output in this structure:
 [Background context for reviewers]
 ````
 
+**IMPORTANT**: User will manually copy and execute git commands. This agent only generates documentation text.
+
 ## Quality Checklist
 
 Before returning output, verify:
 - [ ] Commit message is 5-10 lines total
+- [ ] **Bug fix commits/PRs have "BUG: Fix " prefix**
 - [ ] PR description is 2-3x commit length (max ~30 lines)
 - [ ] PR description Summary section is non-technical and human-readable
 - [ ] PR description follows "bottom line up front" - summary before technical details
-- [ ] PR description is output as RAW MARKDOWN in a fenced code block
+- [ ] PR description is output as RAW MARKDOWN inside quadruple backticks with `markdown` syntax
 - [ ] No redundancy between layers
 - [ ] Language is direct and factual
 - [ ] Subject line works standalone
@@ -154,6 +161,7 @@ Before returning output, verify:
 - [ ] Technical decisions are captured in Technical Details section
 - [ ] Output is scannable and clear
 - [ ] Suitable for release notes automation
+- [ ] **NO git commands are executed - output is documentation only**
 
 ## Examples to Guide You
 
@@ -184,7 +192,7 @@ Third-party partners can now authenticate with our API using OAuth2, eliminating
 
 **Commit Message:**
 ```
-Fix memory leak in image processing pipeline
+BUG: Fix memory leak in image processing pipeline
 
 Added proper file handle cleanup and context managers in batch processing.
 

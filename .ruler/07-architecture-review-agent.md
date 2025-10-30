@@ -19,6 +19,7 @@
 - Key user requirements addressed
 - High-level description of changes made
 - Critical implementation decisions and constraints
+- **Bug fix indicator**: Whether this change is a bug fix (affects review scope)
 
 ### Architecture Review Focus Areas
 
@@ -28,6 +29,19 @@
 4. **Extensibility Planning**: Forward-thinking design for future requirements
 5. **Context Isolation**: Architectural concerns separate from visual concerns
 6. **Compound Benefits**: Small structural improvements accumulate into major gains
+
+### Bug Fix Special Handling
+
+**CRITICAL**: Bug fixes receive LIMITED SCOPE architectural review focused on minimal, easily-revertible changes.
+
+**See the Architecture Review Agent instructions** ([.claude/agents/architecture-review.md](.claude/agents/architecture-review.md)) for:
+- Complete bug fix review protocol
+- Decision criteria for proposed changes
+- Scope limiting guidelines by category
+- Bug fix review checklist
+- Example scenarios with approve/reject guidance
+
+**Key Principle**: "Leave the codebase better than you found it" is **SUSPENDED** for bug fixes. General improvements belong in separate PRs after the bug is fixed.
 
 ## Enforcement Rules
 
