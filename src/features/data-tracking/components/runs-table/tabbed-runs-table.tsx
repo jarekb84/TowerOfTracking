@@ -6,6 +6,7 @@ import { FarmingRunsTable } from './farming-runs-table';
 import { TournamentRunsTable } from './tournament-runs-table';
 import { MilestoneRunsTable } from './milestone-runs-table';
 import { useRunsNavigation, RunsTabType } from '../../hooks/use-runs-navigation';
+import { RunTypeIndicator } from '../run-type-indicator';
 
 export function TabbedRunsTable() {
   const { runs, removeRun } = useData();
@@ -31,20 +32,23 @@ export function TabbedRunsTable() {
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>
       <TabsList className="mb-6 w-full sm:w-auto">
-        <TabsTrigger value={RunType.FARM} className="flex-1 sm:flex-initial">
+        <TabsTrigger value={RunType.FARM} className="flex-1 sm:flex-initial gap-1.5">
+          <RunTypeIndicator runType={RunType.FARM} size="sm" />
           <span className="hidden sm:inline">Farm Runs</span>
           <span className="sm:hidden">Farm</span>
-          <span className="ml-1">({farmingRuns.length})</span>
+          <span className="ml-0.5">({farmingRuns.length})</span>
         </TabsTrigger>
-        <TabsTrigger value={RunType.TOURNAMENT} className="flex-1 sm:flex-initial">
+        <TabsTrigger value={RunType.TOURNAMENT} className="flex-1 sm:flex-initial gap-1.5">
+          <RunTypeIndicator runType={RunType.TOURNAMENT} size="sm" />
           <span className="hidden sm:inline">Tournament Runs</span>
           <span className="sm:hidden">Tournament</span>
-          <span className="ml-1">({tournamentRuns.length})</span>
+          <span className="ml-0.5">({tournamentRuns.length})</span>
         </TabsTrigger>
-        <TabsTrigger value={RunType.MILESTONE} className="flex-1 sm:flex-initial">
+        <TabsTrigger value={RunType.MILESTONE} className="flex-1 sm:flex-initial gap-1.5">
+          <RunTypeIndicator runType={RunType.MILESTONE} size="sm" />
           <span className="hidden sm:inline">Milestone Runs</span>
           <span className="sm:hidden">Milestone</span>
-          <span className="ml-1">({milestoneRuns.length})</span>
+          <span className="ml-0.5">({milestoneRuns.length})</span>
         </TabsTrigger>
       </TabsList>
 
