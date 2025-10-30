@@ -5,7 +5,7 @@ import type {
   GameRunField,
   RunTypeValue
 } from '../types/game-run.types';
-import { createGameRunField, toCamelCase } from './field-utils';
+import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
 import { determineRunType } from './run-type-filter';
 import {
   parseBattleDate,
@@ -185,8 +185,8 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
         const derived = deriveDateTimeFromBattleDate(battleDate);
 
         // Add derived internal fields (these won't be in the original game export)
-        fields[INTERNAL_FIELD_NAMES.DATE] = createGameRunField('Date', derived.date);
-        fields[INTERNAL_FIELD_NAMES.TIME] = createGameRunField('Time', derived.time);
+        fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
+        fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
       } else {
         // battle_date parsing failed, fall back to customTimestamp or current time
         timestamp = customTimestamp || new Date();

@@ -3,7 +3,8 @@ import { format } from 'date-fns';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../utils/data-parser';
 import { getFieldValue, getFieldRaw } from '../utils/field-utils';
 import { capitalizeFirst } from '../utils/string-formatters';
-import { ParsedGameRun } from '../types/game-run.types';
+import { ParsedGameRun, RunType } from '../types/game-run.types';
+import { RunTypeIndicator } from './run-type-indicator';
 
 interface DataInputPreviewProps {
   previewData: ParsedGameRun;
@@ -26,7 +27,10 @@ export function DataInputPreview({ previewData, selectedRunType }: DataInputPrev
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">Type:</span>
-                <span className="text-foreground">{capitalizeFirst(selectedRunType)}</span>
+                <div className="flex items-center gap-2">
+                  <RunTypeIndicator runType={selectedRunType as RunType} size="md" />
+                  <span className="text-foreground">{capitalizeFirst(selectedRunType)}</span>
+                </div>
               </div>
               {previewData.realTime && (
                 <div className="flex items-center gap-2">

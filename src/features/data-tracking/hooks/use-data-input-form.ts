@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { parseGameRun } from '../utils/data-parser';
-import { extractTimestampFromFields } from '../utils/field-utils';
+import { extractTimestampFromFields, createInternalField } from '../utils/field-utils';
 import {
   createInitialFormState,
   createInitialDateTimeState,
@@ -172,13 +172,8 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     if (previewData) {
       const updatedFields = {
         ...previewData.fields,
-        _notes: {
-          value: notes,
-          rawValue: notes,
-          displayValue: notes,
-          originalKey: 'Notes',
-          dataType: 'string' as const
-        }
+        _notes: createInternalField('Notes', notes),
+        _runType: createInternalField('Run Type', selectedRunType)
       };
 
       const runWithNotes = {
@@ -194,7 +189,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
       } else {
         addRun(runWithNotes);
       }
-      
+
       resetForm();
     }
   };

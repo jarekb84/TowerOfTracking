@@ -8,6 +8,7 @@
  * 1. Add to INTERNAL_FIELD_NAMES constant
  * 2. Add to INTERNAL_FIELD_MAPPINGS
  * 3. Add to INTERNAL_FIELD_ORDER if ordering is important
+ * 4. Use createInternalField() from field-utils.ts to create field instances
  */
 
 /**

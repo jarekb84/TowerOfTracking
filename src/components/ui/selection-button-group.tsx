@@ -66,9 +66,22 @@ export function SelectionButtonGroup<T = string>({
             buttonClassName
           )}
           style={option.color && selectedValue === option.value ? {
-            backgroundColor: `${option.color}20`,
-            borderColor: `${option.color}70`,
+            backgroundColor: `${option.color}15`,
+            borderColor: `${option.color}60`,
+            color: 'var(--color-foreground)',
           } : undefined}
+          onMouseEnter={(e) => {
+            if (option.color && selectedValue === option.value) {
+              e.currentTarget.style.backgroundColor = `${option.color}25`;
+              e.currentTarget.style.borderColor = `${option.color}70`;
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (option.color && selectedValue === option.value) {
+              e.currentTarget.style.backgroundColor = `${option.color}15`;
+              e.currentTarget.style.borderColor = `${option.color}60`;
+            }
+          }}
         >
           {option.color && option.icon && (
             <div 

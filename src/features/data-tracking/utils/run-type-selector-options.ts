@@ -1,13 +1,14 @@
 import type { SelectionOption } from '../../../components/ui'
 import { RunType } from '../types/game-run.types'
 import { RunTypeFilter, getRunTypeDisplayLabel } from './run-type-filter'
+import { getRunTypeColor } from './run-type-display'
 
 export type RunTypeSelectorMode = 'filter' | 'selection'
 
 const ALL_RUN_TYPE_OPTIONS: Array<SelectionOption<RunTypeFilter>> = [
-  { value: RunType.FARM, label: getRunTypeDisplayLabel(RunType.FARM), color: '#10b981', icon: true },
-  { value: RunType.TOURNAMENT, label: getRunTypeDisplayLabel(RunType.TOURNAMENT), color: '#f59e0b', icon: true },
-  { value: RunType.MILESTONE, label: getRunTypeDisplayLabel(RunType.MILESTONE), color: '#8b5cf6', icon: true },
+  { value: RunType.FARM, label: getRunTypeDisplayLabel(RunType.FARM), color: getRunTypeColor(RunType.FARM), icon: true },
+  { value: RunType.TOURNAMENT, label: getRunTypeDisplayLabel(RunType.TOURNAMENT), color: getRunTypeColor(RunType.TOURNAMENT), icon: true },
+  { value: RunType.MILESTONE, label: getRunTypeDisplayLabel(RunType.MILESTONE), color: getRunTypeColor(RunType.MILESTONE), icon: true },
   { value: 'all', label: 'All Types', color: '#6b7280', icon: true },
 ] as const
 

@@ -151,7 +151,7 @@ export function extractTimestampFromFields(fields: Record<string, GameRunField>)
       const dateStr = dateField.rawValue;
       const timeStr = timeField.rawValue;
       const timestamp = new Date(`${dateStr} ${timeStr}`);
-      
+
       if (!isNaN(timestamp.getTime())) {
         return timestamp;
       }
@@ -166,4 +166,24 @@ export function extractTimestampFromFields(fields: Record<string, GameRunField>)
   }
 
   return null; // Return null if no valid date/time found
+}
+
+/**
+ * Create an internal field (app-generated metadata) with string data type
+ *
+ * Internal fields are application-controlled metadata (notes, run type, etc.)
+ * and always use string data type with simple value pass-through.
+ *
+ * @param originalKey - Display name for the field (e.g., "Notes", "Run Type")
+ * @param value - The string value to store
+ * @returns GameRunField with string data type
+ */
+export function createInternalField(originalKey: string, value: string): GameRunField {
+  return {
+    value,
+    rawValue: value,
+    displayValue: value,
+    originalKey,
+    dataType: 'string' as const
+  };
 }
