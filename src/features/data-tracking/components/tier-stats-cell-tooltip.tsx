@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 import type { CellTooltipData } from '../types/tier-stats-config.types'
 import { formatDuration } from '../utils/data-parser'
 import { formatLargeNumber } from '../utils/chart-data'
+import { TooltipContentWrapper } from '../../../components/ui/tooltip-content'
 
 interface TierStatsCellTooltipProps {
   data: CellTooltipData
@@ -9,7 +10,7 @@ interface TierStatsCellTooltipProps {
 
 export function TierStatsCellTooltip({ data }: TierStatsCellTooltipProps) {
   return (
-    <div className="bg-slate-950 border border-slate-600/80 rounded-lg p-4 shadow-2xl backdrop-blur-md min-w-[220px]">
+    <TooltipContentWrapper variant="detailed" className="shadow-2xl backdrop-blur-md">
       <div className="space-y-3">
         {/* Field Name */}
         <div className="font-semibold text-white text-sm border-b border-slate-700/80 pb-2.5">
@@ -73,6 +74,6 @@ export function TierStatsCellTooltip({ data }: TierStatsCellTooltipProps) {
           </div>
         </div>
       </div>
-    </div>
+    </TooltipContentWrapper>
   )
 }

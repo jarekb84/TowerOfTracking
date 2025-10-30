@@ -1,4 +1,5 @@
 import type { TierStatsConfig } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types/tier-stats-config.types'
 import { getDefaultConfig } from './tier-stats-config'
 
 const STORAGE_KEY = 'tower-tracking-tier-stats-config'
@@ -89,7 +90,26 @@ function validateStoredConfig(config: unknown): TierStatsConfig {
     return defaultConfig
   }
 
-  return config as TierStatsConfig
+  // Validate aggregationType if present, otherwise use default
+  const validatedConfig = config as TierStatsConfig
+  if (!('aggregationType' in config) || !isValidAggregationType(validatedConfig.aggregationType)) {
+    validatedConfig.aggregationType = TierStatsAggregation.MAX
+  }
+
+  return validatedConfig
+}
+
+/**
+ * Type guard to check if value is a valid aggregation type
+ */
+function isValidAggregationType(value: unknown): value is TierStatsAggregation {
+  return (
+    value === TierStatsAggregation.MAX ||
+    value === TierStatsAggregation.P99 ||
+    value === TierStatsAggregation.P90 ||
+    value === TierStatsAggregation.P75 ||
+    value === TierStatsAggregation.P50
+  )
 }
 
 /**

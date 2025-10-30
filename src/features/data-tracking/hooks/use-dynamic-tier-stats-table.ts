@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react'
 import type { ParsedGameRun } from '../types/game-run.types'
 import type { UseTierStatsConfigReturn } from './use-tier-stats-config'
 import type { DynamicTierStats, TierStatsColumn, CellTooltipData } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types/tier-stats-config.types'
 import {
   calculateDynamicTierStats,
   buildColumnDefinitions,
@@ -95,14 +96,14 @@ export function useDynamicTierStatsTable(
       return { main: `Tier ${tierStats.tier}` }
     }
 
-    const value = getCellValue(tierStats, column.fieldName, false)
+    const value = getCellValue(tierStats, column.fieldName, false, config.aggregationType)
     if (value === null) return { main: '-' }
 
     const formattedMain = formatCellValue(value, column.dataType)
 
     // Add hourly rate if enabled for this column
     if (column.showHourlyRate) {
-      const hourlyValue = getCellValue(tierStats, column.fieldName, true)
+      const hourlyValue = getCellValue(tierStats, column.fieldName, true, config.aggregationType)
       if (hourlyValue !== null) {
         const formattedHourly = formatCellValue(hourlyValue, column.dataType)
         return { main: formattedMain, hourly: `${formattedHourly}/h` }
@@ -110,11 +111,15 @@ export function useDynamicTierStatsTable(
     }
 
     return { main: formattedMain }
-  }, [])
+  }, [config.aggregationType])
 
   // Get tooltip data for a cell
+  // Only show tooltips for MAX aggregation type (percentiles don't have specific runs)
   const getCellTooltipData = useCallback((tierStats: DynamicTierStats, column: TierStatsColumn): CellTooltipData | null => {
     if (column.id === 'tier') return null
+
+    // Only show tooltip for MAX aggregation (percentiles don't reference specific runs)
+    if (config.aggregationType !== TierStatsAggregation.MAX) return null
 
     const fieldStats = tierStats.fields[column.fieldName]
     if (!fieldStats) return null
@@ -145,7 +150,7 @@ export function useDynamicTierStatsTable(
     }
 
     return tooltipData
-  }, [])
+  }, [config.aggregationType])
 
   return {
     tierStats,

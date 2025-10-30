@@ -1,6 +1,17 @@
 import type { ParsedGameRun } from './game-run.types'
 
 /**
+ * Aggregation methods for tier statistics
+ */
+export enum TierStatsAggregation {
+  MAX = 'max',
+  P99 = 'p99',
+  P90 = 'p90',
+  P75 = 'p75',
+  P50 = 'p50',
+}
+
+/**
  * Configuration for a single column in the tier stats table
  */
 export interface TierStatsColumnConfig {
@@ -14,6 +25,7 @@ export interface TierStatsColumnConfig {
 export interface TierStatsConfig {
   selectedColumns: TierStatsColumnConfig[]
   configSectionCollapsed: boolean
+  aggregationType: TierStatsAggregation
   lastUpdated: number
 }
 
@@ -50,11 +62,21 @@ export interface DynamicTierStats {
 
 /**
  * Statistics for a specific field within a tier
+ * Contains all aggregation values computed from runs
+ * Each percentile tracks its value AND the duration from its source run for accurate hourly rates
  */
 export interface FieldStats {
   maxValue: number
   maxValueRun: ParsedGameRun
-  hourlyRate?: number // Only present for numeric fields
+  p99Value: number | null
+  p99Duration: number | null // Duration of the run at P99 position
+  p90Value: number | null
+  p90Duration: number | null // Duration of the run at P90 position
+  p75Value: number | null
+  p75Duration: number | null // Duration of the run at P75 position
+  p50Value: number | null
+  p50Duration: number | null // Duration of the run at P50 position
+  hourlyRate?: number // Hourly rate for max value (from specific run)
   longestDuration?: number // Track longest run duration for reference
   longestDurationRun?: ParsedGameRun
 }

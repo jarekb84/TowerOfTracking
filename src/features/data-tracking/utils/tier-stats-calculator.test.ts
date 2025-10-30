@@ -1,6 +1,9 @@
+/* eslint-disable max-lines */
+// Test file covering multiple functions with comprehensive percentile aggregation tests
 import { describe, it, expect } from 'vitest'
 import type { ParsedGameRun } from '../types/game-run.types'
 import type { AvailableField, TierStatsColumnConfig } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types/tier-stats-config.types'
 import {
   calculateDynamicTierStats,
   calculateFieldStats,
@@ -249,6 +252,121 @@ describe('tier-stats-calculator', () => {
     it('should return null for non-existent field', () => {
       const value = getCellValue(tierStats, 'invalidField', false)
       expect(value).toBeNull()
+    })
+  })
+
+  describe('getCellValue - Percentile Aggregation', () => {
+    // Create runs with varying coins and durations to test percentile-specific hourly rates
+    const runs = [
+      createMockRun(11, 1000, 10000000000000, 5000, 50000), // 10.0T in 13.9h
+      createMockRun(11, 1100, 10100000000000, 5000, 48000), // 10.1T in 13.3h
+      createMockRun(11, 1200, 10600000000000, 5000, 47000), // 10.6T in 13.1h
+      createMockRun(11, 1300, 10800000000000, 5000, 46000), // 10.8T in 12.8h
+      createMockRun(11, 1400, 11000000000000, 5000, 48000), // 11.0T in 13.3h
+      createMockRun(11, 1500, 11300000000000, 5000, 47000), // 11.3T in 13.1h
+      createMockRun(11, 1600, 11500000000000, 5000, 45000), // 11.5T in 12.5h
+      createMockRun(11, 1700, 11700000000000, 5000, 46000), // 11.7T in 12.8h
+      createMockRun(11, 1800, 11900000000000, 5000, 47000), // 11.9T in 13.1h
+      createMockRun(11, 1900, 12100000000000, 5000, 48000)  // 12.1T in 13.3h (MAX)
+    ]
+
+    const columns: TierStatsColumnConfig[] = [
+      { fieldName: 'coinsEarned', showHourlyRate: true }
+    ]
+
+    const tierStats = calculateDynamicTierStats(runs, columns)[0]
+
+    it('should return MAX value correctly', () => {
+      const value = getCellValue(tierStats, 'coinsEarned', false, TierStatsAggregation.MAX)
+      expect(value).toBe(12100000000000) // 12.1T
+    })
+
+    it('should return MAX hourly rate from specific max run', () => {
+      const hourlyRate = getCellValue(tierStats, 'coinsEarned', true, TierStatsAggregation.MAX)
+
+      // MAX is 12.1T from run with 48000s duration
+      // Hourly rate = 12.1T / 48000 * 3600 = ~908B/h
+      const expectedRate = (12100000000000 / 48000) * 3600
+      expect(hourlyRate).toBeCloseTo(expectedRate, 2)
+    })
+
+    it('should return P90 value correctly', () => {
+      const value = getCellValue(tierStats, 'coinsEarned', false, TierStatsAggregation.P90)
+
+      // P90 should be high but not max
+      expect(value).not.toBeNull()
+      expect(value!).toBeLessThanOrEqual(12100000000000)
+      expect(value!).toBeGreaterThan(10000000000000)
+    })
+
+    it('should calculate P90 hourly rate using P90 run duration, not average', () => {
+      const p90Value = getCellValue(tierStats, 'coinsEarned', false, TierStatsAggregation.P90)
+      const p90HourlyRate = getCellValue(tierStats, 'coinsEarned', true, TierStatsAggregation.P90)
+
+      expect(p90Value).not.toBeNull()
+      expect(p90HourlyRate).not.toBeNull()
+
+      // P90 hourly rate should be calculated using the specific run's duration at P90 position
+      const fieldStats = tierStats.fields.coinsEarned
+      expect(fieldStats.p90Duration).not.toBeNull()
+
+      const expectedP90Rate = (fieldStats.p90Value! / fieldStats.p90Duration!) * 3600
+      expect(p90HourlyRate).toBeCloseTo(expectedP90Rate, 2)
+    })
+
+    it('should ensure P90 hourly rate is NEVER higher than MAX hourly rate', () => {
+      const maxHourlyRate = getCellValue(tierStats, 'coinsEarned', true, TierStatsAggregation.MAX)
+      const p90HourlyRate = getCellValue(tierStats, 'coinsEarned', true, TierStatsAggregation.P90)
+
+      expect(maxHourlyRate).not.toBeNull()
+      expect(p90HourlyRate).not.toBeNull()
+
+      // P90 hourly rate should NEVER exceed MAX hourly rate
+      expect(p90HourlyRate!).toBeLessThanOrEqual(maxHourlyRate!)
+    })
+
+    it('should calculate P75 hourly rate using P75 run duration', () => {
+      const p75Value = getCellValue(tierStats, 'coinsEarned', false, TierStatsAggregation.P75)
+      const p75HourlyRate = getCellValue(tierStats, 'coinsEarned', true, TierStatsAggregation.P75)
+
+      expect(p75Value).not.toBeNull()
+      expect(p75HourlyRate).not.toBeNull()
+
+      const fieldStats = tierStats.fields.coinsEarned
+      expect(fieldStats.p75Duration).not.toBeNull()
+
+      const expectedP75Rate = (fieldStats.p75Value! / fieldStats.p75Duration!) * 3600
+      expect(p75HourlyRate).toBeCloseTo(expectedP75Rate, 2)
+    })
+
+    it('should calculate P50 hourly rate using P50 run duration', () => {
+      const p50Value = getCellValue(tierStats, 'coinsEarned', false, TierStatsAggregation.P50)
+      const p50HourlyRate = getCellValue(tierStats, 'coinsEarned', true, TierStatsAggregation.P50)
+
+      expect(p50Value).not.toBeNull()
+      expect(p50HourlyRate).not.toBeNull()
+
+      const fieldStats = tierStats.fields.coinsEarned
+      expect(fieldStats.p50Duration).not.toBeNull()
+
+      const expectedP50Rate = (fieldStats.p50Value! / fieldStats.p50Duration!) * 3600
+      expect(p50HourlyRate).toBeCloseTo(expectedP50Rate, 2)
+    })
+
+    it('should return null when percentile duration is missing', () => {
+      // Create a tier stats with missing percentile duration
+      const incompleteTierStats = {
+        ...tierStats,
+        fields: {
+          coinsEarned: {
+            ...tierStats.fields.coinsEarned,
+            p90Duration: null
+          }
+        }
+      }
+
+      const hourlyRate = getCellValue(incompleteTierStats, 'coinsEarned', true, TierStatsAggregation.P90)
+      expect(hourlyRate).toBeNull()
     })
   })
 

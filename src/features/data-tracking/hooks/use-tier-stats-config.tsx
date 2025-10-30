@@ -3,7 +3,8 @@ import type { ParsedGameRun } from '../types/game-run.types'
 import type {
   TierStatsConfig,
   TierStatsColumnConfig,
-  AvailableField
+  AvailableField,
+  TierStatsAggregation
 } from '../types/tier-stats-config.types'
 import {
   discoverAvailableFields,
@@ -21,6 +22,7 @@ export interface UseTierStatsConfigReturn {
   // Configuration state
   selectedColumns: TierStatsColumnConfig[]
   configSectionCollapsed: boolean
+  aggregationType: TierStatsAggregation
 
   // Available fields
   availableFields: AvailableField[]
@@ -35,6 +37,7 @@ export interface UseTierStatsConfigReturn {
   reorderColumns: (fromIndex: number, toIndex: number) => void
   toggleColumnHourlyRate: (fieldName: string) => void
   toggleConfigSection: () => void
+  setAggregationType: (aggregationType: TierStatsAggregation) => void
   resetToDefaults: () => void
 }
 
@@ -152,6 +155,14 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
     }))
   }, [])
 
+  // Set aggregation type
+  const setAggregationType = useCallback((aggregationType: TierStatsAggregation) => {
+    setConfig(prev => ({
+      ...prev,
+      aggregationType
+    }))
+  }, [])
+
   // Reset configuration to defaults
   const resetToDefaults = useCallback(() => {
     setConfig(getDefaultConfig())
@@ -160,6 +171,7 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
   return {
     selectedColumns: config.selectedColumns,
     configSectionCollapsed: config.configSectionCollapsed,
+    aggregationType: config.aggregationType,
     availableFields,
     unselectedFields,
     isDataLoaded,
@@ -168,6 +180,7 @@ export function useTierStatsConfig(runs: ParsedGameRun[]): UseTierStatsConfigRet
     reorderColumns: handleReorderColumns,
     toggleColumnHourlyRate,
     toggleConfigSection,
+    setAggregationType,
     resetToDefaults
   }
 }
