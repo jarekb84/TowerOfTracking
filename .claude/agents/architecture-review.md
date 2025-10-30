@@ -121,6 +121,87 @@ After all refactoring:
    - Missing edge case tests
 </refactoring_priorities>
 
+<e2e_testing_patterns>
+## End-to-End Testing with Page Object Model Pattern
+
+**FOR E2E TESTS**: All Playwright E2E tests MUST follow the Page Object Model (POM) pattern to maintain readability and reusability.
+
+### Page Object Model Principles
+1. **Encapsulate Selectors**: Page objects own all selectors for their UI elements
+2. **Abstract Interactions**: Expose methods, not raw selectors, to tests
+3. **Single Responsibility**: Each page object represents one page/modal/component
+4. **Human-Readable Tests**: Test code should read like workflows, not selector soup
+
+### POM Architecture Layers
+**App-Level POM** (`e2e/page-objects/app-page.ts`):
+- App-wide navigation (header, sidebar)
+- Global actions (add game run button)
+- Used across all E2E tests for common navigation
+
+**Page-Level POMs** (`e2e/page-objects/settings-page.ts`, etc.):
+- Page-specific interactions (buttons, links, sections)
+- Methods to open modals/dialogs specific to that page
+- Returns modal/dialog POMs for chained interactions
+
+**Modal/Component POMs** (`e2e/page-objects/bulk-import-modal.ts`, etc.):
+- Scoped to specific modal/dialog/component
+- Encapsulates all internal selectors
+- Handles complex selector logic (multiple buttons with same text, wildcard matches)
+- Methods for complete workflows (e.g., `importData()` does paste + click + wait)
+
+### Example POM Structure
+```typescript
+export class BulkImportModal {
+  readonly modal: Locator;
+  readonly importButton: Locator;
+
+  constructor(page: Page) {
+    // Scope to modal
+    this.modal = page.locator('role=dialog').filter({ hasText: 'Import CSV' });
+    // Solve "multiple Import buttons" problem with specific selector
+    this.importButton = this.modal.locator('button').filter({ hasText: /Import.*run/i });
+  }
+
+  async importData(data: string) {
+    await this.pasteData(data);
+    await this.clickImport();
+    await this.waitForClose();
+  }
+}
+```
+
+### Test Usage Pattern
+```typescript
+// ✅ GOOD: Human-readable test using POMs
+test('bulk import works', async ({ page }) => {
+  const settingsPage = new SettingsPage(page);
+  const modal = await settingsPage.openBulkImportModal();
+  await modal.importData(fixtureData);
+
+  const runsPage = new GameRunsPage(page);
+  await runsPage.goto();
+  await runsPage.verifyMinimumRows(10);
+});
+
+// ❌ BAD: Selector soup in test code
+test('bulk import works', async ({ page }) => {
+  await page.goto('/settings');
+  await page.click('button:has-text("Import CSV/TSV")');
+  await page.locator('role=dialog').locator('textarea').fill(data);
+  await page.locator('button').filter({ hasText: /Import/ }).nth(1).click();
+  // ... more raw selectors
+});
+```
+
+### POM Creation Guidelines
+- Create page objects in `e2e/page-objects/` directory
+- Name pattern: `{feature}-page.ts` or `{feature}-modal.ts`
+- For complex selectors (multiple buttons with same text, dynamic text), solve in POM not test
+- Use `readonly` for locator properties
+- Provide both granular methods and convenience methods (e.g., both `clickImport()` and `importData()`)
+
+</e2e_testing_patterns>
+
 <bug_fix_context_handling>
 ## Bug Fix Specific Review Protocol
 
