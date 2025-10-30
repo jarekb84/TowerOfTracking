@@ -7,6 +7,7 @@ import { useTierStatsConfig } from '../hooks/use-tier-stats-config'
 import { useDynamicTierStatsTable } from '../hooks/use-dynamic-tier-stats-table'
 import { filterRunsByType } from '../utils/run-type-filter'
 import { getTierStatsCellClassName } from '../utils/tier-stats-cell-styles'
+import { getAggregationDescription } from '../logic/tier-stats-aggregation-options'
 import { LoadingState } from '../../../components/ui/loading-state'
 import * as Tooltip from '@radix-ui/react-tooltip'
 
@@ -77,7 +78,7 @@ export function TierStatsTable() {
             <FarmingOnlyIndicator />
           </div>
           <p className="text-slate-400 text-sm">
-            Maximum values achieved across farming runs for each tier. Customize columns to track any resource.
+            {getAggregationDescription(config.aggregationType)}
           </p>
         </div>
 
@@ -183,12 +184,12 @@ export function TierStatsTable() {
                               <Tooltip.Root>
                                 <Tooltip.Trigger asChild>
                                   <button className={cellClassName}>
-                                    <div className="flex flex-col items-end gap-0.5">
-                                      <div className="font-semibold">{displayValue.main}</div>
+                                    <span className="flex flex-col items-end gap-0.5">
+                                      <span className="font-semibold">{displayValue.main}</span>
                                       {displayValue.hourly && (
-                                        <div className="text-xs text-orange-300 opacity-90">{displayValue.hourly}</div>
+                                        <span className="text-xs text-orange-300 opacity-90">{displayValue.hourly}</span>
                                       )}
-                                    </div>
+                                    </span>
                                   </button>
                                 </Tooltip.Trigger>
                                 <Tooltip.Portal>
@@ -203,13 +204,13 @@ export function TierStatsTable() {
                                 </Tooltip.Portal>
                               </Tooltip.Root>
                             ) : hasData ? (
-                              <span className={cellClassName}>
-                                <div className="flex flex-col items-end gap-0.5">
-                                  <div className="font-semibold">{displayValue.main}</div>
+                              <span className={`${cellClassName} inline-flex`}>
+                                <span className="flex flex-col items-end gap-0.5">
+                                  <span className="font-semibold">{displayValue.main}</span>
                                   {displayValue.hourly && (
-                                    <div className="text-xs text-orange-300 opacity-90">{displayValue.hourly}</div>
+                                    <span className="text-xs text-orange-300 opacity-90">{displayValue.hourly}</span>
                                   )}
-                                </div>
+                                </span>
                               </span>
                             ) : (
                               <span className="text-slate-500 font-mono text-sm">-</span>

@@ -6,6 +6,7 @@ import {
 } from './tier-stats-persistence'
 import { getDefaultConfig } from './tier-stats-config'
 import type { TierStatsConfig } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types/tier-stats-config.types'
 
 describe('tier-stats-persistence', () => {
   const STORAGE_KEY = 'tower-tracking-tier-stats-config'
@@ -35,6 +36,7 @@ describe('tier-stats-persistence', () => {
           { fieldName: 'shards', showHourlyRate: true }
         ],
         configSectionCollapsed: false, // Saved as expanded
+        aggregationType: TierStatsAggregation.MAX,
         lastUpdated: Date.now()
       }
 
@@ -111,6 +113,7 @@ describe('tier-stats-persistence', () => {
           { fieldName: 'coinsEarned', showHourlyRate: true }
         ],
         configSectionCollapsed: false,
+        aggregationType: TierStatsAggregation.P90,
         lastUpdated: 12345
       }
 
@@ -128,6 +131,7 @@ describe('tier-stats-persistence', () => {
       const config: TierStatsConfig = {
         selectedColumns: [],
         configSectionCollapsed: true,
+        aggregationType: TierStatsAggregation.MAX,
         lastUpdated: 12345
       }
 
@@ -198,6 +202,7 @@ describe('tier-stats-persistence', () => {
           { fieldName: 'shards', showHourlyRate: false }
         ],
         configSectionCollapsed: false, // Saved as expanded
+        aggregationType: TierStatsAggregation.P75,
         lastUpdated: Date.now()
       }
 

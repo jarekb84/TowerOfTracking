@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronUp, RotateCcw, Settings } from 'lucide-react'
 import type { UseTierStatsConfigReturn } from '../hooks/use-tier-stats-config'
+import type { TierStatsAggregation } from '../types/tier-stats-config.types'
 import { getFieldDisplayName, canFieldHaveHourlyRate } from '../utils/tier-stats-config'
 import { useColumnSearch } from '../hooks/use-column-search'
 import { useColumnReorder } from '../hooks/use-column-reorder'
@@ -8,6 +9,8 @@ import { SearchableColumnPicker } from './searchable-column-picker'
 import { Button } from '../../../components/ui/button'
 import { InfoBox } from '../../../components/ui/info-box'
 import { EmptyState } from '../../../components/ui/empty-state'
+import { FormControl, SelectionButtonGroup } from '../../../components/ui'
+import { getAggregationOptions } from '../logic/tier-stats-aggregation-options'
 
 interface TierStatsConfigPanelProps {
   config: UseTierStatsConfigReturn
@@ -31,6 +34,17 @@ export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
 
   return (
     <div className="space-y-4">
+      {/* Aggregation Selector - Always Visible */}
+      <FormControl label="Aggregation Method">
+        <SelectionButtonGroup<TierStatsAggregation>
+          options={getAggregationOptions()}
+          selectedValue={config.aggregationType}
+          onSelectionChange={config.setAggregationType}
+          size="sm"
+          fullWidthOnMobile={false}
+        />
+      </FormControl>
+
       {/* Enhanced Toggle Button with Visual Prominence */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
@@ -139,8 +153,8 @@ export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
           {/* Help Text */}
           <div className="pt-6 border-t border-slate-700/50">
             <InfoBox variant="info" title="Tip">
-              Column values show the maximum achieved for each tier.
-              Hourly rates are calculated from the specific run that achieved the maximum value.
+              Column values reflect the selected aggregation method for each tier.
+              Percentile aggregations help filter outliers for more representative performance data.
             </InfoBox>
           </div>
         </div>

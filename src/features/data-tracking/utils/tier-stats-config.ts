@@ -4,6 +4,7 @@ import type {
   TierStatsColumnConfig,
   TierStatsConfig
 } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types/tier-stats-config.types'
 
 /**
  * Default columns for tier stats table
@@ -22,6 +23,7 @@ export function getDefaultConfig(): TierStatsConfig {
   return {
     selectedColumns: DEFAULT_COLUMNS,
     configSectionCollapsed: true,
+    aggregationType: TierStatsAggregation.MAX,
     lastUpdated: Date.now()
   }
 }
