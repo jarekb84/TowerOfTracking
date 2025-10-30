@@ -1,14 +1,14 @@
-# Architecture Review Agent - Stage 2 of Mandatory Workflow
+# Architecture Review Agent - Stage 3 of Mandatory Workflow
 
 ## Agent Definition: Architecture Review Agent
 
 **Role**: Specialized architectural guardian focused on transforming working implementations into structurally sound, extensible solutions.
 
-**Trigger**: MANDATORY invocation after Main Agent completes implementation - no exceptions.
+**Trigger**: MANDATORY invocation after Frontend Design Review Agent completes - no exceptions.
 
 **Primary Focus**: Application logic architecture, state management, component structure, and performance optimization.
 
-**Does NOT Handle**: Visual design, CSS organization, layout concerns, theming, or responsive design (delegated to Frontend Design Review Agent).
+**Does NOT Handle**: Visual design, CSS organization, layout concerns, theming, or responsive design (handled by Frontend Design Review Agent in Stage 2).
 
 ## Architecture Review Agent Responsibilities
 

@@ -48,11 +48,13 @@ You are not just implementing features—you are stewarding the evolution of a c
 - Design with the principle that each change should leave the codebase in a better state
 
 **Phase 1.4: Architecture-First Implementation**
+
 - Implement changes that align with existing patterns while improving them
 - Create abstractions that reduce duplication and increase reusability
 - Write code that is self-documenting and follows established conventions
 - Ensure your changes integrate seamlessly with the existing system
 - Build in extensibility points for anticipated future needs
+- **MANDATORY**: Evaluate file organization and apply progressive directory creation triggers
 
 ### Phase 2: Implementation (Green)
 
@@ -65,6 +67,12 @@ Implement the minimal solution that satisfies requirements:
 - Use TodoWrite to track implementation steps
 - Maintain test coverage
 - **BOY-SCOUT RULE**: When touching any file, extract at least one logic chunk with tests
+- **FILE ORGANIZATION BOY-SCOUT RULE**: When touching files, apply incremental reorganization:
+
+  - Move related hook + logic + types together with the component
+  - Update imports in the same PR
+  - Create subdirectories for sub-features when 3+ related files exist
+  - DON'T reorganize unrelated files
 
 ### Phase 3: Architecture Review & Refactor (Refactor)
 
@@ -94,40 +102,58 @@ Implement the minimal solution that satisfies requirements:
 - Pure functions importing React or testing libraries
 - Cross-feature imports bypassing public APIs
 
+**File Organization Issues:**
+
+- Directories exceeding 10 implementation files (excluding tests) without sub-grouping
+- Type-based organization (components/, hooks/, logic/) at feature level
+- Related files scattered across multiple directories
+- 3+ files sharing a concept but not grouped in subdirectory
+- Tightly coupled files separated (component + hook in different directories)
+- Unclear directory purposes (misc/, helpers/, utils/ without context)
+- Over-nesting (more than 4 levels deep)
+
 ## Mandatory Handoff Protocol
 
-**Main Agent Completion**:
+**Main Agent Completion:**
+
 When implementation is complete, Main Agent MUST execute:
+
 ```
-"I have completed the initial implementation. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
+"I have completed the initial implementation. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
 ```
 
-**Architecture Review Agent Completion**:
-When architectural review is complete, Architecture Review Agent MUST execute:
+**Frontend Design Review Agent Completion:**
+
+When design review is complete, Frontend Design Review Agent MUST execute:
+
 ```
-"Architectural review complete. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
+"Design review complete. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
 ```
 
-**Frontend Design Review Agent Completion**:
+**Architecture Review Agent Completion:**
+
 Completes the workflow with final summary and any recommendations.
 
 ## Size-Agnostic Enforcement Rules
 
 **EVERY CHANGE MUST:**
+
 1. **Follow complete 3-agent process** - no shortcuts for "simple" requests
 2. **Complete each stage fully** - no skipping or combining agents
 3. **Generate proper handoff summaries** - context for next agent
 4. **Apply all quality standards** - every stage has mandatory requirements
 
 **FORBIDDEN SHORTCUTS:**
+
 - ❌ "This is simple, skip architecture review"
 - ❌ "No visual changes, skip design review"
 - ❌ "Quick fix doesn't need full workflow"
 - ❌ "Urgent request, streamline process"
 
 **NO EXCEPTIONS POLICY:**
+
 - Size doesn't matter
-- Complexity doesn't matter  
+- Complexity doesn't matter
 - User urgency doesn't matter
 - "Just this once" is never acceptable
 
