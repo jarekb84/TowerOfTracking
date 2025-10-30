@@ -7,6 +7,7 @@ import type {
 } from '../types/game-run.types';
 import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from './run-type-filter';
+import { isTrendableField } from './field-type-detection';
 import { createEnhancedRunHeader } from './run-header-formatting';
 import {
   sumAggregation,
@@ -363,21 +364,18 @@ function getPeriodBounds(now: Date, duration: TierTrendsFilters['duration'], per
  */
 function getNumericalFieldsFromPeriods(periods: PeriodData[]): string[] {
   const allFields = new Set<string>();
-  
+
   for (const period of periods) {
     for (const run of period.runs) {
       for (const [fieldName, field] of Object.entries(run.fields)) {
-        if ((field.dataType === 'number' || field.dataType === 'duration') && typeof field.value === 'number') {
+        if (isTrendableField(fieldName, field)) {
           allFields.add(fieldName);
         }
       }
     }
   }
-  
-  // Filter out some fields that aren't meaningful for trend analysis
-  const excludedFields = new Set(['id', 'timestamp', 'tier', 'runType']);
-  
-  return Array.from(allFields).filter(field => !excludedFields.has(field));
+
+  return Array.from(allFields);
 }
 
 /**
