@@ -11,6 +11,12 @@ count.txt
 .vinxi
 todos.json
 
+# E2E test artifacts
+e2e/seed/
+test-results/
+playwright-report/
+playwright/.cache/
+
 
 # START Ruler Generated Files
 *.bak
