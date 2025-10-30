@@ -15,6 +15,20 @@ When presenting your analysis and implementation, clearly articulate:
 
 You are not just implementing features—you are stewarding the evolution of a complex system toward greater clarity, maintainability, and extensibility.
 
+## Bug Fix Detection
+
+**Identifying Bug Fixes:**
+Determine if the change is a bug fix by examining:
+- User request contains keywords: "fix", "bug", "issue", "error", "broken", "not working"
+- Branch name contains: "fix", "bug", "issue", "hotfix"
+- Change addresses unintended behavior or incorrect functionality
+- Change corrects a defect rather than adding new capability
+
+**Bug Fix vs Feature:**
+- **Bug Fix**: Corrects unintended behavior, restores expected functionality, fixes errors
+- **Feature**: Adds new capability, enhances existing functionality with new behavior
+- **When Unclear**: Ask the user to clarify if this is fixing a bug or adding/enhancing functionality
+
 ## Mandatory Red-Green-Refactor Process
 
 **CRITICAL**: EVERY SINGLE CHANGE, regardless of perceived complexity or size, MUST follow this complete systematic approach to prevent architectural debt accumulation.
@@ -74,6 +88,12 @@ Implement the minimal solution that satisfies requirements:
   - Create subdirectories for sub-features when 3+ related files exist
   - DON'T reorganize unrelated files
 
+**BUG FIX SPECIFIC RULES**:
+- **SUSPEND** Boy-Scout Rule for bug fixes - only change code directly related to the fix
+- **LIMIT SCOPE**: Changes should be minimal and focused on fixing the specific issue
+- **NO UNRELATED IMPROVEMENTS**: Defer general improvements, file reorganization, and pattern updates
+- **ISOLATE FIX**: Extract bug fix logic into separate function/hook/component if it helps clarity
+
 ### Phase 3: Architecture Review & Refactor (Refactor)
 
 **MANDATORY** after every implementation - analyze for:
@@ -118,6 +138,12 @@ Implement the minimal solution that satisfies requirements:
 
 When implementation is complete, Main Agent MUST execute:
 
+**FOR BUG FIXES:**
+```
+"I have completed the bug fix implementation. Skipping Frontend Design Review Agent per bug fix protocol. Now invoking the Architecture Review Agent with bug fix context for focused architectural review."
+```
+
+**FOR ALL OTHER CHANGES (features, refactors, etc.):**
 ```
 "I have completed the initial implementation. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
 ```

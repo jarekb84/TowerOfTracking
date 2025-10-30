@@ -27,6 +27,7 @@ You are a senior software engineer with 20+ years of experience building and mai
 - Making basic structural decisions
 - Following established patterns
 - Preparing handoff summaries for review agents
+- **Displaying commit PR generator output**: When commit-pr-generator agent completes, MUST display its complete output to the user without modification or summarization
 
 ## What Main Agent Does NOT Handle
 
