@@ -34,6 +34,7 @@ Evaluate the implementation for:
 - **Separation of Concerns**: Business logic mixed with presentation logic
 - **Coupling Issues**: Tight coupling between components that should be independent
 - **Code Duplication**: Repeated patterns that should be abstracted
+- **File Organization Issues**: Type-based organization, directories exceeding thresholds, scattered related files
 
 ## Phase 3: Pattern Compliance Check
 Verify strict adherence to:
@@ -42,6 +43,9 @@ Verify strict adherence to:
 - **Feature-Based Organization**: Code organized by domain, not technical layers
 - **Import Hierarchy**: Components → Hooks → Pure Functions (no reverse flow)
 - **Testing Coverage**: All business logic has comprehensive unit tests
+- **Progressive Directory Triggers**: 10+ implementation files (excluding tests) in directory requires sub-grouping
+- **3-File Grouping Rule**: 3+ files sharing a concept should be in subdirectory
+- **Co-location Principle**: Related files (component + hook + logic + types) must be together
 
 ## Phase 4: Refactoring Execution
 Implement improvements systematically:
@@ -80,6 +84,13 @@ After all refactoring:
    - Direct imports between features (bypassing public APIs)
    - Shared state without proper abstraction
    - Business logic dependencies across boundaries
+
+5. **File Organization Violations**
+   - Directories with 10+ implementation files (excluding tests) without sub-grouping
+   - Type-based organization (components/, hooks/, logic/) at feature level
+   - Related files scattered (component, hook, logic in different directories)
+   - 3+ files sharing a concept not grouped in subdirectory
+   - Vague directory names (misc/, helpers/, utils/ without context)
 
 ## Improvement Refactorings (SHOULD Fix)
 1. **Naming Enhancements**
@@ -135,7 +146,146 @@ After all refactoring:
 - Smaller, focused functions (< 20 lines ideal)
 - Consistent patterns throughout codebase
 - Clear separation of what/how/why
+
+### 6. Organize by Feature (NOT Type)
+- Group related files together (component + hook + logic + types)
+- Create subdirectories for sub-features when 3+ related files exist
+- Maintain <10 implementation files per directory (excluding tests)
+- Use descriptive directory names reflecting purpose, not file type
 </architectural_principles>
+
+<file_organization_analysis>
+## File Organization Review Protocol
+
+**MANDATORY**: Analyze file organization as part of every architectural review.
+
+### Directory File Count Analysis
+
+**When reviewing changes, ALWAYS:**
+
+1. **Count Implementation Files in Modified Directories**
+   - Count ONLY: *.tsx, *.ts files (non-test) in immediate directory
+   - EXCLUDE: *.test.ts, *.test.tsx, *.integration.test.tsx, __tests__/ directories
+   - Count is per-directory, not recursive (subdirectories analyzed separately)
+   - Flag if count ≥ 10 implementation files in any single directory
+
+2. **Evaluate for Sub-Grouping Opportunities**
+   - Look for 3+ files sharing a clear concept
+   - Examples: filtering, table, mobile, config, cells
+   - Check if files are tightly coupled (component + hook + logic)
+
+3. **Check Organization Pattern**
+   - ✅ Feature-based: `tier-trends/`, `filters/`, `mobile/`
+   - ❌ Type-based: `components/`, `hooks/`, `logic/`, `utils/`
+   - Flag type-based organization at feature level
+
+### Progressive Directory Creation Triggers
+
+**10-File Threshold (CRITICAL):**
+
+```
+Directory with 10+ implementation files (excluding tests)
+→ MUST evaluate for sub-grouping
+→ Suggest creating subdirectories by concept
+→ Show proposed reorganization structure
+```
+
+**3-File Rule:**
+
+```
+3+ files sharing a concept (e.g., filtering, mobile, config)
+→ STRONGLY recommend subdirectory
+→ Colocate component + hook + logic together
+```
+
+**Example Analysis:**
+
+```bash
+# Count implementation files in directory (exclude tests, non-recursive)
+find src/features/data-tracking/components -maxdepth 1 -name "*.tsx" -o -name "*.ts" | grep -v ".test." | wc -l
+# Result: 38 files
+```
+
+**Analysis Results:**
+
+- ❌ **VIOLATION**: 38 implementation files exceeds 10-file threshold
+- ❌ **Type-based organization** (components/ directory at feature level)
+- ✅ **RECOMMENDATION**: Refactor to feature-based structure:
+
+```bash
+# CURRENT:
+src/features/data-tracking/components/ (38 files)
+
+# PROPOSED:
+src/features/analytics/tier-trends/ (10 files)
+src/features/analytics/tier-stats/ (3 files)
+src/features/game-runs/runs-table/ (28 files → needs sub-grouping)
+src/features/data-import/data-input/ (11 files)
+src/features/data-export/csv-export/ (3 files)
+```
+
+### File Organization Refactoring
+
+**When Files Should Be Reorganized:**
+
+1. Working on files that are part of scattered feature
+2. Directory exceeds 10 implementation files (excluding tests)
+3. 3+ related files not grouped together
+4. Tightly coupled files in different directories
+
+**Incremental Reorganization Pattern:**
+
+```typescript
+// BEFORE (Type-based, scattered):
+features/data-tracking/
+  components/tier-trends-filters.tsx
+  components/field-search.tsx
+  hooks/use-field-filter.ts
+  logic/tier-trends-ui-options.ts
+
+// AFTER (Feature-based, colocated):
+features/analytics/
+  tier-trends/
+    filters/
+      tier-trends-filters.tsx
+      field-search.tsx
+      use-field-filter.ts
+      tier-trends-ui-options.ts  // Logic colocated with feature
+```
+
+**Boy Scout Rule Application:**
+
+- When touching a file, reorganize its immediate relatives
+- Move related hook + logic + types with the component
+- Update imports in the same PR
+- DON'T reorganize unrelated files
+
+### Directory Naming Validation
+
+**Check Directory Names:**
+
+**✅ Good Examples:**
+- `tier-trends/` (feature-specific)
+- `filters/` (clear purpose)
+- `table/` (specific component area)
+- `mobile/` (clear context)
+- `config/` (well-defined domain)
+- `csv-import/` (descriptive capability)
+
+**❌ Bad Examples:**
+- `components/` (type-based, not feature-based)
+- `hooks/` (technical categorization)
+- `utils/` (vague, no context)
+- `helpers/` (unclear purpose)
+- `misc/` (catch-all)
+- `common/` (lacks specificity)
+
+**Flag Violations:**
+
+- Type-based names at feature level
+- Vague names without clear context
+- Generic "helpers" or "utils" without domain specificity
+</file_organization_analysis>
 
 <implementation_patterns>
 ## React Architecture Patterns
@@ -156,17 +306,33 @@ function GoodComponent() {
 }
 ```
 
-### File Organization
-```
+### File Organization - Feature-Based Hierarchy
+
+```bash
 src/features/
-  DataAnalysis/
-    DataAnalysisView.tsx      (< 200 lines, markup only)
-    useDataAnalysis.ts        (orchestration logic)
-    dataTransformers.ts       (pure functions)
-    dataValidators.ts         (pure functions)
-    __tests__/
-      dataTransformers.test.ts
-      dataValidators.test.ts
+  analytics/
+    tier-trends/              # Feature-level grouping
+      tier-trends-analysis.tsx
+      use-tier-trends-view-state.ts
+
+      filters/                # Sub-feature: 5 files
+        tier-trends-filters.tsx
+        tier-trends-controls.tsx
+        field-search.tsx
+        use-field-filter.ts
+
+      table/                  # Sub-feature: 4 files
+        tier-trends-table.tsx
+        virtualized-trends-table.tsx
+        column-header-renderer.ts
+
+      mobile/                 # Sub-feature: 3 files
+        tier-trends-mobile-card.tsx
+        use-tier-trends-mobile.ts
+
+      logic/                  # Pure business logic
+        tier-trends-display.ts
+        tier-trends-ui-options.ts
 ```
 
 ### Abstraction Patterns
@@ -216,6 +382,13 @@ Start with:
 Analyzing uncommitted changes via git diff...
 [Show relevant portions of diff being analyzed]
 
+### File Organization Analysis
+Analyzing directory structure and file counts...
+- Modified directories: [list]
+- Implementation file counts (excluding tests): [counts]
+- Organization violations: [list any violations]
+- Reorganization opportunities: [list any opportunities]
+
 ### Structural Analysis Complete
 Found X critical issues and Y improvement opportunities.
 ```
@@ -236,6 +409,12 @@ End with:
 - ✅ [Specific improvement with metric]
 - ✅ [Specific improvement with metric]
 - ✅ [Specific improvement with metric]
+
+### File Organization Improvements (if applicable):
+- ✅ Reorganized [feature] files into feature-based structure
+- ✅ Reduced directory file count from X to Y implementation files
+- ✅ Colocated related files: [component + hook + logic]
+- ✅ Created subdirectories: [list subdirectories created]
 
 ### Patterns Enhanced:
 - **[Pattern Name]**: [How it was improved]
@@ -265,6 +444,9 @@ The implementation has been refactored for improved maintainability and extensib
 6. **ALWAYS** verify tests/lint/build after refactoring
 7. **NEVER** change functionality - only structure
 8. **ALWAYS** maintain backwards compatibility
+9. **ALWAYS** analyze file organization and flag directories with 10+ implementation files (excluding tests)
+10. **ALWAYS** suggest reorganization for 3+ related files not grouped together
+11. **NEVER** accept type-based organization at feature level (components/, hooks/, logic/)
 </critical_rules>
 
 <debugging_approach>
