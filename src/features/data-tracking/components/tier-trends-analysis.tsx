@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useData } from '../hooks/use-data'
-import {
-  calculateTierTrends,
-  getAvailableTiersForTrends
-} from '../utils/tier-trends'
+import { getAvailableTiersForTrends } from '../utils/tier-trends'
 import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types'
 import { RunTypeFilter } from '../utils/run-type-filter'
 import { TierTrendsSummary } from './tier-trends-summary'
 import { TierTrendsFilters as TierTrendsFiltersComponent } from './tier-trends-filters'
 import { TierTrendsTable } from './tier-trends-table'
 import { TierTrendsControls } from './tier-trends-controls'
+import { TierTrendsEmptyState } from './tier-trends-empty-state'
 import { useFieldFilter } from '../hooks/use-field-filter'
+import { useTierTrendsViewState } from '../hooks/use-tier-trends-view-state'
+import { formatPeriodSummary, formatRunTypeFilterDisplay } from '../logic/tier-trends-display'
 import type { TierTrendsFilters } from '../types/game-run.types'
 
 type SortField = 'fieldName' | 'change'
@@ -40,19 +40,17 @@ export function TierTrendsAnalysis() {
   
   const [sortField, setSortField] = useState<SortField>('change')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
-  
-  const trendsData = useMemo(() => {
-    if (availableTiers.length === 0) return null
-    return calculateTierTrends(runs, filters, runTypeFilter)
-  }, [runs, filters, runTypeFilter, availableTiers])
-  
+
+  // Derive view state using custom hook
+  const viewState = useTierTrendsViewState(runs, filters, runTypeFilter, availableTiers)
+
   const sortedTrends = useMemo(() => {
-    if (!trendsData) return []
-    
-    return [...trendsData.fieldTrends].sort((a, b) => {
+    if (viewState.type !== 'ready' || !viewState.trendsData) return []
+
+    return [...viewState.trendsData.fieldTrends].sort((a, b) => {
       let aValue: number | string
       let bValue: number | string
-      
+
       switch (sortField) {
         case 'fieldName':
           aValue = a.displayName.toLowerCase()
@@ -65,16 +63,16 @@ export function TierTrendsAnalysis() {
         default:
           return 0
       }
-      
+
       if (typeof aValue === 'string' && typeof bValue === 'string') {
         return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
       }
-      
+
       if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
       return 0
     })
-  }, [trendsData, sortField, sortDirection])
+  }, [viewState, sortField, sortDirection])
 
   // Field filtering with search
   const fieldFilterHook = useFieldFilter(sortedTrends, { debounceMs: 200 })
@@ -84,7 +82,7 @@ export function TierTrendsAnalysis() {
     filteredTrends,
     hasMatches
   } = fieldFilterHook
-  
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -93,47 +91,28 @@ export function TierTrendsAnalysis() {
       setSortDirection('desc')
     }
   }
-  
-  if (availableTiers.length === 0) {
-    return (
-      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-        <div className="text-center">
-          <p>No tier data available for trends analysis.</p>
-          <p className="text-sm mt-2">
-            You need at least 2 {runTypeFilter === RunType.FARM ? 'farm' : runTypeFilter === RunType.TOURNAMENT ? 'tournament' : runTypeFilter === RunType.MILESTONE ? 'milestone' : ''} runs in the same tier to see trends.
-          </p>
-        </div>
-      </div>
-    )
-  }
-  
-  if (!trendsData) {
-    return (
-      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-        Loading trends analysis...
-      </div>
-    )
-  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header - Always Visible */}
       <div className="space-y-4">
         <div className="space-y-2">
           <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
             <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
-{filters.tier === 0 ? 'All Tiers' : `Tier ${filters.tier}`} Trends Analysis
-            <span className="text-sm font-normal text-slate-400 ml-auto">
-              Last {trendsData.periodCount} {filters.duration === TrendsDuration.PER_RUN ? 'Runs' : filters.duration === TrendsDuration.DAILY ? 'Days' : filters.duration === TrendsDuration.WEEKLY ? 'Weeks' : 'Months'} - {runTypeFilter === RunType.FARM ? 'Farm' : runTypeFilter === RunType.TOURNAMENT ? 'Tournament' : runTypeFilter === RunType.MILESTONE ? 'Milestone' : ''} Mode
-            </span>
+            {filters.tier === 0 ? 'All Tiers' : `Tier ${filters.tier}`} Trends Analysis
+            {viewState.type === 'ready' && viewState.trendsData && (
+              <span className="text-sm font-normal text-slate-400 ml-auto">
+                {formatPeriodSummary(viewState.trendsData.periodCount, filters.duration, runTypeFilter)}
+              </span>
+            )}
           </h3>
           <p className="text-slate-400 text-sm">
-            Statistical changes across your recent {runTypeFilter === RunType.FARM ? 'farm' : runTypeFilter === RunType.TOURNAMENT ? 'tournament' : runTypeFilter === RunType.MILESTONE ? 'milestone' : ''} runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
+            Statistical changes across your recent {formatRunTypeFilterDisplay(runTypeFilter)} runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
           </p>
         </div>
-        
-        {/* Filter Controls */}
-        <TierTrendsControls 
+
+        {/* Filter Controls - Always Visible */}
+        <TierTrendsControls
           runTypeFilter={runTypeFilter}
           onRunTypeChange={setRunTypeFilter}
           filters={filters}
@@ -142,28 +121,45 @@ export function TierTrendsAnalysis() {
         />
       </div>
 
-      {/* Summary Stats */}
-      <TierTrendsSummary trendsData={trendsData} />
+      {/* Conditional Results Area */}
+      {viewState.type === 'no-data' && (
+        <TierTrendsEmptyState variant="no-data" runType={runTypeFilter} />
+      )}
 
-      {/* Field Search */}
-      <TierTrendsFiltersComponent 
-        fieldFilter={fieldFilterHook}
-        totalCount={sortedTrends.length}
-      />
+      {viewState.type === 'loading' && (
+        <TierTrendsEmptyState variant="loading" />
+      )}
 
-      {/* Trends Table */}
-      <TierTrendsTable
-        trends={filteredTrends}
-        comparisonColumns={trendsData.comparisonColumns}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-        searchTerm={searchTerm}
-        isSearchActive={isSearchActive}
-        hasMatches={hasMatches}
-        changeThreshold={filters.changeThresholdPercent}
-        aggregationType={filters.aggregationType}
-      />
+      {viewState.type === 'ready' && viewState.trendsData && (
+        <div
+          className="space-y-6 animate-in fade-in duration-300"
+          role="region"
+          aria-label="Tier trends results"
+        >
+          {/* Summary Stats */}
+          <TierTrendsSummary trendsData={viewState.trendsData} />
+
+          {/* Field Search */}
+          <TierTrendsFiltersComponent
+            fieldFilter={fieldFilterHook}
+            totalCount={sortedTrends.length}
+          />
+
+          {/* Trends Table */}
+          <TierTrendsTable
+            trends={filteredTrends}
+            comparisonColumns={viewState.trendsData.comparisonColumns}
+            sortField={sortField}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            searchTerm={searchTerm}
+            isSearchActive={isSearchActive}
+            hasMatches={hasMatches}
+            changeThreshold={filters.changeThresholdPercent}
+            aggregationType={filters.aggregationType}
+          />
+        </div>
+      )}
     </div>
   )
 }
