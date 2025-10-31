@@ -4,8 +4,8 @@ export { DataInputErrorBoundary } from '../data-import/manual-entry/data-input-e
 export { CsvImport } from '../data-import/csv-import/csv-import';
 export { CsvExport } from '../data-export/csv-export/csv-export';
 export { DataProvider } from './components/data-provider';
-export { DataSettings } from './components/data-settings';
-export { MigrationAlert } from './components/migration-alert';
+export { DataSettings } from '../settings/data-settings/data-settings';
+export { MigrationAlert } from '../settings/data-settings/migration-alert';
 export { RunsTable } from './components/runs-table';
 export { TabbedRunsTable } from './components/runs-table/tabbed-runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
@@ -17,7 +17,7 @@ export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
-export { useDataSettings } from './hooks/use-data-settings';
+export { useDataSettings } from '../settings/data-settings/use-data-settings';
 export { useFileImport } from '../data-import/csv-import/input/csv-file-upload';
 export { useGlobalDataInput } from '../data-import/manual-entry/use-global-data-input';
 export { GlobalDataInputProvider } from '../data-import/global-data-input-provider';

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DataSettings } from './data-settings';
-import { useDataSettings } from '../hooks/use-data-settings';
+import { useDataSettings } from './use-data-settings';
 
 // Mock the useDataSettings hook
-vi.mock('../hooks/use-data-settings', () => ({
+vi.mock('./use-data-settings', () => ({
   useDataSettings: vi.fn(),
 }));
 

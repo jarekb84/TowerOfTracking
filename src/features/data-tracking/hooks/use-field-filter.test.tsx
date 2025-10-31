@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useFieldFilter } from './use-field-filter';
+import { useFieldFilter } from '../../settings/column-config/use-field-filter';
 import type { FieldTrendData } from '../types/game-run.types';
 
 // Mock field trend data for testing

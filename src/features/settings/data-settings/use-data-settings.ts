@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useData } from './use-data';
+import { useData } from '../../data-tracking/hooks/use-data';
 
 export function useDataSettings() {
   const { runs, clearAllRuns } = useData();

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDataSettings } from './use-data-settings';
-import { useData } from './use-data';
-import type { ParsedGameRun } from '../types/game-run.types';
+import { useData } from '../../data-tracking/hooks/use-data';
+import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
 
 // Mock the useData hook
-vi.mock('./use-data', () => ({
+vi.mock('../../data-tracking/hooks/use-data', () => ({
   useData: vi.fn(),
 }));
 

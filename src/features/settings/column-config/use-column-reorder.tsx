@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import { reorderColumns } from '../utils/column-reorder'
-import type { TierStatsColumnConfig } from '../types/tier-stats-config.types'
+import { reorderColumns } from '../../data-tracking/utils/column-reorder'
+import type { TierStatsColumnConfig } from '../../data-tracking/types/tier-stats-config.types'
 
 export interface UseColumnReorderReturn {
   draggedIndex: number | null

@@ -8,7 +8,7 @@ import { TierTrendsFilters as TierTrendsFiltersComponent } from './tier-trends-f
 import { TierTrendsTable } from './tier-trends-table'
 import { TierTrendsControls } from './tier-trends-controls'
 import { TierTrendsEmptyState } from './tier-trends-empty-state'
-import { useFieldFilter } from '../hooks/use-field-filter'
+import { useFieldFilter } from '../../settings/column-config/use-field-filter'
 import { useTierTrendsViewState } from '../hooks/use-tier-trends-view-state'
 import { formatPeriodSummary, formatRunTypeFilterDisplay } from '../logic/tier-trends-display'
 import type { TierTrendsFilters } from '../types/game-run.types'
