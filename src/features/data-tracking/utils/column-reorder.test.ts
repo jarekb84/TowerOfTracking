@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { reorderColumns, findColumnIndex } from './column-reorder'
-import type { TierStatsColumnConfig } from '../types/tier-stats-config.types'
+import type { TierStatsColumnConfig } from '@/features/analysis/tier-stats/types'
 
 describe('column-reorder', () => {
   const createColumn = (fieldName: string, showHourlyRate = false): TierStatsColumnConfig => ({

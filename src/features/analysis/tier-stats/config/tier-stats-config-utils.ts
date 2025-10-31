@@ -1,10 +1,10 @@
-import type { ParsedGameRun } from '../types/game-run.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
 import type {
   AvailableField,
   TierStatsColumnConfig,
   TierStatsConfig
-} from '../types/tier-stats-config.types'
-import { TierStatsAggregation } from '../types/tier-stats-config.types'
+} from '../types'
+import { TierStatsAggregation } from '../types'
 
 /**
  * Default columns for tier stats table

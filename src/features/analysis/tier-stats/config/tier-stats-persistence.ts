@@ -1,6 +1,6 @@
-import type { TierStatsConfig } from '../types/tier-stats-config.types'
-import { TierStatsAggregation } from '../types/tier-stats-config.types'
-import { getDefaultConfig } from './tier-stats-config'
+import type { TierStatsConfig } from '../types'
+import { TierStatsAggregation } from '../types'
+import { getDefaultConfig } from './tier-stats-config-utils'
 
 const STORAGE_KEY = 'tower-tracking-tier-stats-config'
 

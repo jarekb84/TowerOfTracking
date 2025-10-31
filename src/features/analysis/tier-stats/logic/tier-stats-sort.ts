@@ -1,4 +1,4 @@
-import type { DynamicTierStats, TierStatsColumn } from '../types/tier-stats-config.types'
+import type { DynamicTierStats, TierStatsColumn } from '../types'
 import { getCellValue } from './tier-stats-calculator'
 
 /**

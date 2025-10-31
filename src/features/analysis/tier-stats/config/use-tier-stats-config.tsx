@@ -1,22 +1,22 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import type { ParsedGameRun } from '../types/game-run.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
 import type {
   TierStatsConfig,
   TierStatsColumnConfig,
   AvailableField,
   TierStatsAggregation
-} from '../types/tier-stats-config.types'
+} from '../types'
 import {
   discoverAvailableFields,
   getUnselectedFields,
   validateColumnConfig,
   getDefaultConfig
-} from '../utils/tier-stats-config'
+} from './tier-stats-config-utils'
 import {
   loadTierStatsConfig,
   saveTierStatsConfig
-} from '../utils/tier-stats-persistence'
-import { reorderColumns } from '../utils/column-reorder'
+} from './tier-stats-persistence'
+import { reorderColumns } from '@/features/data-tracking/utils/column-reorder'
 
 export interface UseTierStatsConfigReturn {
   // Configuration state

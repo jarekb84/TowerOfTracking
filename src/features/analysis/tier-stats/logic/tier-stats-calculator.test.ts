@@ -1,9 +1,9 @@
 /* eslint-disable max-lines */
 // Test file covering multiple functions with comprehensive percentile aggregation tests
 import { describe, it, expect } from 'vitest'
-import type { ParsedGameRun } from '../types/game-run.types'
-import type { AvailableField, TierStatsColumnConfig } from '../types/tier-stats-config.types'
-import { TierStatsAggregation } from '../types/tier-stats-config.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { AvailableField, TierStatsColumnConfig } from '../types'
+import { TierStatsAggregation } from '../types'
 import {
   calculateDynamicTierStats,
   calculateFieldStats,
@@ -11,7 +11,7 @@ import {
   getCellValue,
   calculateSummaryStats
 } from './tier-stats-calculator'
-import { createGameRunField } from './field-utils'
+import { createGameRunField } from '@/features/data-tracking/utils/field-utils'
 
 describe('tier-stats-calculator', () => {
   const createMockRun = (

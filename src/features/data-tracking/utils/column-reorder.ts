@@ -1,4 +1,4 @@
-import type { TierStatsColumnConfig } from '../types/tier-stats-config.types'
+import type { TierStatsColumnConfig } from '@/features/analysis/tier-stats/types'
 
 /**
  * Reorder columns by moving an item from one index to another

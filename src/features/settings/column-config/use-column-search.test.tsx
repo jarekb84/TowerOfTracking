@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useColumnSearch } from './use-column-search'
-import type { AvailableField } from '../../data-tracking/types/tier-stats-config.types'
+import type { AvailableField } from '@/features/analysis/tier-stats/types'
 
 describe('useColumnSearch', () => {
   beforeEach(() => {

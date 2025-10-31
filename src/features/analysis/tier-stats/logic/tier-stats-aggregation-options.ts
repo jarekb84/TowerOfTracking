@@ -2,7 +2,7 @@
  * UI options for tier stats aggregation selector
  */
 
-import { TierStatsAggregation } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types'
 
 export interface AggregationOption {
   value: TierStatsAggregation

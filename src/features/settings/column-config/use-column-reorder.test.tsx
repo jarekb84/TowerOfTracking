@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useColumnReorder } from './use-column-reorder'
-import type { TierStatsColumnConfig } from '../../data-tracking/types/tier-stats-config.types'
+import type { TierStatsColumnConfig } from '@/features/analysis/tier-stats/types'
 
 describe('useColumnReorder', () => {
   const createColumn = (fieldName: string, showHourlyRate = false): TierStatsColumnConfig => ({
