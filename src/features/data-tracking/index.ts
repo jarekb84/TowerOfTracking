@@ -11,7 +11,7 @@ export { TabbedRunsTable } from '../game-runs/table/tabbed-runs-table';
 export { DeathsRadarChart } from './components/deaths-radar-chart';
 export { TierStatsTable } from './components/tier-stats-table';
 export { TimeSeriesChart } from './components/time-series-chart';
-export { TierTrendsAnalysis } from './components/tier-trends-analysis';
+export { TierTrendsAnalysis } from '../analysis/tier-trends/tier-trends-analysis';
 export { RunTypeSelector } from './components/run-type-selector';
 export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 
@@ -106,7 +106,7 @@ export {
   getAvailableTiersForTrends,
   formatFieldDisplayName,
   generateSparklinePath
-} from './utils/tier-trends';
+} from '../analysis/tier-trends/logic/tier-trends-calculations';
 
 export {
   createInitialFormState,

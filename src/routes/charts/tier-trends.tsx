@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui'
-import { TierTrendsAnalysis } from '../../features/data-tracking'
+import { TierTrendsAnalysis } from '../../features/analysis/tier-trends/tier-trends-analysis'
 
 export const Route = createFileRoute('/charts/tier-trends')({
   component: TierTrendsPage,

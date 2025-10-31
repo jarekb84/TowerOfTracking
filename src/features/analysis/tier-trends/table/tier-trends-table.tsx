@@ -1,11 +1,11 @@
-import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '../types/game-run.types'
-import { TierTrendsMobileCard } from './tier-trends-mobile-card'
-import { useViewport } from '../../../shared/hooks/use-viewport'
-import { formatNumber } from '../utils/data-parser'
-import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
-import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../utils/trend-indicators'
-import { parseColumnHeader, getHeaderLineClasses } from './tier-trends-table/column-header-renderer'
-import { formatTrendValue } from '../logic/trend-value-formatting'
+import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
+import { TierTrendsMobileCard } from '../mobile/tier-trends-mobile-card'
+import { useViewport } from '@/shared/hooks/use-viewport'
+import { formatNumber } from '@/features/data-tracking/utils/data-parser'
+import { formatFieldDisplayName, generateSparklinePath } from '../logic/tier-trends-calculations'
+import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '@/features/data-tracking/utils/trend-indicators'
+import { parseColumnHeader, getHeaderLineClasses } from './column-header-renderer'
+import { formatTrendValue } from '@/features/data-tracking/logic/trend-value-formatting'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]

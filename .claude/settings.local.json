@@ -25,7 +25,9 @@
       "Bash(git add:*)",
       "Bash(npx eslint:*)",
       "Bash(for file in src/features/data-import/csv-import/use-csv-import.*.test.tsx)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git restore:*)",
+      "Bash(cat:*)"
     ],
     "defaultMode": "acceptEdits"
   },

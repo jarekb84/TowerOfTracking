@@ -1,25 +1,26 @@
+/* eslint-disable max-lines */
 import type {
   ParsedGameRun,
   TierTrendsFilters,
   TierTrendsData,
   FieldTrendData,
   GameRunField,
-} from '../types/game-run.types';
-import { RunType, TrendsDuration, TrendsAggregation } from '../types/game-run.types';
-import { RunTypeFilter, filterRunsByType } from './run-type-filter';
-import { isTrendableField } from './field-type-detection';
-import { createEnhancedRunHeader } from './run-header-formatting';
+} from '@/features/data-tracking/types/game-run.types';
+import { RunType, TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types';
+import { RunTypeFilter, filterRunsByType } from '@/features/data-tracking/utils/run-type-filter';
+import { isTrendableField } from '@/features/data-tracking/utils/field-type-detection';
+import { createEnhancedRunHeader } from '@/features/data-tracking/utils/run-header-formatting';
 import {
   sumAggregation,
   averageAggregation,
   minAggregation,
   maxAggregation,
   hourlyAggregation
-} from '../logic/aggregation-strategies';
+} from '@/features/data-tracking/logic/aggregation-strategies';
 import {
   calculateTotalDurationHours,
   formatHoursSubheader
-} from '../logic/hourly-rate-calculations';
+} from '@/features/data-tracking/logic/hourly-rate-calculations';
 
 /**
  * Get the default aggregation type for a given duration mode
