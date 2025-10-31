@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { GlobalDataInputContext, GlobalDataInputContextType } from '../hooks/use-global-data-input'
+import { GlobalDataInputContext, GlobalDataInputContextType } from './manual-entry/use-global-data-input'
 
 interface GlobalDataInputProviderProps {
   children: React.ReactNode

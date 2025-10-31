@@ -1,15 +1,16 @@
+/* eslint-disable max-lines -- TODO: Refactor to reduce file size (see docs/migration-stories/01a-csv-import-refactor.md) */
 import { useState, useEffect } from 'react';
 import { Button, Textarea, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
 import { format } from 'date-fns';
 import { Upload, FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { parseGenericCsv, getDelimiterString } from '../utils/csv-parser';
-import { formatNumber, formatDuration } from '../utils/data-parser';
-import { getFieldValue } from '../utils/field-utils';
-import { useData } from '../hooks/use-data';
-import { useFileImport } from '../hooks/use-file-import';
-import type { CsvDelimiter, CsvParseResult } from '../types/game-run.types';
-import { DuplicateInfo, type DuplicateResolution } from './duplicate-info';
-import type { BatchDuplicateDetectionResult } from '../utils/duplicate-detection';
+import { parseGenericCsv, getDelimiterString } from '../../data-tracking/utils/csv-parser';
+import { formatNumber, formatDuration } from '../../data-tracking/utils/data-parser';
+import { getFieldValue } from '../../data-tracking/utils/field-utils';
+import { useData } from '../../data-tracking/hooks/use-data';
+import { useFileImport } from './use-file-import';
+import type { CsvDelimiter, CsvParseResult } from '../../data-tracking/types/game-run.types';
+import { DuplicateInfo, type DuplicateResolution } from '../../data-tracking/components/duplicate-info';
+import type { BatchDuplicateDetectionResult } from '../../data-tracking/utils/duplicate-detection';
 
 interface CsvImportProps {
   className?: string;

@@ -20,7 +20,8 @@
       "Bash(npm run dev:build:*)",
       "Bash(node -e:*)",
       "Bash(npm run e2e:*)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(git mv:*)"
     ],
     "defaultMode": "acceptEdits"
   },
