@@ -2,10 +2,10 @@ import { useState, useMemo } from 'react'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../components/ui'
 import { Button } from '../../../components/ui'
-import { useData } from '../hooks/use-data'
-import { prepareKilledByData, prepareRadarChartData } from '../utils/chart-data'
-import { RunTypeFilter } from '../utils/run-type-filter'
-import { RunTypeSelector } from './run-type-selector'
+import { useData } from '../../data-tracking/hooks/use-data'
+import { prepareKilledByData, prepareRadarChartData } from './logic/radar-calculations'
+import { RunTypeFilter } from '../../data-tracking/utils/run-type-filter'
+import { RunTypeSelector } from '../../data-tracking/components/run-type-selector'
 
 // Colors for different tiers
 const tierColors = [
