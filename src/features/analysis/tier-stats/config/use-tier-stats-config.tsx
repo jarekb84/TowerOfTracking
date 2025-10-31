@@ -16,7 +16,7 @@ import {
   loadTierStatsConfig,
   saveTierStatsConfig
 } from './tier-stats-persistence'
-import { reorderColumns } from '@/features/data-tracking/utils/column-reorder'
+import { reorderColumns } from '@/features/analysis/tier-stats/logic/column-reorder'
 
 export interface UseTierStatsConfigReturn {
   // Configuration state

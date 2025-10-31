@@ -1,5 +1,5 @@
-import { TrendsAggregation } from '../types/game-run.types';
-import { formatNumber } from '../utils/data-parser';
+import { TrendsAggregation } from '@/features/data-tracking/types/game-run.types';
+import { formatNumber } from '@/features/analysis/shared/data-parser';
 
 /**
  * Format a trend value with appropriate suffix based on aggregation type

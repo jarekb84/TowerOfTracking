@@ -27,7 +27,8 @@
       "Bash(for file in src/features/data-import/csv-import/use-csv-import.*.test.tsx)",
       "Bash(done)",
       "Bash(git restore:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git diff:*)"
     ],
     "defaultMode": "acceptEdits"
   },

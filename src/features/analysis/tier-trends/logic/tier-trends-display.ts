@@ -1,5 +1,5 @@
 import { RunType, TrendsDuration, type RunTypeValue } from '@/features/data-tracking/types/game-run.types'
-import type { RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
+import type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 
 /**
  * Formats run type for display in tier trends UI

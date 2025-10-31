@@ -46,11 +46,9 @@ export type {
 export { RunType } from './types/game-run.types';
 
 // Data Tracking Utilities
-export { 
-  parseGameRun, 
-  formatNumber, 
-  formatDuration 
-} from './utils/data-parser';
+// NOTE: Utilities moved to analysis/shared - import directly from there
+// export { parseGameRun, formatNumber, formatDuration } from '@/features/analysis/shared/data-parser';
+// export { createGameRunField, getFieldValue, getFieldDisplay, getFieldRaw, toCamelCase } from '@/features/analysis/shared/field-utils';
 
 // CSV Import/Export
 export {
@@ -80,14 +78,6 @@ export {
   storageCsvToRuns
 } from './utils/csv-persistence';
 
-export {
-  createGameRunField,
-  getFieldValue,
-  getFieldDisplay,
-  getFieldRaw,
-  toCamelCase
-} from './utils/field-utils';
-
 // Time series functions
 export {
   prepareTimeSeriesData,
@@ -105,17 +95,12 @@ export {
 } from '../analysis/tier-stats/logic/tier-stats-data';
 
 // Date aggregation functions
-export {
-  prepareWeeklyData,
-  prepareMonthlyData,
-  prepareYearlyData,
-} from './utils/date-aggregation';
+// NOTE: Utilities moved to analysis/time-series/logic - import directly from there
+// export { prepareWeeklyData, prepareMonthlyData, prepareYearlyData } from '@/features/analysis/time-series/logic/date-aggregation';
 
 // Chart formatting functions
-export {
-  formatLargeNumber,
-  generateYAxisTicks,
-} from './utils/chart-formatters';
+// NOTE: Utilities moved to analysis/shared - import directly from there
+// export { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/chart-formatters';
 
 // Time period configurations
 export {
@@ -136,18 +121,10 @@ export {
   createDateTimeFromComponents
 } from '../data-import/manual-entry/data-input-state';
 
-export {
-  filterRunsByType,
-  getFarmingRuns,
-  getTournamentRuns,
-  isFarmingRun,
-  determineRunType,
-  getRunTypeDisplayLabel
-} from './utils/run-type-filter';
-
-export type {
-  RunTypeFilter
-} from './utils/run-type-filter';
+// Run type filter functions
+// NOTE: Utilities moved to analysis/shared - import directly from there
+// export { filterRunsByType, getFarmingRuns, getTournamentRuns, isFarmingRun, determineRunType, getRunTypeDisplayLabel } from '@/features/analysis/shared/run-type-filter';
+// export type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter';
 
 // Time series types
 export type {
@@ -161,8 +138,5 @@ export type {
 } from '../analysis/tier-stats/logic/tier-stats-data';
 
 // Date aggregation types
-export type {
-  WeeklyAggregatePoint,
-  MonthlyAggregatePoint,
-  YearlyAggregatePoint
-} from './utils/date-aggregation';
+// NOTE: Types moved to analysis/time-series/logic - import directly from there
+// export type { WeeklyAggregatePoint, MonthlyAggregatePoint, YearlyAggregatePoint } from '@/features/analysis/time-series/logic/date-aggregation';

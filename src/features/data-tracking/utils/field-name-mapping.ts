@@ -6,7 +6,7 @@
  * - Code names (used internally in TypeScript): "armorShards", "_date"
  */
 
-import { toCamelCase } from './field-utils';
+import { toCamelCase } from '@/features/analysis/shared/field-utils';
 import { isLegacyField, getMigratedFieldName, INTERNAL_FIELD_MAPPINGS } from './internal-field-config';
 
 /**

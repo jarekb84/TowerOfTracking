@@ -5,7 +5,7 @@
  * comparison and trend analysis in the tier trends feature.
  */
 
-import type { GameRunField } from '../types/game-run.types';
+import type { GameRunField } from '@/features/data-tracking/types/game-run.types';
 
 /**
  * Known text-based fields that should be excluded from trend analysis

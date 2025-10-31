@@ -8,7 +8,7 @@ import { DataInputPreview } from './data-input-preview';
 import { DataInputActionsSection } from './data-input-actions-section';
 import { DataInputDateTimeSection } from './data-input-datetime-section';
 import { RunTypeSelector } from '../../data-tracking/components/run-type-selector';
-import { RunTypeFilter } from '../../data-tracking/utils/run-type-filter';
+import { RunTypeFilter } from '@/features/analysis/shared/run-type-filter';
 import { RunType } from '../../data-tracking/types/game-run.types';
 
 interface DataInputProps {

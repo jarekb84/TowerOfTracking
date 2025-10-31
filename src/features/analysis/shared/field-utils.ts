@@ -1,4 +1,4 @@
-import type { GameRunField, ParsedGameRun } from '../types/game-run.types';
+import type { GameRunField, ParsedGameRun } from '@/features/data-tracking/types/game-run.types';
 import {
   parseShorthandNumber,
   formatLargeNumber
@@ -119,7 +119,7 @@ export function createGameRunField(originalKey: string, rawValue: string): GameR
 
 
 // Efficient data access patterns
-export function getFieldValue<T = any>(run: ParsedGameRun, fieldName: string): T | null {
+export function getFieldValue<T = unknown>(run: ParsedGameRun, fieldName: string): T | null {
   const field = run.fields[fieldName];
   return field ? field.value as T : null;
 }

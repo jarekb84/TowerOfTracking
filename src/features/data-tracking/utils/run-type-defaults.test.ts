@@ -4,7 +4,7 @@ import {
   normalizeRunTypeFilter
 } from './run-type-defaults'
 import { RunType } from '../types/game-run.types'
-import { RunTypeFilter } from './run-type-filter'
+import { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 
 describe('mapUrlTypeToRunType', () => {
   it('should map RunType.FARM to RunType.FARM', () => {

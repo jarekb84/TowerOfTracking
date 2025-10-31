@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui';
 import { format } from 'date-fns';
-import { formatNumber, formatDuration } from '../../../data-tracking/utils/data-parser';
-import { getFieldValue } from '../../../data-tracking/utils/field-utils';
+import { formatNumber, formatDuration } from '@/features/analysis/shared/data-parser';
+import { getFieldValue } from '@/features/analysis/shared/field-utils';
 import type { GameRun } from '../../../data-tracking/types/game-run.types';
 
 interface ImportPreviewProps {

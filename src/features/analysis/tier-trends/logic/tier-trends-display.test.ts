@@ -6,7 +6,7 @@ import {
   formatPeriodSummary
 } from './tier-trends-display'
 import { RunType, TrendsDuration } from '@/features/data-tracking/types/game-run.types'
-import type { RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
+import type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 
 describe('formatRunTypeDisplay', () => {
   it('should format farm run type', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { groupRunsByDateKey, calculateRunAggregates, prepareWeeklyData, prepareMonthlyData, prepareYearlyData } from './date-aggregation'
-import { ParsedGameRun } from '../types/game-run.types'
+import { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
 
 const mockRun1: ParsedGameRun = {
   id: '1',

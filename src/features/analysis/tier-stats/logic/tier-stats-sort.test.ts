@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { getSortValue, sortTierStats, sortByTier } from './tier-stats-sort'
 import type { DynamicTierStats, TierStatsColumn, FieldStats } from '../types'
 import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
-import { createGameRunField } from '@/features/data-tracking/utils/field-utils'
+import { createGameRunField } from '@/features/analysis/shared/field-utils'
 
 describe('tier-stats-sort', () => {
   const createMockRun = (tier: number, coins: number, duration: number): ParsedGameRun => ({

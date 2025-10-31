@@ -21,66 +21,130 @@ See [PRD Enhanced File Structure Organization Through AI Instructions](../PRD%20
 
 ## Current State
 
-Expected shared utilities still in old locations:
+Utilities still in old locations (actual state post-migrations):
 
 ```
-src/features/data-tracking/utils/
+src/features/data-tracking/logic/
 ├── aggregation-strategies.ts
 ├── aggregation-strategies.test.ts
-├── percentile-calculation.ts
-├── percentile-calculation.test.ts
 ├── field-percentile-calculation.ts
 ├── field-percentile-calculation.test.ts
 ├── hourly-rate-calculations.ts
 ├── hourly-rate-calculations.test.ts
-└── (other utilities that may or may not be shared)
+├── percentile-calculation.ts
+├── percentile-calculation.test.ts
+└── trend-value-formatting.ts
+└── trend-value-formatting.test.ts
 
-src/features/data-tracking/logic/
-└── (potentially shared logic files)
+src/features/data-tracking/utils/
+├── run-type-filter.ts              # Used by ALL 4 analysis features
+├── run-type-filter.test.ts
+├── field-utils.ts                  # Used by 2+ features
+├── field-utils.test.ts
+├── chart-formatters.ts             # Used by 2+ features
+├── chart-formatters.test.ts
+├── data-parser.ts                  # Used by 2+ features
+├── data-parser.test.ts
+├── trend-indicators.ts             # tier-trends only
+├── trend-indicators.test.ts
+├── field-type-detection.ts         # tier-trends only
+├── field-type-detection.test.ts
+├── run-header-formatting.ts        # tier-trends only
+├── run-header-formatting.test.ts
+├── column-reorder.ts               # tier-stats only
+├── column-reorder.test.ts
+├── date-aggregation.ts             # time-series only
+└── date-aggregation.test.ts
 ```
 
-**Total**: Estimated **8-12 files** (exact count TBD after investigation)
+**Total**: **22 files** (11 implementation + 11 tests) requiring migration
 
-## Investigation Tasks (FIRST)
+## Investigation Results (COMPLETE)
 
-After all analysis features are migrated, investigate which utilities are **truly shared**:
+Investigation completed after Stories 05-08. All analysis features migrated and import patterns analyzed.
 
-1. **Identify shared imports**:
-   ```bash
-   # For each utility file, find who imports it
-   Grep -r "aggregation-strategies" src/features/analysis/
-   Grep -r "percentile-calculation" src/features/analysis/
-   Grep -r "hourly-rate-calculations" src/features/analysis/
-   ```
+### Actual Usage Breakdown
 
-2. **Categorize by usage**:
-   - **Used by 2+ features**: Move to `analysis/shared/`
-   - **Used by 1 feature only**: Move to that feature's directory (if not already there)
-   - **Used by 0 features**: Consider for deletion (but investigate first - may be used by pages directly)
+| Utility File | Used By Features | Import Count | Decision |
+|--------------|------------------|--------------|----------|
+| **run-type-filter.ts** | tier-trends, tier-stats, time-series, deaths-radar | 13 imports | `analysis/shared/` ✅ |
+| **field-utils.ts** | tier-stats, deaths-radar | 7 imports | `analysis/shared/` ✅ |
+| **chart-formatters.ts** | tier-stats, time-series | 3 imports | `analysis/shared/` ✅ |
+| **data-parser.ts** | tier-stats, tier-trends | 3 imports | `analysis/shared/` ✅ |
+| **trend-indicators.ts** | tier-trends only | 4 imports | `tier-trends/logic/` |
+| **trend-value-formatting.ts** | tier-trends only | 2 imports | `tier-trends/logic/` |
+| **aggregation-strategies.ts** | tier-trends only | 1 import | `tier-trends/logic/` |
+| **hourly-rate-calculations.ts** | tier-trends only | 1 import | `tier-trends/logic/` |
+| **field-type-detection.ts** | tier-trends only | 1 import | `tier-trends/logic/` |
+| **run-header-formatting.ts** | tier-trends only | 1 import | `tier-trends/logic/` |
+| **field-percentile-calculation.ts** | tier-stats only | 1 import | `tier-stats/logic/` |
+| **column-reorder.ts** | tier-stats only | 1 import | `tier-stats/logic/` |
+| **date-aggregation.ts** | time-series only | 1 import | `time-series/logic/` |
+| **percentile-calculation.ts** | Not used by analysis | 0 imports | Keep in `data-tracking/logic/` |
 
-3. **Check for external dependencies**:
-   - Do any files outside `analysis/` import these utilities?
-   - If yes, they may belong in `src/shared/` instead of `analysis/shared/`
+### Key Findings
 
-4. **Map utility relationships**:
-   - Which utilities depend on other utilities?
-   - What's the import hierarchy?
+**Truly Shared (4 utilities)**:
+- Only 4 files are shared by 2+ analysis features
+- `run-type-filter.ts` is the most widely used (all 4 features, 13 imports)
+- Total: 8 files (4 implementation + 4 tests) → `analysis/shared/`
+
+**Feature-Specific (9 utilities)**:
+- 6 utilities belong exclusively to tier-trends
+- 2 utilities belong exclusively to tier-stats
+- 1 utility belongs exclusively to time-series
+- Total: 18 files (9 implementation + 9 tests) → respective feature directories
+
+**Unused by Analysis (1 utility)**:
+- `percentile-calculation.ts` not imported by any analysis feature
+- May be used elsewhere, or dead code
+- Decision: Keep in `data-tracking/logic/` for now (investigate separately)
 
 ## Target State
 
 ```
 src/features/analysis/shared/
-├── aggregation-strategies.ts            # Shared by tier-trends, tier-stats, time-series
+├── run-type-filter.ts                   # Shared by ALL 4 features (13 imports)
+├── run-type-filter.test.ts
+├── field-utils.ts                       # Shared by 2 features (7 imports)
+├── field-utils.test.ts
+├── chart-formatters.ts                  # Shared by 2 features (3 imports)
+├── chart-formatters.test.ts
+├── data-parser.ts                       # Shared by 2 features (3 imports)
+└── data-parser.test.ts
+
+src/features/analysis/tier-trends/logic/
+├── (existing files from Story 05)
+├── trend-indicators.ts                  # tier-trends only (4 imports)
+├── trend-indicators.test.ts
+├── trend-value-formatting.ts            # tier-trends only (2 imports)
+├── trend-value-formatting.test.ts
+├── aggregation-strategies.ts            # tier-trends only (1 import)
 ├── aggregation-strategies.test.ts
-├── percentile-calculation.ts            # Shared by tier-trends, tier-stats
-├── percentile-calculation.test.ts
-├── field-percentile-calculation.ts      # Shared by tier-trends, tier-stats
+├── hourly-rate-calculations.ts          # tier-trends only (1 import)
+├── hourly-rate-calculations.test.ts
+├── field-type-detection.ts              # tier-trends only (1 import)
+├── field-type-detection.test.ts
+├── run-header-formatting.ts             # tier-trends only (1 import)
+└── run-header-formatting.test.ts
+
+src/features/analysis/tier-stats/logic/
+├── (existing files from Story 06)
+├── field-percentile-calculation.ts      # tier-stats only (1 import)
 ├── field-percentile-calculation.test.ts
-├── hourly-rate-calculations.ts          # Shared by multiple features
-└── hourly-rate-calculations.test.ts
+├── column-reorder.ts                    # tier-stats only (1 import)
+└── column-reorder.test.ts
+
+src/features/analysis/time-series/logic/
+├── date-aggregation.ts                  # time-series only (1 import)
+└── date-aggregation.test.ts
+
+src/features/data-tracking/logic/
+└── percentile-calculation.ts            # Not used by analysis features
+└── percentile-calculation.test.ts
 ```
 
-**Note**: Actual contents depend on investigation findings.
+**Note**: Investigation complete - these are the actual file locations based on usage analysis.
 
 ## Benefits
 
@@ -89,99 +153,171 @@ src/features/analysis/shared/
 - **Easy to discover**: "What aggregation methods are available?" → `analysis/shared/`
 - **Feature independence**: Each feature can use shared utilities without coupling to other features
 
-## Implementation Tasks (After Investigation)
+## Implementation Tasks
 
-### 1. Document Findings
-
-After investigation, create a table:
-
-| Utility File | Used By Features | Move To |
-|--------------|------------------|---------|
-| aggregation-strategies.ts | tier-trends, tier-stats, time-series | analysis/shared/ |
-| percentile-calculation.ts | tier-trends, tier-stats | analysis/shared/ |
-| hourly-rate-calculations.ts | tier-trends | tier-trends/logic/ |
-| ... | ... | ... |
-
-### 2. Create Directory Structure
+### 1. Create Directory Structure
 
 ```bash
 mkdir -p src/features/analysis/shared
 ```
 
-### 3. Move Truly Shared Files
+Note: Feature-specific `logic/` directories already exist from Stories 05-08.
 
-Move from `src/features/data-tracking/utils/`:
-- Files used by **2+ analysis features** → `analysis/shared/`
-- Files used by **1 analysis feature** → that feature's `logic/` directory
-- Files used by **0 analysis features** → investigate further (may be dead code, or used by pages)
+### 2. Move Truly Shared Files (8 files)
 
-Example moves (based on typical usage patterns):
+**To `analysis/shared/`** (used by 2+ features):
 
-**To `analysis/shared/`** (used by multiple features):
-- `aggregation-strategies.ts` → `shared/aggregation-strategies.ts`
-- `aggregation-strategies.test.ts` → `shared/aggregation-strategies.test.ts`
-- `percentile-calculation.ts` → `shared/percentile-calculation.ts`
-- `percentile-calculation.test.ts` → `shared/percentile-calculation.test.ts`
-- `field-percentile-calculation.ts` → `shared/field-percentile-calculation.ts`
-- `field-percentile-calculation.test.ts` → `shared/field-percentile-calculation.test.ts`
+```bash
+# Most widely shared - used by ALL 4 features
+git mv src/features/data-tracking/utils/run-type-filter.ts src/features/analysis/shared/
+git mv src/features/data-tracking/utils/run-type-filter.test.ts src/features/analysis/shared/
 
-**To specific feature** (if only used by one feature):
-- Example: If `hourly-rate-calculations.ts` only used by tier-trends:
-  - Move to `tier-trends/logic/hourly-rate-calculations.ts`
+# Shared by 2+ features
+git mv src/features/data-tracking/utils/field-utils.ts src/features/analysis/shared/
+git mv src/features/data-tracking/utils/field-utils.test.ts src/features/analysis/shared/
 
-### 4. Update Import Statements
+git mv src/features/data-tracking/utils/chart-formatters.ts src/features/analysis/shared/
+git mv src/features/data-tracking/utils/chart-formatters.test.ts src/features/analysis/shared/
 
-**From** (tier-trends using shared utilities):
+git mv src/features/data-tracking/utils/data-parser.ts src/features/analysis/shared/
+git mv src/features/data-tracking/utils/data-parser.test.ts src/features/analysis/shared/
+```
+
+### 3. Move Feature-Specific Files
+
+**To `tier-trends/logic/`** (12 files - 6 utilities used only by tier-trends):
+
+```bash
+# From utils/
+git mv src/features/data-tracking/utils/trend-indicators.ts src/features/analysis/tier-trends/logic/
+git mv src/features/data-tracking/utils/trend-indicators.test.ts src/features/analysis/tier-trends/logic/
+
+git mv src/features/data-tracking/utils/field-type-detection.ts src/features/analysis/tier-trends/logic/
+git mv src/features/data-tracking/utils/field-type-detection.test.ts src/features/analysis/tier-trends/logic/
+
+git mv src/features/data-tracking/utils/run-header-formatting.ts src/features/analysis/tier-trends/logic/
+git mv src/features/data-tracking/utils/run-header-formatting.test.ts src/features/analysis/tier-trends/logic/
+
+# From logic/
+git mv src/features/data-tracking/logic/trend-value-formatting.ts src/features/analysis/tier-trends/logic/
+git mv src/features/data-tracking/logic/trend-value-formatting.test.ts src/features/analysis/tier-trends/logic/
+
+git mv src/features/data-tracking/logic/aggregation-strategies.ts src/features/analysis/tier-trends/logic/
+git mv src/features/data-tracking/logic/aggregation-strategies.test.ts src/features/analysis/tier-trends/logic/
+
+git mv src/features/data-tracking/logic/hourly-rate-calculations.ts src/features/analysis/tier-trends/logic/
+git mv src/features/data-tracking/logic/hourly-rate-calculations.test.ts src/features/analysis/tier-trends/logic/
+```
+
+**To `tier-stats/logic/`** (4 files - 2 utilities used only by tier-stats):
+
+```bash
+git mv src/features/data-tracking/logic/field-percentile-calculation.ts src/features/analysis/tier-stats/logic/
+git mv src/features/data-tracking/logic/field-percentile-calculation.test.ts src/features/analysis/tier-stats/logic/
+
+git mv src/features/data-tracking/utils/column-reorder.ts src/features/analysis/tier-stats/logic/
+git mv src/features/data-tracking/utils/column-reorder.test.ts src/features/analysis/tier-stats/logic/
+```
+
+**To `time-series/logic/`** (2 files - 1 utility used only by time-series):
+
+```bash
+# Create logic/ directory for time-series
+mkdir -p src/features/analysis/time-series/logic
+
+git mv src/features/data-tracking/utils/date-aggregation.ts src/features/analysis/time-series/logic/
+git mv src/features/data-tracking/utils/date-aggregation.test.ts src/features/analysis/time-series/logic/
+```
+
+### 4. Leave in Place
+
+**Keep in `data-tracking/logic/`** (not used by analysis features):
+- `percentile-calculation.ts` + test (may be used elsewhere or dead code)
+
+### 5. Update Import Statements
+
+**Expected import updates**: ~35 files across all 4 analysis features
+
+#### Shared Utilities Import Updates
+
+**From**:
 ```typescript
-import { aggregationStrategies } from '@/features/data-tracking/utils/aggregation-strategies'
-import { calculatePercentile } from '@/features/data-tracking/utils/percentile-calculation'
+import { filterRunsByType, RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
+import { getFieldValue } from '@/features/data-tracking/utils/field-utils'
+import { formatLargeNumber } from '@/features/data-tracking/utils/chart-formatters'
+import { formatNumber, formatDuration } from '@/features/data-tracking/utils/data-parser'
 ```
 
 **To**:
 ```typescript
-import { aggregationStrategies } from '@/features/analysis/shared/aggregation-strategies'
-import { calculatePercentile } from '@/features/analysis/shared/percentile-calculation'
+import { filterRunsByType, RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
+import { getFieldValue } from '@/features/analysis/shared/field-utils'
+import { formatLargeNumber } from '@/features/analysis/shared/chart-formatters'
+import { formatNumber, formatDuration } from '@/features/analysis/shared/data-parser'
 ```
 
-**From** (tier-stats using shared utilities):
+#### Tier-Trends Feature-Specific Import Updates
+
+**From**:
 ```typescript
-import { aggregationStrategies } from '@/features/data-tracking/utils/aggregation-strategies'
-import { calculatePercentile } from '@/features/data-tracking/utils/percentile-calculation'
+import { getTrendChangeColor } from '@/features/data-tracking/utils/trend-indicators'
+import { formatTrendValue } from '@/features/data-tracking/logic/trend-value-formatting'
+import { aggregationStrategies } from '@/features/data-tracking/logic/aggregation-strategies'
+import { calculateCoinsPerHour } from '@/features/data-tracking/logic/hourly-rate-calculations'
+import { isTrendableField } from '@/features/data-tracking/utils/field-type-detection'
+import { createEnhancedRunHeader } from '@/features/data-tracking/utils/run-header-formatting'
 ```
 
 **To**:
 ```typescript
-import { aggregationStrategies } from '@/features/analysis/shared/aggregation-strategies'
-import { calculatePercentile } from '@/features/analysis/shared/percentile-calculation'
+import { getTrendChangeColor } from '@/features/analysis/tier-trends/logic/trend-indicators'
+import { formatTrendValue } from '@/features/analysis/tier-trends/logic/trend-value-formatting'
+import { aggregationStrategies } from '@/features/analysis/tier-trends/logic/aggregation-strategies'
+import { calculateCoinsPerHour } from '@/features/analysis/tier-trends/logic/hourly-rate-calculations'
+import { isTrendableField } from '@/features/analysis/tier-trends/logic/field-type-detection'
+import { createEnhancedRunHeader } from '@/features/analysis/tier-trends/logic/run-header-formatting'
+```
+
+#### Tier-Stats Feature-Specific Import Updates
+
+**From**:
+```typescript
+import { calculateFieldPercentiles } from '@/features/data-tracking/logic/field-percentile-calculation'
+import { reorderColumns } from '@/features/data-tracking/utils/column-reorder'
+```
+
+**To**:
+```typescript
+import { calculateFieldPercentiles } from '@/features/analysis/tier-stats/logic/field-percentile-calculation'
+import { reorderColumns } from '@/features/analysis/tier-stats/logic/column-reorder'
+```
+
+#### Time-Series Feature-Specific Import Updates
+
+**From**:
+```typescript
+import { prepareCoinsPerRunData } from '@/features/data-tracking/utils/date-aggregation'
+```
+
+**To**:
+```typescript
+import { prepareCoinsPerRunData } from '@/features/analysis/time-series/logic/date-aggregation'
 ```
 
 **Tools**:
-- Use `Grep` to find all imports of each shared utility
-- Update all analysis feature files
-- Update any page files that import utilities directly
-- Run tests after each batch
+- Use `Grep` to find all imports for each utility
+- Update imports using `Edit` tool
+- Verify no broken imports remain using TypeScript compiler
 
-### 5. Update Barrel Exports (if applicable)
+### 6. Create Barrel Exports (Optional)
 
 ```typescript
 // src/features/analysis/shared/index.ts
-export * from './aggregation-strategies'
-export * from './percentile-calculation'
-export * from './field-percentile-calculation'
-export * from './hourly-rate-calculations'
+export * from './run-type-filter'
+export * from './field-utils'
+export * from './chart-formatters'
+export * from './data-parser'
 ```
-
-### 6. Handle Feature-Specific Utilities
-
-If investigation reveals utilities used by only one feature:
-
-**Option A**: Move to feature's `logic/` directory
-```
-tier-trends/logic/
-└── hourly-rate-calculations.ts  # Only used by tier-trends
-```
-
-**Option B**: Leave in place (if already in feature directory from previous migration)
 
 ### 7. Verification
 
@@ -224,24 +360,83 @@ For each utility, decide:
    - General-purpose utility (not domain-specific)
    - Example: Generic date formatting or number utilities
 
-### Documentation
+### Decision Log
 
-Create a decision log:
+Complete decision log documenting the actual investigation results:
 
 ```markdown
 ## Shared Utility Decision Log
 
-### aggregation-strategies.ts
+### run-type-filter.ts
 - **Decision**: Move to `analysis/shared/`
-- **Reason**: Used by tier-trends, tier-stats, time-series
-- **Evidence**: Grep found imports in 3 features
+- **Reason**: Used by ALL 4 analysis features (tier-trends, tier-stats, time-series, deaths-radar)
+- **Evidence**: 13 imports across analysis features
+- **Priority**: CRITICAL - most widely shared utility
+
+### field-utils.ts
+- **Decision**: Move to `analysis/shared/`
+- **Reason**: Used by tier-stats and deaths-radar
+- **Evidence**: 7 imports across 2 features
+
+### chart-formatters.ts
+- **Decision**: Move to `analysis/shared/`
+- **Reason**: Used by tier-stats and time-series
+- **Evidence**: 3 imports across 2 features
+
+### data-parser.ts
+- **Decision**: Move to `analysis/shared/`
+- **Reason**: Used by tier-stats and tier-trends
+- **Evidence**: 3 imports across 2 features (formatNumber, formatDuration)
+
+### trend-indicators.ts
+- **Decision**: Move to `tier-trends/logic/`
+- **Reason**: Only used by tier-trends
+- **Evidence**: 4 imports, all in tier-trends/
+
+### trend-value-formatting.ts
+- **Decision**: Move to `tier-trends/logic/`
+- **Reason**: Only used by tier-trends
+- **Evidence**: 2 imports, all in tier-trends/
+
+### aggregation-strategies.ts
+- **Decision**: Move to `tier-trends/logic/`
+- **Reason**: Only used by tier-trends (NOT shared as initially assumed)
+- **Evidence**: 1 import, only in tier-trends/
 
 ### hourly-rate-calculations.ts
 - **Decision**: Move to `tier-trends/logic/`
-- **Reason**: Only imported by tier-trends
-- **Evidence**: Grep found imports only in tier-trends/
+- **Reason**: Only used by tier-trends
+- **Evidence**: 1 import, only in tier-trends/
 
-### (continue for each utility)
+### field-type-detection.ts
+- **Decision**: Move to `tier-trends/logic/`
+- **Reason**: Only used by tier-trends
+- **Evidence**: 1 import, only in tier-trends/
+
+### run-header-formatting.ts
+- **Decision**: Move to `tier-trends/logic/`
+- **Reason**: Only used by tier-trends
+- **Evidence**: 1 import, only in tier-trends/
+
+### field-percentile-calculation.ts
+- **Decision**: Move to `tier-stats/logic/`
+- **Reason**: Only used by tier-stats (NOT shared as initially assumed)
+- **Evidence**: 1 import, only in tier-stats/
+
+### column-reorder.ts
+- **Decision**: Move to `tier-stats/logic/`
+- **Reason**: Only used by tier-stats
+- **Evidence**: 1 import, only in tier-stats/
+
+### date-aggregation.ts
+- **Decision**: Move to `time-series/logic/`
+- **Reason**: Only used by time-series
+- **Evidence**: 1 import, only in time-series/
+
+### percentile-calculation.ts
+- **Decision**: Keep in `data-tracking/logic/`
+- **Reason**: Not used by any analysis features
+- **Evidence**: 0 imports in analysis/ - may be used elsewhere or dead code
 ```
 
 ## Notes

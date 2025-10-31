@@ -1,5 +1,5 @@
 import { ParsedGameRun } from '../../../data-tracking/types/game-run.types'
-import { RunTypeFilter, filterRunsByType } from '../../../data-tracking/utils/run-type-filter'
+import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/run-type-filter'
 
 /**
  * Maximum performance stats for a single tier

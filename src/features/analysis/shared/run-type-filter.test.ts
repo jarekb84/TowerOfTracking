@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { filterRunsByType, getFarmingRuns, getTournamentRuns, getMilestoneRuns, isFarmingRun, isMilestoneRun } from './run-type-filter'
-import type { ParsedGameRun } from '../types/game-run.types'
-import { RunType } from '../types/game-run.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import { RunType } from '@/features/data-tracking/types/game-run.types'
 
 // Mock game run data
 const mockRuns: ParsedGameRun[] = [

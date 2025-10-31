@@ -11,7 +11,7 @@ import {
   getFieldDisplayName,
   getColumnDisplayName
 } from './tier-stats-config-utils'
-import { createGameRunField } from '@/features/data-tracking/utils/field-utils'
+import { createGameRunField } from '@/features/analysis/shared/field-utils'
 
 describe('tier-stats-config', () => {
   const createMockRun = (overrides?: Partial<ParsedGameRun>): ParsedGameRun => ({

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { reorderColumns } from '../../data-tracking/utils/column-reorder'
+import { reorderColumns } from '@/features/analysis/tier-stats/logic/column-reorder'
 import type { TierStatsColumnConfig } from '@/features/analysis/tier-stats/types'
 
 export interface UseColumnReorderReturn {

@@ -11,10 +11,10 @@ import {
   type TierStatsSummary
 } from './logic/tier-stats-calculator'
 import { sortTierStats, sortByTier } from './logic/tier-stats-sort'
-import { filterRunsByType, RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
-import { getFieldValue } from '@/features/data-tracking/utils/field-utils'
-import { formatLargeNumber } from '@/features/data-tracking/utils/chart-formatters'
-import { formatDuration } from '@/features/data-tracking/utils/data-parser'
+import { filterRunsByType, RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
+import { getFieldValue } from '@/features/analysis/shared/field-utils'
+import { formatLargeNumber } from '@/features/analysis/shared/chart-formatters'
+import { formatDuration } from '@/features/analysis/shared/data-parser'
 
 export interface UseDynamicTierStatsTableReturn {
   tierStats: DynamicTierStats[]
