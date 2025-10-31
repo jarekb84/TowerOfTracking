@@ -26,7 +26,7 @@ export class SettingsPage {
     this.bulkImportButton = page.locator('button:has-text("Import CSV/TSV")');
 
     // Button to open bulk export modal/section
-    this.bulkExportButton = page.locator('button:has-text("Export to CSV")');
+    this.bulkExportButton = page.locator('button:has-text("Export CSV")');
   }
 
   /**

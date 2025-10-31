@@ -13,6 +13,7 @@ todos.json
 
 # E2E test artifacts
 e2e/seed/
+e2e/fixtures/actual-bulk-export.csv
 test-results/
 playwright-report/
 playwright/.cache/
