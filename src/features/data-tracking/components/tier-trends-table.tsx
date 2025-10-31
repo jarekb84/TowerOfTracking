@@ -1,6 +1,6 @@
 import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '../types/game-run.types'
 import { TierTrendsMobileCard } from './tier-trends-mobile-card'
-import { useViewport } from '@/shared/hooks/use-viewport'
+import { useViewport } from '../../../shared/hooks/use-viewport'
 import { formatNumber } from '../utils/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../utils/tier-trends'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../utils/trend-indicators'
