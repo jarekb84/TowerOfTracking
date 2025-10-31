@@ -6,6 +6,34 @@
 
 **CRITICAL**: Maintain hierarchical, feature-based file organization. Fight entropy through progressive refinement.
 
+### Quick Reference: Feature-Based Organization
+
+**Always organize by FEATURE/CAPABILITY, never by file type:**
+
+```bash
+# ✅ GOOD - Feature-based
+features/data-import/
+  manual-entry/
+    manual-entry-form.tsx
+    use-manual-entry.ts
+    validation-logic.ts
+    validation-logic.test.ts
+
+# ❌ BAD - Type-based
+features/data-import/
+  components/
+  hooks/
+  logic/
+```
+
+**Key Rules:**
+- **Co-locate**: Keep component + hook + logic + tests together in same directory
+- **3-File Rule**: 3+ files sharing a concept → create subdirectory (`filters/`, `validation/`, `preview/`)
+- **10-File Threshold**: Directory with 10+ implementation files (excluding tests) → evaluate for sub-grouping
+- **Descriptive Names**: Use feature names (`filters/`, `input/`, `preview/`) NOT type names (`components/`, `hooks/`, `utils/`)
+
+See detailed guidance below for complete file organization standards.
+
 ### Core Organization Doctrine
 
 #### Feature-Based Architecture (NOT Type-Based)

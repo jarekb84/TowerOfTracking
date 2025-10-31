@@ -1,15 +1,15 @@
 import { useState, memo } from 'react';
 import { Button, Textarea, FormField, FormLabel, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
-import { useFileImport } from '../hooks/use-file-import';
-import { useDataInputForm } from '../hooks/use-data-input-form';
-import { useGlobalDataInput } from '../hooks/use-global-data-input';
-import { DuplicateInfo } from './duplicate-info';
+import { useFileImport } from '../csv-import/use-file-import';
+import { useDataInputForm } from './use-data-input-form';
+import { useGlobalDataInput } from './use-global-data-input';
+import { DuplicateInfo } from '../../data-tracking/components/duplicate-info';
 import { DataInputPreview } from './data-input-preview';
 import { DataInputActionsSection } from './data-input-actions-section';
 import { DataInputDateTimeSection } from './data-input-datetime-section';
-import { RunTypeSelector } from './run-type-selector';
-import { RunTypeFilter } from '../utils/run-type-filter';
-import { RunType } from '../types/game-run.types';
+import { RunTypeSelector } from '../../data-tracking/components/run-type-selector';
+import { RunTypeFilter } from '../../data-tracking/utils/run-type-filter';
+import { RunType } from '../../data-tracking/types/game-run.types';
 
 interface DataInputProps {
   className?: string;

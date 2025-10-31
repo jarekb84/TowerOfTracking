@@ -1,7 +1,7 @@
 // Data Tracking Components
-export { DataInput } from './components/data-input';
-export { DataInputErrorBoundary } from './components/data-input-error-boundary';
-export { CsvImport } from './components/csv-import';
+export { DataInput } from '../data-import/manual-entry/data-input';
+export { DataInputErrorBoundary } from '../data-import/manual-entry/data-input-error-boundary';
+export { CsvImport } from '../data-import/csv-import/csv-import';
 export { CsvExport } from './components/csv-export';
 export { DataProvider } from './components/data-provider';
 export { DataSettings } from './components/data-settings';
@@ -18,9 +18,9 @@ export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
 export { useDataSettings } from './hooks/use-data-settings';
-export { useFileImport } from './hooks/use-file-import';
-export { useGlobalDataInput } from './hooks/use-global-data-input';
-export { GlobalDataInputProvider } from './components/global-data-input-provider';
+export { useFileImport } from '../data-import/csv-import/use-file-import';
+export { useGlobalDataInput } from '../data-import/manual-entry/use-global-data-input';
+export { GlobalDataInputProvider } from '../data-import/global-data-input-provider';
 export { useChartNavigation } from './hooks/use-chart-navigation';
 export { useRunsNavigation } from './hooks/use-runs-navigation';
 export type { ChartType } from './hooks/use-chart-navigation';
@@ -113,7 +113,7 @@ export {
   createInitialDateTimeState,
   formatTimeFromDate,
   createDateTimeFromComponents
-} from './utils/data-input-state';
+} from '../data-import/manual-entry/data-input-state';
 
 export {
   filterRunsByType,
