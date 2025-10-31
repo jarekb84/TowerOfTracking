@@ -1,0 +1,163 @@
+import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import { getFieldDisplayConfig } from '../fields/field-display-config';
+import { buildContainerClassName, buildValueClassName } from '../fields/field-rendering-utils';
+import { StickyNote } from 'lucide-react';
+
+interface RunDetailsProps {
+  run: ParsedGameRun;
+}
+
+const STAT_GROUPS = {
+  "Notes": [
+    "_notes"
+  ],
+  "Battle Report": [
+    "gameTime", "realTime", "tier", "wave", "killedBy", 
+    "coinsEarned", "coinsPerHour", "cashEarned", "interestEarned", 
+    "gemBlocksTapped", "cellsEarned", "rerollShardsEarned"
+  ],
+  "Combat": [
+    "damageDealt","damageTaken", "damageTakenWall", "damageTakenWhileBerserked", "damageGainFromBerserk", "deathDefy", 
+    "lifesteal", "projectilesDamage", "projectilesCount", "thornDamage",
+    "orbHits","orbDamage", "enemiesHitByOrbs", 
+    "landMineDamage", "landMinesSpawned", "rendArmorDamage", "deathRayDamage", 
+    "smartMissileDamage", "innerLandMineDamage", "chainLightningDamage", 
+    "deathWaveDamage", "taggedByDeathwave" ,"swampDamage", "blackHoleDamage", 
+  ],
+  "Utility": [     
+    "wavesSkipped", "recoveryPackages", 
+    "freeAttackUpgrade", "freeDefenseUpgrade", "freeUtilityUpgrade", 
+    "hpFromDeathWave", "coinsFromDeathWave", 
+    "cashFromGoldenTower", "coinsFromGoldenTower", 
+    "coinsFromBlackHole", "coinsFromBlackhole", 
+    "coinsFromSpotlight", 
+    "coinsFromOrbs", "coinsFromOrb", 
+    "coinsFromCoinUpgrade", "coinsFromCoinBonuses",
+  ],
+  "Enemies Destroyed": [
+    "totalEnemies", "basic", "fast", "tank", "ranged", "boss", "protector", 
+    "totalElites", "vampires", "rays", "scatters", "saboteurs", "saboteur", 
+    "commanders","commander", "overcharges", "overcharge", 
+    "destroyedByOrbs", "destroyedByThorns", "destroyedByDeathRay", "destroyedByLandMine", "destroyedInSpotlight"
+  ],
+  "BOTS": [
+    "flameBotDamage", "thunderBotStuns", "goldenBotCoinsEarned", "destroyedInGoldenBot"
+  ],
+  "GUARDIAN": [
+    "damage","summonedEnemies", 
+    "guardianCoinsStolen", "guardianCatches", 
+    "coinsStolen", "coinsFetched", 
+    "gems", "medals", 
+    "rerollShards", "cannonShards", "armorShards", "generatorShards", "coreShards", 
+    "commonModules", "rareModules"
+  ],
+  "__SKIP__": [
+    "_date", "_time","_runType", "battleDate"
+  ]
+};
+
+
+function StatSection({ title, fieldsData }: {
+  title: string;
+  fieldsData: Array<{ key: string; displayName: string; value: string }>;
+}) {
+  if (fieldsData.length === 0) return null;
+  
+  const isNotesSection = title === "Notes";
+
+  return (
+    <div className="space-y-4">
+      <h5 className="font-semibold text-base text-primary border-b border-border/40 pb-2 flex items-center gap-2">
+        {isNotesSection && <StickyNote className="h-4 w-4 text-accent" />}
+        {title}
+        <span className="text-xs text-muted-foreground font-normal">({fieldsData.length} items)</span>
+      </h5>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {fieldsData.map(({ key, displayName, value }) => {
+          const config = getFieldDisplayConfig(key);
+          const isEmpty = !value || value.trim() === '';
+
+          return (
+            <div key={key} className={buildContainerClassName(config)}>
+              {!config.hideLabel && (
+                <span className="font-mono text-sm text-muted-foreground truncate flex-1 mr-3">
+                  {displayName}
+                </span>
+              )}
+              <span className={buildValueClassName(config)}>
+                {isEmpty && config.fullWidth ? (
+                  <span className="text-muted-foreground/50 italic text-xs">No notes for this run</span>
+                ) : (
+                  value
+                )}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StatGroup({ title, fields, run }: {
+  title: string;
+  fields: string[];
+  run: ParsedGameRun;
+}) {
+  const availableFields = fields
+    .map(fieldName => {
+      const field = run.fields[fieldName];
+      if (field) {
+        return {
+          key: fieldName,
+          displayName: field.originalKey,
+          value: field.displayValue
+        };
+      }
+      return null;
+    })
+    .filter(Boolean) as Array<{ key: string; displayName: string; value: string }>;
+
+  return <StatSection title={title} fieldsData={availableFields} />;
+}
+
+export function RunDetails({ run }: RunDetailsProps) {
+  // Get all fields that are already categorized
+  const categorizedFields = new Set(
+    Object.values(STAT_GROUPS).flat().map(field => field)
+  );
+
+  // Find unmatched fields
+  const unmatchedFields = Object.keys(run.fields)
+    .filter(camelKey => {
+      return !categorizedFields.has(camelKey);
+    })
+    .map(camelKey => ({
+      key: run.fields[camelKey].originalKey,
+      displayName: run.fields[camelKey].originalKey,
+      value: run.fields[camelKey].displayValue
+    }));
+  
+  return (
+    <div className="space-y-6">
+      <div className="border-b border-border/40 pb-3 mb-6">
+        <h4 className="font-semibold text-lg text-primary">Complete Run Data</h4>
+        <p className="text-sm text-muted-foreground mt-1">Detailed statistics and information for this run</p>
+      </div>
+      
+      {Object.entries(STAT_GROUPS).filter(([groupTitle]) => groupTitle !== "__SKIP__").map(([groupTitle, fields]) => (
+        <StatGroup
+          key={groupTitle}
+          title={groupTitle}
+          fields={fields}
+          run={run}
+        />
+      ))}
+
+      <StatSection
+        title="Misc"
+        fieldsData={unmatchedFields}
+      />
+    </div>
+  );
+}
