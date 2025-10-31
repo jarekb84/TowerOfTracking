@@ -10,6 +10,10 @@ export default defineConfig([
     ".tanstack/**/*",
     ".output/**/*",
     ".nitro/**/*",
+    "e2e/seed/**/*",
+    "test-results/**/*",
+    "playwright-report/**/*",
+    "playwright/.cache/**/*",
   ]),
   {
     settings:{

@@ -200,6 +200,157 @@ test('bulk import works', async ({ page }) => {
 - Use `readonly` for locator properties
 - Provide both granular methods and convenience methods (e.g., both `clickImport()` and `importData()`)
 
+### E2E Code Smell: Locator Calls in Spec Files
+
+**CRITICAL CODE SMELL**: Direct `locator()` calls with CSS selectors in E2E spec files indicate POM violations.
+
+**Symptoms:**
+```typescript
+// ❌ CODE SMELL: Direct locator calls in spec file
+test('my test', async ({ page }) => {
+  const row = page.locator('tbody tr').first();
+  const expandedContent = page.locator('tbody tr').nth(1).locator('td div.bg-muted\\/15');
+  await expandedContent.waitFor({ state: 'visible' });
+});
+```
+
+**Red Flags:**
+- `page.locator(...)` or `seededPage.locator(...)` with CSS selectors in spec files
+- Direct selector logic (e.g., `.nth()`, `.first()`, `.filter()`) in test code
+- Complex selector chains in assertions
+- Multiple locator calls targeting the same UI area
+
+**When Locators Are Acceptable in Specs:**
+- NEVER for UI interaction or element finding
+- Only for fixture setup (e.g., injecting data) if absolutely necessary
+- If you see locator calls, ask: "Should this be a POM method?"
+
+**Refactoring Action:**
+1. **Identify the UI area being targeted** - What page/component/modal does this selector belong to?
+2. **Check if POM exists** - Is there a page object for this UI area?
+3. **Add method to POM** - Encapsulate the selector logic in a descriptive method
+4. **Update spec** - Replace locator calls with POM method calls
+
+**Example Refactoring:**
+```typescript
+// BEFORE (CODE SMELL):
+test('expands rows', async ({ page }) => {
+  const firstRow = page.locator('tbody tr').first();
+  const expandButton = firstRow.locator('td:first-child button').first();
+  await expandButton.click();
+
+  const expandedContent = page.locator('tbody tr').nth(1).locator('td div.bg-muted\\/15').first();
+  await expect(expandedContent).toBeVisible();
+});
+
+// AFTER (CLEAN):
+// In game-runs-page.ts:
+async expandRow(rowIndex: number) {
+  const row = this.tableRows.nth(rowIndex);
+  const expandButton = row.locator('td:first-child button').first();
+  await expandButton.click();
+}
+
+async verifyExpandedContentVisible(rowIndex: number): Promise<boolean> {
+  const expandedRowIndex = (rowIndex * 2) + 1;
+  const expandedRow = this.page.locator('tbody tr').nth(expandedRowIndex);
+  const expandedContent = expandedRow.locator('td div.bg-muted\\/15').first();
+  await expandedContent.waitFor({ state: 'visible', timeout: 5000 });
+  return true;
+}
+
+// In spec file:
+test('expands rows', async ({ page }) => {
+  const gameRunsPage = new GameRunsPage(page);
+  await gameRunsPage.expandRow(0);
+  const isExpanded = await gameRunsPage.verifyExpandedContentVisible(0);
+  expect(isExpanded).toBe(true);
+});
+```
+
+**Benefits of Refactoring:**
+- ✅ Tests read like user workflows, not selector logic
+- ✅ Selector changes require updates in ONE place (POM), not every test
+- ✅ Complex selector logic is documented and reusable
+- ✅ Tests focus on behavior, not implementation details
+
+**Review Protocol:**
+- During architecture review, search ALL spec files for `.locator(` calls
+- Flag each occurrence as a code smell
+- Evaluate: Should this be a POM method?
+- If yes: Create/enhance POM and refactor spec
+- If legitimately needed: Document why locator call is acceptable in this case
+
+### POM Philosophy: Tools Not Assertions
+
+**CRITICAL PRINCIPLE**: Page Object Models should provide **tools for interaction**, NOT **black-box assertions**.
+
+**❌ ANTI-PATTERN**: Hiding verification logic in POM methods
+```typescript
+// BAD: POM method that hides what's being verified
+async verifyExpandedContentVisible(rowIndex: number): Promise<boolean> {
+  const expandedRow = this.page.locator('tbody tr').nth(rowIndex);
+  const expandedContent = expandedRow.locator('td div.bg-muted\\/15');
+  await expandedContent.waitFor({ state: 'visible', timeout: 5000 });
+  return true;
+}
+
+// BAD: Test doesn't show what data is being checked
+const isExpanded = await gameRunsPage.verifyExpandedContentVisible(0);
+expect(isExpanded).toBe(true); // What data are we actually verifying?
+```
+
+**✅ CORRECT PATTERN**: POM provides data access, test makes explicit assertions
+```typescript
+// GOOD: POM method exposes data access
+async getExpandedRowFieldValue(rowIndex: number, fieldName: string): Promise<string | null> {
+  const expandedRowIndex = (rowIndex * 2) + 1;
+  const expandedRow = this.page.locator('tbody tr').nth(expandedRowIndex);
+
+  const isVisible = await expandedRow.isVisible({ timeout: 1000 }).catch(() => false);
+  if (!isVisible) return null;
+
+  const fieldContainer = expandedRow.locator('div.flex.items-center', {
+    has: this.page.locator(`text="${fieldName}"`)
+  }).first();
+
+  const value = await fieldContainer.textContent({ timeout: 1000 });
+  return value ? value.replace(fieldName, '').trim() : null;
+}
+
+// GOOD: Test clearly shows what data is being verified
+const realTime = await gameRunsPage.getExpandedRowFieldValue(0, 'Real Time');
+const tier = await gameRunsPage.getExpandedRowFieldValue(0, 'Tier');
+const wave = await gameRunsPage.getExpandedRowFieldValue(0, 'Wave');
+
+expect(realTime).toBe('12h 44m 28s')
+expect(tier).toBe('11')
+expect(wave).toBe('9.7K')
+console.log(`✓ Row expanded - Real Time: ${realTime}, Tier: ${tier}, Wave: ${wave}`);
+```
+
+**Why This Matters:**
+- ✅ Test clearly shows **what data** is being verified (not just "content visible")
+- ✅ Test output shows **actual values** from the UI (e.g., "Real Time: 12h 44m 28s")
+- ✅ Specific assertions make failures more obvious (know which field failed)
+- ✅ POM provides **tools** (get data, click buttons), test defines **expectations**
+
+**POM Responsibilities (GOOD)**:
+- Provide methods to **click buttons/links** (`expandRow()`, `switchToTab()`)
+- Provide methods to **get data** from the page (`getExpandedRowFieldValue()`, `getTableRowCount()`)
+- Provide methods to **navigate** (`goto()`, `waitForTableLoad()`)
+- Encapsulate **selector logic** (complex CSS, dynamic text, multiple elements)
+
+**POM Should NOT Do (BAD)**:
+- Make **assertions** (`expect()` calls belong in tests, not POMs)
+- Hide **what's being verified** (`verifyContentVisible()` is too opaque)
+- Combine **interaction + assertion** (`clickAndVerify()` methods)
+- Return **boolean pass/fail** for verification (return data, let test assert)
+
+**Rule of Thumb:**
+- If you can't tell **what specific data** the test is checking, the POM is too opaque
+- If the test output doesn't show **actual values**, refactor to expose data
+
 </e2e_testing_patterns>
 
 <bug_fix_context_handling>

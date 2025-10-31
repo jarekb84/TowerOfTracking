@@ -243,3 +243,93 @@ analytics/tier-trends/filters/
 - **Realistic Mock Data**: Test with data matching actual TypeScript interfaces
 
 **Boy-Scout Rule**: When touching any mixed-concern component, extract at least one logic chunk into hooks or pure functions with tests.
+## End-to-End Testing Standards
+
+**Purpose**: Define standards for Playwright E2E tests using Page Object Model pattern.
+
+### Page Object Model (POM) Philosophy
+
+**Core Principle**: POMs provide **tools for interaction**, NOT **black-box assertions**.
+
+#### POM Responsibilities
+
+**POMs SHOULD provide**:
+- Methods to **interact** with the page (click buttons, fill forms, navigate)
+- Methods to **access data** from the page (get field values, row counts, text content)
+- **Encapsulation** of complex selectors and UI structure
+- **Reusable** methods across multiple tests
+
+**POMs should NOT**:
+- Make **assertions** (`expect()` calls belong in tests)
+- Hide **what's being verified** (return boolean pass/fail for verification)
+- Combine **interaction + assertion** in single methods
+- Return vague success indicators instead of actual data
+
+#### Good vs Bad POM Patterns
+
+**❌ BAD - Opaque Verification**:
+```typescript
+// POM hides what's being checked
+async verifyExpandedContentVisible(rowIndex: number): Promise<boolean> {
+  const content = this.page.locator('...');
+  await content.waitFor({ state: 'visible' });
+  return true; // What data are we actually verifying?
+}
+
+// Test doesn't show what data is checked
+const isVisible = await page.verifyExpandedContentVisible(0);
+expect(isVisible).toBe(true); // Black box - what data passed?
+```
+
+**✅ GOOD - Explicit Data Access**:
+```typescript
+// POM exposes data access
+async getExpandedRowFieldValue(rowIndex: number, fieldName: string): Promise<string | null> {
+  const row = this.page.locator(`tbody tr`).nth(rowIndex);
+  const field = row.locator(`text="${fieldName}"`);
+  return await field.textContent();
+}
+
+// Test shows exactly what data is verified
+const realTime = await page.getExpandedRowFieldValue(0, 'Real Time');
+const tier = await page.getExpandedRowFieldValue(0, 'Tier');
+
+expect(realTime).toBe('12h 44m 28s'); // Explicit expectation
+expect(tier).toBe('11'); // Clear failure message if wrong
+console.log(`Verified: Real Time=${realTime}, Tier=${tier}`); // Visible in logs
+```
+
+#### E2E Code Smells
+
+**CRITICAL CODE SMELL**: Direct `locator()` calls with CSS selectors in spec files
+
+**Symptoms**:
+- `page.locator(...)` or `seededPage.locator(...)` in test code
+- Selector chains in assertions (`.nth()`, `.first()`, `.filter()`)
+- Complex selector logic in test files
+
+**Refactoring Action**:
+1. Identify the UI area being targeted
+2. Check if POM exists for that area
+3. Add method to POM that encapsulates selector logic
+4. Update spec to call POM method instead
+
+**Rule of Thumb**:
+- If test output doesn't show **actual data values**, POM is too opaque
+- If you can't tell **what specific data** is being checked, refactor
+- Specs should read like **user workflows**, not **selector soup**
+
+### Testing Coverage
+
+**E2E Test Purpose**:
+- Verify **critical user workflows** work end-to-end
+- Catch **integration issues** between components
+- Validate **data flow** through the entire system
+- **NOT** for exhaustive UI state combinations (use unit tests)
+
+**Coverage Guidelines**:
+- One happy-path E2E test per major feature
+- Test critical workflows (data import, export, display)
+- Use seeded data to test realistic scenarios
+- Focus on **user value**, not code coverage
+

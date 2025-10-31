@@ -18,7 +18,8 @@
       "Read(/C:\\Source\\TowerOfTracking/**)",
       "Bash(npm run integration-precheck:*)",
       "Bash(npm run dev:build:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(npm run e2e:*)"
     ],
     "defaultMode": "acceptEdits"
   },

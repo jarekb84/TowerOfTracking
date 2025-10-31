@@ -72,7 +72,7 @@ test('bulk import loads data and persists to localStorage', async ({ page }) => 
 
   // Verify we have at least the expected number of farming runs (from our fixture)
   // Our fixture has 15 rows (excluding header), most are farm runs
-  const rowCount = await gameRunsPage.getRowCount();
+  const rowCount = await gameRunsPage.getTableRowCount();
   expect(rowCount).toBeGreaterThanOrEqual(10);
 
   // Extract localStorage to seed files for other tests (using utility)
