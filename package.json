@@ -14,7 +14,11 @@
     "lint:fix": "eslint --fix",
     "lint:updateSuppress": "eslint --fix --suppress-all",
     "type-check": "tsc --noEmit",
-    "integration-precheck": "npm run lint && npm run test && npx playwright test",
+    "integration-precheck": "npm run lint && npm run test && npm run e2e",
+    "e2e": "npx playwright test",
+    "e2e:headed": "npx playwright test --headed",
+    "e2e:ui": "npx playwright test --ui",
+    "e2e:debug": "npx playwright test --debug",
     "prepare": "husky"
   },
   "dependencies": {

@@ -65,6 +65,68 @@ export async function persistToSeedFiles(
 }
 
 /**
+ * Load localStorage data from seed files
+ *
+ * Reads all .seeddata files from the seed directory and returns them as
+ * a key-value object ready to be injected into localStorage.
+ *
+ * @param seedDirPath - Optional custom seed directory path (defaults to e2e/seed/)
+ * @returns Key-value pairs to inject into localStorage
+ */
+export async function loadLocalStorageFromSeedFiles(
+  seedDirPath?: string
+): Promise<Record<string, string>> {
+  // Default to e2e/seed/ directory relative to this file
+  const defaultSeedDir = seedDirPath || path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '../seed'
+  );
+
+  const data: Record<string, string> = {};
+
+  try {
+    // Read all .seeddata files
+    const files = await fs.readdir(defaultSeedDir);
+    const seedFiles = files.filter(file => file.endsWith('.seeddata'));
+
+    for (const fileName of seedFiles) {
+      // Remove .seeddata extension to get the localStorage key
+      const key = fileName.replace('.seeddata', '');
+      const filePath = path.join(defaultSeedDir, fileName);
+      const value = await fs.readFile(filePath, 'utf-8');
+      data[key] = value;
+    }
+
+    console.log(`✓ Loaded ${seedFiles.length} seed files from ${defaultSeedDir}`);
+  } catch (error) {
+    console.error(`✗ Failed to load seed files from ${defaultSeedDir}:`, error);
+    throw error;
+  }
+
+  return data;
+}
+
+/**
+ * Inject localStorage data into the browser page
+ *
+ * Sets localStorage items from the provided key-value pairs.
+ * Must be called before navigating to the page that needs the data.
+ *
+ * @param page - Playwright page object
+ * @param data - Key-value pairs to inject into localStorage
+ */
+export async function injectLocalStorage(
+  page: Page,
+  data: Record<string, string>
+): Promise<void> {
+  await page.evaluate((storageData) => {
+    for (const [key, value] of Object.entries(storageData)) {
+      localStorage.setItem(key, value);
+    }
+  }, data);
+}
+
+/**
  * Complete seeding workflow: extract localStorage and persist to files
  *
  * Convenience method that combines extraction and persistence.

@@ -10,14 +10,15 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
 
-  // Fail fast - stop after first failure
-  // fullyParallel: false,
+  // Run tests in parallel within each project
+  fullyParallel: true,
 
-  // Don't run in parallel within a project (helps with timing issues)
-  // workers: 1,
+  // Number of parallel workers (defaults to half of CPU cores)
+  // Set to 4 for headed mode to see multiple browser windows
+  workers: process.env.CI ? 1 : 4,
 
-  // Retry failed tests once
-  // retries: 1,
+  // Retry failed tests once in CI
+  retries: process.env.CI ? 1 : 0,
 
   // Test timeout
   timeout: 30000,
