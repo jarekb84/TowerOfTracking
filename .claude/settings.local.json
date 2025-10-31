@@ -19,7 +19,8 @@
       "Bash(npm run integration-precheck:*)",
       "Bash(npm run dev:build:*)",
       "Bash(node -e:*)",
-      "Bash(npm run e2e:*)"
+      "Bash(npm run e2e:*)",
+      "Bash(npx playwright test:*)"
     ],
     "defaultMode": "acceptEdits"
   },
