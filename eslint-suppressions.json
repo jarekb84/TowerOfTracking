@@ -14,11 +14,6 @@
       "count": 1
     }
   },
-  "src/features/data-tracking/utils/chart-data.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "src/features/data-tracking/utils/field-utils.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1

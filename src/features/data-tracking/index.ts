@@ -8,7 +8,7 @@ export { DataSettings } from '../settings/data-settings/data-settings';
 export { MigrationAlert } from '../settings/data-settings/migration-alert';
 export { RunsTable } from '../game-runs/runs-table';
 export { TabbedRunsTable } from '../game-runs/table/tabbed-runs-table';
-export { DeathsRadarChart } from './components/deaths-radar-chart';
+export { DeathsRadarChart } from '../analysis/deaths-radar/deaths-radar-chart';
 export { TierStatsTable } from '../analysis/tier-stats/tier-stats-table';
 export { TimeSeriesChart } from './components/time-series-chart';
 export { TierTrendsAnalysis } from '../analysis/tier-trends/tier-trends-analysis';
