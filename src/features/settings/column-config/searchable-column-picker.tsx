@@ -1,7 +1,7 @@
 import { Search, X } from 'lucide-react'
 import { AddItemButton } from '../../../components/ui/add-item-button'
 import { EmptyState } from '../../../components/ui/empty-state'
-import type { UseColumnSearchReturn } from '../hooks/use-column-search'
+import type { UseColumnSearchReturn } from './use-column-search'
 
 interface SearchableColumnPickerProps {
   search: UseColumnSearchReturn

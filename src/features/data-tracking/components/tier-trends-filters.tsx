@@ -1,5 +1,5 @@
 import { FieldSearch } from './field-search'
-import type { UseFieldFilterResult } from '../hooks/use-field-filter'
+import type { UseFieldFilterResult } from '../../settings/column-config/use-field-filter'
 
 interface TierTrendsFiltersProps {
   fieldFilter: UseFieldFilterResult

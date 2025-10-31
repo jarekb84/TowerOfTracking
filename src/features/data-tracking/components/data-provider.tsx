@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { DataContext, useDataProvider } from '../hooks/use-data';
-import { MigrationAlert } from './migration-alert';
+import { MigrationAlert } from '../../settings/data-settings/migration-alert';
 
 interface DataProviderProps {
   children: ReactNode;
