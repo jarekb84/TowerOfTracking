@@ -131,18 +131,20 @@ src/features/
 ├── game-runs/                    # Viewing and displaying game run data
 ├── data-import/                  # Adding new runs (manual input, CSV, bulk)
 ├── data-export/                  # Exporting data (CSV, bulk export)
-├── analytics/                    # All charts and analysis views
+├── analysis/                     # All charts and analysis views (statistical analysis, not observability)
 ├── settings/                     # App settings (theme, data management)
 ├── navigation/                   # (already exists)
 └── theming/                      # (already exists)
 ```
 
-### Feature 1: `src/features/analytics/`
+### Feature 1: `src/features/analysis/`
 
 **Purpose**: All statistical analysis and visualization features
 
+**Note on Naming**: "Analysis" is used instead of "analytics" to avoid confusion with observability/monitoring tools (Google Analytics, New Relic, DataDog). This feature focuses on statistical analysis and visualization of game data, not application monitoring.
+
 ```
-src/features/analytics/
+src/features/analysis/
 ├── tier-trends/                          # Tier Trends analysis feature
 │   ├── tier-trends-analysis.tsx          # Main component
 │   ├── tier-trends-analysis.test.tsx
@@ -217,7 +219,7 @@ src/features/analytics/
 │   ├── use-chart-navigation.test.tsx
 │   └── (related logic)
 │
-└── shared/                               # Shared analytics utilities
+└── shared/                               # Shared analysis utilities
     ├── aggregation-strategies.ts
     ├── aggregation-strategies.test.ts
     ├── percentile-calculation.ts
@@ -229,11 +231,11 @@ src/features/analytics/
 ```
 
 **Benefits**:
-- All analytics features grouped together
+- All analysis features grouped together
 - Each feature (tier-trends, tier-stats) is self-contained
 - Sub-features clearly separated (filters/, table/, mobile/, config/)
 - Related files colocated (component + hook + logic)
-- Shared analytics logic clearly identified
+- Shared analysis logic clearly identified
 
 ### Feature 2: `src/features/game-runs/`
 
@@ -496,7 +498,7 @@ hooks/use-field-filter.ts
 components/field-search.tsx
 
 After:
-analytics/tier-trends/filters/
+analysis/tier-trends/filters/
 ├── tier-trends-filters.tsx
 ├── field-search.tsx
 └── use-field-filter.ts
@@ -510,7 +512,7 @@ components/tier-trends-table/virtualized-trends-table.tsx
 logic/tier-trends-display.ts
 
 After:
-analytics/tier-trends/table/
+analysis/tier-trends/table/
 ├── tier-trends-table.tsx
 ├── virtualized-trends-table.tsx
 ├── tier-trends-display.ts
@@ -527,10 +529,10 @@ analytics/tier-trends/table/
 3. Check logic/ for tier-trends-ui-options.ts
 4. Verify utils/ for tier-trends.ts
 
-**After**: All 22 files organized into analytics/tier-trends/ with 5 subdirectories (filters/, table/, mobile/, empty-states/, logic/)
+**After**: All 22 files organized into analysis/tier-trends/ with 5 subdirectories (filters/, table/, mobile/, empty-states/, logic/)
 
 **Benefit**: To modify filter behavior, developer:
-1. Navigate to analytics/tier-trends/filters/
+1. Navigate to analysis/tier-trends/filters/
 2. All related files are immediately visible (filters.tsx, field-search.tsx, use-field-filter.ts)
 3. Clear separation from table/, mobile/, logic/
 
@@ -570,7 +572,7 @@ features/
 │   ├── table/ (6 files)   ✅ Focused sub-feature
 │   ├── filters/ (5 files) ✅ Related files together
 │   └── card-view/ (4 files)
-├── analytics/             ✅ Clear feature boundary
+├── analysis/              ✅ Clear feature boundary
 │   ├── tier-trends/       ✅ Self-contained feature
 │   │   ├── filters/       ✅ Component + hook + logic together
 │   │   ├── table/         ✅ All table code colocated
