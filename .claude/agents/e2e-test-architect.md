@@ -253,11 +253,13 @@ test('bulk import works', async ({ page }) => {
 </good_vs_bad_patterns>
 
 <code_smell_detection>
-## E2E Code Smell: Locator Calls in Spec Files
+## E2E Code Smells: Critical Violations
+
+### Code Smell #1: Locator Calls in Spec Files
 
 **CRITICAL CODE SMELL**: Direct `locator()` calls with CSS selectors in E2E spec files indicate POM violations.
 
-### Symptoms
+#### Symptoms
 ```typescript
 // ❌ CODE SMELL: Direct locator calls in spec file
 test('my test', async ({ page }) => {
@@ -267,16 +269,97 @@ test('my test', async ({ page }) => {
 });
 ```
 
-### Red Flags
+#### Red Flags
 - `page.locator(...)` or `seededPage.locator(...)` with CSS selectors in spec files
 - Direct selector logic (e.g., `.nth()`, `.first()`, `.filter()`) in test code
 - Complex selector chains in assertions
 - Multiple locator calls targeting the same UI area
 
-### When Locators Are Acceptable in Specs
+#### When Locators Are Acceptable in Specs
+- **EXTREMELY RARE**: Only for simple URL pattern waits (e.g., `await page.waitForURL(/pattern/)`)
 - **NEVER** for UI interaction or element finding
-- Only for fixture setup (e.g., injecting data) if absolutely necessary
-- If you see locator calls, ask: "Should this be a POM method?"
+- **NEVER** for fixture setup (use POM methods instead)
+- If you see locator calls, ask: "Should this be a POM method?" (Answer is almost always YES)
+
+### Code Smell #2: Direct Navigation with page.goto()
+
+**CRITICAL CODE SMELL**: Direct `page.goto()` calls with hardcoded paths bypass AppPage navigation encapsulation.
+
+#### Symptoms
+```typescript
+// ❌ CODE SMELL: Direct goto with hardcoded path
+test('view analytics', async ({ page }) => {
+  await page.goto('/charts/coins');
+  // or
+  await page.goto('/charts?chart=coins');
+});
+```
+
+#### Red Flags
+- `page.goto('/...')` or `seededPage.goto('/...')` with hardcoded paths
+- Assumes routing structure (query params vs path-based)
+- Bypasses AppPage navigation methods
+- Duplicates routing logic across multiple tests
+
+#### Correct Pattern: Use AppPage Navigation
+```typescript
+// ✅ CORRECT: Use AppPage navigation methods
+test('view analytics', async ({ page }) => {
+  const appPage = new AppPage(page);
+  await appPage.coinAnalyticsLink.click();
+});
+```
+
+**Why This Matters**:
+- ✅ Routing implementation (query params vs paths) is encapsulated in AppPage
+- ✅ Navigation changes only require updating AppPage, not every test
+- ✅ Tests use realistic user navigation (clicking links) instead of direct URL access
+- ✅ No assumptions about route structure needed
+
+#### When goto() Is Acceptable
+- **ONLY** in Page Object Model classes (e.g., `GameRunsPage.goto()`)
+- **NEVER** directly in spec files
+
+### Code Smell #3: Console.log Statements in Tests
+
+**CRITICAL CODE SMELL**: `console.log()` statements in test files clutter output and indicate debugging code left behind.
+
+#### Symptoms
+```typescript
+// ❌ CODE SMELL: Console.log in test file
+test('verify data', async ({ page }) => {
+  const value = await gameRunsPage.getFieldValue();
+  console.log('Value:', value);
+  expect(value).toBe('expected');
+});
+```
+
+#### Red Flags
+- Any `console.log()`, `console.error()`, `console.warn()` in spec files
+- Debugging output mixed with test execution
+- Unclear test output (what's from test vs debug logs)
+
+#### Correct Approach: Rely on Test Assertions
+```typescript
+// ✅ CORRECT: Assertions provide sufficient feedback
+test('verify data', async ({ page }) => {
+  const value = await gameRunsPage.getFieldValue();
+  expect(value).toBe('expected'); // Failure shows actual vs expected
+});
+```
+
+**Why This Matters**:
+- ✅ Test assertions already show actual vs expected values on failure
+- ✅ Playwright's built-in debugging (--debug, --headed, traces) is more powerful
+- ✅ Clean test output focuses on pass/fail, not debug noise
+- ✅ Production test code should not contain debugging artifacts
+
+#### When Logging Is Acceptable
+- **NEVER** in test spec files
+- Use Playwright's built-in debugging tools instead:
+  - `npx playwright test --debug` (step-through debugging)
+  - `npx playwright test --headed` (see browser actions)
+  - `npx playwright test --trace on` (detailed trace files)
 
 ### Refactoring Action
 1. **Identify the UI area being targeted** - What page/component/modal does this selector belong to?
@@ -475,6 +558,73 @@ This allows tests to choose appropriate abstraction level:
 - ❌ Every validation error message (unit test validation logic instead)
 - ❌ Every UI variant (unit test component rendering instead)
 
+### Smoke Test Philosophy
+
+**CRITICAL**: E2E tests are high-level smoke tests, NOT exhaustive feature tests.
+
+**Guiding Principle**: "Does the page load and does basic interaction work?"
+
+#### One Interaction Per Feature (NOT Exhaustive)
+```typescript
+// ✅ GOOD: Smoke test - one interaction to verify feature works
+test('period selector changes chart data', async ({ page }) => {
+  const appPage = new AppPage(page);
+  await appPage.coinAnalyticsLink.click();
+
+  const chartsPage = new ChartsPage(page);
+  await chartsPage.selectPeriod('daily');
+
+  const chartData = await chartsPage.getVisibleDataPoints();
+  expect(chartData.length).toBeGreaterThan(0);
+});
+
+// ❌ BAD: Exhaustive test - testing every permutation
+test('all period combinations work', async ({ page }) => {
+  const periods = ['run', 'daily', 'weekly', 'monthly', 'yearly'];
+
+  for (const period of periods) {
+    await chartsPage.selectPeriod(period);
+    const chartData = await chartsPage.getVisibleDataPoints();
+    expect(chartData.length).toBeGreaterThan(0);
+  }
+});
+```
+
+**Why One Interaction Is Sufficient**:
+- ✅ Verifies the feature **fundamentally works** (selector, data loading, rendering)
+- ✅ Fast execution (smoke tests should be quick)
+- ✅ Unit tests cover permutations and edge cases
+- ✅ E2E failure indicates **integration issue**, not logic bug
+
+#### What "One Interaction" Looks Like
+**Chart Period Selector**:
+- ✅ Switch period **once** (e.g., daily) - verifies selector works
+- ❌ Test **all** periods (run, daily, weekly, monthly, yearly) - exhaustive
+
+**Table Sorting**:
+- ✅ Sort by **one** column - verifies sorting integration works
+- ❌ Sort by **every** column - exhaustive
+
+**Filters**:
+- ✅ Apply **one** filter - verifies filter UI and data flow work
+- ❌ Test **all** filter combinations - exhaustive
+
+**Row Expansion**:
+- ✅ Expand **one** row - verifies expansion mechanism works
+- ❌ Expand **every** row - exhaustive
+
+#### Exhaustive Testing Belongs in Unit Tests
+**Unit tests should cover**:
+- All period calculation logic
+- All sort comparison functions
+- All filter predicate combinations
+- All data transformation edge cases
+
+**E2E tests should cover**:
+- One smoke test per feature to verify integration
+- Critical happy-path user workflows
+- Data flow from user action to UI update
+
 ### Test Data Management
 **Use seeded data for realistic scenarios**:
 - Create fixtures with representative data
@@ -510,6 +660,8 @@ test('displays seeded data', async ({ page }) => {
 ### Phase 2: POM Pattern Compliance
 **Check for POM violations**:
 - [ ] Direct `locator()` calls in spec files
+- [ ] Direct `page.goto()` calls with hardcoded paths in spec files
+- [ ] `console.log()` statements in spec files
 - [ ] Selector logic in test code (`.nth()`, `.first()`, `.filter()`)
 - [ ] Missing page objects for UI areas being tested
 - [ ] Opaque verification methods (`verifyContentVisible()` instead of `getFieldValue()`)
@@ -517,16 +669,35 @@ test('displays seeded data', async ({ page }) => {
 - [ ] Boolean return values for verification (instead of returning actual data)
 
 ### Phase 3: Code Smell Detection
-**Search for code smells**:
+**Search for critical code smells**:
 ```bash
+# Search for console.log statements in spec files
+grep -n "console.log" e2e/**/*.test.ts e2e/**/*.spec.ts
+
+# Search for direct goto calls with hardcoded paths in spec files
+grep -n "page.goto\\|seededPage.goto" e2e/**/*.test.ts e2e/**/*.spec.ts
+
 # Search for locator calls in spec files
-grep -n "locator(" e2e/**/*.test.ts e2e/**/*.spec.ts
+grep -n "page.locator\\|seededPage.locator" e2e/**/*.test.ts e2e/**/*.spec.ts
 ```
 
-**Flag each occurrence**:
+**Flag each occurrence and apply fixes**:
+
+**For console.log violations**:
+1. Remove the console.log statement
+2. Verify test assertions provide sufficient feedback
+3. If debugging needed, use Playwright's built-in tools (--debug, --headed, --trace)
+
+**For page.goto violations**:
+1. Identify the target page being navigated to
+2. Check if AppPage has a navigation method for this page
+3. If no AppPage method: Add navigation link/button to AppPage
+4. Replace `page.goto('/path')` with `appPage.linkName.click()`
+
+**For page.locator violations**:
 1. Identify UI area being targeted
-2. Check if POM exists
-3. If no POM: Create one
+2. Check if POM exists for that area
+3. If no POM: Create one following naming conventions
 4. If POM exists: Add method to encapsulate selector
 5. Update spec to use POM method
 
@@ -550,6 +721,61 @@ grep -n "locator(" e2e/**/*.test.ts e2e/**/*.spec.ts
 
 <implementation_patterns>
 ## E2E Implementation Patterns
+
+### Pattern: Navigation via AppPage (NOT Direct goto)
+
+**Pattern**: Always use AppPage navigation methods instead of direct `page.goto()` calls.
+
+```typescript
+// ✅ GOOD: Use AppPage navigation methods
+test('view analytics', async ({ page }) => {
+  const appPage = new AppPage(page);
+  await appPage.coinAnalyticsLink.click();
+
+  const chartsPage = new ChartsPage(page);
+  await chartsPage.selectPeriod('daily');
+});
+
+// ❌ BAD: Direct goto with hardcoded path
+test('view analytics', async ({ page }) => {
+  await page.goto('/charts/coins'); // Assumes routing structure
+
+  const chartsPage = new ChartsPage(page);
+  await chartsPage.selectPeriod('daily');
+});
+```
+
+**Why This Matters**:
+- ✅ Routing implementation details (query params vs paths) are encapsulated in AppPage
+- ✅ Tests use realistic user navigation (clicking links) instead of direct URL access
+- ✅ Route changes only require updating AppPage, not every test
+- ✅ No assumptions about route structure needed
+
+**When Page.goto() Is Acceptable**:
+- **ONLY** in Page Object Model classes (e.g., `ChartsPage.goto()` method)
+- **NEVER** directly in spec files
+
+**Example AppPage Navigation Pattern**:
+```typescript
+// In app-page.ts:
+export class AppPage {
+  readonly coinAnalyticsLink: Locator;
+  readonly cellAnalyticsLink: Locator;
+  readonly tierTrendsLink: Locator;
+
+  constructor(private page: Page) {
+    this.coinAnalyticsLink = page.locator('a[href*="coins"]');
+    this.cellAnalyticsLink = page.locator('a[href*="cells"]');
+    this.tierTrendsLink = page.locator('a[href*="tier-trends"]');
+  }
+}
+
+// In test:
+test('navigate to analytics', async ({ page }) => {
+  const appPage = new AppPage(page);
+  await appPage.coinAnalyticsLink.click(); // Encapsulates routing
+});
+```
 
 ### Pattern: Chained POM Returns
 **Pattern**: Page methods return modal/dialog POMs for chained interactions
@@ -697,27 +923,104 @@ The E2E tests have been refactored to follow POM patterns and best practices.
 <critical_rules>
 ## Non-Negotiable Rules
 
-1. **NEVER** allow direct `locator()` calls with CSS selectors in spec files (fixture setup exceptions only)
-2. **ALWAYS** encapsulate selector logic in page objects
-3. **NEVER** allow assertions or `expect()` calls in POM methods
-4. **ALWAYS** return actual data from POMs (not boolean pass/fail)
-5. **NEVER** create opaque verification methods (`verifyContentVisible()`)
-6. **ALWAYS** ensure tests show what specific data is being verified
-7. **NEVER** combine interaction + assertion in single POM method
-8. **ALWAYS** scope locators appropriately (page, modal, component)
-9. **NEVER** skip E2E test review if any E2E files are modified
-10. **ALWAYS** verify tests read like user workflows, not selector soup
+1. **NEVER** allow direct `locator()` calls with CSS selectors in spec files (rare exceptions: URL pattern waits only)
+2. **NEVER** allow direct `page.goto()` calls with hardcoded paths in spec files (use AppPage navigation methods)
+3. **NEVER** allow `console.log()` statements in test files (use Playwright's built-in debugging)
+4. **ALWAYS** encapsulate selector logic in page objects
+5. **ALWAYS** use AppPage navigation methods (sidebar links, buttons) instead of direct URL navigation
+6. **NEVER** allow assertions or `expect()` calls in POM methods
+7. **ALWAYS** return actual data from POMs (not boolean pass/fail)
+8. **NEVER** create opaque verification methods (`verifyContentVisible()`)
+9. **ALWAYS** ensure tests show what specific data is being verified
+10. **NEVER** combine interaction + assertion in single POM method
+11. **ALWAYS** scope locators appropriately (page, modal, component)
+12. **NEVER** skip E2E test review if any E2E files are modified
+13. **ALWAYS** verify tests read like user workflows, not selector soup
+14. **ALWAYS** treat E2E tests as high-level smoke tests (one interaction per feature, not exhaustive)
 </critical_rules>
 
 <debugging_approach>
-When facing complex E2E refactoring decisions:
-1. Start with the most obvious code smells (locator calls in specs)
-2. Identify the UI area being targeted (page, modal, component)
-3. Check if a POM exists for that area
-4. Extract selector logic into POM method with descriptive name
-5. Update spec to use POM method and make explicit assertions
-6. Verify test output shows actual data values
-7. Run tests to ensure functionality preserved
+## E2E Debugging and Refactoring Approach
+
+### When Facing Complex E2E Refactoring Decisions
+
+**Step-by-step refactoring process**:
+1. **Start with obvious code smells**:
+   - Search for `console.log` in spec files → Remove all occurrences
+   - Search for `page.goto` in spec files → Replace with AppPage navigation
+   - Search for `page.locator` in spec files → Extract to POM methods
+
+2. **Identify the UI area being targeted**:
+   - What page/component/modal does this selector belong to?
+   - Is this a global navigation action (AppPage) or page-specific (GameRunsPage)?
+
+3. **Check if POM exists for that area**:
+   - Does a page object already exist?
+   - If yes, add method to existing POM
+   - If no, create new POM following naming conventions
+
+4. **Extract selector logic into POM method with descriptive name**:
+   - Method name should describe the action or data being accessed
+   - Encapsulate all selector complexity in the POM
+   - Return actual data, not boolean pass/fail
+
+5. **Update spec to use POM method and make explicit assertions**:
+   - Replace locator calls with POM method calls
+   - Make explicit assertions on returned data
+   - Ensure test shows what specific data is being verified
+
+6. **Verify test output shows actual data values**:
+   - Test failures should show actual vs expected values
+   - No opaque "verification failed" messages
+
+7. **Run tests to ensure functionality preserved**:
+   - Execute `npm run e2e` to verify all tests pass
+   - Check that refactoring didn't break existing behavior
+
+### Route Structure Discovery
+
+**CRITICAL**: Do NOT assume routing patterns. Examine the actual application.
+
+#### Common Routing Mistakes
+```typescript
+// ❌ ASSUMPTION: Path-based routing
+await page.goto('/charts/coins');
+
+// ❌ ASSUMPTION: Query parameter routing
+await page.goto('/charts?chart=coins');
+
+// ✅ CORRECT: Use AppPage navigation (routing is encapsulated)
+const appPage = new AppPage(page);
+await appPage.coinAnalyticsLink.click();
+```
+
+#### How to Discover Routing Patterns
+When creating POMs that need direct navigation (e.g., `ChartsPage.goto()`):
+
+1. **Examine the application structure**:
+   - Check route files in `src/routes/`
+   - Look at actual link `href` attributes in components
+   - Run the app and observe browser URL patterns
+
+2. **Look for existing navigation patterns**:
+   - Check existing POM navigation methods
+   - Review AppPage link definitions
+   - Search for similar route usage in the codebase
+
+3. **Test your assumptions**:
+   - If you implement `ChartsPage.goto('/charts/coins')`, verify it actually works
+   - Check if the route uses query params, path params, or other patterns
+
+4. **Prefer AppPage navigation over direct goto()**:
+   - Use `appPage.coinAnalyticsLink.click()` instead of `page.goto('/charts/coins')`
+   - Let the application's own navigation define the correct route
+   - Only use `goto()` in Page Object classes when necessary
+
+**Why This Matters**:
+- ✅ Avoids hardcoding incorrect route assumptions across multiple tests
+- ✅ Routes change over time; AppPage encapsulates those changes
+- ✅ Tests use realistic user navigation patterns
+- ✅ Failures are obvious when navigation structure changes
 </debugging_approach>
 
 <completion_protocol>
