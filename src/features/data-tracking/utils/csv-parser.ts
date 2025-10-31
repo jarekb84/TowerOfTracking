@@ -6,7 +6,7 @@ import type {
   GameRunField,
   CsvDelimiter
 } from '../types/game-run.types';
-import { createGameRunField, toCamelCase } from './field-utils';
+import { createGameRunField, toCamelCase } from '@/features/analysis/shared/field-utils';
 import { detectRunTypeFromFields, extractNumericStats } from './run-type-detection';
 import { parseTimestampFromFields } from './date-formatters';
 import { isLegacyField, getMigratedFieldName } from './internal-field-config';

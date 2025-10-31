@@ -1,6 +1,6 @@
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns'
-import { ParsedGameRun } from '../types/game-run.types'
-import { ChartDataPoint, DailyAggregatePoint, DailyCellsAggregatePoint, WeeklyAggregatePoint, MonthlyAggregatePoint, YearlyAggregatePoint } from '../../analysis/time-series/chart-types'
+import { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import { ChartDataPoint, DailyAggregatePoint, DailyCellsAggregatePoint, WeeklyAggregatePoint, MonthlyAggregatePoint, YearlyAggregatePoint } from '@/features/analysis/time-series/chart-types'
 
 // Generic function to group runs by a date key generator
 export function groupRunsByDateKey(

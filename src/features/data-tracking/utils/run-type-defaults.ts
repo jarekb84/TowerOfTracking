@@ -1,5 +1,5 @@
 import { RunType, RunTypeValue } from '../types/game-run.types'
-import { RunTypeFilter } from './run-type-filter'
+import { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 
 /**
  * Maps URL parameter values to internal run type values

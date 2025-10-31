@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { formatNumber } from '@/features/data-tracking/utils/data-parser';
+import { formatNumber } from '@/features/analysis/shared/data-parser';
 import { formatFieldDisplayName, generateSparklinePath } from '../logic/tier-trends-calculations';
-import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '@/features/data-tracking/utils/trend-indicators';
+import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '@/features/analysis/tier-trends/logic/trend-indicators';
 import type { FieldTrendData, ComparisonColumn } from '@/features/data-tracking/types/game-run.types';
 import { parseColumnHeader, getHeaderLineClasses } from './column-header-renderer';
 

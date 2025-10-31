@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui';
 import { format } from 'date-fns';
-import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '../../data-tracking/utils/data-parser';
-import { getFieldValue, getFieldRaw } from '../../data-tracking/utils/field-utils';
+import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '@/features/analysis/shared/data-parser';
+import { getFieldValue, getFieldRaw } from '@/features/analysis/shared/field-utils';
 import { capitalizeFirst } from '../../data-tracking/utils/string-formatters';
 import { ParsedGameRun, RunType } from '../../data-tracking/types/game-run.types';
 import { RunTypeIndicator } from '../../data-tracking/components/run-type-indicator';

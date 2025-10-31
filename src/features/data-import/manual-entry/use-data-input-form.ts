@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { parseGameRun } from '../../data-tracking/utils/data-parser';
-import { extractTimestampFromFields, createInternalField } from '../../data-tracking/utils/field-utils';
+import { parseGameRun } from '@/features/analysis/shared/data-parser';
+import { extractTimestampFromFields, createInternalField } from '@/features/analysis/shared/field-utils';
 import {
   createInitialFormState,
   createInitialDateTimeState,

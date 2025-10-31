@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseGameRun } from '../utils/data-parser';
+import { parseGameRun } from '@/features/analysis/shared/data-parser';
 import { 
   generateCompositeKey, 
   detectDuplicate, 

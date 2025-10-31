@@ -5,8 +5,8 @@ import { Button } from '../../../components/ui'
 import { useData } from '../../data-tracking/hooks/use-data'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import { TimePeriod } from './chart-types'
-import { formatLargeNumber, generateYAxisTicks } from '../../data-tracking/utils/chart-formatters'
-import { getFarmingRuns } from '../../data-tracking/utils/run-type-filter'
+import { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/chart-formatters'
+import { getFarmingRuns } from '@/features/analysis/shared/run-type-filter'
 import { FarmingOnlyIndicator } from '../../data-tracking/components/farming-only-indicator'
 
 interface TimeSeriesChartProps {

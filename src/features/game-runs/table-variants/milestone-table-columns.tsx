@@ -1,6 +1,6 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
-import { formatNumber, formatDuration } from '../../data-tracking/utils/data-parser';
-import { getFieldValue } from '../../data-tracking/utils/field-utils';
+import { formatNumber, formatDuration } from '@/features/analysis/shared/data-parser';
+import { getFieldValue } from '@/features/analysis/shared/field-utils';
 import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
 import { StickyNote } from 'lucide-react';
 import { ExpandButton, DeleteButton } from '../table-ui/table-action-buttons';

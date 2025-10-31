@@ -16,7 +16,7 @@ import {
   prepareWeeklyData,
   prepareMonthlyData,
   prepareYearlyData
-} from '../../data-tracking/utils/date-aggregation'
+} from '@/features/analysis/time-series/logic/date-aggregation'
 
 /**
  * Generic function to prepare data for any time period

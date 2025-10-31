@@ -4,7 +4,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../comp
 import { Button } from '../../../components/ui'
 import { useData } from '../../data-tracking/hooks/use-data'
 import { prepareKilledByData, prepareRadarChartData } from './logic/radar-calculations'
-import { RunTypeFilter } from '../../data-tracking/utils/run-type-filter'
+import { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 import { RunTypeSelector } from '../../data-tracking/components/run-type-selector'
 
 // Colors for different tiers

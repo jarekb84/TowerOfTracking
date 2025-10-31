@@ -1,11 +1,11 @@
 import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
 import { TierTrendsMobileCard } from '../mobile/tier-trends-mobile-card'
 import { useViewport } from '@/shared/hooks/use-viewport'
-import { formatNumber } from '@/features/data-tracking/utils/data-parser'
+import { formatNumber } from '@/features/analysis/shared/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../logic/tier-trends-calculations'
-import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '@/features/data-tracking/utils/trend-indicators'
+import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '@/features/analysis/tier-trends/logic/trend-indicators'
 import { parseColumnHeader, getHeaderLineClasses } from './column-header-renderer'
-import { formatTrendValue } from '@/features/data-tracking/logic/trend-value-formatting'
+import { formatTrendValue } from '@/features/analysis/tier-trends/logic/trend-value-formatting'
 
 interface TierTrendsTableProps {
   trends: FieldTrendData[]

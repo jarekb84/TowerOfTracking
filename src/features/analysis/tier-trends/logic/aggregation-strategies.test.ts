@@ -6,7 +6,7 @@ import {
   maxAggregation,
   hourlyAggregation
 } from './aggregation-strategies';
-import type { ParsedGameRun, GameRunField } from '../types/game-run.types';
+import type { ParsedGameRun, GameRunField } from '@/features/data-tracking/types/game-run.types';
 
 // Helper function to create a mock field
 function createMockField(

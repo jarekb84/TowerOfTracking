@@ -7,20 +7,20 @@ import type {
   GameRunField,
 } from '@/features/data-tracking/types/game-run.types';
 import { RunType, TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types';
-import { RunTypeFilter, filterRunsByType } from '@/features/data-tracking/utils/run-type-filter';
-import { isTrendableField } from '@/features/data-tracking/utils/field-type-detection';
-import { createEnhancedRunHeader } from '@/features/data-tracking/utils/run-header-formatting';
+import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/run-type-filter';
+import { isTrendableField } from '@/features/analysis/tier-trends/logic/field-type-detection';
+import { createEnhancedRunHeader } from '@/features/analysis/tier-trends/logic/run-header-formatting';
 import {
   sumAggregation,
   averageAggregation,
   minAggregation,
   maxAggregation,
   hourlyAggregation
-} from '@/features/data-tracking/logic/aggregation-strategies';
+} from '@/features/analysis/tier-trends/logic/aggregation-strategies';
 import {
   calculateTotalDurationHours,
   formatHoursSubheader
-} from '@/features/data-tracking/logic/hourly-rate-calculations';
+} from '@/features/analysis/tier-trends/logic/hourly-rate-calculations';
 
 /**
  * Get the default aggregation type for a given duration mode

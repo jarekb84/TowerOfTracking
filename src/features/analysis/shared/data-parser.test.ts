@@ -6,7 +6,7 @@ import {
 } from './data-parser';
 import {
   parseBattleDate
-} from './date-formatters';
+} from '@/features/data-tracking/utils/date-formatters';
 
 describe('parseBattleDate', () => {
   it('should parse valid battle_date format', () => {
