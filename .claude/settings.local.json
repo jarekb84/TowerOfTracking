@@ -21,7 +21,11 @@
       "Bash(node -e:*)",
       "Bash(npm run e2e:*)",
       "Bash(npx playwright test:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(git add:*)",
+      "Bash(npx eslint:*)",
+      "Bash(for file in src/features/data-import/csv-import/use-csv-import.*.test.tsx)",
+      "Bash(done)"
     ],
     "defaultMode": "acceptEdits"
   },
