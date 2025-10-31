@@ -1,6 +1,6 @@
-import type { CsvDelimiter } from '../types/game-run.types';
+import type { CsvDelimiter } from '../../data-tracking/types/game-run.types';
 import type { CsvExportResult } from './csv-exporter';
-import { getDelimiterString } from './csv-parser';
+import { getDelimiterString } from '../../data-tracking/utils/csv-parser';
 
 /**
  * Gets display string for the current delimiter selection

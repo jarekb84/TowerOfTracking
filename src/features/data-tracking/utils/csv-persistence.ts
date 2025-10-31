@@ -1,6 +1,6 @@
 import type { ParsedGameRun } from '../types/game-run.types';
 import { parseGenericCsv } from './csv-parser';
-import { exportToCsv } from './csv-exporter';
+import { exportToCsv } from '../../data-export/csv-export/csv-exporter';
 
 // Storage configuration
 const STORAGE_KEY = 'tower-tracking-csv-data';

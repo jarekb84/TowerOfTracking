@@ -1,8 +1,8 @@
 import { Input, Textarea } from '../../../components/ui';
 import { AlertTriangle, XCircle } from 'lucide-react';
-import type { CsvDelimiter } from '../types/game-run.types';
-import type { DelimiterConflict, CsvExportResult } from '../utils/csv-exporter';
-import { formatConflictExamples, getExportStatsDisplay } from '../utils/csv-export-helpers';
+import type { CsvDelimiter } from '../../data-tracking/types/game-run.types';
+import type { DelimiterConflict, CsvExportResult } from './csv-exporter';
+import { formatConflictExamples, getExportStatsDisplay } from './csv-export-helpers';
 
 interface ExportControlsProps {
   selectedDelimiter: CsvDelimiter;

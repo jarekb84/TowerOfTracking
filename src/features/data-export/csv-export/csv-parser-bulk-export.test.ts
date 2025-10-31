@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { parseGenericCsv } from './csv-parser';
+import { parseGenericCsv } from '../../data-tracking/utils/csv-parser';
 
 describe('CSV Parser - Bulk Export Integration', () => {
   const DATA_KEY = 'tower-tracking-csv-data';
