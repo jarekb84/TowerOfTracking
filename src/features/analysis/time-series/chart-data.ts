@@ -1,12 +1,10 @@
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns'
-import { ParsedGameRun } from '../types/game-run.types'
-import { RunTypeFilter, filterRunsByType } from './run-type-filter'
+import { ParsedGameRun } from '../../data-tracking/types/game-run.types'
 import {
   ChartDataPoint,
   TimePeriod,
   TimePeriodConfig,
-  TIME_PERIOD_CONFIGS,
-  TierStatsData
+  TIME_PERIOD_CONFIGS
 } from './chart-types'
 import {
   prepareCoinsPerRunData,
@@ -18,106 +16,12 @@ import {
   prepareWeeklyData,
   prepareMonthlyData,
   prepareYearlyData
-} from './date-aggregation'
+} from '../../data-tracking/utils/date-aggregation'
 
-// Re-export for backward compatibility
-export * from './chart-types'
-export * from './chart-formatters'
-export {
-  prepareCoinsPerRunData,
-  prepareCoinsPerDayData,
-  prepareCellsPerRunData,
-  prepareCoinsPerHourData,
-  prepareCellsPerHourData,
-  prepareCellsPerDayData,
-  prepareWeeklyData,
-  prepareMonthlyData,
-  prepareYearlyData
-} from './date-aggregation'
-
-// Re-export radar chart functions from their new feature location
-export { prepareKilledByData, prepareRadarChartData } from '../../analysis/deaths-radar/logic/radar-calculations'
-
-export function prepareTierStatsData(runs: ParsedGameRun[], runTypeFilter: RunTypeFilter = 'all'): TierStatsData[] {
-  // Filter runs by type first
-  const filteredRuns = filterRunsByType(runs, runTypeFilter);
-
-  // Group runs by tier
-  const tierGroups = new Map<number, ParsedGameRun[]>()
-
-  filteredRuns.forEach(run => {
-    if (run.tier) {
-      if (!tierGroups.has(run.tier)) {
-        tierGroups.set(run.tier, [])
-      }
-      tierGroups.get(run.tier)!.push(run)
-    }
-  })
-
-  // Calculate max stats for each tier
-  const tierStats: TierStatsData[] = []
-
-  tierGroups.forEach((tierRuns, tier) => {
-    let maxWave = 0
-    let maxDuration = 0
-    let maxCoins = 0
-    let maxCoinsPerHour = 0
-    let maxCells = 0
-    let maxCellsPerHour = 0
-
-    tierRuns.forEach(run => {
-      // Max wave
-      if (run.wave && run.wave > maxWave) {
-        maxWave = run.wave
-      }
-
-      // Max duration (using realTime field)
-      if (run.realTime && run.realTime > maxDuration) {
-        maxDuration = run.realTime
-      }
-
-      // Max coins
-      if (run.coinsEarned && run.coinsEarned > maxCoins) {
-        maxCoins = run.coinsEarned
-      }
-
-      // Max coins per hour
-      if (run.realTime && run.coinsEarned && run.realTime > 0) {
-        const coinsPerHour = (run.coinsEarned / run.realTime) * 3600
-        if (coinsPerHour > maxCoinsPerHour) {
-          maxCoinsPerHour = coinsPerHour
-        }
-      }
-
-      // Max cells
-      if (run.cellsEarned && run.cellsEarned > maxCells) {
-        maxCells = run.cellsEarned
-      }
-
-      // Max cells per hour
-      if (run.realTime && run.cellsEarned && run.realTime > 0) {
-        const cellsPerHour = (run.cellsEarned / run.realTime) * 3600
-        if (cellsPerHour > maxCellsPerHour) {
-          maxCellsPerHour = cellsPerHour
-        }
-      }
-    })
-
-    tierStats.push({
-      tier,
-      maxWave,
-      maxDuration,
-      maxCoins,
-      maxCoinsPerHour,
-      maxCells,
-      maxCellsPerHour
-    })
-  })
-
-  return tierStats.sort((a, b) => b.tier - a.tier) // Sort highest tier first
-}
-
-// Generic function to prepare data for any time period
+/**
+ * Generic function to prepare data for any time period
+ * Transforms aggregated data into common ChartDataPoint format
+ */
 export function prepareTimeSeriesData(
   runs: ParsedGameRun[],
   period: TimePeriod,
@@ -173,7 +77,10 @@ export function prepareTimeSeriesData(
   }
 }
 
-// Function to determine which time periods should be available based on data span
+/**
+ * Function to determine which time periods should be available based on data span
+ * Optimized to use single pass through data for all period calculations
+ */
 export function getAvailableTimePeriods(runs: ParsedGameRun[]): TimePeriodConfig[] {
   if (runs.length === 0) {
     // Always show hourly and per run when no data

@@ -1,4 +1,4 @@
-import { useUrlSearchParam } from '../../navigation/hooks/use-url-search-param'
+import { useUrlSearchParam } from './use-url-search-param'
 import { useEffect, useState } from 'react'
 
 export type ChartType = 'coins' | 'cells' | 'deaths' | 'tiers' | 'trends'

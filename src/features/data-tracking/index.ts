@@ -10,7 +10,7 @@ export { RunsTable } from '../game-runs/runs-table';
 export { TabbedRunsTable } from '../game-runs/table/tabbed-runs-table';
 export { DeathsRadarChart } from '../analysis/deaths-radar/deaths-radar-chart';
 export { TierStatsTable } from '../analysis/tier-stats/tier-stats-table';
-export { TimeSeriesChart } from './components/time-series-chart';
+export { TimeSeriesChart } from '../analysis/time-series/time-series-chart';
 export { TierTrendsAnalysis } from '../analysis/tier-trends/tier-trends-analysis';
 export { RunTypeSelector } from './components/run-type-selector';
 export { FarmingOnlyIndicator } from './components/farming-only-indicator';
@@ -21,9 +21,9 @@ export { useDataSettings } from '../settings/data-settings/use-data-settings';
 export { useFileImport } from '../data-import/csv-import/input/csv-file-upload';
 export { useGlobalDataInput } from '../data-import/manual-entry/use-global-data-input';
 export { GlobalDataInputProvider } from '../data-import/global-data-input-provider';
-export { useChartNavigation } from './hooks/use-chart-navigation';
+export { useChartNavigation } from '../navigation/hooks/use-chart-navigation';
 export { useRunsNavigation } from './hooks/use-runs-navigation';
-export type { ChartType } from './hooks/use-chart-navigation';
+export type { ChartType } from '../navigation/hooks/use-chart-navigation';
 export type { RunsTabType } from './hooks/use-runs-navigation';
 
 // Data Tracking Types
@@ -88,18 +88,39 @@ export {
   toCamelCase
 } from './utils/field-utils';
 
+// Time series functions
+export {
+  prepareTimeSeriesData,
+} from '../analysis/time-series/chart-data';
+
+// Radar chart functions
 export {
   prepareKilledByData,
   prepareRadarChartData,
+} from '../analysis/deaths-radar/logic/radar-calculations';
+
+// Tier stats functions
+export {
   prepareTierStatsData,
-  prepareTimeSeriesData,
+} from '../analysis/tier-stats/logic/tier-stats-data';
+
+// Date aggregation functions
+export {
   prepareWeeklyData,
   prepareMonthlyData,
   prepareYearlyData,
+} from './utils/date-aggregation';
+
+// Chart formatting functions
+export {
   formatLargeNumber,
   generateYAxisTicks,
+} from './utils/chart-formatters';
+
+// Time period configurations
+export {
   TIME_PERIOD_CONFIGS
-} from './utils/chart-data';
+} from '../analysis/time-series/chart-types';
 
 export {
   calculateTierTrends,
@@ -128,11 +149,20 @@ export type {
   RunTypeFilter
 } from './utils/run-type-filter';
 
+// Time series types
 export type {
-  TierStatsData,
   TimePeriod,
   TimePeriodConfig,
+} from '../analysis/time-series/chart-types';
+
+// Tier stats types
+export type {
+  TierStatsData,
+} from '../analysis/tier-stats/logic/tier-stats-data';
+
+// Date aggregation types
+export type {
   WeeklyAggregatePoint,
   MonthlyAggregatePoint,
   YearlyAggregatePoint
-} from './utils/chart-data';
+} from './utils/date-aggregation';
