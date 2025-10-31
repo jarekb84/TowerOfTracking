@@ -6,7 +6,7 @@ import { useChartNavigation, type ChartType } from './use-chart-navigation'
 const mockUpdateSearch = vi.fn()
 let mockSearch = { chart: 'coins' as ChartType }
 
-vi.mock('../../navigation/hooks/use-url-search-param', () => ({
+vi.mock('./use-url-search-param', () => ({
   useUrlSearchParam: () => ({
     search: mockSearch,
     updateSearch: mockUpdateSearch

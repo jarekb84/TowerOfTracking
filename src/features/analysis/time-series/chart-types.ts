@@ -72,16 +72,6 @@ export interface TierKilledByData {
   totalDeaths: number
 }
 
-export interface TierStatsData {
-  tier: number
-  maxWave: number
-  maxDuration: number // in seconds
-  maxCoins: number
-  maxCoinsPerHour: number
-  maxCells: number
-  maxCellsPerHour: number
-}
-
 // Time period configurations - Enhanced color palette for better visual harmony
 export const TIME_PERIOD_CONFIGS: TimePeriodConfig[] = [
   { period: 'hourly', label: 'Per Hour', color: '#ec4899', dateFormat: 'MMM dd' }, // Pink for granular data

@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/simple-tabs'
-import { DeathsRadarChart, TierStatsTable, TimeSeriesChart, TierTrendsAnalysis } from '../features/data-tracking'
-import { useChartNavigation, ChartType } from '../features/data-tracking/hooks/use-chart-navigation'
+import { DeathsRadarChart, TierStatsTable, TierTrendsAnalysis } from '../features/data-tracking'
+import { TimeSeriesChart } from '../features/analysis/time-series/time-series-chart'
+import { useChartNavigation, ChartType } from '../features/navigation/hooks/use-chart-navigation'
 
 interface ChartsSearchParams {
   chart?: ChartType

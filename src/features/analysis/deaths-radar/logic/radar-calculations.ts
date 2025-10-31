@@ -1,7 +1,7 @@
 import { ParsedGameRun } from '../../../data-tracking/types/game-run.types'
 import { getFieldValue } from '../../../data-tracking/utils/field-utils'
 import { RunTypeFilter, filterRunsByType } from '../../../data-tracking/utils/run-type-filter'
-import { KilledByData, TierKilledByData } from '../../../data-tracking/utils/chart-types'
+import { KilledByData, TierKilledByData } from '../../time-series/chart-types'
 
 // Radar chart data point with dynamic tier keys
 export interface RadarChartDataPoint {

@@ -15,3 +15,5 @@ export * from './config/use-tier-stats-config'
 export * from './logic/tier-stats-calculator'
 export * from './logic/tier-stats-aggregation-options'
 export * from './logic/tier-stats-sort'
+export * from './logic/tier-stats-data'
+

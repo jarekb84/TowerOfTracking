@@ -13,7 +13,7 @@ import {
 import { sortTierStats, sortByTier } from './logic/tier-stats-sort'
 import { filterRunsByType, RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
 import { getFieldValue } from '@/features/data-tracking/utils/field-utils'
-import { formatLargeNumber } from '@/features/data-tracking/utils/chart-data'
+import { formatLargeNumber } from '@/features/data-tracking/utils/chart-formatters'
 import { formatDuration } from '@/features/data-tracking/utils/data-parser'
 
 export interface UseDynamicTierStatsTableReturn {
