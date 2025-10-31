@@ -132,33 +132,100 @@ Implement the minimal solution that satisfies requirements:
 - Unclear directory purposes (misc/, helpers/, utils/ without context)
 - Over-nesting (more than 4 levels deep)
 
-## Mandatory Handoff Protocol
+## Mandatory Orchestration Protocol
 
-**Main Agent Completion:**
+**CRITICAL**: The Main Agent acts as the **orchestrator** for all review agents. Specialized agents do NOT call other agents - they complete their work and return control to the Main Agent orchestrator.
 
-When implementation is complete, Main Agent MUST execute:
+### Main Agent Orchestration Flow
+
+**Step 1: Implementation**
+- Main Agent implements the user's requested changes
+- Applies all implementation standards (React separation, testing, etc.)
+- Prepares context for review agents
+
+**Step 2: Frontend Design Review** (for non-bug-fix changes)
+- Main Agent invokes Frontend Design Review Agent
+- Frontend Design Review Agent completes and returns results
+- Main Agent receives design improvements
+
+**Step 3: E2E Test Review** (conditional)
+- Main Agent checks git diff for E2E file changes:
+  ```bash
+  git diff --name-only | grep -E 'e2e/.*\.(test|spec)\.ts$|e2e/page-objects/.*\.ts$'
+  ```
+- **IF E2E files were modified**: Main Agent invokes E2E Test Architect Agent
+- E2E Test Architect Agent completes and returns results
+- Main Agent receives E2E test improvements
+
+**Step 4: Architecture Review** (always)
+- Main Agent invokes Architecture Review Agent (with bug fix context if applicable)
+- Architecture Review Agent completes and returns results
+- Main Agent receives architectural improvements
+
+**Step 5: Final Summary**
+- Main Agent provides comprehensive summary to user
+- Includes improvements from all invoked agents
+
+### Orchestration Templates
 
 **FOR BUG FIXES:**
 ```
+[Main Agent implements bug fix]
+
 "I have completed the bug fix implementation. Skipping Frontend Design Review Agent per bug fix protocol. Now invoking the Architecture Review Agent with bug fix context for focused architectural review."
+
+[Architecture Review Agent returns]
+
+"All reviews complete. Here's the summary of improvements..."
 ```
 
-**FOR ALL OTHER CHANGES (features, refactors, etc.):**
+**FOR FEATURES (without E2E changes):**
 ```
+[Main Agent implements feature]
+
 "I have completed the initial implementation. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
+
+[Frontend Design Review Agent returns]
+
+"Design review complete. No E2E test files detected. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
+
+[Architecture Review Agent returns]
+
+"All reviews complete. Here's the summary of improvements..."
 ```
 
-**Frontend Design Review Agent Completion:**
-
-When design review is complete, Frontend Design Review Agent MUST execute:
-
+**FOR FEATURES (with E2E changes):**
 ```
-"Design review complete. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
+[Main Agent implements feature]
+
+"I have completed the initial implementation. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
+
+[Frontend Design Review Agent returns]
+
+"Design review complete. E2E test files detected in git diff. Now invoking the E2E Test Architect Agent for mandatory E2E test review."
+
+[E2E Test Architect Agent returns]
+
+"E2E test review complete. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
+
+[Architecture Review Agent returns]
+
+"All reviews complete. Here's the summary of improvements..."
 ```
 
-**Architecture Review Agent Completion:**
+### Agent Completion Protocol
 
-Completes the workflow with final summary and any recommendations.
+**Specialized agents MUST:**
+- Complete their specific domain review
+- Return a summary of improvements made
+- **NOT** invoke other agents
+- **NOT** reference what happens next in the workflow
+
+**Main Agent orchestrator MUST:**
+- Decide which agents to invoke based on change type and modified files
+- Provide context to each agent about the changes
+- Collect results from each agent
+- Provide final comprehensive summary to user
 
 ## Size-Agnostic Enforcement Rules
 
