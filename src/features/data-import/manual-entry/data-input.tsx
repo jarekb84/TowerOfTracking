@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { Button, Textarea, FormField, FormLabel, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
-import { useFileImport } from '../csv-import/use-file-import';
+import { useFileImport } from '../csv-import/input/csv-file-upload';
 import { useDataInputForm } from './use-data-input-form';
 import { useGlobalDataInput } from './use-global-data-input';
 import { DuplicateInfo } from '../../data-tracking/components/duplicate-info';

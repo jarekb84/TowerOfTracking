@@ -18,7 +18,7 @@ export { FarmingOnlyIndicator } from './components/farming-only-indicator';
 // Data Tracking Hooks
 export { useData, useDataProvider, DataContext } from './hooks/use-data';
 export { useDataSettings } from './hooks/use-data-settings';
-export { useFileImport } from '../data-import/csv-import/use-file-import';
+export { useFileImport } from '../data-import/csv-import/input/csv-file-upload';
 export { useGlobalDataInput } from '../data-import/manual-entry/use-global-data-input';
 export { GlobalDataInputProvider } from '../data-import/global-data-input-provider';
 export { useChartNavigation } from './hooks/use-chart-navigation';
