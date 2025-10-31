@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { exportToCsv, generateExportFilename, copyToClipboard, downloadAsFile } from '../utils/csv-exporter';
-import type { CsvDelimiter, ParsedGameRun } from '../types/game-run.types';
-import type { CsvExportConfig, CsvExportResult } from '../utils/csv-exporter';
+import { exportToCsv, generateExportFilename, copyToClipboard, downloadAsFile } from './csv-exporter';
+import type { CsvDelimiter, ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { CsvExportConfig, CsvExportResult } from './csv-exporter';
 
 export interface UseCsvExportState {
   selectedDelimiter: CsvDelimiter;

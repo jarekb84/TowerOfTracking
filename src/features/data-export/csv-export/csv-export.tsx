@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Button, Textarea, DialogTrigger, Card, CardContent, CardDescription, CardHeader, CardTitle, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
 import { Download, Copy, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import type { DelimiterConflict } from '../utils/csv-exporter';
-import { useData } from '../hooks/use-data';
-import { useCsvExport } from '../hooks/use-csv-export';
-import { 
-  getCopyButtonClassName, 
+import type { DelimiterConflict } from './csv-exporter';
+import { useData } from '../../data-tracking/hooks/use-data';
+import { useCsvExport } from './use-csv-export';
+import {
+  getCopyButtonClassName,
   getDownloadButtonClassName,
   isExportDisabled,
   formatConflictExamples,
   getCopyButtonText,
   getDownloadButtonText
-} from '../utils/csv-export-helpers';
+} from './csv-export-helpers';
 import {
   ExportControls,
   ExportStats,

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCsvExport } from './use-csv-export';
-import * as csvExporter from '../utils/csv-exporter';
-import type { ParsedGameRun } from '../types/game-run.types';
+import * as csvExporter from './csv-exporter';
+import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
 
-vi.mock('../utils/csv-exporter', () => ({
+vi.mock('./csv-exporter', () => ({
   exportToCsv: vi.fn(),
   generateExportFilename: vi.fn(),
   copyToClipboard: vi.fn(),

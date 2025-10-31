@@ -2,7 +2,7 @@
 export { DataInput } from '../data-import/manual-entry/data-input';
 export { DataInputErrorBoundary } from '../data-import/manual-entry/data-input-error-boundary';
 export { CsvImport } from '../data-import/csv-import/csv-import';
-export { CsvExport } from './components/csv-export';
+export { CsvExport } from '../data-export/csv-export/csv-export';
 export { DataProvider } from './components/data-provider';
 export { DataSettings } from './components/data-settings';
 export { MigrationAlert } from './components/migration-alert';
@@ -65,13 +65,13 @@ export {
   generateExportFilename,
   copyToClipboard,
   downloadAsFile
-} from './utils/csv-exporter';
+} from '../data-export/csv-export/csv-exporter';
 
 export type {
   CsvExportConfig,
   CsvExportResult,
   DelimiterConflict
-} from './utils/csv-exporter';
+} from '../data-export/csv-export/csv-exporter';
 
 export {
   saveRunsToStorage,
