@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import { AppPage } from '../../page-objects/app-page';
 import { AddGameRunModal } from '../../page-objects/add-game-run-modal';
 import { SettingsPage } from '../../page-objects/settings-page';
-import { BulkExportModal } from '../../page-objects/bulk-export-modal';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -39,10 +38,7 @@ test.describe('Bulk Export', () => {
     await page.waitForLoadState('networkidle');
 
     // Dismiss any initial notifications
-    const dismissButton = page.locator('button:has-text("Dismiss")');
-    if (await dismissButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await dismissButton.click();
-    }
+    await appPage.dismissNotificationIfVisible();
 
     // Load fixture data
     const farmingRunData = await fs.readFile(
@@ -61,7 +57,6 @@ test.describe('Bulk Export', () => {
     // === Step 1: Add three game runs ===
 
     // Add farming run
-    await page.waitForTimeout(500);
     await appPage.clickAddGameRun();
     await addModal.waitForVisible();
     await addModal.addGameRun(farmingRunData, 'farm');
@@ -83,11 +78,8 @@ test.describe('Bulk Export', () => {
     await appPage.navigateToBulkExport();
     const settingsPage = new SettingsPage(page);
 
-    // Click the export button to open the export dialog
-    await settingsPage.clickBulkExport();
-
-    const exportModal = new BulkExportModal(page);
-    await exportModal.waitForModalOpen();
+    // Open export modal (chained POM pattern)
+    const exportModal = await settingsPage.openBulkExportModal();
 
     // === Step 3: Get exported CSV content ===
     const exportedCsv = await exportModal.getCsvContent();
