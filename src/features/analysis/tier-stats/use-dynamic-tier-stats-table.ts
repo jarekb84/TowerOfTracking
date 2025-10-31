@@ -1,20 +1,20 @@
 import { useMemo, useState, useCallback } from 'react'
-import type { ParsedGameRun } from '../types/game-run.types'
-import type { UseTierStatsConfigReturn } from './use-tier-stats-config'
-import type { DynamicTierStats, TierStatsColumn, CellTooltipData } from '../types/tier-stats-config.types'
-import { TierStatsAggregation } from '../types/tier-stats-config.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { UseTierStatsConfigReturn } from './config/use-tier-stats-config'
+import type { DynamicTierStats, TierStatsColumn, CellTooltipData } from './types'
+import { TierStatsAggregation } from './types'
 import {
   calculateDynamicTierStats,
   buildColumnDefinitions,
   getCellValue,
   calculateSummaryStats,
   type TierStatsSummary
-} from '../utils/tier-stats-calculator'
-import { sortTierStats, sortByTier } from '../utils/tier-stats-sort'
-import { filterRunsByType, RunTypeFilter } from '../utils/run-type-filter'
-import { getFieldValue } from '../utils/field-utils'
-import { formatLargeNumber } from '../utils/chart-data'
-import { formatDuration } from '../utils/data-parser'
+} from './logic/tier-stats-calculator'
+import { sortTierStats, sortByTier } from './logic/tier-stats-sort'
+import { filterRunsByType, RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
+import { getFieldValue } from '@/features/data-tracking/utils/field-utils'
+import { formatLargeNumber } from '@/features/data-tracking/utils/chart-data'
+import { formatDuration } from '@/features/data-tracking/utils/data-parser'
 
 export interface UseDynamicTierStatsTableReturn {
   tierStats: DynamicTierStats[]

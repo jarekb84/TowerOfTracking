@@ -1,4 +1,4 @@
-import type { ParsedGameRun } from './game-run.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
 
 /**
  * Aggregation methods for tier statistics

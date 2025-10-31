@@ -1,4 +1,4 @@
-import type { AvailableField } from '../types/tier-stats-config.types'
+import type { AvailableField } from '@/features/analysis/tier-stats/types'
 
 /**
  * Check if a field matches the search term

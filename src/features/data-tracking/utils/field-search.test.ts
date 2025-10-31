@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { matchesSearchTerm, filterFieldsBySearch, normalizeSearchTerm } from './field-search'
-import type { AvailableField } from '../types/tier-stats-config.types'
+import type { AvailableField } from '@/features/analysis/tier-stats/types'
 
 describe('field-search', () => {
   const createField = (fieldName: string, displayName: string): AvailableField => ({

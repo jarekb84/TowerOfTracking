@@ -1,6 +1,6 @@
 import { X, GripVertical } from 'lucide-react'
 import { ToggleSwitch } from '../../../components/ui/toggle-switch'
-import type { TierStatsColumnConfig } from '../../data-tracking/types/tier-stats-config.types'
+import type { TierStatsColumnConfig } from '@/features/analysis/tier-stats/types'
 
 interface SelectedColumnItemProps {
   column: TierStatsColumnConfig

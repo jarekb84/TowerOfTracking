@@ -4,7 +4,7 @@ import {
   getAggregationLabel,
   getAggregationTooltip
 } from './tier-stats-aggregation-options'
-import { TierStatsAggregation } from '../types/tier-stats-config.types'
+import { TierStatsAggregation } from '../types'
 
 describe('getAggregationOptions', () => {
   it('should return all 5 aggregation options', () => {

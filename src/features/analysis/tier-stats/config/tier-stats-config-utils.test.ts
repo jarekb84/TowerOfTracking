@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { ParsedGameRun } from '../types/game-run.types'
-import type { AvailableField, TierStatsColumnConfig } from '../types/tier-stats-config.types'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { AvailableField, TierStatsColumnConfig } from '../types'
 import {
   DEFAULT_COLUMNS,
   getDefaultConfig,
@@ -10,8 +10,8 @@ import {
   isNumericField,
   getFieldDisplayName,
   getColumnDisplayName
-} from './tier-stats-config'
-import { createGameRunField } from './field-utils'
+} from './tier-stats-config-utils'
+import { createGameRunField } from '@/features/data-tracking/utils/field-utils'
 
 describe('tier-stats-config', () => {
   const createMockRun = (overrides?: Partial<ParsedGameRun>): ParsedGameRun => ({

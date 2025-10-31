@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
-import type { CellTooltipData } from '../types/tier-stats-config.types'
-import { formatDuration } from '../utils/data-parser'
-import { formatLargeNumber } from '../utils/chart-data'
-import { TooltipContentWrapper } from '../../../components/ui/tooltip-content'
+import type { CellTooltipData } from '../types'
+import { formatDuration } from '@/features/data-tracking/utils/data-parser'
+import { formatLargeNumber } from '@/features/data-tracking/utils/chart-data'
+import { TooltipContentWrapper } from '@/components/ui/tooltip-content'
 
 interface TierStatsCellTooltipProps {
   data: CellTooltipData

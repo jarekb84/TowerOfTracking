@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTierStatsConfig } from './use-tier-stats-config'
-import type { ParsedGameRun } from '../types/game-run.types'
-import { createGameRunField } from '../utils/field-utils'
-import { clearTierStatsConfig } from '../utils/tier-stats-persistence'
+import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import { createGameRunField } from '@/features/data-tracking/utils/field-utils'
+import { clearTierStatsConfig } from './tier-stats-persistence'
 
 describe('useTierStatsConfig', () => {
   const createMockRun = (tier: number): ParsedGameRun => ({
