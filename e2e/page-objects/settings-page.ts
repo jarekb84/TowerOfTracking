@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { BulkImportModal } from './bulk-import-modal';
+import { BulkExportModal } from './bulk-export-modal';
 
 /**
  * Settings Page Object Model
@@ -26,7 +27,7 @@ export class SettingsPage {
     this.bulkImportButton = page.locator('button:has-text("Import CSV/TSV")');
 
     // Button to open bulk export modal/section
-    this.bulkExportButton = page.locator('button:has-text("Export to CSV")');
+    this.bulkExportButton = page.locator('button:has-text("Export CSV")');
   }
 
   /**
@@ -43,9 +44,15 @@ export class SettingsPage {
   }
 
   /**
-   * Click "Export to CSV" button
+   * Click "Export CSV" button to open bulk export modal
+   * Returns a BulkExportModal instance for further interactions
    */
-  async clickBulkExport() {
+  async openBulkExportModal(): Promise<BulkExportModal> {
     await this.bulkExportButton.click();
+
+    // Wait for modal to open
+    await this.page.locator('text=Export CSV Data').waitFor({ state: 'visible' });
+
+    return new BulkExportModal(this.page);
   }
 }

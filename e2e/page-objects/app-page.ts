@@ -138,4 +138,16 @@ export class AppPage {
   async clickAddGameRun() {
     await this.addGameRunButton.click();
   }
+
+  /**
+   * Dismiss notification toast if visible
+   * Used to clear initial notifications that might interfere with tests
+   */
+  async dismissNotificationIfVisible() {
+    const dismissButton = this.page.locator('button:has-text("Dismiss")');
+    const isVisible = await dismissButton.isVisible({ timeout: 2000 }).catch(() => false);
+    if (isVisible) {
+      await dismissButton.click();
+    }
+  }
 }
