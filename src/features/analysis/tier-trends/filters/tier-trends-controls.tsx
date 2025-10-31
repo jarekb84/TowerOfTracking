@@ -1,9 +1,9 @@
-import { FormControl, SelectionButtonGroup } from '../../../components/ui'
-import { RunTypeSelector } from './run-type-selector'
-import type { RunTypeFilter } from '../utils/run-type-filter'
-import type { TierTrendsFilters } from '../types/game-run.types'
-import { TrendsDuration, TrendsAggregation } from '../types/game-run.types'
-import { getDefaultAggregationType, getQuantityLabel } from '../utils/tier-trends'
+import { FormControl, SelectionButtonGroup } from '@/components/ui'
+import { RunTypeSelector } from '@/features/data-tracking/components/run-type-selector'
+import type { RunTypeFilter } from '@/features/data-tracking/utils/run-type-filter'
+import type { TierTrendsFilters } from '@/features/data-tracking/types/game-run.types'
+import { TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
+import { getDefaultAggregationType, getQuantityLabel } from '../logic/tier-trends-calculations'
 import { getAggregationOptions } from '../logic/tier-trends-ui-options'
 
 interface TierTrendsControlsProps {
