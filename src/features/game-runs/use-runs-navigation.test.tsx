@@ -4,7 +4,7 @@ import { useRunsNavigation } from './use-runs-navigation'
 
 // Mock the navigation hook
 const mockUpdateSearch = vi.fn()
-vi.mock('@/features/navigation/hooks/use-url-search-param', () => ({
+vi.mock('@/features/navigation', () => ({
   useUrlSearchParam: () => ({
     search: { type: 'farming' },
     updateSearch: mockUpdateSearch

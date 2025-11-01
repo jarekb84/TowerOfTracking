@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { ThemeContext, useThemeProvider } from '../hooks/use-theme';
+import { ThemeContext, useThemeProvider } from './use-theme';
 
 interface ThemeProviderProps {
   children: ReactNode;

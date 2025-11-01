@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Input } from '@/components/ui';
-import { useTheme } from '../hooks/use-theme';
+import { useTheme } from './use-theme';
 
 export function ThemeSettings() {
   const { theme, setTheme, toggleCondensed } = useTheme();

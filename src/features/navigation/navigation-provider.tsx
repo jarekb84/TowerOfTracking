@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { NavigationContext } from '../contexts/navigation-context'
-import { useNavigationState } from '../hooks/use-navigation-state'
+import { NavigationContext } from './navigation-context'
+import { useNavigationState } from './use-navigation-state'
 
 interface NavigationProviderProps {
   children: React.ReactNode
