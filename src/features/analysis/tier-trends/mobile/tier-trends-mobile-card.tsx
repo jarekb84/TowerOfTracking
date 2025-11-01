@@ -1,10 +1,10 @@
 import { MobileCard, MobileCardContent, MobileCardHeader, MobileCardSection } from '@/components/ui'
 import { formatNumber } from '@/features/analysis/shared/data-parser'
-import { formatFieldDisplayName, generateSparklinePath } from '../logic/tier-trends-calculations'
-import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '@/features/analysis/tier-trends/logic/trend-indicators'
+import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations'
+import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../table/trend-indicators'
 import { useTierTrendsMobile } from './use-tier-trends-mobile'
 import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
-import { formatTrendValue } from '@/features/analysis/tier-trends/logic/trend-value-formatting'
+import { formatTrendValue } from '../table/trend-value-formatting'
 
 interface TierTrendsMobileCardProps {
   trend: FieldTrendData

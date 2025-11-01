@@ -9,8 +9,8 @@ import {
   getCellValue,
   calculateSummaryStats,
   type TierStatsSummary
-} from './logic/tier-stats-calculator'
-import { sortTierStats, sortByTier } from './logic/tier-stats-sort'
+} from './calculations/tier-stats-calculator'
+import { sortTierStats, sortByTier } from './tier-stats-sort'
 import { filterRunsByType, RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 import { getFieldValue } from '@/features/analysis/shared/field-utils'
 import { formatLargeNumber } from '@/features/analysis/shared/chart-formatters'

@@ -95,6 +95,10 @@ After all refactoring:
 5. **File Organization Violations**
    - Directories with 10+ implementation files (excluding tests) without sub-grouping
    - Type-based organization (components/, hooks/, logic/) at feature level
+   - **Logic directory violations** - `logic/` directories are TYPE-based organization
+     - Pure functions still serve specific features - co-locate with consumers
+     - Acceptable alternatives: Co-locate with feature subdirectory OR purpose-named directory (e.g., `calculations/`)
+     - NEVER use generic `logic/` as dumping ground for "pure functions"
    - Related files scattered (component, hook, logic in different directories)
    - 3+ files sharing a concept not grouped in subdirectory
    - Vague directory names (misc/, helpers/, utils/ without context)

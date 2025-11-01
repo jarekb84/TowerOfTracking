@@ -11,9 +11,9 @@ export * from './types'
 export * from './config/tier-stats-config-panel'
 export * from './config/use-tier-stats-config'
 
-// Logic
-export * from './logic/tier-stats-calculator'
-export * from './logic/tier-stats-aggregation-options'
-export * from './logic/tier-stats-sort'
-export * from './logic/tier-stats-data'
+// Calculations
+export * from './calculations/tier-stats-calculator'
+export * from './config/tier-stats-aggregation-options'
+export * from './tier-stats-sort'
+export * from './calculations/tier-stats-data'
 

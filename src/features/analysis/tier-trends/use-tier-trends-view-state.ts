@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { ParsedGameRun, TierTrendsFilters } from '@/features/data-tracking/types/game-run.types'
-import { calculateTierTrends } from './logic/tier-trends-calculations'
+import { calculateTierTrends } from './calculations/tier-trends-calculations'
 import type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 
 /**

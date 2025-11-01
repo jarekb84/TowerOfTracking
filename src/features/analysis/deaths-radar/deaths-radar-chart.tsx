@@ -3,7 +3,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'r
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../components/ui'
 import { Button } from '../../../components/ui'
 import { useData } from '../../data-tracking/hooks/use-data'
-import { prepareKilledByData, prepareRadarChartData } from './logic/radar-calculations'
+import { prepareKilledByData, prepareRadarChartData } from './radar-calculations'
 import { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 import { RunTypeSelector } from '../../data-tracking/components/run-type-selector'
 

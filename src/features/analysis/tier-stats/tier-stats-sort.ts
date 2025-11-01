@@ -1,5 +1,5 @@
-import type { DynamicTierStats, TierStatsColumn } from '../types'
-import { getCellValue } from './tier-stats-calculator'
+import type { DynamicTierStats, TierStatsColumn } from './types'
+import { getCellValue } from './calculations/tier-stats-calculator'
 
 /**
  * Get the value to use for sorting a tier stats row by a specific column

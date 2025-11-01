@@ -124,10 +124,17 @@ features/analytics/
 │   │   ├── use-tier-trends-mobile.ts
 │   │   └── tier-trends-mobile-utils.ts
 │   │
-│   └── logic/                      # Pure business logic
-│       ├── tier-trends-display.ts
-│       ├── tier-trends-ui-options.ts
-│       └── tier-trends-calculations.ts
+│   ├── filters/
+│   │   ├── tier-trends-filters.tsx
+│   │   ├── tier-trends-controls.tsx
+│   │   ├── field-search.tsx
+│   │   ├── use-field-filter.ts
+│   │   └── aggregation-options.ts     # Logic co-located with filter feature
+│   │
+│   └── calculations/                   # NOT "logic" - specific purpose!
+│       ├── tier-trends-calculations.ts # Core calculation engine
+│       ├── aggregation-strategies.ts
+│       └── hourly-rate-calculations.ts
 ```
 
 **Why This Works:**
@@ -176,13 +183,19 @@ features/data-tracking/
 
 - **Location**: `src/features/<feature>/shared/`
 - **Purpose**: Code shared within a single feature domain
-- **Example**: `src/features/analytics/shared/aggregation-strategies.ts`
+- **Example**: `src/features/analytics/shared/formatting/chart-formatters.ts`
+- **CRITICAL**: Even within `shared/`, organize by PURPOSE not by type
+  - ✅ GOOD: `shared/formatting/`, `shared/parsing/`, `shared/filtering/`
+  - ❌ BAD: `shared/utils/`, `shared/helpers/`, `shared/logic/`
 
 **Cross-Feature Shared:**
 
 - **Location**: `src/shared/<domain>/`
 - **Purpose**: Code truly reusable across multiple features
 - **Example**: `src/shared/formatting/number-formatters.ts`
+- **CRITICAL**: Organize by domain/purpose, NEVER by file type
+  - ✅ GOOD: `shared/formatting/`, `shared/validation/`, `shared/ui-components/`
+  - ❌ BAD: `shared/utils/`, `shared/helpers/`, `shared/common/`
 
 **CRITICAL**: Don't prematurely extract to shared. Keep in feature until actively used by 2+ distinct features (not just "might be useful someday").
 
@@ -224,6 +237,15 @@ analytics/tier-trends/filters/
 **FORBIDDEN PATTERNS:**
 
 - ❌ **Type-based separation** at feature level (components/, hooks/, logic/)
+  - **Including `logic/` directories** - this is type-based organization!
+  - Pure functions are STILL part of features - co-locate with consumers
+  - Question: "Is this pure?" → Put in logic/ ❌
+  - Correct: "What does this serve?" → Put with that feature ✅
+
+- ❌ **Generic dumping grounds** (utils/, helpers/, misc/, common/, logic/)
+  - Exception: If you can name it by PURPOSE (e.g., `calculations/`, `formatting/`, `parsing/`)
+  - But even then, prefer co-locating with the feature that uses it
+
 - ❌ **Over-nesting** (directories with single files or unnecessary hierarchy)
 - ❌ **Unclear boundaries** (mixing unrelated features in same directory)
 - ❌ **Premature abstraction** (creating directories for potential future files)
