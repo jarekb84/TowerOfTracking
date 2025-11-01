@@ -8,19 +8,19 @@ import type {
 } from '@/features/data-tracking/types/game-run.types';
 import { RunType, TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types';
 import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/run-type-filter';
-import { isTrendableField } from '@/features/analysis/tier-trends/logic/field-type-detection';
-import { createEnhancedRunHeader } from '@/features/analysis/tier-trends/logic/run-header-formatting';
+import { isTrendableField } from '@/features/analysis/tier-trends/calculations/field-type-detection';
+import { createEnhancedRunHeader } from '@/features/analysis/tier-trends/calculations/run-header-formatting';
 import {
   sumAggregation,
   averageAggregation,
   minAggregation,
   maxAggregation,
   hourlyAggregation
-} from '@/features/analysis/tier-trends/logic/aggregation-strategies';
+} from '@/features/analysis/tier-trends/calculations/aggregation-strategies';
 import {
   calculateTotalDurationHours,
   formatHoursSubheader
-} from '@/features/analysis/tier-trends/logic/hourly-rate-calculations';
+} from '@/features/analysis/tier-trends/calculations/hourly-rate-calculations';
 
 /**
  * Get the default aggregation type for a given duration mode

@@ -9,7 +9,7 @@ import type {
 import { TierStatsAggregation } from '../types'
 import { getFieldValue } from '@/features/analysis/shared/field-utils'
 import { getColumnDisplayName } from '../config/tier-stats-config-utils'
-import { calculateFieldPercentiles } from '@/features/analysis/tier-stats/logic/field-percentile-calculation'
+import { calculateFieldPercentiles } from './field-percentile-calculation'
 
 /**
  * Calculate dynamic tier stats for all tiers based on selected columns

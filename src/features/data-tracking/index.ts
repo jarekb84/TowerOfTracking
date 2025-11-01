@@ -87,12 +87,12 @@ export {
 export {
   prepareKilledByData,
   prepareRadarChartData,
-} from '../analysis/deaths-radar/logic/radar-calculations';
+} from '../analysis/deaths-radar/radar-calculations';
 
 // Tier stats functions
 export {
   prepareTierStatsData,
-} from '../analysis/tier-stats/logic/tier-stats-data';
+} from '../analysis/tier-stats/calculations/tier-stats-data';
 
 // Date aggregation functions
 // NOTE: Utilities moved to analysis/time-series/logic - import directly from there
@@ -112,7 +112,7 @@ export {
   getAvailableTiersForTrends,
   formatFieldDisplayName,
   generateSparklinePath
-} from '../analysis/tier-trends/logic/tier-trends-calculations';
+} from '../analysis/tier-trends/calculations/tier-trends-calculations';
 
 export {
   createInitialFormState,
@@ -135,7 +135,7 @@ export type {
 // Tier stats types
 export type {
   TierStatsData,
-} from '../analysis/tier-stats/logic/tier-stats-data';
+} from '../analysis/tier-stats/calculations/tier-stats-data';
 
 // Date aggregation types
 // NOTE: Types moved to analysis/time-series/logic - import directly from there

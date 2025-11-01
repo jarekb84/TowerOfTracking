@@ -3,8 +3,8 @@ import { RunTypeSelector } from '@/features/data-tracking/components/run-type-se
 import type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
 import type { TierTrendsFilters } from '@/features/data-tracking/types/game-run.types'
 import { TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
-import { getDefaultAggregationType, getQuantityLabel } from '../logic/tier-trends-calculations'
-import { getAggregationOptions } from '../logic/tier-trends-ui-options'
+import { getDefaultAggregationType, getQuantityLabel } from '../calculations/tier-trends-calculations'
+import { getAggregationOptions } from './aggregation-options'
 
 interface TierTrendsControlsProps {
   runTypeFilter: RunTypeFilter

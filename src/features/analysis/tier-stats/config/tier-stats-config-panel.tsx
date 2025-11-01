@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { InfoBox } from '@/components/ui/info-box'
 import { EmptyState } from '@/components/ui/empty-state'
 import { FormControl, SelectionButtonGroup } from '@/components/ui'
-import { getAggregationOptions } from '../logic/tier-stats-aggregation-options'
+import { getAggregationOptions } from './tier-stats-aggregation-options'
 
 interface TierStatsConfigPanelProps {
   config: UseTierStatsConfigReturn

@@ -7,7 +7,7 @@ import { useTierStatsConfig } from './config/use-tier-stats-config'
 import { useDynamicTierStatsTable } from './use-dynamic-tier-stats-table'
 import { filterRunsByType } from '@/features/analysis/shared/run-type-filter'
 import { getTierStatsCellClassName } from './cells/tier-stats-cell-styles'
-import { getAggregationDescription } from './logic/tier-stats-aggregation-options'
+import { getAggregationDescription } from './config/tier-stats-aggregation-options'
 import { LoadingState } from '@/components/ui/loading-state'
 import * as Tooltip from '@radix-ui/react-tooltip'
 
