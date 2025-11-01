@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { filterRunsByTier, getAvailableTiers } from './tier-filter-logic';
 
 interface UseTierFilterResult {

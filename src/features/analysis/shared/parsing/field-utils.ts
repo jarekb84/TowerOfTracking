@@ -1,4 +1,4 @@
-import type { GameRunField, ParsedGameRun } from '@/features/data-tracking/types/game-run.types';
+import type { GameRunField, ParsedGameRun } from '@/shared/types/game-run.types';
 import {
   parseShorthandNumber,
   formatLargeNumber

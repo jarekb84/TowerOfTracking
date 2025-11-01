@@ -3,7 +3,7 @@
  * Used for tier statistics where each field needs its own percentile calculation
  */
 
-import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 
 export interface FieldPercentileResult {
   value: number

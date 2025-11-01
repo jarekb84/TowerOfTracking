@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
+import { TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types'
 
 /**
  * Tier Trends Analysis - Default Settings Tests

@@ -3,7 +3,7 @@ import { NAVIGATION_SECTIONS } from '../config/navigation-config'
 import { useSidebarBehavior } from '../hooks/use-sidebar-behavior'
 import { useSidebarToggleProps } from '../hooks/use-sidebar-toggle'
 import { NavIcon } from './nav-icon'
-import { NavLink, NavSection, NavCollapseButton } from '../../../components/ui'
+import { NavLink, NavSection, NavCollapseButton } from '@/components/ui'
 
 export function Sidebar() {
   const { isSidebarOpen, closeSidebar, isCollapsed, toggleCollapsed } = useNavigation()

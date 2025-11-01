@@ -1,4 +1,4 @@
-import type { ComparisonColumn } from '@/features/data-tracking/types/game-run.types'
+import type { ComparisonColumn } from '@/shared/types/game-run.types'
 
 /**
  * Formats a comparison column header for mobile display

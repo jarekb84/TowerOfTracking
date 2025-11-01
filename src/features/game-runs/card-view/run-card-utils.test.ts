@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { extractCardHeaderData, extractProgressData, calculateEconomyData, extractRunCardData } from './run-card-utils';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 // Mock utility functions
 vi.mock('@/features/analysis/shared/parsing/data-parser', () => ({

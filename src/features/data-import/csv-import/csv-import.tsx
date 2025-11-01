@@ -1,6 +1,6 @@
-import { Button, DialogTrigger, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '../../../components/ui';
+import { Button, DialogTrigger, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '@/components/ui';
 import { FileText } from 'lucide-react';
-import { DuplicateInfo } from '../../data-tracking/components/duplicate-info';
+import { DuplicateInfo } from '@/shared/domain/duplicate-detection/duplicate-info';
 import { useCsvImport } from './use-csv-import';
 import { CsvInputSection } from './input/csv-input-section';
 import { DelimiterControls } from './delimiter/delimiter-controls';

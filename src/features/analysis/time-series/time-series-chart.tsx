@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Area, AreaChart, XAxis, YAxis } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../../../components/ui'
-import { Button } from '../../../components/ui'
-import { useData } from '../../data-tracking/hooks/use-data'
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui'
+import { Button } from '@/components/ui'
+import { useData } from '@/shared/domain/use-data'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import { TimePeriod } from './chart-types'
 import { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters'
 import { getFarmingRuns } from '@/features/analysis/shared/filtering/run-type-filter'
-import { FarmingOnlyIndicator } from '../../data-tracking/components/farming-only-indicator'
+import { FarmingOnlyIndicator } from '@/shared/domain/run-types/farming-only-indicator'
 
 interface TimeSeriesChartProps {
   metric: 'coins' | 'cells'

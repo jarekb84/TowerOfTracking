@@ -1,4 +1,4 @@
-import type { ParsedGameRun, CsvDelimiter } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun, CsvDelimiter } from '@/shared/types/game-run.types';
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
 import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from '../../../shared/formatting/date-formatters';
 import {
@@ -6,7 +6,7 @@ import {
   INTERNAL_FIELD_ORDER,
   INTERNAL_FIELD_NAMES,
   isInternalField
-} from '../../data-tracking/fields/internal-field-config';
+} from '@/shared/domain/fields/internal-field-config';
 
 // Interface for field information
 interface FieldInfo {

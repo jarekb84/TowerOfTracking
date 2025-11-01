@@ -1,4 +1,4 @@
-import { Button, Calendar, Popover, PopoverContent, PopoverTrigger, Input, FormControl } from '../../../components/ui';
+import { Button, Calendar, Popover, PopoverContent, PopoverTrigger, Input, FormControl } from '@/components/ui';
 import { format } from 'date-fns';
 import { CalendarIcon, Clock } from 'lucide-react';
 

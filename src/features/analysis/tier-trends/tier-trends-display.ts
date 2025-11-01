@@ -1,4 +1,4 @@
-import { RunType, TrendsDuration, type RunTypeValue } from '@/features/data-tracking/types/game-run.types'
+import { RunType, TrendsDuration, type RunTypeValue } from '@/shared/types/game-run.types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 /**

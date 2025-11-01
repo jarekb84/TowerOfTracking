@@ -4,7 +4,7 @@ import type {
   RawClipboardData,
   GameRunField,
   RunTypeValue
-} from '@/features/data-tracking/types/game-run.types';
+} from '@/shared/types/game-run.types';
 import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
 import { determineRunType } from '../filtering/run-type-filter';
 import {
@@ -17,7 +17,7 @@ import {
   INTERNAL_FIELD_NAMES,
   isLegacyField,
   getMigratedFieldName
-} from '@/features/data-tracking/fields/internal-field-config';
+} from '@/shared/domain/fields/internal-field-config';
 
 /**
  * Derive _date and _time fields from battle_date

@@ -1,4 +1,4 @@
-import { SelectionButtonGroup, SelectionOption } from '../../../components/ui';
+import { SelectionButtonGroup, SelectionOption } from '@/components/ui';
 
 interface TierFilterProps {
   availableTiers: number[];

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DataInputPreview } from './data-input-preview';
-import { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import { ParsedGameRun } from '@/shared/types/game-run.types';
 
 const mockPreviewData: ParsedGameRun = {
   id: 'test-id',

@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback } from 'react'
-import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { UseTierStatsConfigReturn } from './config/use-tier-stats-config'
 import type { DynamicTierStats, TierStatsColumn, CellTooltipData } from './types'
 import { TierStatsAggregation } from './types'

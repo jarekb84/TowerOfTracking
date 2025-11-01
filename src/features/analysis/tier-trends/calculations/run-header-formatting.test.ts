@@ -6,7 +6,7 @@ import {
   formatTimestampDisplay,
   createEnhancedRunHeader
 } from './run-header-formatting'
-import type { ParsedGameRun, GameRunField } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types'
 
 // Helper function to create a mock field
 function createMockField(

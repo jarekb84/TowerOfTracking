@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { runsToStorageCsv, storageCsvToRuns } from './csv-persistence';
-import type { ParsedGameRun, GameRunField } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
 
 // Mock localStorage
 const localStorageMock = {

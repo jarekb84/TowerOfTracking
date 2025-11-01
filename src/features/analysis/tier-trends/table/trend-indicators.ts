@@ -1,4 +1,4 @@
-import type { FieldTrendData } from '@/features/data-tracking/types/game-run.types'
+import type { FieldTrendData } from '@/shared/types/game-run.types'
 
 /**
  * Returns the appropriate color class for trend change indicators

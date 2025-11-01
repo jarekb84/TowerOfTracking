@@ -8,10 +8,5 @@
     "max-lines": {
       "count": 1
     }
-  },
-  "src/features/data-tracking/integration/duplicate-detection.integration.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
   }
 }

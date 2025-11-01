@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { formatMobileColumnHeader, shouldUseCompactLayout, groupColumnsForMobile } from './tier-trends-mobile-utils'
-import type { FieldTrendData, ComparisonColumn } from '@/features/data-tracking/types/game-run.types'
+import type { FieldTrendData, ComparisonColumn } from '@/shared/types/game-run.types'
 
 interface MobileCardData {
   useCompact: boolean

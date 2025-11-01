@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
 import { getRunTypeDisplayLabel } from '@/features/analysis/shared/filtering/run-type-filter';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { StickyNote } from 'lucide-react';
 import { ExpandButton, DeleteButton } from './table-action-buttons';
 

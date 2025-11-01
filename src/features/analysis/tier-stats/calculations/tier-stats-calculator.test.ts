@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 // Test file covering multiple functions with comprehensive percentile aggregation tests
 import { describe, it, expect } from 'vitest'
-import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { AvailableField, TierStatsColumnConfig } from '../types'
 import { TierStatsAggregation } from '../types'
 import {

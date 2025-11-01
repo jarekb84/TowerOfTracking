@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui'
-import { CsvImport, CsvExport, DataSettings } from '../../features/data-tracking'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { CsvImport } from '../../features/data-import/csv-import/csv-import'
+import { CsvExport } from '../../features/data-export/csv-export/csv-export'
+import { DataSettings } from '../../features/settings/data-settings/data-settings'
 
 export const Route = createFileRoute('/settings/data-management')({
   component: DataManagementPage,

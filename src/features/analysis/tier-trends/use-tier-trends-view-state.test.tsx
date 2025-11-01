@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useTierTrendsViewState } from './use-tier-trends-view-state'
-import { RunType, TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
-import type { ParsedGameRun, TierTrendsFilters } from '@/features/data-tracking/types/game-run.types'
+import { RunType, TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types'
+import type { ParsedGameRun, TierTrendsFilters } from '@/shared/types/game-run.types'
 
 describe('useTierTrendsViewState', () => {
   const mockFilters: TierTrendsFilters = {

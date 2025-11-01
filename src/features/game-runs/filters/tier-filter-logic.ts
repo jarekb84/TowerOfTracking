@@ -1,4 +1,4 @@
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 export function filterRunsByTier(runs: ParsedGameRun[], selectedTier: number | null): ParsedGameRun[] {
   if (selectedTier === null) {

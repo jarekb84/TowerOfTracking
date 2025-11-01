@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useNavigation } from '../contexts/navigation-context'
-import { useGlobalDataInput } from '../../data-tracking'
+import { useGlobalDataInput } from '../../data-import/manual-entry/use-global-data-input'
 import { useVersion } from '../../versioning'
 import { NavIcon } from './nav-icon'
 import { COMMUNITY_LINKS, createCommunityLinkClassName } from '../config/community-links'

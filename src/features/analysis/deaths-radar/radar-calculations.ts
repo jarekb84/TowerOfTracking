@@ -1,4 +1,4 @@
-import { ParsedGameRun } from '../../../data-tracking/types/game-run.types'
+import { ParsedGameRun } from '@/shared/types/game-run.types'
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
 import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/filtering/run-type-filter'
 import { KilledByData, TierKilledByData } from '../../time-series/chart-types'

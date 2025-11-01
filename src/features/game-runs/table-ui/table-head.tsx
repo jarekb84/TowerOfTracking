@@ -1,5 +1,5 @@
 import { flexRender, type Table } from '@tanstack/react-table';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 interface TableHeadProps {
   table: Table<ParsedGameRun>;

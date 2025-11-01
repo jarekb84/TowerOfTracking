@@ -4,7 +4,7 @@ import {
   shouldUseCompactLayout,
   groupColumnsForMobile 
 } from './tier-trends-mobile-utils'
-import type { ComparisonColumn } from '@/features/data-tracking/types/game-run.types'
+import type { ComparisonColumn } from '@/shared/types/game-run.types'
 
 describe('tier-trends-mobile', () => {
   describe('formatMobileColumnHeader', () => {

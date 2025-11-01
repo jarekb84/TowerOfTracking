@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTierStatsConfig } from './use-tier-stats-config'
-import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { createGameRunField } from '@/features/analysis/shared/parsing/field-utils'
 import { clearTierStatsConfig } from './tier-stats-persistence'
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
-import { ParsedGameRun } from '../../data-tracking/types/game-run.types'
+import { ParsedGameRun } from '@/shared/types/game-run.types'
 
 describe('Chart Data Utils', () => {
   describe('getAvailableTimePeriods', () => {
