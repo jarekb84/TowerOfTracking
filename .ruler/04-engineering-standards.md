@@ -259,6 +259,21 @@ analytics/tier-trends/filters/
 **Type Organization**:
 - Use descriptive interface/type names with clear business domain language
 
+## Type Definition Co-Location
+
+**CRITICAL**: Type definitions follow the same co-location principles as all code - organize by feature/domain, not by file type.
+
+### Core Principle
+Type definitions should live WITH the code that owns/creates them, not in centralized type files separated by technical classification.
+
+### Quick Rules
+- **Single file usage** → Inline in that file
+- **Feature-specific** → `features/<feature>/types.ts`
+- **Truly shared (3+ features)** → `shared/types/<domain>.types.ts`
+
+### Anti-Pattern Alert
+Creating centralized `types.ts` files that mix types from multiple unrelated features is equivalent to creating `components/`, `hooks/`, `logic/` directories - it violates feature-based organization.
+
 ## Component Architecture & React Separation
 
 **CRITICAL**: Enforce strict logic-presentation separation in all React code.

@@ -122,15 +122,6 @@ Implement the minimal solution that satisfies requirements:
 - Pure functions importing React or testing libraries
 - Cross-feature imports bypassing public APIs
 
-**File Organization Issues:**
-
-- Directories exceeding 10 implementation files (excluding tests) without sub-grouping
-- Type-based organization (components/, hooks/, logic/) at feature level
-- Related files scattered across multiple directories
-- 3+ files sharing a concept but not grouped in subdirectory
-- Tightly coupled files separated (component + hook in different directories)
-- Unclear directory purposes (misc/, helpers/, utils/ without context)
-- Over-nesting (more than 4 levels deep)
 
 ## Mandatory Orchestration Protocol
 
@@ -162,7 +153,12 @@ Implement the minimal solution that satisfies requirements:
 - Architecture Review Agent completes and returns results
 - Main Agent receives architectural improvements
 
-**Step 5: Final Summary**
+**Step 5: Code Organization & Naming Review** (always)
+- Main Agent invokes Code Organization & Naming Agent (with bug fix context if applicable)
+- Code Organization & Naming Agent completes and returns results
+- Main Agent receives organization and naming improvements
+
+**Step 6: Final Summary**
 - Main Agent provides comprehensive summary to user
 - Includes improvements from all invoked agents
 
@@ -175,6 +171,10 @@ Implement the minimal solution that satisfies requirements:
 "I have completed the bug fix implementation. Skipping Frontend Design Review Agent per bug fix protocol. Now invoking the Architecture Review Agent with bug fix context for focused architectural review."
 
 [Architecture Review Agent returns]
+
+"Architecture review complete. Now invoking the Code Organization & Naming Agent with bug fix context for limited scope organizational review."
+
+[Code Organization & Naming Agent returns]
 
 "All reviews complete. Here's the summary of improvements..."
 ```
@@ -190,6 +190,10 @@ Implement the minimal solution that satisfies requirements:
 "Design review complete. No E2E test files detected. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
 
 [Architecture Review Agent returns]
+
+"Architecture review complete. Now invoking the Code Organization & Naming Agent for final organizational polish."
+
+[Code Organization & Naming Agent returns]
 
 "All reviews complete. Here's the summary of improvements..."
 ```
@@ -209,6 +213,10 @@ Implement the minimal solution that satisfies requirements:
 "E2E test review complete. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
 
 [Architecture Review Agent returns]
+
+"Architecture review complete. Now invoking the Code Organization & Naming Agent for final organizational polish."
+
+[Code Organization & Naming Agent returns]
 
 "All reviews complete. Here's the summary of improvements..."
 ```
