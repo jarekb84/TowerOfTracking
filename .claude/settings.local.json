@@ -28,7 +28,8 @@
       "Bash(done)",
       "Bash(git restore:*)",
       "Bash(cat:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(git rm:*)"
     ],
     "defaultMode": "acceptEdits"
   },

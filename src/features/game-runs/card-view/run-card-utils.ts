@@ -1,5 +1,5 @@
-import { formatNumber, formatDuration, calculatePerHour } from '@/features/analysis/shared/data-parser';
-import { getFieldValue } from '@/features/analysis/shared/field-utils';
+import { formatNumber, formatDuration, calculatePerHour } from '@/features/analysis/shared/parsing/data-parser';
+import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
 import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
 
 /**

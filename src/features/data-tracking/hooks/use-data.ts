@@ -1,18 +1,18 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ParsedGameRun } from '../types/game-run.types';
-import { 
-  generateCompositeKey, 
-  generateCompositeKeysSet, 
-  detectDuplicate, 
+import {
+  generateCompositeKey,
+  generateCompositeKeysSet,
+  detectDuplicate,
   detectBatchDuplicates,
   type DuplicateDetectionResult,
   type BatchDuplicateDetectionResult
-} from '../utils/duplicate-detection';
+} from '../duplicate-detection';
 import {
   saveRunsToStorage,
   loadRunsFromStorage,
-} from '../utils/csv-persistence';
-import { migrateDataIfNeeded } from '../utils/data-migrations';
+} from '../../data-import/csv-import/csv-persistence';
+import { migrateDataIfNeeded } from '../data-migrations';
 
 interface MigrationState {
   migrated: boolean;

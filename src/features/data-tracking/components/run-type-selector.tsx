@@ -1,6 +1,6 @@
 import { FormControl, SelectionButtonGroup } from '../../../components/ui'
-import { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
-import { getOptionsForMode, RunTypeSelectorMode } from '../utils/run-type-selector-options'
+import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import { getOptionsForMode, RunTypeSelectorMode } from '../run-types/run-type-selector-options'
 
 interface RunTypeSelectorProps {
   selectedType: RunTypeFilter

@@ -11,7 +11,7 @@ import {
   getCellValue,
   calculateSummaryStats
 } from './tier-stats-calculator'
-import { createGameRunField } from '@/features/analysis/shared/field-utils'
+import { createGameRunField } from '@/features/analysis/shared/parsing/field-utils'
 
 describe('tier-stats-calculator', () => {
   const createMockRun = (

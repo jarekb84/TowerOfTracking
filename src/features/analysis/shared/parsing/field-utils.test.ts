@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createInternalField } from './field-utils';
+import { createInternalField } from '../parsing/field-utils';
 
 describe('createInternalField', () => {
   it('should create internal field with correct structure', () => {

@@ -1,6 +1,6 @@
 import type { SelectionOption } from '../../../components/ui'
 import { RunType } from '../types/game-run.types'
-import { RunTypeFilter, getRunTypeDisplayLabel } from '@/features/analysis/shared/run-type-filter'
+import { RunTypeFilter, getRunTypeDisplayLabel } from '@/features/analysis/shared/filtering/run-type-filter'
 import { getRunTypeColor } from './run-type-display'
 
 export type RunTypeSelectorMode = 'filter' | 'selection'

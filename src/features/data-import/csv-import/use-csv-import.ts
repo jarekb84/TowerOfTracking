@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { parseGenericCsv, getDelimiterString } from '../../data-tracking/utils/csv-parser';
+import { parseGenericCsv, getDelimiterString } from './csv-parser';
 import { useData } from '../../data-tracking/hooks/use-data';
 import { useFileImport } from './input/csv-file-upload';
 import type { CsvDelimiter, CsvParseResult } from '../../data-tracking/types/game-run.types';
 import type { DuplicateResolution } from '../../data-tracking/components/duplicate-info';
-import type { BatchDuplicateDetectionResult } from '../../data-tracking/utils/duplicate-detection';
+import type { BatchDuplicateDetectionResult } from '../../data-tracking/duplicate-detection';
 
 export interface UseCsvImportReturn {
   // State

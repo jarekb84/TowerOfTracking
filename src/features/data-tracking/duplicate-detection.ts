@@ -1,5 +1,5 @@
-import type { ParsedGameRun } from '../types/game-run.types';
-import { formatIsoDateTimeMinute, formatDurationForKey } from './date-formatters';
+import type { ParsedGameRun } from './types/game-run.types';
+import { formatIsoDateTimeMinute, formatDurationForKey } from '../../shared/formatting/date-formatters';
 
 // Interface for duplicate detection result
 export interface DuplicateDetectionResult {

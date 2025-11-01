@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { FieldTrendData } from '../../data-tracking/types/game-run.types';
-import { filterFieldTrends, isValidSearchTerm } from '../../data-tracking/utils/field-filter';
+import { filterFieldTrends, isValidSearchTerm } from '../../data-tracking/fields/field-filter';
 
 interface UseFieldFilterOptions {
   debounceMs?: number;

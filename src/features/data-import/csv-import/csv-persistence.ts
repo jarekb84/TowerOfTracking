@@ -1,4 +1,4 @@
-import type { ParsedGameRun } from '../types/game-run.types';
+import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
 import { parseGenericCsv } from './csv-parser';
 import { exportToCsv } from '../../data-export/csv-export/csv-exporter';
 

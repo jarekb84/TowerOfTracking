@@ -1,4 +1,4 @@
-import { formatLargeNumber } from '../../../shared/formatting/number-scale';
+import { formatLargeNumber } from '../../../../shared/formatting/number-scale';
 import type {
   ParsedGameRun,
   RawClipboardData,
@@ -6,18 +6,18 @@ import type {
   RunTypeValue
 } from '@/features/data-tracking/types/game-run.types';
 import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
-import { determineRunType } from './run-type-filter';
+import { determineRunType } from '../filtering/run-type-filter';
 import {
   parseBattleDate,
   constructDate,
   formatIsoDate,
   formatIsoTime
-} from '@/features/data-tracking/utils/date-formatters';
+} from '@/shared/formatting/date-formatters';
 import {
   INTERNAL_FIELD_NAMES,
   isLegacyField,
   getMigratedFieldName
-} from '@/features/data-tracking/utils/internal-field-config';
+} from '@/features/data-tracking/fields/internal-field-config';
 
 /**
  * Derive _date and _time fields from battle_date

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseGameRun } from '@/features/analysis/shared/data-parser';
-import { generateCompositeKey } from '../utils/duplicate-detection';
+import { parseGameRun } from '@/features/analysis/shared/parsing/data-parser';
+import { generateCompositeKey } from '../duplicate-detection';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 

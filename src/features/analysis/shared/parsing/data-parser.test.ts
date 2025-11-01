@@ -3,10 +3,10 @@ import {
   deriveDateTimeFromBattleDate,
   constructDateFromLegacyFields,
   parseGameRun
-} from './data-parser';
+} from '../parsing/data-parser';
 import {
   parseBattleDate
-} from '@/features/data-tracking/utils/date-formatters';
+} from '@/shared/formatting/date-formatters';
 
 describe('parseBattleDate', () => {
   it('should parse valid battle_date format', () => {

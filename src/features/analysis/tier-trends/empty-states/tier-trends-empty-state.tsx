@@ -2,7 +2,7 @@ import { TrendingUp } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { LoadingState } from '@/components/ui/loading-state'
 import { formatRunTypeFilterDisplay } from '../tier-trends-display'
-import type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
+import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 interface TierTrendsEmptyStateProps {
   variant: 'no-data' | 'loading'

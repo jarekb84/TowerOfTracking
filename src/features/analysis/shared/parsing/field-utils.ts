@@ -2,7 +2,7 @@ import type { GameRunField, ParsedGameRun } from '@/features/data-tracking/types
 import {
   parseShorthandNumber,
   formatLargeNumber
-} from '../../../shared/formatting/number-scale';
+} from '../../../../shared/formatting/number-scale';
 
 // Field configuration for processing rules
 interface FieldConfig {

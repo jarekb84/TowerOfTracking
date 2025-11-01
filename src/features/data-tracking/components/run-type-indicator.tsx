@@ -1,5 +1,5 @@
 import { RunTypeValue } from '../types/game-run.types';
-import { getRunTypeColor } from '../utils/run-type-display';
+import { getRunTypeColor } from '../run-types/run-type-display';
 
 interface RunTypeIndicatorProps {
   runType: RunTypeValue;

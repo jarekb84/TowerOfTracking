@@ -47,15 +47,15 @@ export { RunType } from './types/game-run.types';
 
 // Data Tracking Utilities
 // NOTE: Utilities moved to analysis/shared - import directly from there
-// export { parseGameRun, formatNumber, formatDuration } from '@/features/analysis/shared/data-parser';
-// export { createGameRunField, getFieldValue, getFieldDisplay, getFieldRaw, toCamelCase } from '@/features/analysis/shared/field-utils';
+// export { parseGameRun, formatNumber, formatDuration } from '@/features/analysis/shared/parsing/data-parser';
+// export { createGameRunField, getFieldValue, getFieldDisplay, getFieldRaw, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 
 // CSV Import/Export
 export {
   parseGenericCsv,
   getDelimiterString,
   getSupportedFields
-} from './utils/csv-parser';
+} from '../data-import/csv-import/csv-parser';
 
 export {
   exportToCsv,
@@ -76,7 +76,7 @@ export {
   loadRunsFromStorage,
   runsToStorageCsv,
   storageCsvToRuns
-} from './utils/csv-persistence';
+} from '../data-import/csv-import/csv-persistence';
 
 // Time series functions
 export {
@@ -100,7 +100,7 @@ export {
 
 // Chart formatting functions
 // NOTE: Utilities moved to analysis/shared - import directly from there
-// export { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/chart-formatters';
+// export { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters';
 
 // Time period configurations
 export {
@@ -123,8 +123,8 @@ export {
 
 // Run type filter functions
 // NOTE: Utilities moved to analysis/shared - import directly from there
-// export { filterRunsByType, getFarmingRuns, getTournamentRuns, isFarmingRun, determineRunType, getRunTypeDisplayLabel } from '@/features/analysis/shared/run-type-filter';
-// export type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter';
+// export { filterRunsByType, getFarmingRuns, getTournamentRuns, isFarmingRun, determineRunType, getRunTypeDisplayLabel } from '@/features/analysis/shared/filtering/run-type-filter';
+// export type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
 
 // Time series types
 export type {

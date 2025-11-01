@@ -9,7 +9,7 @@ import {
   migrateCsvOnImport,
   CURRENT_DATA_VERSION
 } from './data-migrations';
-import type { ParsedGameRun } from '../types/game-run.types';
+import type { ParsedGameRun } from './types/game-run.types';
 
 describe('Data Migrations', () => {
   describe('Version Management', () => {

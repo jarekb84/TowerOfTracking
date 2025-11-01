@@ -1,7 +1,7 @@
 import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
 import { TierTrendsMobileCard } from '../mobile/tier-trends-mobile-card'
 import { useViewport } from '@/shared/hooks/use-viewport'
-import { formatNumber } from '@/features/analysis/shared/data-parser'
+import { formatNumber } from '@/features/analysis/shared/parsing/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from './trend-indicators'
 import { parseColumnHeader, getHeaderLineClasses } from './column-header-renderer'

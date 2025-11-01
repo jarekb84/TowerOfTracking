@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateFieldPercentiles } from './field-percentile-calculation'
 import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
-import { createGameRunField, getFieldValue } from '@/features/analysis/shared/field-utils'
+import { createGameRunField, getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
 
 describe('calculateFieldPercentiles', () => {
   const createMockRun = (coins: number, duration: number, id: string): ParsedGameRun => ({

@@ -7,7 +7,7 @@ import type {
   GameRunField,
 } from '@/features/data-tracking/types/game-run.types';
 import { RunType, TrendsDuration, TrendsAggregation } from '@/features/data-tracking/types/game-run.types';
-import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/run-type-filter';
+import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/filtering/run-type-filter';
 import { isTrendableField } from '@/features/analysis/tier-trends/calculations/field-type-detection';
 import { createEnhancedRunHeader } from '@/features/analysis/tier-trends/calculations/run-header-formatting';
 import {
