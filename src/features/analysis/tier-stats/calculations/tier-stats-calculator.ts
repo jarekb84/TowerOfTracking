@@ -7,7 +7,7 @@ import type {
   AvailableField
 } from '../types'
 import { TierStatsAggregation } from '../types'
-import { getFieldValue } from '@/features/analysis/shared/field-utils'
+import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
 import { getColumnDisplayName } from '../config/tier-stats-config-utils'
 import { calculateFieldPercentiles } from './field-percentile-calculation'
 

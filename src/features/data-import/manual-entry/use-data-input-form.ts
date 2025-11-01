@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { parseGameRun } from '@/features/analysis/shared/data-parser';
-import { extractTimestampFromFields, createInternalField } from '@/features/analysis/shared/field-utils';
+import { parseGameRun } from '@/features/analysis/shared/parsing/data-parser';
+import { extractTimestampFromFields, createInternalField } from '@/features/analysis/shared/parsing/field-utils';
 import {
   createInitialFormState,
   createInitialDateTimeState,
@@ -8,11 +8,11 @@ import {
   createDateTimeFromComponents
 } from './data-input-state';
 import type { ParsedGameRun, RunTypeValue } from '../../data-tracking/types/game-run.types';
-import type { DuplicateDetectionResult } from '../../data-tracking/utils/duplicate-detection';
+import type { DuplicateDetectionResult } from '../../data-tracking/duplicate-detection';
 import type { DuplicateResolution } from '../../data-tracking/components/duplicate-info';
 import { useData } from '../../data-tracking/hooks/use-data';
 import { useRunTypeContext } from '../../data-tracking/hooks/use-run-type-context';
-import { hasExplicitRunType } from '../../data-tracking/utils/run-type-detection';
+import { hasExplicitRunType } from '../../data-tracking/run-types/run-type-detection';
 
 export interface DataInputFormState {
   inputData: string;

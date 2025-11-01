@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { formatNumber } from '@/features/analysis/shared/data-parser';
+import { formatNumber } from '@/features/analysis/shared/parsing/data-parser';
 import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations';
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from './trend-indicators';
 import type { FieldTrendData, ComparisonColumn } from '@/features/data-tracking/types/game-run.types';

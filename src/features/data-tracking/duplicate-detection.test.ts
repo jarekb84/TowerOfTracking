@@ -6,7 +6,7 @@ import {
   generateCompositeKeysSet,
   analyzeKeyCollisions
 } from './duplicate-detection';
-import type { ParsedGameRun } from '../types/game-run.types';
+import type { ParsedGameRun } from './types/game-run.types';
 
 // Helper function to create a mock ParsedGameRun for testing
 function createMockRun(overrides: Partial<ParsedGameRun> = {}): ParsedGameRun {

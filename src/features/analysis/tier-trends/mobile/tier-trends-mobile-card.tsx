@@ -1,5 +1,5 @@
 import { MobileCard, MobileCardContent, MobileCardHeader, MobileCardSection } from '@/components/ui'
-import { formatNumber } from '@/features/analysis/shared/data-parser'
+import { formatNumber } from '@/features/analysis/shared/parsing/data-parser'
 import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../table/trend-indicators'
 import { useTierTrendsMobile } from './use-tier-trends-mobile'

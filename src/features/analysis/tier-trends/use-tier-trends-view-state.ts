@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { ParsedGameRun, TierTrendsFilters } from '@/features/data-tracking/types/game-run.types'
 import { calculateTierTrends } from './calculations/tier-trends-calculations'
-import type { RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
+import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 /**
  * Manages derived view state for tier trends analysis component

@@ -1,5 +1,5 @@
 import { Card, CardContent } from '../../../components/ui/card';
-import type { BatchDuplicateDetectionResult, DuplicateDetectionResult } from '../utils/duplicate-detection';
+import type { BatchDuplicateDetectionResult, DuplicateDetectionResult } from '../duplicate-detection';
 import type { ParsedGameRun } from '../types/game-run.types';
 
 export type DuplicateResolution = 'new-only' | 'overwrite';

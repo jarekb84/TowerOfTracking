@@ -1,4 +1,4 @@
-import { formatLargeNumber } from '../../../shared/formatting/number-scale';
+import { formatLargeNumber } from '../../../../shared/formatting/number-scale';
 export { formatLargeNumber };
 
 // Generate nice Y-axis ticks for large numbers

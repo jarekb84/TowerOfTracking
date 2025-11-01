@@ -1,4 +1,4 @@
-import type { DuplicateDetectionResult } from '../../data-tracking/utils/duplicate-detection';
+import type { DuplicateDetectionResult } from '../../data-tracking/duplicate-detection';
 import type { DuplicateResolution } from '../../data-tracking/components/duplicate-info';
 import { RunType, RunTypeValue } from '../../data-tracking/types/game-run.types';
 

@@ -11,10 +11,10 @@ import {
   type TierStatsSummary
 } from './calculations/tier-stats-calculator'
 import { sortTierStats, sortByTier } from './tier-stats-sort'
-import { filterRunsByType, RunTypeFilter } from '@/features/analysis/shared/run-type-filter'
-import { getFieldValue } from '@/features/analysis/shared/field-utils'
-import { formatLargeNumber } from '@/features/analysis/shared/chart-formatters'
-import { formatDuration } from '@/features/analysis/shared/data-parser'
+import { filterRunsByType, RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
+import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
+import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
 
 export interface UseDynamicTierStatsTableReturn {
   tierStats: DynamicTierStats[]

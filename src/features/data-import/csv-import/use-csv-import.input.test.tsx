@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useCsvImport } from './use-csv-import';
-import * as csvParser from '../../data-tracking/utils/csv-parser';
+import * as csvParser from './csv-parser';
 import * as useDataHook from '../../data-tracking/hooks/use-data';
 import type { DataContextType } from '../../data-tracking/hooks/use-data';
 import type { GameRun, CsvParseResult } from '../../data-tracking/types/game-run.types';
 
 // Mock dependencies
-vi.mock('../../data-tracking/utils/csv-parser');
+vi.mock('./csv-parser');
 vi.mock('../../data-tracking/hooks/use-data');
 vi.mock('./input/csv-file-upload', () => ({
   useFileImport: ({ onFileContent }: { onFileContent: (text: string) => void }) => ({

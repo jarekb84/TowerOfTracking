@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { parseGameRun } from '@/features/analysis/shared/data-parser';
+import { parseGameRun } from '@/features/analysis/shared/parsing/data-parser';
 import { 
   generateCompositeKey, 
   detectDuplicate, 
   detectBatchDuplicates,
   generateCompositeKeysSet
-} from '../utils/duplicate-detection';
+} from '../duplicate-detection';
 
 describe('Duplicate Detection Integration', () => {
   // Sample game data that would come from clipboard

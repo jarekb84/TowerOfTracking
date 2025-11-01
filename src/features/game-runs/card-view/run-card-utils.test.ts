@@ -3,7 +3,7 @@ import { extractCardHeaderData, extractProgressData, calculateEconomyData, extra
 import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
 
 // Mock utility functions
-vi.mock('@/features/analysis/shared/data-parser', () => ({
+vi.mock('@/features/analysis/shared/parsing/data-parser', () => ({
   formatNumber: (value: number) => value.toLocaleString(),
   formatDuration: (value: number) => {
     const hours = Math.floor(value / 3600);
@@ -21,7 +21,7 @@ vi.mock('@/features/analysis/shared/data-parser', () => ({
     timeInSeconds > 0 ? Math.round((amount / timeInSeconds) * 3600) : 0,
 }));
 
-vi.mock('@/features/analysis/shared/field-utils', () => ({
+vi.mock('@/features/analysis/shared/parsing/field-utils', () => ({
   getFieldValue: <T>(run: ParsedGameRun, fieldName: string): T | undefined => {
     const field = run.fields?.[fieldName];
     return field ? field.value as T : undefined;

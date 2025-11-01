@@ -10,9 +10,9 @@
  *                 Added battleDate support
  */
 
-import type { ParsedGameRun, GameRunField } from '../types/game-run.types';
-import { INTERNAL_FIELD_NAMES } from './internal-field-config';
-import { detectDelimiter } from './csv-helpers';
+import type { ParsedGameRun, GameRunField } from './types/game-run.types';
+import { INTERNAL_FIELD_NAMES } from './fields/internal-field-config';
+import { detectDelimiter } from '../data-import/csv-import/csv-helpers';
 
 // Storage keys
 const VERSION_KEY = 'tower-tracking-data-version';

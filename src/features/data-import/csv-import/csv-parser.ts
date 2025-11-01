@@ -5,14 +5,14 @@ import type {
   FieldMappingReport,
   GameRunField,
   CsvDelimiter
-} from '../types/game-run.types';
-import { createGameRunField, toCamelCase } from '@/features/analysis/shared/field-utils';
-import { detectRunTypeFromFields, extractNumericStats } from './run-type-detection';
-import { parseTimestampFromFields } from './date-formatters';
-import { isLegacyField, getMigratedFieldName } from './internal-field-config';
+} from '../../data-tracking/types/game-run.types';
+import { createGameRunField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
+import { detectRunTypeFromFields, extractNumericStats } from '../../data-tracking/run-types/run-type-detection';
+import { parseTimestampFromFields } from '../../../shared/formatting/date-formatters';
+import { isLegacyField, getMigratedFieldName } from '../../data-tracking/fields/internal-field-config';
 import { detectDelimiter } from './csv-helpers';
-import { extractFieldNamesFromStorage } from './field-discovery';
-import { classifyFields } from './field-similarity';
+import { extractFieldNamesFromStorage } from '../../data-tracking/fields/field-discovery';
+import { classifyFields } from '../../data-tracking/fields/field-similarity';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
 // Load supported fields from JSON
