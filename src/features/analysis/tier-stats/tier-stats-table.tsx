@@ -1,6 +1,6 @@
 import { useData } from '@/shared/domain/use-data'
 import { FarmingOnlyIndicator } from '@/shared/domain/run-types/farming-only-indicator'
-import { RunType } from '@/shared/types/game-run.types'
+import { RunType } from '@/shared/domain/run-types/types'
 import { TierStatsConfigPanel } from './config/tier-stats-config-panel'
 import { TierStatsCellTooltip } from './cells/tier-stats-cell-tooltip'
 import { useTierStatsConfig } from './config/use-tier-stats-config'

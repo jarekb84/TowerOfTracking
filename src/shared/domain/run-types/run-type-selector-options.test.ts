@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getOptionsForMode } from './run-type-selector-options'
-import { RunType } from '@/shared/types/game-run.types'
+import { RunType } from './types'
 
 describe('getOptionsForMode', () => {
   it('should return all options including "all" in filter mode', () => {

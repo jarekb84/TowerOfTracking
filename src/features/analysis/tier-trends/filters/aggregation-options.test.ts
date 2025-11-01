@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getAggregationOptions } from './aggregation-options';
-import { TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types';
+import { TrendsDuration, TrendsAggregation } from '../types';
 
 describe('tier-trends-ui-options', () => {
   describe('getAggregationOptions', () => {

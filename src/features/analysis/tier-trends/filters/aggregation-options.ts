@@ -1,4 +1,4 @@
-import { TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types';
+import { TrendsDuration, TrendsAggregation } from '../types';
 
 /**
  * Option for UI selection components

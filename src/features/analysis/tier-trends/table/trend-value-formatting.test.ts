@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { formatTrendValue } from './trend-value-formatting';
-import { TrendsAggregation } from '@/shared/types/game-run.types';
+import { TrendsAggregation } from '../types';
 
 describe('trend-value-formatting', () => {
   describe('formatTrendValue', () => {

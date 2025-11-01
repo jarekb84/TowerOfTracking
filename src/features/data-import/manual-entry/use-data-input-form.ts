@@ -7,7 +7,8 @@ import {
   formatTimeFromDate,
   createDateTimeFromComponents
 } from './data-input-state';
-import type { ParsedGameRun, RunTypeValue } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import { useData } from '@/shared/domain/use-data';

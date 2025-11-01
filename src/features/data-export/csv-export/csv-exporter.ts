@@ -1,4 +1,5 @@
-import type { ParsedGameRun, CsvDelimiter } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
 import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from '../../../shared/formatting/date-formatters';
 import {

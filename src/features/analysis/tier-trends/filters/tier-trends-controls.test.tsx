@@ -2,8 +2,9 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { TierTrendsControls } from './tier-trends-controls'
-import { RunType, TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types'
-import type { TierTrendsFilters } from '@/shared/types/game-run.types'
+import { RunType } from '@/shared/domain/run-types/types'
+import { TrendsDuration, TrendsAggregation } from '../types'
+import type { TierTrendsFilters } from '../types'
 
 describe('TierTrendsControls', () => {
   const defaultFilters: TierTrendsFilters = {

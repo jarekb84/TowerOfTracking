@@ -4,7 +4,8 @@ import { useCsvImport } from './use-csv-import';
 import * as csvParser from './csv-parser';
 import * as useDataHook from '@/shared/domain/use-data';
 import type { DataContextType } from '@/shared/domain/use-data';
-import type { GameRun, CsvParseResult } from '@/shared/types/game-run.types';
+import type { GameRun } from '@/shared/types/game-run.types';
+import type { CsvParseResult } from './types';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 
 // Mock dependencies

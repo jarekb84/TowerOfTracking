@@ -1,6 +1,6 @@
 import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
-import { RunType, RunTypeValue } from '@/shared/types/game-run.types';
+import { RunType, RunTypeValue } from '@/shared/domain/run-types/types';
 
 export interface DataInputFormInitialState {
   inputData: string;

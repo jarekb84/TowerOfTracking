@@ -1,6 +1,6 @@
 import { Input, Textarea } from '@/components/ui';
 import { AlertTriangle, XCircle } from 'lucide-react';
-import type { CsvDelimiter } from '@/shared/types/game-run.types';
+import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { DelimiterConflict, CsvExportResult } from './csv-exporter';
 import { formatConflictExamples, getExportStatsDisplay } from './csv-export-helpers';
 

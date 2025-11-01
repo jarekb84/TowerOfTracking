@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatNumber } from '@/features/analysis/shared/parsing/data-parser';
 import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations';
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from './trend-indicators';
-import type { FieldTrendData, ComparisonColumn } from '@/shared/types/game-run.types';
+import type { FieldTrendData, ComparisonColumn } from '../types';
 import { parseColumnHeader, getHeaderLineClasses } from './column-header-renderer';
 
 interface VirtualizedTrendsTableProps {

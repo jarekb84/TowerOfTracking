@@ -1,4 +1,4 @@
-import { RunType, RunTypeValue } from '@/shared/types/game-run.types'
+import { RunType, RunTypeValue } from './types'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 /**

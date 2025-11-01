@@ -1,5 +1,5 @@
 import { useUrlSearchParam } from '@/features/navigation/hooks/use-url-search-param'
-import { RunType, RunTypeValue } from '@/shared/types/game-run.types'
+import { RunType, RunTypeValue } from '@/shared/domain/run-types/types'
 
 export type RunsTabType = RunTypeValue
 

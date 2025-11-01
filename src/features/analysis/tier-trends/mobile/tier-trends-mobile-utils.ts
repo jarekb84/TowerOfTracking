@@ -1,4 +1,4 @@
-import type { ComparisonColumn } from '@/shared/types/game-run.types'
+import type { ComparisonColumn } from '../types'
 
 /**
  * Formats a comparison column header for mobile display

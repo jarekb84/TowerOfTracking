@@ -2,9 +2,9 @@ import { formatLargeNumber } from '../../../../shared/formatting/number-scale';
 import type {
   ParsedGameRun,
   RawClipboardData,
-  GameRunField,
-  RunTypeValue
+  GameRunField
 } from '@/shared/types/game-run.types';
+import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
 import { determineRunType } from '../filtering/run-type-filter';
 import {

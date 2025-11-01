@@ -1,4 +1,4 @@
-import type { FieldTrendData } from '@/shared/types/game-run.types';
+import type { FieldTrendData } from '@/features/analysis/tier-trends/types';
 
 /**
  * Filter field trends based on search term using case-insensitive substring matching

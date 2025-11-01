@@ -1,8 +1,10 @@
 /* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import { calculateTierTrends, getAvailableTiersForTrends, getDefaultAggregationType, getQuantityLabel } from './tier-trends-calculations';
-import type { ParsedGameRun, TierTrendsFilters, GameRunField } from '@/shared/types/game-run.types';
-import { RunType, TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types';
+import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types'
+import type { TierTrendsFilters } from '../types';
+import { RunType } from '@/shared/domain/run-types/types';
+import { TrendsDuration, TrendsAggregation } from '../types';
 
 // Helper function to create a mock field
 function createMockField(

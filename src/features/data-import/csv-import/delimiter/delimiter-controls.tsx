@@ -1,5 +1,5 @@
 import { Input } from '@/components/ui';
-import type { CsvDelimiter } from '@/shared/types/game-run.types';
+import type { CsvDelimiter } from '../types';
 
 interface DelimiterControlsProps {
   selectedDelimiter: CsvDelimiter;
