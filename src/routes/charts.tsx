@@ -5,7 +5,7 @@ import { DeathsRadarChart } from '../features/analysis/deaths-radar/deaths-radar
 import { TierStatsTable } from '../features/analysis/tier-stats/tier-stats-table'
 import { TierTrendsAnalysis } from '../features/analysis/tier-trends/tier-trends-analysis'
 import { TimeSeriesChart } from '../features/analysis/time-series/time-series-chart'
-import { useChartNavigation, ChartType } from '../features/navigation/hooks/use-chart-navigation'
+import { useChartNavigation, ChartType } from '../features/navigation'
 
 interface ChartsSearchParams {
   chart?: ChartType

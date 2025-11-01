@@ -1,4 +1,4 @@
-import { useUrlSearchParam } from '@/features/navigation/hooks/use-url-search-param'
+import { useUrlSearchParam } from '@/features/navigation'
 import { RunType, RunTypeValue } from '@/shared/domain/run-types/types'
 
 export type RunsTabType = RunTypeValue

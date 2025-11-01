@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useDebounce } from '../../../hooks/use-debounce'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import { filterFieldsBySearch } from '@/shared/domain/fields/field-search-utils'
 import type { AvailableField } from '@/features/analysis/tier-stats/types'
 

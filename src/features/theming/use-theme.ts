@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import type { ThemeConfig, ThemeContextType } from '../types/theme.types';
+import type { ThemeConfig, ThemeContextType } from './types';
 
 const defaultTheme: ThemeConfig = {
   mode: 'normal',

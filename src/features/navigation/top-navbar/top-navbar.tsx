@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
-import { useNavigation } from '../contexts/navigation-context'
-import { useGlobalDataInput } from '../../data-import/manual-entry/use-global-data-input'
-import { useVersion } from '../../versioning'
+import { useNavigation } from '../navigation-context'
+import { useGlobalDataInput } from '@/features/data-import/manual-entry/use-global-data-input'
+import { useVersion } from '@/features/versioning'
 import { NavIcon } from './nav-icon'
 import { COMMUNITY_LINKS, createCommunityLinkClassName } from '../config/community-links'
 
@@ -69,14 +69,7 @@ export function TopNavbar() {
               aria-label={link.ariaLabel}
               title={link.title}
             >
-              <NavIcon type={link.icon} className="w-5 h-5" />              
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={3} 
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" 
-              />
-              
+              <NavIcon type={link.icon} className="w-5 h-5" />
             </a>
           ))}
         </div>

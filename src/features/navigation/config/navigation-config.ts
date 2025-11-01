@@ -1,4 +1,4 @@
-import { NavigationSection } from '../types/navigation.types'
+import { NavigationSection } from '../types'
 
 export const NAVIGATION_SECTIONS: NavigationSection[] = [
   {
