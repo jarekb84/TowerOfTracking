@@ -73,3 +73,57 @@ export function getAllKnownFields(supportedFields: string[]): Set<string> {
 
   return allFields;
 }
+
+/**
+ * Extract all numeric field names from parsed game runs
+ * Includes cached properties (tier, wave, coinsEarned, cellsEarned, realTime)
+ * and dynamic fields with dataType === 'number' or 'duration'
+ *
+ * @param runs - Array of parsed game runs
+ * @returns Array of numeric field names sorted alphabetically
+ */
+export function extractNumericFieldNames(runs: ParsedGameRun[]): string[] {
+  if (runs.length === 0) return []
+
+  const numericFields = new Set<string>()
+
+  // Add cached numeric properties
+  const cachedNumericProps = ['tier', 'wave', 'coinsEarned', 'cellsEarned', 'realTime']
+  cachedNumericProps.forEach(prop => numericFields.add(prop))
+
+  // Scan all runs for dynamic numeric fields
+  runs.forEach(run => {
+    Object.entries(run.fields).forEach(([key, field]) => {
+      if (field.dataType === 'number' || field.dataType === 'duration') {
+        numericFields.add(key)
+      }
+    })
+  })
+
+  return Array.from(numericFields).sort()
+}
+
+/**
+ * Get the data type for a specific field across all runs
+ *
+ * @param runs - Array of parsed game runs
+ * @param fieldKey - Field name to check
+ * @returns Data type of the field or 'number' for cached properties
+ */
+export function getFieldDataType(runs: ParsedGameRun[], fieldKey: string): string {
+  // Check if it's a cached property
+  const cachedNumericProps = ['tier', 'wave', 'coinsEarned', 'cellsEarned', 'realTime']
+  if (cachedNumericProps.includes(fieldKey)) {
+    return 'number'
+  }
+
+  // Check dynamic fields in first run that has this field
+  for (const run of runs) {
+    const field = run.fields[fieldKey]
+    if (field) {
+      return field.dataType
+    }
+  }
+
+  return 'number' // Default fallback
+}

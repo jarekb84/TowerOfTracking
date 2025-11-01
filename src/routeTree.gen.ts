@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsDataManagementRouteImport } from './routes/settings/data-management'
 import { Route as ChartsTierTrendsRouteImport } from './routes/charts/tier-trends'
 import { Route as ChartsTierStatsRouteImport } from './routes/charts/tier-stats'
+import { Route as ChartsFieldsRouteImport } from './routes/charts/fields'
 import { Route as ChartsDeathsRouteImport } from './routes/charts/deaths'
 import { Route as ChartsCoinsRouteImport } from './routes/charts/coins'
 import { Route as ChartsCellsRouteImport } from './routes/charts/cells'
@@ -55,6 +56,11 @@ const ChartsTierStatsRoute = ChartsTierStatsRouteImport.update({
   path: '/tier-stats',
   getParentRoute: () => ChartsRoute,
 } as any)
+const ChartsFieldsRoute = ChartsFieldsRouteImport.update({
+  id: '/fields',
+  path: '/fields',
+  getParentRoute: () => ChartsRoute,
+} as any)
 const ChartsDeathsRoute = ChartsDeathsRouteImport.update({
   id: '/deaths',
   path: '/deaths',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/deaths': typeof ChartsDeathsRoute
+  '/charts/fields': typeof ChartsFieldsRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/deaths': typeof ChartsDeathsRoute
+  '/charts/fields': typeof ChartsFieldsRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/deaths': typeof ChartsDeathsRoute
+  '/charts/fields': typeof ChartsFieldsRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/deaths'
+    | '/charts/fields'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
     | '/settings/data-management'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/deaths'
+    | '/charts/fields'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
     | '/settings/data-management'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/deaths'
+    | '/charts/fields'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
     | '/settings/data-management'
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChartsTierStatsRouteImport
       parentRoute: typeof ChartsRoute
     }
+    '/charts/fields': {
+      id: '/charts/fields'
+      path: '/fields'
+      fullPath: '/charts/fields'
+      preLoaderRoute: typeof ChartsFieldsRouteImport
+      parentRoute: typeof ChartsRoute
+    }
     '/charts/deaths': {
       id: '/charts/deaths'
       path: '/deaths'
@@ -233,6 +252,7 @@ interface ChartsRouteChildren {
   ChartsCellsRoute: typeof ChartsCellsRoute
   ChartsCoinsRoute: typeof ChartsCoinsRoute
   ChartsDeathsRoute: typeof ChartsDeathsRoute
+  ChartsFieldsRoute: typeof ChartsFieldsRoute
   ChartsTierStatsRoute: typeof ChartsTierStatsRoute
   ChartsTierTrendsRoute: typeof ChartsTierTrendsRoute
 }
@@ -241,6 +261,7 @@ const ChartsRouteChildren: ChartsRouteChildren = {
   ChartsCellsRoute: ChartsCellsRoute,
   ChartsCoinsRoute: ChartsCoinsRoute,
   ChartsDeathsRoute: ChartsDeathsRoute,
+  ChartsFieldsRoute: ChartsFieldsRoute,
   ChartsTierStatsRoute: ChartsTierStatsRoute,
   ChartsTierTrendsRoute: ChartsTierTrendsRoute,
 }

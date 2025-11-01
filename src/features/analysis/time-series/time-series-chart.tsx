@@ -10,11 +10,12 @@ import { getFarmingRuns } from '@/features/analysis/shared/filtering/run-type-fi
 import { FarmingOnlyIndicator } from '@/shared/domain/run-types/farming-only-indicator'
 
 interface TimeSeriesChartProps {
-  metric: 'coins' | 'cells'
+  metric: string
   title: string
   subtitle?: string
   defaultPeriod?: TimePeriod
   showFarmingOnly?: boolean
+  valueFormatter?: (value: number) => string
 }
 
 const chartConfig = {
@@ -23,12 +24,13 @@ const chartConfig = {
   },
 }
 
-export function TimeSeriesChart({ 
-  metric, 
-  title, 
+export function TimeSeriesChart({
+  metric,
+  title,
   subtitle = 'Track your performance over time',
   defaultPeriod = 'run',
-  showFarmingOnly = false
+  showFarmingOnly = false,
+  valueFormatter = formatLargeNumber
 }: TimeSeriesChartProps) {
   const { runs } = useData()
   
@@ -162,25 +164,25 @@ export function TimeSeriesChart({
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 12, fill: '#94a3b8' }}
-            tickFormatter={formatLargeNumber}
+            tickFormatter={valueFormatter}
             ticks={yAxisTicks}
             domain={[0, 'dataMax']}
             tickMargin={8}
           />
           
-          <ChartTooltip 
-            content={<ChartTooltipContent 
+          <ChartTooltip
+            content={<ChartTooltipContent
               formatter={(value) => {
-                const formattedValue = formatLargeNumber(Number(value))
+                const formattedValue = valueFormatter(Number(value))
                 const suffix = selectedPeriod === 'hourly' ? '/hour' : ''
-                return [formattedValue + suffix, title]
+                return [`${formattedValue}${suffix} `, title]
               }}
               labelFormatter={(label) => `${currentConfig.label}: ${label}`}
               className="bg-slate-800/95 border-slate-600 backdrop-blur-sm shadow-lg shadow-black/20"
               style={{
                 borderColor: `color-mix(in srgb, ${currentConfig.color} 40%, transparent)`
               }}
-            />} 
+            />}
           />
           
           <Area

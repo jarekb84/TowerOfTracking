@@ -15,7 +15,13 @@ import {
   prepareCellsPerDayData,
   prepareWeeklyData,
   prepareMonthlyData,
-  prepareYearlyData
+  prepareYearlyData,
+  prepareFieldPerRunData,
+  prepareFieldPerHourData,
+  prepareFieldPerDayData,
+  prepareFieldPerWeekData,
+  prepareFieldPerMonthData,
+  prepareFieldPerYearData
 } from './date-aggregation'
 
 /**
@@ -25,53 +31,74 @@ import {
 export function prepareTimeSeriesData(
   runs: ParsedGameRun[],
   period: TimePeriod,
-  metric: 'coins' | 'cells'
+  metric: string
 ): ChartDataPoint[] {
-  switch (period) {
-    case 'hourly':
-      return metric === 'coins' ? prepareCoinsPerHourData(runs) : prepareCellsPerHourData(runs)
-    case 'run':
-      return metric === 'coins' ? prepareCoinsPerRunData(runs) : prepareCellsPerRunData(runs)
-    case 'daily':
-      if (metric === 'coins') {
-        const dailyData = prepareCoinsPerDayData(runs)
-        return dailyData.map(point => ({
+  // Use coin/cell-specific functions for backwards compatibility
+  if (metric === 'coins' || metric === 'cells') {
+    switch (period) {
+      case 'hourly':
+        return metric === 'coins' ? prepareCoinsPerHourData(runs) : prepareCellsPerHourData(runs)
+      case 'run':
+        return metric === 'coins' ? prepareCoinsPerRunData(runs) : prepareCellsPerRunData(runs)
+      case 'daily':
+        if (metric === 'coins') {
+          const dailyData = prepareCoinsPerDayData(runs)
+          return dailyData.map(point => ({
+            date: point.date,
+            value: point.totalCoins,
+            timestamp: point.timestamp
+          }))
+        } else {
+          const dailyData = prepareCellsPerDayData(runs)
+          return dailyData.map(point => ({
+            date: point.date,
+            value: point.totalCells,
+            timestamp: point.timestamp
+          }))
+        }
+      case 'weekly': {
+        const weeklyData = prepareWeeklyData(runs)
+        return weeklyData.map(point => ({
           date: point.date,
-          value: point.totalCoins,
-          timestamp: point.timestamp
-        }))
-      } else {
-        const dailyData = prepareCellsPerDayData(runs)
-        return dailyData.map(point => ({
-          date: point.date,
-          value: point.totalCells,
+          value: metric === 'coins' ? point.totalCoins : point.totalCells,
           timestamp: point.timestamp
         }))
       }
-    case 'weekly': {
-      const weeklyData = prepareWeeklyData(runs)
-      return weeklyData.map(point => ({
-        date: point.date,
-        value: metric === 'coins' ? point.totalCoins : point.totalCells,
-        timestamp: point.timestamp
-      }))
+      case 'monthly': {
+        const monthlyData = prepareMonthlyData(runs)
+        return monthlyData.map(point => ({
+          date: point.date,
+          value: metric === 'coins' ? point.totalCoins : point.totalCells,
+          timestamp: point.timestamp
+        }))
+      }
+      case 'yearly': {
+        const yearlyData = prepareYearlyData(runs)
+        return yearlyData.map(point => ({
+          date: point.date,
+          value: metric === 'coins' ? point.totalCoins : point.totalCells,
+          timestamp: point.timestamp
+        }))
+      }
+      default:
+        return []
     }
-    case 'monthly': {
-      const monthlyData = prepareMonthlyData(runs)
-      return monthlyData.map(point => ({
-        date: point.date,
-        value: metric === 'coins' ? point.totalCoins : point.totalCells,
-        timestamp: point.timestamp
-      }))
-    }
-    case 'yearly': {
-      const yearlyData = prepareYearlyData(runs)
-      return yearlyData.map(point => ({
-        date: point.date,
-        value: metric === 'coins' ? point.totalCoins : point.totalCells,
-        timestamp: point.timestamp
-      }))
-    }
+  }
+
+  // Use generic field functions for any other metric
+  switch (period) {
+    case 'hourly':
+      return prepareFieldPerHourData(runs, metric)
+    case 'run':
+      return prepareFieldPerRunData(runs, metric)
+    case 'daily':
+      return prepareFieldPerDayData(runs, metric)
+    case 'weekly':
+      return prepareFieldPerWeekData(runs, metric)
+    case 'monthly':
+      return prepareFieldPerMonthData(runs, metric)
+    case 'yearly':
+      return prepareFieldPerYearData(runs, metric)
     default:
       return []
   }
