@@ -42,6 +42,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         icon: 'cells'
       },
       {
+        id: 'field-analytics',
+        label: 'Field Analytics',
+        href: '/charts?chart=fields',
+        icon: 'field-analytics'
+      },
+      {
         id: 'death-analytics',
         label: 'Death Analytics',
         href: '/charts?chart=deaths',

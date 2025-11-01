@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   extractFieldNamesFromStorage,
-  extractFieldNamesFromRuns,
-  getAllKnownFields
+  extractFieldNamesFromRuns
 } from './field-discovery';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
@@ -113,26 +112,26 @@ describe('extractFieldNamesFromRuns', () => {
       realTime: 3600,
       runType: 'farm',
       fields: {
-        _date: {
-          value: '2025-01-15',
-          rawValue: '2025-01-15',
-          displayValue: '2025-01-15',
-          originalKey: '_Date',
-          dataType: 'date'
-        },
-        tier: {
-          value: 10,
-          rawValue: '10',
-          displayValue: '10',
-          originalKey: 'Tier',
+        damageDealt: {
+          value: 100000,
+          rawValue: '100K',
+          displayValue: '100.00K',
+          originalKey: 'Damage Dealt',
           dataType: 'number'
         },
-        coinsEarned: {
-          value: 50000,
-          rawValue: '50K',
-          displayValue: '50.00K',
-          originalKey: 'Coins Earned',
-          dataType: 'number'
+        waveDuration: {
+          value: 120,
+          rawValue: '2m',
+          displayValue: '2m 0s',
+          originalKey: 'Wave Duration',
+          dataType: 'duration'
+        },
+        notes: {
+          value: 'Test notes',
+          rawValue: 'Test notes',
+          displayValue: 'Test notes',
+          originalKey: 'Notes',
+          dataType: 'string'
         }
       }
     };
@@ -140,9 +139,9 @@ describe('extractFieldNamesFromRuns', () => {
     const result = extractFieldNamesFromRuns([run]);
 
     expect(result.size).toBe(3);
-    expect(result.has('_date')).toBe(true);
-    expect(result.has('tier')).toBe(true);
-    expect(result.has('coinsEarned')).toBe(true);
+    expect(result.has('damageDealt')).toBe(true);
+    expect(result.has('waveDuration')).toBe(true);
+    expect(result.has('notes')).toBe(true);
   });
 
   it('should extract unique field names from multiple runs', () => {
@@ -156,18 +155,18 @@ describe('extractFieldNamesFromRuns', () => {
       realTime: 3600,
       runType: 'farm',
       fields: {
-        tier: {
-          value: 10,
-          rawValue: '10',
-          displayValue: '10',
-          originalKey: 'Tier',
+        damageDealt: {
+          value: 100000,
+          rawValue: '100K',
+          displayValue: '100.00K',
+          originalKey: 'Damage Dealt',
           dataType: 'number'
         },
-        wave: {
-          value: 1000,
-          rawValue: '1000',
-          displayValue: '1.00K',
-          originalKey: 'Wave',
+        enemiesDefeated: {
+          value: 500,
+          rawValue: '500',
+          displayValue: '500',
+          originalKey: 'Enemies Defeated',
           dataType: 'number'
         }
       }
@@ -183,19 +182,19 @@ describe('extractFieldNamesFromRuns', () => {
       realTime: 3700,
       runType: 'farm',
       fields: {
-        tier: {
-          value: 11,
-          rawValue: '11',
-          displayValue: '11',
-          originalKey: 'Tier',
+        damageDealt: {
+          value: 120000,
+          rawValue: '120K',
+          displayValue: '120.00K',
+          originalKey: 'Damage Dealt',
           dataType: 'number'
         },
-        coinsEarned: {
-          value: 60000,
-          rawValue: '60K',
-          displayValue: '60.00K',
-          originalKey: 'Coins Earned',
-          dataType: 'number'
+        newField: {
+          value: 'new',
+          rawValue: 'new',
+          displayValue: 'new',
+          originalKey: 'New Field',
+          dataType: 'string'
         }
       }
     };
@@ -203,63 +202,8 @@ describe('extractFieldNamesFromRuns', () => {
     const result = extractFieldNamesFromRuns([run1, run2]);
 
     expect(result.size).toBe(3);
-    expect(result.has('tier')).toBe(true);
-    expect(result.has('wave')).toBe(true);
-    expect(result.has('coinsEarned')).toBe(true);
-  });
-});
-
-describe('getAllKnownFields', () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
-  afterEach(() => {
-    localStorage.clear();
-  });
-
-  it('should return only supported fields when no storage data', () => {
-    const supportedFields = ['tier', 'wave', 'coinsEarned'];
-
-    const result = getAllKnownFields(supportedFields);
-
-    expect(result.size).toBe(3);
-    expect(result.has('tier')).toBe(true);
-    expect(result.has('wave')).toBe(true);
-    expect(result.has('coinsEarned')).toBe(true);
-  });
-
-  it('should combine supported fields and storage fields', () => {
-    const supportedFields = ['tier', 'wave'];
-    const csvData = `_Date\t_Time\ttier\tcoinsEarned\tcustomField
-2025-01-15\t14:30:00\t10\t50000\ttest`;
-    localStorage.setItem('tower-tracking-csv-data', csvData);
-
-    const result = getAllKnownFields(supportedFields);
-
-    // Should have: tier, wave (from supported) + _Date, _Time, coinsEarned, customField (from storage)
-    expect(result.size).toBe(6);
-    expect(result.has('tier')).toBe(true);
-    expect(result.has('wave')).toBe(true);
-    expect(result.has('_Date')).toBe(true);
-    expect(result.has('_Time')).toBe(true);
-    expect(result.has('coinsEarned')).toBe(true);
-    expect(result.has('customField')).toBe(true);
-  });
-
-  it('should deduplicate fields present in both sources', () => {
-    const supportedFields = ['tier', 'wave', 'coinsEarned'];
-    const csvData = `tier\twave\tnewField
-10\t1000\ttest`;
-    localStorage.setItem('tower-tracking-csv-data', csvData);
-
-    const result = getAllKnownFields(supportedFields);
-
-    // Should have: tier, wave, coinsEarned, newField (no duplicates)
-    expect(result.size).toBe(4);
-    expect(result.has('tier')).toBe(true);
-    expect(result.has('wave')).toBe(true);
-    expect(result.has('coinsEarned')).toBe(true);
+    expect(result.has('damageDealt')).toBe(true);
+    expect(result.has('enemiesDefeated')).toBe(true);
     expect(result.has('newField')).toBe(true);
   });
 });

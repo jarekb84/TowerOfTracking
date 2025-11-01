@@ -1,11 +1,17 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/simple-tabs'
 import { DeathsRadarChart } from '../features/analysis/deaths-radar/deaths-radar-chart'
 import { TierStatsTable } from '../features/analysis/tier-stats/tier-stats-table'
 import { TierTrendsAnalysis } from '../features/analysis/tier-trends/tier-trends-analysis'
 import { TimeSeriesChart } from '../features/analysis/time-series/time-series-chart'
+import { FieldSelector } from '../features/analysis/field-analytics/field-selector'
+import { useFieldSelector } from '../features/analysis/field-analytics/use-field-selector'
 import { useChartNavigation, ChartType } from '../features/navigation'
+import { useData } from '../shared/domain/use-data'
+import { formatFieldDisplayName, getFieldFormatter } from '../shared/domain/fields/field-formatters'
+import { getFieldDataType } from '../shared/domain/fields/field-discovery'
 
 interface ChartsSearchParams {
   chart?: ChartType
@@ -22,10 +28,24 @@ export const Route = createFileRoute('/charts')({
 
 function ChartsPage() {
   const { activeChart, setActiveChart } = useChartNavigation()
+  const { runs } = useData()
+  const { selectedField, setSelectedField, availableFields } = useFieldSelector(runs)
 
   const handleTabChange = (value: string) => {
     setActiveChart(value as ChartType)
   }
+
+  // Generate title from selected field for Field Analytics tab
+  const chartTitle = useMemo(() =>
+    `${formatFieldDisplayName(selectedField)} Over Time`,
+    [selectedField]
+  )
+
+  // Get field-specific formatter
+  const valueFormatter = useMemo(() => {
+    const dataType = getFieldDataType(runs, selectedField)
+    return getFieldFormatter(selectedField, dataType)
+  }, [runs, selectedField])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -33,37 +53,44 @@ function ChartsPage() {
         {/* Analytics Tabs */}
         <Tabs value={activeChart} onValueChange={handleTabChange} className="w-full">
           <div className="flex justify-center mb-8">
-            <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 w-full max-w-4xl gap-1">
-              <TabsTrigger 
-                value="coins" 
+            <TabsList className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 w-full max-w-5xl gap-1">
+              <TabsTrigger
+                value="coins"
                 className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-100 hover:bg-emerald-500/10 text-xs sm:text-sm"
               >
                 <span className="hidden sm:inline">Coins Analytics</span>
                 <span className="sm:hidden">Coins</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="cells" 
+              <TabsTrigger
+                value="cells"
                 className="data-[state=active]:bg-pink-500/15 data-[state=active]:text-pink-100 hover:bg-pink-500/10 text-xs sm:text-sm"
               >
                 <span className="hidden sm:inline">Cells Analytics</span>
                 <span className="sm:hidden">Cells</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="deaths" 
+              <TabsTrigger
+                value="fields"
+                className="data-[state=active]:bg-indigo-500/15 data-[state=active]:text-indigo-100 hover:bg-indigo-500/10 text-xs sm:text-sm"
+              >
+                <span className="hidden sm:inline">Field Analytics</span>
+                <span className="sm:hidden">Fields</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="deaths"
                 className="data-[state=active]:bg-red-500/15 data-[state=active]:text-red-100 hover:bg-red-500/10 text-xs sm:text-sm"
               >
                 <span className="hidden sm:inline">Deaths Analysis</span>
                 <span className="sm:hidden">Deaths</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="tiers" 
+              <TabsTrigger
+                value="tiers"
                 className="data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-100 hover:bg-blue-500/10 text-xs sm:text-sm"
               >
                 <span className="hidden sm:inline">Tier Stats</span>
                 <span className="sm:hidden">Stats</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="trends" 
+              <TabsTrigger
+                value="trends"
                 className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-100 hover:bg-orange-500/10 text-xs sm:text-sm"
               >
                 <span className="hidden sm:inline">Tier Trends</span>
@@ -111,6 +138,48 @@ function ChartsPage() {
                     defaultPeriod="hourly"
                     showFarmingOnly={true}
                   />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="fields" className="space-y-8 lg:space-y-12">
+            <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-indigo-500/10 transition-all duration-300">
+              <CardHeader className="bg-gradient-to-r from-indigo-500/10 via-transparent to-indigo-500/10 border-b border-slate-700/50">
+                <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+                  <div className="w-2 h-8 bg-gradient-to-b from-indigo-400 to-indigo-600 rounded-full shadow-lg shadow-indigo-500/30"></div>
+                  Field Analytics
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Custom Metric Analysis</span>
+                </CardTitle>
+                <p className="text-slate-400 text-sm mt-2">
+                  Analyze trends for any tracked metric. Select a field below to visualize performance over time across different periods.
+                </p>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="p-8 w-full space-y-6">
+                  {/* Field Selector */}
+                  <div className="flex justify-center">
+                    <FieldSelector
+                      selectedField={selectedField}
+                      onFieldChange={setSelectedField}
+                      availableFields={availableFields}
+                    />
+                  </div>
+
+                  {/* Time Series Chart */}
+                  {runs.length === 0 ? (
+                    <div className="h-[400px] flex items-center justify-center text-slate-400 px-4 text-center">
+                      <p>No run data available. Import your game data to get started.</p>
+                    </div>
+                  ) : (
+                    <TimeSeriesChart
+                      metric={selectedField}
+                      title={chartTitle}
+                      defaultPeriod="hourly"
+                      showFarmingOnly={true}
+                      valueFormatter={valueFormatter}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>
