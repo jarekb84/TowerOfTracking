@@ -40,11 +40,42 @@ You will examine:
 ### Step 2: Extract Key Information
 Identify:
 - Type of change (feature/fix/refactor/docs/test/chore)
-- **Whether this is a bug fix** (look for keywords like "fix", "bug", "issue", "error", branch names with "fix" or "bug")
+- **Change category** for semantic prefix (see Step 2.5):
+  - Bug fix (keywords: "fix", "bug", "issue", "error", branch names with "fix" or "bug")
+  - New feature or major overhaul (new page, new capability, major rewrite)
+  - Extension/improvement of existing feature (new filter, design updates, incremental enhancement)
+  - Refactor/reorganization (code cleanup, file reorganization, structural changes)
+  - AI instruction update (agent additions, CLAUDE.md changes, workflow updates)
 - User-facing impacts
 - Technical decisions made
 - Why the change was necessary
 - What problem it solves
+
+### Step 2.5: Determine Semantic Prefix
+
+**CRITICAL**: Apply the appropriate ALL-CAPS prefix to both commit subject AND PR title based on change category:
+
+**Prefix Rules**:
+- **BUG:** - Bug fixes that correct unintended behavior or errors
+  - Example: `BUG: Fix tier trends displaying non-comparable text fields`
+
+- **MINOR:** - New features or major overhauls of existing features
+  - Use when: Adding new page, new capability, major rewrite
+  - Example: `MINOR: Add configurable columns to tier stats table`
+
+- **IMPROVE:** - Extensions or improvements to existing features
+  - Use when: Adding filters, updating designs/styles, incremental enhancements
+  - Example: `IMPROVE: Add search and drag-drop reordering to tier stats`
+
+- **REFACTOR:** - Code cleanup, reorganization, or structural changes
+  - Use when: File reorganization, eliminating duplication, restructuring
+  - Example: `REFACTOR: Eliminate logic directories and organize by purpose`
+
+- **AI:** - AI instruction or agent updates
+  - Use when: Adding/updating agents, CLAUDE.md changes, workflow updates
+  - Example: `AI: Add Code Organization & Naming Agent as final review stage`
+
+**No Prefix**: Use for minor documentation updates, dependency updates, or chores that don't fit the above categories.
 
 ### Step 3: Generate Commit Message
 
@@ -58,18 +89,18 @@ Identify:
 ```
 
 **Rules**:
+- **SEMANTIC PREFIX**: Apply appropriate ALL-CAPS prefix from Step 2.5 (BUG:, MINOR:, IMPROVE:, REFACTOR:, AI:)
 - Subject: Present tense, imperative mood ("Add", "Fix", "Update")
-- **BUG FIX PREFIX**: If this is a bug fix, prefix the subject with "BUG: Fix " (e.g., "BUG: Fix user authentication timeout issue")
-- Subject: Maximum 72 characters, must stand alone in commit history
+- Subject: Maximum 72 characters (including prefix), must stand alone in commit history
 - What Details: 1-2 sentences with specific technical details
 - Why: 1-2 sentences explaining motivation/problem solved
 - Total length: 5-10 lines including subject and blank lines
 - Focus on essence - capture tribal knowledge efficiently
 
 ### Step 4: Generate PR Title
-- Maximum 80 characters
-- Closely aligned with commit subject
-- **BUG FIX PREFIX**: If this is a bug fix, use the same "BUG: Fix " prefix as the commit message
+- **SEMANTIC PREFIX**: Use the SAME prefix as the commit subject (BUG:, MINOR:, IMPROVE:, REFACTOR:, AI:)
+- Maximum 80 characters (including prefix)
+- Closely aligned with commit subject - often identical to commit subject line
 - High-level description of the change set
 
 ### Step 5: Generate PR Description
@@ -117,7 +148,7 @@ Present your output in this structure:
 
 ### Commit Message (Copy and use with git commit)
 ```
-[subject line - with "BUG: Fix " prefix if bug fix]
+[PREFIX: Subject line - with appropriate semantic prefix from Step 2.5]
 
 [what details paragraph]
 
@@ -126,7 +157,7 @@ Present your output in this structure:
 
 ### PR Title
 ```
-[title text - with "BUG: Fix " prefix if bug fix]
+[PREFIX: Title text - with SAME semantic prefix as commit message]
 ```
 
 ### PR Description (Copy-Paste Ready Markdown)
@@ -149,7 +180,8 @@ Present your output in this structure:
 
 Before returning output, verify:
 - [ ] Commit message is 5-10 lines total
-- [ ] **Bug fix commits/PRs have "BUG: Fix " prefix**
+- [ ] **Appropriate semantic prefix applied** (BUG:, MINOR:, IMPROVE:, REFACTOR:, AI:, or none)
+- [ ] **Same prefix used in both commit subject AND PR title**
 - [ ] PR description is 2-3x commit length (max ~30 lines)
 - [ ] PR description Summary section is non-technical and human-readable
 - [ ] PR description follows "bottom line up front" - summary before technical details
@@ -165,15 +197,20 @@ Before returning output, verify:
 
 ## Examples to Guide You
 
-### Feature Example:
+### New Feature Example:
 
 **Commit Message:**
 ```
-Add OAuth2 authentication for third-party integrations
+MINOR: Add OAuth2 authentication for third-party integrations
 
 Implements OAuth2 middleware with automatic token refresh and multi-provider support.
 
 Partners need secure API access without managing individual API keys for better security and easier integration.
+```
+
+**PR Title:**
+```
+MINOR: Add OAuth2 authentication for third-party integrations
 ```
 
 **PR Description (Raw Markdown):**
@@ -188,6 +225,34 @@ Third-party partners can now authenticate with our API using OAuth2, eliminating
 - Added rate limiting per OAuth client
 ````
 
+### Improvement Example:
+
+**Commit Message:**
+```
+IMPROVE: Add search and drag-drop reordering to tier stats table
+
+Implements real-time field search with debouncing and drag-drop column reordering with visual feedback.
+
+Users need to quickly find specific fields in the 80+ column table and customize column order for their workflow.
+```
+
+**PR Title:**
+```
+IMPROVE: Add search and drag-drop reordering to tier stats table
+```
+
+**PR Description (Raw Markdown):**
+````markdown
+## Summary
+Users can now search for specific fields in the tier stats table and reorder columns via drag-drop. This makes it easier to find relevant fields among 80+ columns and customize the table layout for individual workflows.
+
+## Technical Details
+- Added debounced search filter with real-time field matching
+- Implemented drag-drop reordering using DnD Kit library
+- Added visual feedback for drag operations and drop zones
+- Persisted column order to localStorage for session continuity
+````
+
 ### Bug Fix Example:
 
 **Commit Message:**
@@ -197,6 +262,11 @@ BUG: Fix memory leak in image processing pipeline
 Added proper file handle cleanup and context managers in batch processing.
 
 Unclosed file handles caused out-of-memory errors when processing 100+ images.
+```
+
+**PR Title:**
+```
+BUG: Fix memory leak in image processing pipeline
 ```
 
 **PR Description (Raw Markdown):**
@@ -211,6 +281,62 @@ Fixed a critical memory leak that crashed the server when processing large batch
 
 ## Context
 This issue only manifested when processing 100+ images in a single batch, which is why it wasn't caught during initial development.
+````
+
+### Refactor Example:
+
+**Commit Message:**
+```
+REFACTOR: Eliminate logic directories and organize by purpose
+
+Reorganizes pure functions from type-based logic/ directories into feature-specific purpose-based subdirectories.
+
+Improves discoverability and maintains feature cohesion by co-locating related code instead of separating by technical type.
+```
+
+**PR Title:**
+```
+REFACTOR: Eliminate logic directories and organize by purpose
+```
+
+**PR Description (Raw Markdown):**
+````markdown
+## Summary
+Reorganized code from generic "logic" directories into feature-specific subdirectories named by purpose (calculations/, filtering/, formatting/). This makes it easier to find related code and keeps features self-contained.
+
+## Technical Details
+- Moved calculation functions into calculations/ subdirectories within features
+- Consolidated filtering logic into filters/ subdirectories
+- Updated all import paths to reflect new structure
+- Applied Boy-Scout rule incrementally during feature work
+````
+
+### AI Instruction Example:
+
+**Commit Message:**
+```
+AI: Add Code Organization & Naming Agent as final review stage
+
+Implements new specialized agent for file organization and naming clarity validation as mandatory final step.
+
+Ensures consistent application of feature-based organization principles and intent-revealing naming standards across all changes.
+```
+
+**PR Title:**
+```
+AI: Add Code Organization & Naming Agent as final review stage
+```
+
+**PR Description (Raw Markdown):**
+````markdown
+## Summary
+Added a new AI agent that automatically reviews all code changes for proper file organization and clear naming conventions. This agent runs as the final mandatory step after architectural review to ensure consistent code structure.
+
+## Technical Details
+- Created code-organization-naming agent with specialized instructions
+- Integrated into mandatory 3-agent review workflow
+- Added file organization checklist and naming standards validation
+- Configured as final review stage before user handoff
 ````
 
 Remember: You are writing for developers who need to understand changes quickly and for automated systems that will generate release notes. Be concise, be clear, be complete. Always output PR descriptions as RAW MARKDOWN in fenced code blocks.
