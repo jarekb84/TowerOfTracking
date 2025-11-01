@@ -671,13 +671,239 @@ The codebase organization and naming have been refined for improved discoverabil
 2. Add handoff protocol from Architecture Review Agent to Code Organization & Naming Agent
 3. Define completion summary format for new agent
 
-### Phase 6: Update Related Documentation
+### Phase 6: Update Related Documentation & AI Instructions
 **Deliverables:**
-1. Review `.ruler` directory files for file organization duplication
-2. Extract duplicated file organization details into new agent
-3. Keep high-level guidance in `.ruler/04-engineering-standards.md`
-4. Update cross-references between documents
-5. Ensure no contradictions between agents
+
+#### A. Update Architecture Review Agent (`.claude/agents/architecture-review.md`)
+**REMOVE type organization concerns** - delegate to Code Organization & Naming Agent:
+
+1. **Remove** any existing type definition organization guidance
+2. **Remove** type file organization checks and validation
+3. **Remove** type co-location rules and decision frameworks
+4. **Add** delegation statement pointing to Code Organization & Naming Agent
+
+**Add Delegation Statement:**
+```markdown
+## Type Organization (Delegated to Code Organization & Naming Agent)
+
+Type definition organization, file placement, and co-location are handled by the Code Organization & Naming Agent.
+
+The Architecture Review Agent focuses on LOGICAL architecture concerns:
+- Abstraction design and component decomposition
+- Performance optimization (algorithms, data structures)
+- Cross-cutting concerns and architectural patterns
+- React separation and logic extraction
+
+For TYPE ORGANIZATION concerns, see Code Organization & Naming Agent:
+- Type file organization (centralized vs. feature-owned)
+- Type co-location with owning features
+- Type file naming and structure
+- Centralized type file decomposition
+```
+
+**Keep in Architecture Review Agent** (logical concerns only):
+- Component line limits and decomposition (logical structure)
+- React separation violations (logic in .tsx files)
+- Performance anti-patterns (algorithmic issues)
+- Abstraction design (DRY, separation of concerns)
+
+#### B. Update Code Organization & Naming Agent (`.claude/agents/code-organization-naming.md`)
+**ADD comprehensive type definition co-location guidance** (from Migration Story 11B):
+
+**Type Co-Location Decision Framework** (question-based):
+```markdown
+## Type Definition Organization
+
+### Decision Framework: Where Should This Type Live?
+
+Ask these questions in order for EACH type definition:
+
+**Q1: How many files use this type?**
+- Single file → Define inline in that file (no separate types file)
+- 2-3 files within same feature → Consider separate `types.ts` in feature
+- 3+ files across different features → Evaluate for `shared/types/`
+
+**Q2: Who "owns" this type (who creates instances)?**
+- Single feature creates it → Feature-owned type
+- Multiple features create it → Potentially shared type
+- Only consumed (never created) → Look at primary consumer
+
+**Q3: What is the type's purpose?**
+- Component props → Inline with component
+- Feature configuration → Feature `types.ts`
+- Core data structure (ParsedGameRun) → Potentially `shared/types/`
+- Feature-specific enum/constant → Feature `types.ts`
+
+**Q4: Is this type truly cross-cutting?**
+- Used by data-import, game-runs, AND analysis? → `shared/types/`
+- Used only within analytics feature? → `features/analysis/shared/types.ts`
+- Used only within single sub-feature? → That sub-feature's `types.ts`
+```
+
+**Type Organization Anti-Patterns**:
+```markdown
+### Type Definition Anti-Patterns (FORBIDDEN)
+
+**❌ ANTI-PATTERN 1: Centralized Type Dumping Ground**
+```typescript
+// ❌ BAD: src/shared/types/game-run.types.ts (200+ lines)
+export enum TrendsDuration { /* ... */ }      // Only used by tier-trends
+export type CsvDelimiter = /* ... */          // Only used by csv-import
+export interface ParsedGameRun { /* ... */ }  // Used everywhere
+export interface FieldTrendData { /* ... */ } // Only used by tier-trends
+```
+
+**Problem**: Mixing types from multiple unrelated features violates co-location principle.
+
+**❌ ANTI-PATTERN 2: Type-Based Organization**
+Creating `types/` directories at feature level equivalent to `components/`, `hooks/` directories.
+
+**❌ ANTI-PATTERN 3: Premature Type Extraction**
+Creating separate `types.ts` for single type used by single file.
+
+**❌ ANTI-PATTERN 4: Ambiguous Ownership**
+Type definition separated from code that creates/owns it.
+```
+
+**Type Co-Location Rules**:
+```markdown
+### Type Co-Location Rules
+
+**Rule 1: Feature-Owned Types (Default)**
+- **When**: Type used by single feature OR created by single feature
+- **Location**: `features/<feature>/types.ts` OR inline with implementation
+- **Example**: `TrendsDuration` → `features/analysis/tier-trends/types.ts`
+
+**Rule 2: Inline Types (Simplest)**
+- **When**: Type used by single file (especially component props)
+- **Location**: Same file as implementation
+- **Example**: Component prop interfaces defined in component file
+
+**Rule 3: Feature Types File**
+- **When**: 3+ related types used across feature, OR types are referenced by multiple files
+- **Location**: `features/<feature>/types.ts`
+- **Example**: CSV import has 5 types → `csv-import/types.ts`
+
+**Rule 4: Shared Within Feature Domain**
+- **When**: Type shared between 2-3 sub-features of same domain
+- **Location**: `features/<domain>/shared/types.ts`
+- **Example**: Type shared between tier-trends and tier-stats
+
+**Rule 5: Truly Shared Types (Rare)**
+- **When**: Type used across 3+ distinct features
+- **Location**: `shared/types/<domain>.types.ts`
+- **Example**: `ParsedGameRun` used by data-import, game-runs, analytics
+- **CRITICAL**: Must pass 3+ feature test - don't prematurely extract
+```
+
+**Type File Creation Guidelines**:
+```markdown
+### When NOT to Create Separate Types File
+
+- Type used by single component → define inline
+- Type is simple prop interface → keep with component
+- Type is tightly coupled to implementation → same file
+- Only 1-2 types for feature → define inline or with primary use
+
+### When TO Create Types File
+
+- 3+ related types for a feature/concept
+- Types referenced by multiple files within feature
+- Types represent core domain data structures
+- Types have complex JSDoc documentation requiring separation
+```
+
+**Refactoring Guidance**:
+```markdown
+### Boy-Scout Rule for Type Organization
+
+**When touching code that imports from centralized type file:**
+1. [ ] Evaluate if imported type is feature-specific (answer decision framework questions)
+2. [ ] If yes, move type to owning feature's `types.ts`
+3. [ ] Update imports in files within that feature
+4. [ ] Document remaining truly shared types with justification
+
+**Example Incremental Migration**:
+```typescript
+// BEFORE: Centralized types file
+// src/shared/types/game-run.types.ts
+export enum TrendsDuration { /* tier-trends specific */ }
+export type CsvDelimiter { /* csv-import specific */ }
+
+// AFTER: Feature-owned types
+// src/features/analysis/tier-trends/types.ts
+export enum TrendsDuration { /* ... */ }
+
+// src/features/data-import/csv-import/types.ts
+export type CsvDelimiter { /* ... */ }
+
+// Only truly shared remain in shared/types/game-run.types.ts
+export interface ParsedGameRun { /* used by 5+ features */ }
+```
+```
+
+**Type Organization Review Checklist**:
+```markdown
+### Type Definition Organization Review
+
+For every PR, verify:
+- [ ] No new types added to `shared/types/` without 3+ feature justification
+- [ ] Feature-specific types are co-located with owning feature
+- [ ] No centralized type files mixing unrelated feature types
+- [ ] Type ownership is clear from file location (passes decision framework)
+- [ ] No separate `types.ts` for 1-2 simple types (use inline instead)
+- [ ] Component prop interfaces are inline with component (not in types file)
+```
+
+**Reference Migration Story**:
+Reference [Migration Story 11B: Game Run Types Decomposition](../docs/migration-stories/11b-game-run-types-decomposition.md) for detailed case study and examples.
+
+#### C. Update Engineering Standards (`.ruler/04-engineering-standards.md`)
+**Add high-level type co-location principles** (delegate details to Code Organization & Naming Agent):
+
+**Add Section to Engineering Standards:**
+```markdown
+## Type Definition Co-Location
+
+**CRITICAL**: Type definitions follow the same co-location principles as all code - organize by feature/domain, not by file type.
+
+### Core Principle
+Type definitions should live WITH the code that owns/creates them, not in centralized type files separated by technical classification.
+
+### Quick Rules
+- **Single file usage** → Inline in that file
+- **Feature-specific** → `features/<feature>/types.ts`
+- **Truly shared (3+ features)** → `shared/types/<domain>.types.ts`
+
+### Anti-Pattern Alert
+Creating centralized `types.ts` files that mix types from multiple unrelated features is equivalent to creating `components/`, `hooks/`, `logic/` directories - it violates feature-based organization.
+
+**See detailed guidance in:**
+- **Code Organization & Naming Agent**: Type organization decision framework, type file validation, and centralized type decomposition
+- **Migration Story 11B**: Case study on decomposing centralized type files
+```
+
+#### D. Migration Story 11B Integration
+1. Ensure Migration Story 11B is referenced in all agent documentation
+2. Use as canonical example of type organization refactoring
+3. Reference decision framework and examples
+
+#### E. Cross-Reference Updates
+1. Review all `.ruler/*.md` files for type organization mentions
+2. **Remove** type organization from Architecture Review Agent (if present)
+3. Ensure all type organization references point to Code Organization & Naming Agent
+4. Update cross-references between:
+   - **Engineering standards** (high-level principles only)
+   - **Code Organization & Naming Agent** (detailed type organization, decision framework, validation)
+   - **Migration Story 11B** (practical example and case study)
+5. Ensure no contradictions or duplication between documents
+
+#### F. Validation
+1. Verify Architecture Review Agent NO LONGER contains type organization guidance
+2. Verify Code Organization & Naming Agent HAS comprehensive type organization guidance
+3. Verify all cross-references point to correct agent (Code Org & Naming, not Architecture)
+4. Test that question-based approach is clearly documented in Code Org & Naming Agent
+5. Ensure Migration Story 11B is referenced as canonical example
 
 ### Phase 7: Testing & Validation
 **Deliverables:**
