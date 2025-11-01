@@ -1,5 +1,5 @@
-import type { GameRunField, RunTypeValue } from '@/shared/types/game-run.types';
-import { RunType } from '@/shared/types/game-run.types';
+import type { GameRunField } from '@/shared/types/game-run.types';
+import { RunType, RunTypeValue } from './types';
 
 /**
  * Determines run type from CSV field data

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { detectRunTypeFromFields, extractNumericStats, hasExplicitRunType } from './run-type-detection';
-import { RunType } from '@/shared/types/game-run.types';
+import { RunType } from './types';
 import type { GameRunField } from '@/shared/types/game-run.types';
 
 describe('Run Type Detection', () => {

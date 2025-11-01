@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { exportToCsv, generateExportFilename, copyToClipboard, downloadAsFile } from './csv-exporter';
-import type { CsvDelimiter, ParsedGameRun } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { CsvExportConfig, CsvExportResult } from './csv-exporter';
 
 export interface UseCsvExportState {

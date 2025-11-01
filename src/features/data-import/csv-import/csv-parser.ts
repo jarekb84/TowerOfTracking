@@ -1,11 +1,13 @@
 import type {
   ParsedGameRun,
+  GameRunField
+} from '@/shared/types/game-run.types';
+import type {
   CsvParseConfig,
   CsvParseResult,
   FieldMappingReport,
-  GameRunField,
   CsvDelimiter
-} from '@/shared/types/game-run.types';
+} from './types';
 import { createGameRunField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
 import { parseTimestampFromFields } from '../../../shared/formatting/date-formatters';

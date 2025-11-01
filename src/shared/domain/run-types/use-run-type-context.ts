@@ -1,6 +1,6 @@
 import { useLocation } from '@tanstack/react-router'
 import { mapUrlTypeToRunType } from '../run-types/run-type-defaults'
-import { RunType, RunTypeValue } from '@/shared/types/game-run.types'
+import { RunType, RunTypeValue } from './types'
 
 interface RunsSearchParams {
   type?: RunTypeValue

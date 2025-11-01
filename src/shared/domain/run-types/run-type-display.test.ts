@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RunType } from '@/shared/types/game-run.types'
+import { RunType } from './types'
 import {
   getRunTypeColor,
   getRunTypeBackgroundColor,

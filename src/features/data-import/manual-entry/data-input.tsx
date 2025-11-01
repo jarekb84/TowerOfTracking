@@ -9,7 +9,7 @@ import { DataInputActionsSection } from './data-input-actions-section';
 import { DataInputDateTimeSection } from './data-input-datetime-section';
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector';
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
-import { RunType } from '@/shared/types/game-run.types';
+import { RunType } from '@/shared/domain/run-types/types';
 
 interface DataInputProps {
   className?: string;

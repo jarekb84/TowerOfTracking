@@ -1,8 +1,8 @@
 import { FormControl, SelectionButtonGroup } from '@/components/ui'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
-import type { TierTrendsFilters } from '@/shared/types/game-run.types'
-import { TrendsDuration, TrendsAggregation } from '@/shared/types/game-run.types'
+import type { TierTrendsFilters } from '../types'
+import { TrendsDuration, TrendsAggregation } from '../types'
 import { getDefaultAggregationType, getQuantityLabel } from '../calculations/tier-trends-calculations'
 import { getAggregationOptions } from './aggregation-options'
 

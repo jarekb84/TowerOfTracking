@@ -3,7 +3,8 @@ import { format } from 'date-fns';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue, getFieldRaw } from '@/features/analysis/shared/parsing/field-utils';
 import { capitalizeFirst } from '../../../shared/formatting/string-formatters';
-import { ParsedGameRun, RunType } from '@/shared/types/game-run.types';
+import { ParsedGameRun } from '@/shared/types/game-run.types';
+import { RunType } from '@/shared/domain/run-types/types';
 import { RunTypeIndicator } from '@/shared/domain/run-types/run-type-indicator';
 
 interface DataInputPreviewProps {

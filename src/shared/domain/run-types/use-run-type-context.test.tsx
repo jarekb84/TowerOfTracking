@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useRunTypeContext } from './use-run-type-context'
-import { RunTypeValue } from '@/shared/types/game-run.types'
+import { RunTypeValue } from './types'
 import * as TanStackRouter from '@tanstack/react-router'
 
 // Mock TanStack Router hooks

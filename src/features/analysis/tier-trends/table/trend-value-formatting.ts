@@ -1,4 +1,4 @@
-import { TrendsAggregation } from '@/shared/types/game-run.types';
+import { TrendsAggregation } from '../types';
 import { formatNumber } from '@/features/analysis/shared/parsing/data-parser';
 
 /**

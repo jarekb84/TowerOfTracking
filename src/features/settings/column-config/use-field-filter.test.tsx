@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFieldFilter } from './use-field-filter';
-import type { FieldTrendData } from '@/shared/types/game-run.types';
+import type { FieldTrendData } from '@/features/analysis/tier-trends/types';
 
 // Mock field trend data for testing
 const mockTrends: FieldTrendData[] = [

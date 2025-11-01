@@ -1,4 +1,4 @@
-import { RunType, RunTypeValue } from '@/shared/types/game-run.types'
+import { RunType, RunTypeValue } from './types'
 
 /**
  * Run type color mappings for visual consistency

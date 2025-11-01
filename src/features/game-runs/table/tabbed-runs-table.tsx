@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
 import { useData } from '@/shared/domain/use-data';
-import { RunType } from '@/shared/types/game-run.types';
+import { RunType } from '@/shared/domain/run-types/types';
 import { FarmingRunsTable } from '../table-variants/farming-runs-table';
 import { TournamentRunsTable } from '../table-variants/tournament-runs-table';
 import { MilestoneRunsTable } from '../table-variants/milestone-runs-table';

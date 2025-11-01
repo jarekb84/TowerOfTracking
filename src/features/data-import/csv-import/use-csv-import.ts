@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { parseGenericCsv, getDelimiterString } from './csv-parser';
 import { useData } from '@/shared/domain/use-data';
 import { useFileImport } from './input/csv-file-upload';
-import type { CsvDelimiter, CsvParseResult } from '@/shared/types/game-run.types';
+import type { CsvDelimiter, CsvParseResult } from './types';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 

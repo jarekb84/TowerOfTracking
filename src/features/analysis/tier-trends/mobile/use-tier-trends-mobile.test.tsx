@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useTierTrendsMobile } from './use-tier-trends-mobile'
-import type { FieldTrendData, ComparisonColumn } from '@/shared/types/game-run.types'
+import type { FieldTrendData, ComparisonColumn } from '../types'
 
 describe('useTierTrendsMobile', () => {
   const mockTrend: FieldTrendData = {

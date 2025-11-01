@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import type { CsvParseResult } from '@/shared/types/game-run.types';
+import type { CsvParseResult } from '../types';
 
 interface ImportStatusCardProps {
   parseResult: CsvParseResult;

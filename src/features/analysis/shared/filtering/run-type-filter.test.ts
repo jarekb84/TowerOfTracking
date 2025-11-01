@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { filterRunsByType, getFarmingRuns, getTournamentRuns, getMilestoneRuns, isFarmingRun, isMilestoneRun } from './run-type-filter'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
-import { RunType } from '@/shared/types/game-run.types'
+import { RunType } from '@/shared/domain/run-types/types'
 
 // Mock game run data
 const mockRuns: ParsedGameRun[] = [

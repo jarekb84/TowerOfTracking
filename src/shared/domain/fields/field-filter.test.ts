@@ -5,7 +5,7 @@ import {
   matchesFieldName, 
   isValidSearchTerm 
 } from './field-filter';
-import type { FieldTrendData } from '@/shared/types/game-run.types';
+import type { FieldTrendData } from '@/features/analysis/tier-trends/types';
 
 // Mock field trend data for testing
 const mockFieldTrends: FieldTrendData[] = [

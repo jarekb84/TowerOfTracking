@@ -1,4 +1,5 @@
-import { RunType, TrendsDuration, type RunTypeValue } from '@/shared/types/game-run.types'
+import { RunType, type RunTypeValue } from '@/shared/domain/run-types/types'
+import { TrendsDuration } from './types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 /**

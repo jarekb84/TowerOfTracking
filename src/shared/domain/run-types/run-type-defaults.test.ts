@@ -3,7 +3,7 @@ import {
   mapUrlTypeToRunType,
   normalizeRunTypeFilter
 } from './run-type-defaults'
-import { RunType } from '@/shared/types/game-run.types'
+import { RunType } from './types'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 describe('mapUrlTypeToRunType', () => {

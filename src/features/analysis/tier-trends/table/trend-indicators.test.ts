@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from './trend-indicators'
-import type { FieldTrendData } from '@/shared/types/game-run.types'
+import type { FieldTrendData } from '../types'
 
 describe('trend-indicators', () => {
   describe('getTrendChangeColor', () => {

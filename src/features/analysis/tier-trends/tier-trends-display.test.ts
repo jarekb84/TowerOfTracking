@@ -5,7 +5,8 @@ import {
   formatDurationDisplay,
   formatPeriodSummary
 } from './tier-trends-display'
-import { RunType, TrendsDuration } from '@/shared/types/game-run.types'
+import { RunType } from '@/shared/domain/run-types/types'
+import { TrendsDuration } from './types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 describe('formatRunTypeDisplay', () => {
