@@ -1,4 +1,4 @@
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { createTournamentTableColumns } from './tournament-table-columns';
 import { BaseRunsTable } from '../table/base-runs-table';
 import { useTierFilter } from '../filters/use-tier-filter';

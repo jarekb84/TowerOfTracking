@@ -4,7 +4,7 @@ import {
   isTextCategoricalField,
   getExcludedTrendFields
 } from './field-type-detection';
-import type { GameRunField } from '@/features/data-tracking/types/game-run.types';
+import type { GameRunField } from '@/shared/types/game-run.types';
 
 describe('field-type-detection', () => {
   describe('isTrendableField', () => {

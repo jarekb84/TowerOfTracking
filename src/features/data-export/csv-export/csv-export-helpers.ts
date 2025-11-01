@@ -1,4 +1,4 @@
-import type { CsvDelimiter } from '../../data-tracking/types/game-run.types';
+import type { CsvDelimiter } from '@/shared/types/game-run.types';
 import type { CsvExportResult } from './csv-exporter';
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
 

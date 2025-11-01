@@ -1,4 +1,4 @@
-import { Button } from '../../../components/ui';
+import { Button } from '@/components/ui';
 import { Upload, FileText } from 'lucide-react';
 
 interface DataInputActionsSectionProps {

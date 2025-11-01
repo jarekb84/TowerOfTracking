@@ -5,7 +5,7 @@ import {
   formatTimeFromDate,
   createDateTimeFromComponents,
 } from './data-input-state';
-import { RunType } from '../../data-tracking/types/game-run.types';
+import { RunType } from '@/shared/types/game-run.types';
 
 describe('data-input-state utilities', () => {
   let mockDate: Date;

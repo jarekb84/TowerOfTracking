@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ThemeSettings } from '../features/theming'
-import { DataSettings, CsvImport, CsvExport } from '../features/data-tracking'
+import { DataSettings } from '../features/settings/data-settings/data-settings'
+import { CsvImport } from '../features/data-import/csv-import/csv-import'
+import { CsvExport } from '../features/data-export/csv-export/csv-export'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui'
 
 export const Route = createFileRoute('/settings')({

@@ -1,7 +1,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import { formatDuration, getTournamentLeague } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { StickyNote } from 'lucide-react';
 import { ExpandButton, DeleteButton } from '../table-ui/table-action-buttons';
 

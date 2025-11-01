@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 import { format } from 'date-fns';
 import { formatNumber, formatDuration } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
-import type { GameRun } from '../../../data-tracking/types/game-run.types';
+import type { GameRun } from '@/shared/types/game-run.types';
 
 interface ImportPreviewProps {
   runs: GameRun[];

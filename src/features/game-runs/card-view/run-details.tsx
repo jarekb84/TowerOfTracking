@@ -1,4 +1,4 @@
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { getFieldDisplayConfig } from '../fields/field-display-config';
 import { buildContainerClassName, buildValueClassName } from '../fields/field-rendering-utils';
 import { StickyNote } from 'lucide-react';

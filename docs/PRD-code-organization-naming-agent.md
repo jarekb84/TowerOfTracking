@@ -95,11 +95,17 @@ However, it **does not** systematically address:
 ## Success Criteria
 
 ### Measurable Outcomes
-1. **Zero Type-Based Organization** at feature level (components/, hooks/, logic/)
-2. **Zero Directories Exceeding 10 Implementation Files** without sub-grouping
-3. **Zero Generic File Names** without clear context (utils.ts, helpers.ts, common.ts)
-4. **Improved Code Discoverability**: Developers can find functions by following directory → file naming
-5. **Clear Intent Revelation**: Each naming layer (directory, file, function) reveals purpose
+1. **Zero Type-Based Organization at ANY Level** (components/, hooks/, logic/, types/, utils/)
+   - Applies to feature-level AND shared code directories
+   - THE ONE EXCEPTION: `src/components/ui/` for generic UI primitives only
+2. **Zero Components/Hooks in Separate Type Directories**
+   - All components/hooks colocated with their domain logic
+   - Example: `run-types/run-type-selector.tsx` (NOT `components/run-type-selector.tsx`)
+3. **Zero Directories Exceeding 10 Implementation Files** without sub-grouping (excluding tests)
+4. **Zero Generic File Names** without clear context (utils.ts, helpers.ts, common.ts, misc.ts)
+   - Applies to feature-level AND shared code
+5. **Improved Code Discoverability**: Developers can find functions by following directory → file naming
+6. **Clear Intent Revelation**: Each naming layer (directory, file, function) reveals purpose
 
 ### Quality Indicators
 - Developer can predict file contents from directory + file name
@@ -120,6 +126,20 @@ However, it **does not** systematically address:
 - Co-location of related files (component + hook + logic + tests)
 - Directory naming validation (purpose-based vs type-based)
 - Incremental reorganization using Boy Scout Rule
+
+**THE ONE EXCEPTION (and it's NON-NEGOTIABLE):**
+- `src/components/ui/` is the ONLY acceptable type-based directory
+- Contains ONLY generic UI primitives (shadcn/ui library components)
+- Does NOT contain business domain components
+- Business components MUST be colocated with their domain logic
+- Example: `shared/domain/run-types/run-type-selector.tsx` (NOT `components/run-type-selector.tsx`)
+
+**CRITICAL RULE - Applies Everywhere:**
+- Type-based organization (components/, hooks/, logic/, types/, utils/) is FORBIDDEN at:
+  - ❌ Feature level (src/features/analytics/components/)
+  - ❌ Shared code level (src/shared/domain/components/)
+  - ❌ ANY level except `src/components/ui/`
+- ALL code must be organized by domain purpose, with components/hooks colocated with logic
 
 #### Phase 2: File Naming Review (New Capability)
 **New Review Focus:**
@@ -445,19 +465,90 @@ src/features/analytics/
 3. **File** (`tier-trends-calculations.ts`) → "Tier trend calculation functions"
 4. **Function** (`calculateAverageCoinsPerWave()`) → "Calculates average coins per wave"
 
+#### Example 4: Shared Code Organization (NO Type-Based Directories!)
+
+**BEFORE (Type-Based Shared Code - WRONG):**
+```bash
+shared/domain/
+├── components/                  # ❌ Type-based directory
+│   ├── run-type-selector.tsx
+│   ├── field-search.tsx
+│   └── duplicate-info.tsx
+├── hooks/                       # ❌ Type-based directory
+│   ├── use-run-type-context.ts
+│   └── use-data.ts
+├── types/                       # ❌ Type-based directory
+│   └── game-run.types.ts
+└── logic/                       # ❌ Type-based directory
+    ├── duplicate-detection.ts
+    └── field-discovery.ts
+```
+
+**AFTER (Domain-Based Shared Code - CORRECT):**
+```bash
+shared/
+├── types/                       # ✅ Core type definitions (one level up)
+│   └── game-run.types.ts
+│
+└── domain/
+    ├── data-provider.tsx        # ✅ Core infrastructure files at root level
+    ├── use-data.ts
+    │
+    ├── run-types/               # ✅ Domain group (NOT type group!)
+    │   ├── run-type-selector.tsx      # Component colocated
+    │   ├── use-run-type-context.ts    # Hook colocated
+    │   └── run-type-detection.ts      # Logic colocated
+    │
+    ├── fields/                  # ✅ Domain group
+    │   ├── field-search.tsx           # Component colocated
+    │   ├── field-discovery.ts         # Logic colocated
+    │   └── field-filter.ts
+    │
+    └── duplicate-detection/     # ✅ Domain group
+        ├── duplicate-info.tsx         # Component colocated
+        ├── duplicate-detection.ts     # Logic colocated
+        └── duplicate-detection.test.ts
+```
+
+**KEY PRINCIPLE:**
+- ✅ Shared code follows the SAME organization rules as feature code
+- ✅ Organize by DOMAIN PURPOSE (run-types/, fields/), NOT by type (components/, hooks/)
+- ✅ Components and hooks are colocated WITH their domain logic
+- ✅ `shared/types/` at top level is acceptable for CORE type definitions only
+- ❌ NO exceptions for shared code - type-based organization is NEVER acceptable
+
 ### Critical Rules
 
 **MANDATORY ENFORCEMENT:**
 
-1. **ZERO Type-Based Organization** at feature level (no components/, hooks/, logic/ directories)
+1. **ZERO Type-Based Organization at ANY Level**
+   - ❌ NO `components/`, `hooks/`, `logic/`, `types/`, `utils/` directories at feature level
+   - ❌ NO type-based directories in shared code either (`shared/domain/components/`, `shared/domain/hooks/`)
+   - ✅ THE ONE EXCEPTION: `src/components/ui/` for generic UI primitives ONLY (shadcn/ui library)
+   - ✅ Organize by domain purpose (fields/, run-types/, duplicate-detection/)
+   - ✅ Colocate components/hooks WITH their domain logic
+
 2. **ZERO Directories Exceeding 10 Implementation Files** without sub-grouping (excluding tests)
-3. **ZERO Generic File Names** at feature level without clear context (utils.ts, helpers.ts, common.ts)
-4. **ALWAYS Apply Boy Scout Rule** for incremental improvements (NON-bug fixes only)
-5. **ALWAYS Validate Layer Peeling** (directory → file → function naming coherence)
-6. **ALWAYS Update Imports** after file/function reorganization
-7. **NEVER Change Business Logic** during reorganization (behavior-preserving refactoring only)
-8. **NEVER Skip Tests** - run full test suite after reorganization
-9. **NEVER Reorganize Unrelated Files** during bug fixes (LIMITED SCOPE)
+
+3. **ZERO Generic File Names** without clear context (utils.ts, helpers.ts, common.ts, misc.ts)
+   - Applies to feature-level AND shared code
+   - File names must reveal purpose
+
+4. **ZERO Components/Hooks in Separate Type Directories**
+   - Components and hooks MUST be colocated with their domain logic
+   - Example: `run-types/run-type-selector.tsx` (NOT `components/run-type-selector.tsx`)
+
+5. **ALWAYS Apply Boy Scout Rule** for incremental improvements (NON-bug fixes only)
+
+6. **ALWAYS Validate Layer Peeling** (directory → file → function naming coherence)
+
+7. **ALWAYS Update Imports** after file/function reorganization
+
+8. **NEVER Change Business Logic** during reorganization (behavior-preserving refactoring only)
+
+9. **NEVER Skip Tests** - run full test suite after reorganization
+
+10. **NEVER Reorganize Unrelated Files** during bug fixes (LIMITED SCOPE)
 
 ### Response Format
 
@@ -600,8 +691,13 @@ The codebase organization and naming have been refined for improved discoverabil
 
 ### Quantitative Metrics
 - **Organization Compliance**: 0 directories exceeding 10 implementation files (excluding tests) without sub-grouping
-- **Generic Names**: 0 generic file names (utils.ts, helpers.ts) without clear context at feature level
-- **Type-Based Organization**: 0 type-based directories (components/, hooks/, logic/) at feature level
+- **Generic Names**: 0 generic file names (utils.ts, helpers.ts, common.ts, misc.ts) without clear context
+  - Applies to feature-level AND shared code
+- **Type-Based Organization**: 0 type-based directories (components/, hooks/, logic/, types/, utils/) at ANY level
+  - Applies to feature-level AND shared code
+  - Exception: `src/components/ui/` for generic UI primitives ONLY
+- **Component/Hook Co-location**: 0 components or hooks in separate type-based directories
+  - All colocated with their domain logic
 - **Test Pass Rate**: 100% of tests pass after reorganization
 
 ### Qualitative Metrics

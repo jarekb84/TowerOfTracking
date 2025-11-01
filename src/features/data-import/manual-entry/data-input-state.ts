@@ -1,6 +1,6 @@
-import type { DuplicateDetectionResult } from '../../data-tracking/duplicate-detection';
-import type { DuplicateResolution } from '../../data-tracking/components/duplicate-info';
-import { RunType, RunTypeValue } from '../../data-tracking/types/game-run.types';
+import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
+import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
+import { RunType, RunTypeValue } from '@/shared/types/game-run.types';
 
 export interface DataInputFormInitialState {
   inputData: string;

@@ -1,4 +1,4 @@
-import { Button } from '../../../components/ui';
+import { Button } from '@/components/ui';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 
 interface ExpandButtonProps {

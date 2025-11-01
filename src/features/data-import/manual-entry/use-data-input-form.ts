@@ -7,12 +7,12 @@ import {
   formatTimeFromDate,
   createDateTimeFromComponents
 } from './data-input-state';
-import type { ParsedGameRun, RunTypeValue } from '../../data-tracking/types/game-run.types';
-import type { DuplicateDetectionResult } from '../../data-tracking/duplicate-detection';
-import type { DuplicateResolution } from '../../data-tracking/components/duplicate-info';
-import { useData } from '../../data-tracking/hooks/use-data';
-import { useRunTypeContext } from '../../data-tracking/hooks/use-run-type-context';
-import { hasExplicitRunType } from '../../data-tracking/run-types/run-type-detection';
+import type { ParsedGameRun, RunTypeValue } from '@/shared/types/game-run.types';
+import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
+import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
+import { useData } from '@/shared/domain/use-data';
+import { useRunTypeContext } from '@/shared/domain/run-types/use-run-type-context';
+import { hasExplicitRunType } from '@/shared/domain/run-types/run-type-detection';
 
 export interface DataInputFormState {
   inputData: string;

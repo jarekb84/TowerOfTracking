@@ -5,7 +5,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { VirtualizedTableBody } from './virtualized-table-body';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { Table } from '@tanstack/react-table';
 import { useRef } from 'react';
 

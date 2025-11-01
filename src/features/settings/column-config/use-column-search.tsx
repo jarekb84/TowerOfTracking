@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useDebounce } from '../../../hooks/use-debounce'
-import { filterFieldsBySearch } from '../../data-tracking/fields/field-search'
+import { filterFieldsBySearch } from '@/shared/domain/fields/field-search-utils'
 import type { AvailableField } from '@/features/analysis/tier-stats/types'
 
 export interface UseColumnSearchReturn {

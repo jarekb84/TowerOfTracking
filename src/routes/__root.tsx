@@ -2,7 +2,8 @@ import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { PostHogProvider } from 'posthog-js/react'
 
 import { ThemeProvider } from '../features/theming'
-import { DataProvider, GlobalDataInputProvider } from '../features/data-tracking'
+import { DataProvider } from '../shared/domain/data-provider'
+import { GlobalDataInputProvider } from '../features/data-import/global-data-input-provider'
 import { NavigationProvider, AppLayout } from '../features/navigation'
 
 import appCss from '../styles.css?url'

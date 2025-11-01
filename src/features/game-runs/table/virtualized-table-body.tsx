@@ -3,7 +3,7 @@ import { RunCard } from '../card-view/run-card';
 import { TableEmptyState } from '../table-ui/table-empty-state';
 import { RunDetails } from '../card-view/run-details';
 import { ExpandableTableRow } from './expandable-table-row';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 interface VirtualizedTableBodyProps {
   table: Table<ParsedGameRun>;

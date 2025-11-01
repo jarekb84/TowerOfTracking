@@ -94,11 +94,11 @@ After all refactoring:
 
 5. **File Organization Violations**
    - Directories with 10+ implementation files (excluding tests) without sub-grouping
-   - Type-based organization (components/, hooks/, logic/) at feature level
-   - **Logic directory violations** - `logic/` directories are TYPE-based organization
-     - Pure functions still serve specific features - co-locate with consumers
-     - Acceptable alternatives: Co-locate with feature subdirectory OR purpose-named directory (e.g., `calculations/`)
-     - NEVER use generic `logic/` as dumping ground for "pure functions"
+   - **ZERO TOLERANCE: Type-based organization is NEVER acceptable** (components/, hooks/, logic/, types/, utils/) at ANY level
+     - Applies to feature-level directories
+     - Applies to shared code directories
+     - **THE ONE EXCEPTION**: `src/components/ui/` for generic UI primitives (shadcn/ui library)
+   - Co-locate components/hooks WITH their domain logic, not in separate type-based directories
    - Related files scattered (component, hook, logic in different directories)
    - 3+ files sharing a concept not grouped in subdirectory
    - Vague directory names (misc/, helpers/, utils/ without context)
@@ -289,11 +289,14 @@ Before completing bug fix review, verify:
 - Consistent patterns throughout codebase
 - Clear separation of what/how/why
 
-### 6. Organize by Feature (NOT Type)
+### 6. Organize by Feature/Domain (NOT Type)
+- **CRITICAL**: ZERO type-based directories at ANY level (feature OR shared code)
+- **THE ONE EXCEPTION**: `src/components/ui/` for generic UI primitives only
 - Group related files together (component + hook + logic + types)
-- Create subdirectories for sub-features when 3+ related files exist
+- Create subdirectories for sub-features/domains when 3+ related files exist
 - Maintain <10 implementation files per directory (excluding tests)
-- Use descriptive directory names reflecting purpose, not file type
+- Use descriptive directory names reflecting PURPOSE, not file type
+- **Shared code follows the SAME rules**: organize by domain (fields/, run-types/), NOT by type (components/, hooks/)
 </architectural_principles>
 
 <file_organization_analysis>
@@ -366,6 +369,37 @@ src/features/data-import/data-input/ (11 files)
 src/features/data-export/csv-export/ (3 files)
 ```
 
+**Shared Code Organization Example:**
+
+```bash
+# ❌ WRONG: Type-based shared code organization
+shared/domain/
+  components/            # ❌ Type-based directory
+    run-type-selector.tsx
+    field-search.tsx
+  hooks/                 # ❌ Type-based directory
+    use-run-type-context.ts
+  types/                 # ❌ Type-based directory
+    game-run.types.ts
+
+# ✅ CORRECT: Domain-based shared code organization
+shared/
+  types/                 # ✅ Core type definitions (one level up)
+    game-run.types.ts
+  domain/
+    run-types/           # ✅ Domain group (NOT type group!)
+      run-type-selector.tsx     # Component colocated
+      use-run-type-context.ts   # Hook colocated
+      run-type-detection.ts     # Logic colocated
+    fields/              # ✅ Domain group
+      field-search.tsx          # Component colocated
+      use-field-filter.ts       # Hook colocated
+      field-discovery.ts        # Logic colocated
+
+# KEY PRINCIPLE: Shared code follows the SAME organization rules as feature code
+# Organize by DOMAIN PURPOSE (run-types/, fields/), NOT by type (components/, hooks/)
+```
+
 ### File Organization Refactoring
 
 **When Files Should Be Reorganized:**
@@ -377,22 +411,25 @@ src/features/data-export/csv-export/ (3 files)
 
 **Incremental Reorganization Pattern:**
 
-```typescript
-// BEFORE (Type-based, scattered):
+```bash
+# BEFORE (Type-based, scattered):
 features/data-tracking/
-  components/tier-trends-filters.tsx
+  components/tier-trends-filters.tsx  # ❌ Type-based directory
   components/field-search.tsx
-  hooks/use-field-filter.ts
-  logic/tier-trends-ui-options.ts
+  hooks/use-field-filter.ts          # ❌ Separated from component
+  logic/tier-trends-ui-options.ts    # ❌ Type-based directory
 
-// AFTER (Feature-based, colocated):
+# AFTER (Feature-based, colocated):
 features/analytics/
   tier-trends/
-    filters/
-      tier-trends-filters.tsx
+    filters/                          # ✅ Purpose-based subdirectory
+      tier-trends-filters.tsx         # ✅ Component colocated
       field-search.tsx
-      use-field-filter.ts
-      tier-trends-ui-options.ts  // Logic colocated with feature
+      use-field-filter.ts             # ✅ Hook colocated with component
+      tier-trends-ui-options.ts       # ✅ Logic colocated with feature
+
+# KEY PRINCIPLE: Group by DOMAIN PURPOSE, colocate by RELATIONSHIP
+# Components, hooks, and logic live TOGETHER in purpose-based directories
 ```
 
 **Boy Scout Rule Application:**
@@ -456,25 +493,27 @@ src/features/
     tier-trends/              # Feature-level grouping
       tier-trends-analysis.tsx
       use-tier-trends-view-state.ts
+      tier-trends-display.ts      # Logic colocated with feature
+      tier-trends-ui-options.ts   # Logic colocated with feature
 
-      filters/                # Sub-feature: 5 files
+      filters/                # Sub-feature: 5 files (component + hook + logic together)
         tier-trends-filters.tsx
         tier-trends-controls.tsx
         field-search.tsx
         use-field-filter.ts
 
-      table/                  # Sub-feature: 4 files
+      table/                  # Sub-feature: 4 files (component + logic together)
         tier-trends-table.tsx
         virtualized-trends-table.tsx
         column-header-renderer.ts
 
-      mobile/                 # Sub-feature: 3 files
+      mobile/                 # Sub-feature: 3 files (component + hook together)
         tier-trends-mobile-card.tsx
         use-tier-trends-mobile.ts
 
-      logic/                  # Pure business logic
-        tier-trends-display.ts
-        tier-trends-ui-options.ts
+# ✅ NO type-based directories (components/, hooks/, logic/, types/)
+# ✅ Components/hooks/logic colocated by domain purpose
+# ✅ Each subdirectory groups related files regardless of file type
 ```
 
 ### Abstraction Patterns
@@ -585,11 +624,13 @@ The implementation has been refactored for improved maintainability and extensib
 4. **ALWAYS** verify tests/lint/build after refactoring
 
 ### For NON-Bug Fix Changes:
-7. **NEVER** allow files over 300 lines without decomposition
-8. **ALWAYS** extract on third duplication
-9. **ALWAYS** analyze file organization and flag directories with 10+ implementation files (excluding tests)
-10. **ALWAYS** suggest reorganization for 3+ related files not grouped together
-11. **NEVER** accept type-based organization at feature level (components/, hooks/, logic/)
+5. **NEVER** allow files over 300 lines without decomposition
+6. **ALWAYS** extract on third duplication
+7. **ALWAYS** analyze file organization and flag directories with 10+ implementation files (excluding tests)
+8. **ALWAYS** suggest reorganization for 3+ related files not grouped together
+9. **NEVER** accept type-based organization at ANY level (components/, hooks/, logic/, types/, utils/)
+10. **CRITICAL**: Type-based organization applies to feature AND shared code - organize by domain purpose ALWAYS
+11. **THE ONE EXCEPTION**: `src/components/ui/` for generic UI primitives ONLY
 
 ### For BUG FIX Changes:
 12. **ALWAYS** check handoff context for bug fix indicator

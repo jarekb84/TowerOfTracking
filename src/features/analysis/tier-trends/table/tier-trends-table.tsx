@@ -1,4 +1,4 @@
-import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '@/features/data-tracking/types/game-run.types'
+import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '@/shared/types/game-run.types'
 import { TierTrendsMobileCard } from '../mobile/tier-trends-mobile-card'
 import { useViewport } from '@/shared/hooks/use-viewport'
 import { formatNumber } from '@/features/analysis/shared/parsing/data-parser'

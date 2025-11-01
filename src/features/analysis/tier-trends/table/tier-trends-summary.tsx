@@ -1,4 +1,4 @@
-import type { TierTrendsData } from '@/features/data-tracking/types/game-run.types'
+import type { TierTrendsData } from '@/shared/types/game-run.types'
 
 interface TierTrendsSummaryProps {
   trendsData: TierTrendsData

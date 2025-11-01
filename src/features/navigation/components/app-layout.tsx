@@ -1,7 +1,8 @@
 import { TopNavbar } from './top-navbar'
 import { Sidebar } from './sidebar'
 import { useNavigation } from '../contexts/navigation-context'
-import { DataInput, DataInputErrorBoundary } from '../../data-tracking'
+import { DataInput } from '../../data-import/manual-entry/data-input'
+import { DataInputErrorBoundary } from '../../data-import/manual-entry/data-input-error-boundary'
 
 interface AppLayoutProps {
   children: React.ReactNode

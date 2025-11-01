@@ -8,8 +8,8 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from '@tanstack/react-table';
-import { Card, CardContent, CardHeader } from '../../components/ui';
-import { useData } from '../data-tracking/hooks/use-data';
+import { Card, CardContent, CardHeader } from '@/components/ui';
+import { useData } from '@/shared/domain/use-data';
 import { createRunsTableColumns } from './table-ui/table-columns';
 import { TableHeader } from './table-ui/table-header';
 import { TableHead } from './table-ui/table-head';

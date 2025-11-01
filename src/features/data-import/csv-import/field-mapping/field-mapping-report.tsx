@@ -1,6 +1,6 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 import { CheckCircle, AlertCircle } from 'lucide-react';
-import type { CsvParseResult } from '../../../data-tracking/types/game-run.types';
+import type { CsvParseResult } from '@/shared/types/game-run.types';
 import { FieldMappingTable } from './field-mapping-table';
 
 interface FieldMappingReportProps {

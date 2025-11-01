@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Alert, AlertDescription } from '../../../components/ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Alert, AlertDescription } from '@/components/ui';
 import { CheckCircle, XCircle, Trash2, Database, AlertTriangle, X } from 'lucide-react';
 import { useDataSettings } from './use-data-settings';
 

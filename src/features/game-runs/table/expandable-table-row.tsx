@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import { flexRender, type Row } from '@tanstack/react-table';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 interface ExpandableTableRowProps {
   row: Row<ParsedGameRun>;

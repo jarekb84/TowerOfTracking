@@ -1,5 +1,5 @@
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns'
-import { ParsedGameRun } from '../../data-tracking/types/game-run.types'
+import { ParsedGameRun } from '@/shared/types/game-run.types'
 import {
   ChartDataPoint,
   TimePeriod,

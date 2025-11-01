@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { MobileCard, MobileCardHeader, MobileCardContent, MobileCardSection } from '../../../components/ui';
+import { MobileCard, MobileCardHeader, MobileCardContent, MobileCardSection } from '@/components/ui';
 import { StickyNote, Skull } from 'lucide-react';
 import { RunDetails } from './run-details';
 import { extractRunCardData } from './run-card-utils';
 import { ExpandButton, DeleteButton } from '../table-ui/table-action-buttons';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 interface RunCardProps {
   run: ParsedGameRun;

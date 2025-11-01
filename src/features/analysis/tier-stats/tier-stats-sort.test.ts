@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { getSortValue, sortTierStats, sortByTier } from './tier-stats-sort'
 import type { DynamicTierStats, TierStatsColumn, FieldStats } from '../types'
-import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { createGameRunField } from '@/features/analysis/shared/parsing/field-utils'
 
 describe('tier-stats-sort', () => {

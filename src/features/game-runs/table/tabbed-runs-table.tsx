@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../components/ui';
-import { useData } from '../../data-tracking/hooks/use-data';
-import { RunType } from '../../data-tracking/types/game-run.types';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
+import { useData } from '@/shared/domain/use-data';
+import { RunType } from '@/shared/types/game-run.types';
 import { FarmingRunsTable } from '../table-variants/farming-runs-table';
 import { TournamentRunsTable } from '../table-variants/tournament-runs-table';
 import { MilestoneRunsTable } from '../table-variants/milestone-runs-table';
-import { useRunsNavigation, RunsTabType } from '../../data-tracking/hooks/use-runs-navigation';
-import { RunTypeIndicator } from '../../data-tracking/components/run-type-indicator';
+import { useRunsNavigation, RunsTabType } from '@/features/game-runs/use-runs-navigation';
+import { RunTypeIndicator } from '@/shared/domain/run-types/run-type-indicator';
 
 export function TabbedRunsTable() {
   const { runs, removeRun } = useData();

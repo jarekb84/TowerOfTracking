@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { TimeSeriesChart } from '../../features/analysis/time-series/time-series-chart'
 
 export const Route = createFileRoute('/charts/coins')({

@@ -1,5 +1,5 @@
 import React, { Component, ReactNode } from 'react';
-import { Alert, AlertDescription } from '../../../components/ui';
+import { Alert, AlertDescription } from '@/components/ui';
 
 interface DataInputErrorBoundaryProps {
   children: ReactNode;

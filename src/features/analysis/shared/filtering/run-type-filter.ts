@@ -1,4 +1,4 @@
-import { ParsedGameRun, RunType, RunTypeValue } from '@/features/data-tracking/types/game-run.types'
+import { ParsedGameRun, RunType, RunTypeValue } from '@/shared/types/game-run.types'
 
 export type RunTypeFilter = RunTypeValue | 'all'
 

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { ParsedGameRun, TierTrendsFilters } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun, TierTrendsFilters } from '@/shared/types/game-run.types'
 import { calculateTierTrends } from './calculations/tier-trends-calculations'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 

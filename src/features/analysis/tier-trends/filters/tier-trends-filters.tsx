@@ -1,4 +1,4 @@
-import { FieldSearch } from '@/features/data-tracking/components/field-search'
+import { FieldSearch } from '@/shared/domain/fields/field-search'
 import type { UseFieldFilterResult } from '@/features/settings/column-config/use-field-filter'
 
 interface TierTrendsFiltersProps {

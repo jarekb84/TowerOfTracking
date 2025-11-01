@@ -9,8 +9,8 @@ import {
   type ColumnFiltersState,
   type ColumnDef,
 } from '@tanstack/react-table';
-import { Card, CardContent, CardHeader } from '../../../components/ui';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import { Card, CardContent, CardHeader } from '@/components/ui';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { ScrollableTableContainer } from './scrollable-table-container';
 import { TierFilter } from '../filters/tier-filter';
 

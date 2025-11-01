@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { filterRunsByTier, getAvailableTiers } from './tier-filter-logic';
-import type { ParsedGameRun } from '../../data-tracking/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 const mockRun = (id: string, tier: number): ParsedGameRun => ({
   id,

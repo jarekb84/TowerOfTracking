@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { TabbedRunsTable } from '../features/data-tracking'
-import { RunTypeValue } from '../features/data-tracking/types/game-run.types'
+import { TabbedRunsTable } from '../features/game-runs/table/tabbed-runs-table'
+import { RunTypeValue } from '@/shared/types/game-run.types'
 
 interface RunsSearchParams {
   type?: RunTypeValue

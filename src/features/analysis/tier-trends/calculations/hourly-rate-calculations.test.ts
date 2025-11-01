@@ -4,7 +4,7 @@ import {
   calculateHourlyRate,
   formatHoursSubheader
 } from './hourly-rate-calculations';
-import type { ParsedGameRun, GameRunField } from '@/features/data-tracking/types/game-run.types';
+import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
 
 // Helper function to create a mock field
 function createMockField(

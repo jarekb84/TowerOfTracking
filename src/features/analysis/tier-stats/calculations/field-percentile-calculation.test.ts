@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateFieldPercentiles } from './field-percentile-calculation'
-import type { ParsedGameRun } from '@/features/data-tracking/types/game-run.types'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { createGameRunField, getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
 
 describe('calculateFieldPercentiles', () => {
