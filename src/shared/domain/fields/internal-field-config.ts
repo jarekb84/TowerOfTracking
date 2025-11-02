@@ -25,7 +25,7 @@ export const INTERNAL_FIELD_NAMES = {
 /**
  * Type representing valid internal field names
  */
-export type InternalFieldName = typeof INTERNAL_FIELD_NAMES[keyof typeof INTERNAL_FIELD_NAMES];
+type InternalFieldName = typeof INTERNAL_FIELD_NAMES[keyof typeof INTERNAL_FIELD_NAMES];
 
 /**
  * Mapping from internal field names to their display names

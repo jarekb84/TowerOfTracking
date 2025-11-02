@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cn } from '../../shared/lib/utils'
 
-export interface EmptyStateProps extends React.ComponentProps<'div'> {
+interface EmptyStateProps extends React.ComponentProps<'div'> {
   /**
    * The empty state message to display
    */

@@ -3,7 +3,7 @@ import { TrendsDuration, TrendsAggregation } from '../types';
 /**
  * Option for UI selection components
  */
-export interface SelectOption<T> {
+interface SelectOption<T> {
   value: T;
   label: string;
 }

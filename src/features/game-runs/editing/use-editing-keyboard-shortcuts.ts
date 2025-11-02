@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 
-export interface UseEditingKeyboardShortcutsOptions {
+interface UseEditingKeyboardShortcutsOptions {
   onSave: () => void;
   onCancel: () => void;
   saveShortcut?: 'enter' | 'ctrl-enter';
 }
 
-export interface UseEditingKeyboardShortcutsReturn {
+interface UseEditingKeyboardShortcutsReturn {
   handleTextareaKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   handleSelectKeyDown: (e: React.KeyboardEvent<HTMLSelectElement>) => void;
 }

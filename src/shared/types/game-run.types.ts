@@ -1,8 +1,5 @@
-// Raw data structure as pasted from clipboard (flexible to handle any property names)
-export type RawGameRunData = Record<string, string>;
-
 // Run type enumeration for type safety
-export enum RunType {
+enum RunType {
   FARM = 'farm',
   TOURNAMENT = 'tournament',
   MILESTONE = 'milestone'
@@ -29,12 +26,6 @@ export interface ParsedGameRun {
   readonly runType: RunTypeValue;
 }
 
-export interface GameRunFilters {
-  searchTerm?: string;
-  tierRange?: { min?: number; max?: number };
-  dateRange?: { start?: Date; end?: Date };
-}
-
 // Type for raw clipboard input
 export type RawClipboardData = Record<string, string>;
 
@@ -51,89 +42,8 @@ export interface GameRunField {
   originalKey: string;        // Original clipboard key
   dataType: 'number' | 'duration' | 'string' | 'date';
 }
-// Number suffixes for parsing
-export type NumberSuffix = 'K' | 'M' | 'B' | 'T' | 'Q' | 'q' | 'S' | 's' | 'O';
-
-// Duration format types
-export type DurationUnit = 'd' | 'h' | 'm' | 's';
-export type DurationString = string; // Format: "1d 13h 24m 51s"
-
-// Generic CSV Parser Types
-export interface CsvParseConfig {
-  delimiter?: string;
-  supportedFields: string[];
-}
-
-export interface CsvParseResult {
-  success: ParsedGameRun[];
-  failed: number;
-  errors: string[];
-  fieldMappingReport: FieldMappingReport;
-}
-
-/**
- * Enhanced field mapping report with similarity detection
- */
-export interface FieldMappingReport {
-  /** All mapped fields with their classification */
-  mappedFields: Array<{
-    csvHeader: string;
-    camelCase: string;
-    supported: boolean;
-    /** Field classification: exact-match, new-field, or similar-field */
-    status?: 'exact-match' | 'new-field' | 'similar-field';
-    /** If similar-field, the suggested existing field */
-    similarTo?: string;
-    /** Type of similarity detected */
-    similarityType?: 'exact' | 'normalized' | 'levenshtein' | 'case-variation';
-  }>;
-  /** Fields that are completely new (no similar matches) */
-  newFields: string[];
-  /** Fields that are similar to existing fields */
-  similarFields: Array<{
-    importedField: string;
-    existingField: string;
-    similarityType: 'normalized' | 'levenshtein' | 'case-variation';
-  }>;
-  /** @deprecated Use newFields instead - fields are never actually skipped */
-  unsupportedFields: string[];
-  /** @deprecated Fields are not skipped anymore, they're all imported */
-  skippedFields: string[];
-}
-
-export type CsvDelimiter = 'tab' | 'comma' | 'semicolon' | 'custom';
 
 // Tier Trends Analysis Types
-
-/**
- * Duration options for tier trends analysis
- */
-export enum TrendsDuration {
-  PER_RUN = 'per-run',
-  DAILY = 'daily',
-  WEEKLY = 'weekly',
-  MONTHLY = 'monthly'
-}
-
-/**
- * Aggregation methods for combining run data within time periods
- */
-export enum TrendsAggregation {
-  SUM = 'sum',
-  AVERAGE = 'average',
-  MIN = 'min',
-  MAX = 'max',
-  HOURLY = 'hourly'
-}
-
-export interface TierTrendsFilters {
-  tier: number;
-  changeThresholdPercent: number; // Only show fields with changes above this threshold
-  duration: TrendsDuration; // Time span for analysis
-  quantity: number; // Number of periods to analyze (2-7)
-  aggregationType?: TrendsAggregation; // Only used when duration is not 'per-run'
-}
-
 export interface FieldTrendData {
   fieldName: string;
   displayName: string;
@@ -146,24 +56,4 @@ export interface FieldTrendData {
   };
   trendType: 'linear' | 'upward' | 'downward' | 'volatile' | 'stable';
   significance: 'high' | 'medium' | 'low'; // Based on change threshold
-}
-
-export interface ComparisonColumn {
-  header: string; // Display header
-  subHeader?: string; // Optional second line for header
-  values: Record<string, number>; // fieldName -> value mapping
-}
-
-export interface TierTrendsData {
-  tier: number;
-  periodCount: number; // How many periods were actually analyzed
-  periodLabels: string[]; // Labels for each period (newest to oldest)
-  comparisonColumns: ComparisonColumn[]; // Dynamic comparison columns (2-7)
-  fieldTrends: FieldTrendData[];
-  summary: {
-    totalFields: number;
-    fieldsChanged: number; // Replaces significantChanges
-    topGainers: FieldTrendData[]; // Top 3 fields with highest positive change
-    topDecliners: FieldTrendData[]; // Top 3 fields with highest negative change
-  };
 }

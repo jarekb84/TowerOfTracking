@@ -1,10 +1,10 @@
 import { ParsedGameRun } from '@/shared/types/game-run.types'
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
 import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/filtering/run-type-filter'
-import { KilledByData, TierKilledByData } from '../../time-series/chart-types'
+import { KilledByData, TierKilledByData } from '../time-series/chart-types'
 
 // Radar chart data point with dynamic tier keys
-export interface RadarChartDataPoint {
+interface RadarChartDataPoint {
   killedBy: string
   [key: string]: string | number  // Dynamic tier keys like "tier1", "tier2", etc.
 }

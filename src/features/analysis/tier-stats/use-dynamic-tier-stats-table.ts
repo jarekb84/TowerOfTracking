@@ -16,7 +16,7 @@ import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
 import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
 
-export interface UseDynamicTierStatsTableReturn {
+interface UseDynamicTierStatsTableReturn {
   tierStats: DynamicTierStats[]
   columns: TierStatsColumn[]
   summary: TierStatsSummary

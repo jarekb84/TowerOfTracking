@@ -4,7 +4,7 @@ import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { CsvExportConfig, CsvExportResult } from './csv-exporter';
 
-export interface UseCsvExportState {
+interface UseCsvExportState {
   selectedDelimiter: CsvDelimiter;
   customDelimiter: string;
   includeAppFields: boolean;
@@ -15,7 +15,7 @@ export interface UseCsvExportState {
   error: string | null;
 }
 
-export interface UseCsvExportActions {
+interface UseCsvExportActions {
   setSelectedDelimiter: (delimiter: CsvDelimiter) => void;
   setCustomDelimiter: (delimiter: string) => void;
   setIncludeAppFields: (include: boolean) => void;
@@ -24,7 +24,7 @@ export interface UseCsvExportActions {
   resetState: () => void;
 }
 
-export interface UseCsvExportReturn extends UseCsvExportState, UseCsvExportActions {}
+interface UseCsvExportReturn extends UseCsvExportState, UseCsvExportActions {}
 
 export function useCsvExport(runs: ParsedGameRun[], isDialogOpen: boolean): UseCsvExportReturn {
   const [selectedDelimiter, setSelectedDelimiter] = useState<CsvDelimiter>('tab');

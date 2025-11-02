@@ -6,7 +6,7 @@ import type { CsvDelimiter, CsvParseResult } from './types';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 
-export interface UseCsvImportReturn {
+interface UseCsvImportReturn {
   // State
   inputData: string;
   isDialogOpen: boolean;

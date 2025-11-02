@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { reorderColumns } from '@/features/analysis/tier-stats/config/column-reorder'
 import type { TierStatsColumnConfig } from '@/features/analysis/tier-stats/types'
 
-export interface UseColumnReorderReturn {
+interface UseColumnReorderReturn {
   draggedIndex: number | null
   draggedOverIndex: number | null
   handleDragStart: (index: number) => void

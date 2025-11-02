@@ -14,8 +14,10 @@
     "src/routeTree.gen.ts"
   ],
   "ignoreDependencies": [
-    "@tanstack/react-start",
+    "@tanstack/react-start",    
+    "@tanstack/router-plugin",
     "@tailwindcss/vite",
+    "tailwindcss",
     "vite-tsconfig-paths",
     "@vitejs/plugin-react"
   ]

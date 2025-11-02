@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cn } from '../../shared/lib/utils'
 
-export interface LoadingStateProps extends React.ComponentProps<'div'> {
+interface LoadingStateProps extends React.ComponentProps<'div'> {
   /**
    * Number of skeleton rows to display
    */
@@ -40,25 +40,5 @@ export function LoadingState({
         ))}
       </div>
     </div>
-  )
-}
-
-/**
- * Compact loading skeleton for inline use
- */
-export function LoadingStateSkeleton({
-  className,
-  ...props
-}: React.ComponentProps<'div'>) {
-  return (
-    <div
-      className={cn(
-        'bg-gradient-to-r from-slate-700/30 via-slate-600/40 to-slate-700/30 rounded-lg animate-pulse',
-        className
-      )}
-      role="status"
-      aria-label="Loading"
-      {...props}
-    />
   )
 }

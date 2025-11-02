@@ -17,7 +17,6 @@ export * from "./nav-collapse-button";
 export * from "./nav-link";
 export * from "./nav-section";
 export * from "./popover";
-export * from "./removable-badge";
 export * from "./responsive-dialog";
 export * from "./selection-button-group";
 export * from "./tabs";

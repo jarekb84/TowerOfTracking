@@ -7,7 +7,7 @@ import humanFormat from 'human-format';
  * Supports both single-letter (K, M, B, T, q, Q, s, S, O, N, D)
  * and two-letter (aa, ab, ac, ad, ae, af, ag, ah, ai, aj) suffixes.
  */
-export const SCALE_MULTIPLIERS: Record<string, number> = {
+const SCALE_MULTIPLIERS: Record<string, number> = {
   '': 1,
   K: 1e3, // Thousand
   M: 1e6, // Million
@@ -36,7 +36,7 @@ export const SCALE_MULTIPLIERS: Record<string, number> = {
  * human-format Scale instance for formatting operations.
  * Use this with humanFormat() for display formatting.
  */
-export const NUMBER_SCALE = new humanFormat.Scale(SCALE_MULTIPLIERS);
+const NUMBER_SCALE = new humanFormat.Scale(SCALE_MULTIPLIERS);
 
 /**
  * Parse shorthand number strings like "100K", "10.9M", "15.2B" into numeric values.

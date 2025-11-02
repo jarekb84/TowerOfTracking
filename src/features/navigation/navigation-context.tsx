@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 
-export interface NavigationContextType {
+interface NavigationContextType {
   isSidebarOpen: boolean
   toggleSidebar: () => void
   closeSidebar: () => void

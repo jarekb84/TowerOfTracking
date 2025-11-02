@@ -1,4 +1,4 @@
-export type ThemeMode = 'normal' | 'condensed';
+type ThemeMode = 'normal' | 'condensed';
 
 export interface ThemeConfig {
   mode: ThemeMode;

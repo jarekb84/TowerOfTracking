@@ -24,7 +24,7 @@ export function groupRunsByDateKey(
 }
 
 // Calculate aggregate statistics for a group of runs
-export interface RunAggregates {
+interface RunAggregates {
   totalCoins: number
   totalCells: number
   avgCoins: number

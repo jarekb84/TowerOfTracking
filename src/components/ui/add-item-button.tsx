@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Plus } from 'lucide-react'
 import { cn } from '../../shared/lib/utils'
 
-export interface AddItemButtonProps extends React.ComponentProps<'button'> {
+interface AddItemButtonProps extends React.ComponentProps<'button'> {
   children: React.ReactNode
   icon?: React.ReactNode
 }

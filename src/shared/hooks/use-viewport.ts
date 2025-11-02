@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getViewportSize, debounce, type ViewportSize, type Breakpoint } from '../utils/viewport';
 
-export interface UseViewportOptions {
+interface UseViewportOptions {
   /** Breakpoint for desktop/mobile transition (default: 'md') */
   breakpoint?: Breakpoint;
   /** Debounce delay in milliseconds for resize events (default: 150) */
