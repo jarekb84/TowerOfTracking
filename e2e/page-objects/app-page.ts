@@ -25,6 +25,7 @@ export class AppPage {
   // Sidebar navigation - Charts section
   readonly coinAnalyticsLink: Locator;
   readonly cellAnalyticsLink: Locator;
+  readonly fieldAnalyticsLink: Locator;
   readonly deathAnalyticsLink: Locator;
   readonly tierStatsLink: Locator;
   readonly tierTrendsLink: Locator;
@@ -53,6 +54,7 @@ export class AppPage {
     // Charts section
     this.coinAnalyticsLink = page.locator('a:has-text("Coin Analytics")');
     this.cellAnalyticsLink = page.locator('a:has-text("Cell Analytics")');
+    this.fieldAnalyticsLink = page.locator('a:has-text("Field Analytics")');
     this.deathAnalyticsLink = page.locator('a:has-text("Death Analytics")');
     this.tierStatsLink = page.locator('a:has-text("Tier Stats")');
     this.tierTrendsLink = page.locator('a:has-text("Tier Trends")');
