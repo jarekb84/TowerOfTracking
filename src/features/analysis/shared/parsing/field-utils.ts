@@ -124,11 +124,6 @@ export function getFieldValue<T = unknown>(run: ParsedGameRun, fieldName: string
   return field ? field.value as T : null;
 }
 
-export function getFieldDisplay(run: ParsedGameRun, fieldName: string): string {
-  const field = run.fields[fieldName];
-  return field ? field.displayValue : '-';
-}
-
 export function getFieldRaw(run: ParsedGameRun, fieldName: string): string {
   const field = run.fields[fieldName];
   return field ? field.rawValue : '';

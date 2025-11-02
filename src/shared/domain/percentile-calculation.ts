@@ -30,7 +30,7 @@ export function calculatePercentile(
 /**
  * Result of batch percentile calculation
  */
-export interface PercentileResults {
+interface PercentileResults {
   p99: number | null
   p90: number | null
   p75: number | null

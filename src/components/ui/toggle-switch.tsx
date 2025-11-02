@@ -1,6 +1,6 @@
 import { cn } from '../../shared/lib/utils'
 
-export interface ToggleSwitchProps {
+interface ToggleSwitchProps {
   checked: boolean
   onCheckedChange: (checked: boolean) => void
   disabled?: boolean

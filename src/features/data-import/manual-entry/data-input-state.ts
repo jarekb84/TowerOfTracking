@@ -2,7 +2,7 @@ import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detecti
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import { RunType, RunTypeValue } from '@/shared/domain/run-types/types';
 
-export interface DataInputFormInitialState {
+interface DataInputFormInitialState {
   inputData: string;
   notes: string;
   selectedRunType: RunTypeValue;
@@ -10,7 +10,7 @@ export interface DataInputFormInitialState {
   resolution: DuplicateResolution;
 }
 
-export interface DateTimeState {
+interface DateTimeState {
   selectedDate: Date;
   selectedTime: { hours: string; minutes: string };
 }

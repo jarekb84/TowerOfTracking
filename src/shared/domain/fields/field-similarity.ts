@@ -8,7 +8,7 @@
 /**
  * Result of field similarity check
  */
-export interface FieldSimilarityResult {
+interface FieldSimilarityResult {
   /** Whether the fields are similar enough to warrant a suggestion */
   similar: boolean;
   /** The existing field that matches (if similar is true) */
@@ -22,7 +22,7 @@ export interface FieldSimilarityResult {
 /**
  * Classification of field status
  */
-export interface FieldClassification {
+interface FieldClassification {
   /** The imported field name */
   fieldName: string;
   /** Status of this field */

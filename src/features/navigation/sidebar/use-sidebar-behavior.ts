@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export interface SidebarBehaviorOptions {
+interface SidebarBehaviorOptions {
   isSidebarOpen: boolean
   closeSidebar: () => void
 }

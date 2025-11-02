@@ -99,7 +99,7 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
 /**
  * Detect delimiter conflicts in the data
  */
-export function detectDelimiterConflicts(
+function detectDelimiterConflicts(
   runs: ParsedGameRun[], 
   delimiter: string,
   includeAppFields: boolean = true

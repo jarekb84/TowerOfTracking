@@ -287,10 +287,3 @@ export function getDelimiterString(delimiterType: CsvDelimiter, customDelimiter?
   }
   return DELIMITER_MAP[delimiterType];
 }
-
-/**
- * Get list of supported fields for validation
- */
-export function getSupportedFields(): string[] {
-  return [...SUPPORTED_FIELDS];
-}

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getSortValue, sortTierStats, sortByTier } from './tier-stats-sort'
-import type { DynamicTierStats, TierStatsColumn, FieldStats } from '../types'
+import type { DynamicTierStats, TierStatsColumn, FieldStats } from './types'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { createGameRunField } from '@/features/analysis/shared/parsing/field-utils'
 

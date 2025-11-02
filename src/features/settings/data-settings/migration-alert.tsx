@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../../../components/ui/alert';
-import { CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 
 interface MigrationAlertProps {
   migrated: boolean;
@@ -87,23 +87,4 @@ export function MigrationAlert({ migrated, fromVersion, toVersion, error }: Migr
   }
 
   return null;
-}
-
-/**
- * Info variant for when migration is in progress (if needed for slow migrations)
- */
-export function MigrationInProgressAlert() {
-  return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-md animate-in slide-in-from-bottom-5">
-      <Alert variant="default" className="shadow-lg">
-        <Info className="h-4 w-4 animate-pulse" />
-        <AlertTitle>Updating Data Structure</AlertTitle>
-        <AlertDescription className="mt-2">
-          <p className="text-sm">
-            We are optimizing your data format. This will only take a moment...
-          </p>
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
 }

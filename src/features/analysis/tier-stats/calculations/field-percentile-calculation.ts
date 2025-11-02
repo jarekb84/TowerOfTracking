@@ -5,13 +5,13 @@
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 
-export interface FieldPercentileResult {
+interface FieldPercentileResult {
   value: number
   sourceRun: ParsedGameRun
   duration: number
 }
 
-export interface FieldPercentilesResult {
+interface FieldPercentilesResult {
   p99: FieldPercentileResult | null
   p90: FieldPercentileResult | null
   p75: FieldPercentileResult | null

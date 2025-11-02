@@ -4,7 +4,7 @@
 
 import { TierStatsAggregation } from '../types'
 
-export interface AggregationOption {
+interface AggregationOption {
   value: TierStatsAggregation
   label: string
   tooltip: string

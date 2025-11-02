@@ -2,7 +2,7 @@
  * Hook for managing sidebar toggle interactions
  */
 
-export interface SidebarToggleConfig {
+interface SidebarToggleConfig {
   isCollapsed: boolean
   onToggle: () => void
 }

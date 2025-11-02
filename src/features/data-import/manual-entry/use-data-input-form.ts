@@ -15,7 +15,7 @@ import { useData } from '@/shared/domain/use-data';
 import { useRunTypeContext } from '@/shared/domain/run-types/use-run-type-context';
 import { hasExplicitRunType } from '@/shared/domain/run-types/run-type-detection';
 
-export interface DataInputFormState {
+interface DataInputFormState {
   inputData: string;
   previewData: ParsedGameRun | null;
   selectedRunType: RunTypeValue;
@@ -27,7 +27,7 @@ export interface DataInputFormState {
   hasBattleDate: boolean;
 }
 
-export interface DataInputFormActions {
+interface DataInputFormActions {
   setInputData: (data: string) => void;
   setSelectedRunType: (type: RunTypeValue) => void;
   setSelectedDate: (date: Date) => void;

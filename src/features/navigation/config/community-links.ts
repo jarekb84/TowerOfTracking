@@ -2,7 +2,7 @@
  * Configuration for community links displayed in navigation
  */
 
-export interface CommunityLink {
+interface CommunityLink {
   id: string
   label: string
   href: string

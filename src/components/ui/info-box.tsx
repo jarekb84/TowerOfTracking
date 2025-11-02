@@ -2,7 +2,7 @@ import * as React from 'react'
 import { cn } from '../../shared/lib/utils'
 import { Info, AlertCircle, CheckCircle } from 'lucide-react'
 
-export interface InfoBoxProps extends React.ComponentProps<'div'> {
+interface InfoBoxProps extends React.ComponentProps<'div'> {
   /**
    * Visual variant of the info box
    * - info: Blue info box (default)

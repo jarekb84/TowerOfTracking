@@ -8,12 +8,6 @@ export interface DuplicateDetectionResult {
   compositeKey: string;
 }
 
-// Interface for duplicate resolution choices
-export interface DuplicateResolutionChoice {
-  action: 'skip' | 'overwrite';
-  applyToAll?: boolean; // For bulk imports
-}
-
 // Interface for batch duplicate detection results
 export interface BatchDuplicateDetectionResult {
   newRuns: ParsedGameRun[];
