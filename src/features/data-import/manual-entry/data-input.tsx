@@ -10,6 +10,7 @@ import { DataInputDateTimeSection } from './data-input-datetime-section';
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector';
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
 import { RunType } from '@/shared/domain/run-types/types';
+import { NotesField } from '@/shared/domain/fields/notes-field';
 
 interface DataInputProps {
   className?: string;
@@ -90,29 +91,28 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
                 <Textarea
                   placeholder="Paste your game stats here...
 Example format:
-Game Time        1d 13h 24m 51s
-Real Time        7h 46m 6s
-Tier        10
-Wave        5881
-Coins Earned        1.13T
-Cash Earned        $44.65B"
+Battle Report
+Battle Date	Nov 02, 2025 09:05
+Game Time	2d 8h 53m 17s
+Real Time	11h 39m 16s
+Tier	11
+Wave	8633
+Killed By	Scatter
+Coins earned	10.02T
+Coins per hour	860.06B"
                   value={form.inputData}
                   onChange={(e) => form.handleInputChange(e.target.value)}
                   className="form-textarea font-mono text-sm h-40 md:h-48"
                 />
               </FormField>
               
-              <FormField>
-                <FormLabel>
-                  Notes (optional)
-                </FormLabel>
-                <Textarea
-                  placeholder="Add any notes about this run..."
-                  value={form.notes}
-                  onChange={(e) => form.setNotes(e.target.value)}
-                  className="form-textarea text-sm h-16 md:h-20"
-                />
-              </FormField>
+              <NotesField
+                label="Notes (optional)"
+                value={form.notes}
+                onChange={form.setNotes}
+                placeholder="Add any notes about this run..."
+                textareaClassName="form-textarea text-sm h-16 md:h-20"
+              />
             </div>
 
             {form.previewData && (
