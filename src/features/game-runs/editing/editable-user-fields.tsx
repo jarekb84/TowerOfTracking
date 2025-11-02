@@ -1,6 +1,5 @@
 import type { RunTypeValue } from '@/shared/types/game-run.types';
 import { useEditingKeyboardShortcuts } from './use-editing-keyboard-shortcuts';
-import { Textarea } from '@/components/ui/textarea';
 import { EditActionButtons } from './edit-action-buttons';
 import { EditIconButton } from './edit-icon-button';
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector';
@@ -8,6 +7,7 @@ import { RunType } from '@/shared/domain/run-types/types';
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
 import { cn } from '@/shared/lib/utils';
 import { useState } from 'react';
+import { NotesField } from '@/shared/domain/fields/notes-field';
 
 interface EditableUserFieldsProps {
   notes: string;
@@ -80,19 +80,12 @@ export function EditableUserFields({
           />
 
           {/* Notes Field */}
-          <div className="space-y-2">
-            <label htmlFor="notes-textarea" className="text-sm font-medium text-muted-foreground">
-              Notes
-            </label>
-            <Textarea
-              id="notes-textarea"
-              value={editedNotes}
-              onChange={(e) => setEditedNotes(e.target.value)}
-              onKeyDown={handleTextareaKeyDown}
-              className="min-h-[100px] resize-y"
-              placeholder="Add notes for this run..."
-            />
-          </div>
+          <NotesField
+            value={editedNotes}
+            onChange={setEditedNotes}
+            onKeyDown={handleTextareaKeyDown}
+            id="notes-textarea"
+          />
         </div>
 
         <div className="flex items-center justify-between pt-2">
