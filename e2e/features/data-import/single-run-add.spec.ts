@@ -75,6 +75,10 @@ test.describe('Single Game Run Add', () => {
     await addGameRunModal.addGameRun(milestoneRunData, 'milestone');
     await addGameRunModal.waitForClose();
 
+    // CRITICAL: Wait for debounced localStorage save to complete (300ms debounce + async save)
+    // Our persistence layer uses a 300ms debounce to batch rapid changes
+    await page.waitForTimeout(500);
+
     await gameRunsPage.goto();
     await gameRunsPage.waitForTableLoad();
 
@@ -98,6 +102,10 @@ test.describe('Single Game Run Add', () => {
     await gameRunsPage.switchToMilestoneTab();
     let milestoneRowCount = await gameRunsPage.getTableRowCount();
     expect(milestoneRowCount).toBe(1);
+
+    // CRITICAL: Wait for debounced localStorage save to complete (300ms debounce + async save)
+    // Our persistence layer uses a 300ms debounce to batch rapid changes
+    await page.waitForTimeout(500);
 
     // Page refresh verifies that added runs persist to localStorage (not just in-memory state)
     await page.reload();

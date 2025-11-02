@@ -1,16 +1,20 @@
-import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import type { ParsedGameRun, RunTypeValue } from '@/shared/types/game-run.types';
 import { getFieldDisplayConfig } from '../fields/field-display-config';
 import { buildContainerClassName, buildValueClassName } from '../fields/field-rendering-utils';
-import { StickyNote } from 'lucide-react';
+import { EditableUserFields } from '../editing/editable-user-fields';
+import { useData } from '@/shared/domain/use-data';
+import {
+  createUpdatedNotesFields,
+  createUpdatedRunTypeFields,
+  extractNotesValue,
+  extractRunTypeValue,
+} from '../editing/field-update-logic';
 
 interface RunDetailsProps {
   run: ParsedGameRun;
 }
 
 const STAT_GROUPS = {
-  "Notes": [
-    "_notes"
-  ],
   "Battle Report": [
     "gameTime", "realTime", "tier", "wave", "killedBy", 
     "coinsEarned", "coinsPerHour", "cashEarned", "interestEarned", 
@@ -52,7 +56,7 @@ const STAT_GROUPS = {
     "commonModules", "rareModules"
   ],
   "__SKIP__": [
-    "_date", "_time","_runType", "battleDate"
+    "_date", "_time", "_runType", "_notes", "battleDate"
   ]
 };
 
@@ -62,13 +66,10 @@ function StatSection({ title, fieldsData }: {
   fieldsData: Array<{ key: string; displayName: string; value: string }>;
 }) {
   if (fieldsData.length === 0) return null;
-  
-  const isNotesSection = title === "Notes";
 
   return (
     <div className="space-y-4">
       <h5 className="font-semibold text-base text-primary border-b border-border/40 pb-2 flex items-center gap-2">
-        {isNotesSection && <StickyNote className="h-4 w-4 text-accent" />}
         {title}
         <span className="text-xs text-muted-foreground font-normal">({fieldsData.length} items)</span>
       </h5>
@@ -86,7 +87,7 @@ function StatSection({ title, fieldsData }: {
               )}
               <span className={buildValueClassName(config)}>
                 {isEmpty && config.fullWidth ? (
-                  <span className="text-muted-foreground/50 italic text-xs">No notes for this run</span>
+                  <span className="text-muted-foreground/50 italic text-xs">No value</span>
                 ) : (
                   value
                 )}
@@ -122,6 +123,29 @@ function StatGroup({ title, fields, run }: {
 }
 
 export function RunDetails({ run }: RunDetailsProps) {
+  const { updateRun } = useData();
+
+  const handleUserFieldsUpdate = (newNotes: string, newRunType: RunTypeValue) => {
+    let updatedFields = { ...run.fields };
+
+    // Apply notes update if changed
+    if (newNotes !== extractNotesValue(run.fields)) {
+      updatedFields = createUpdatedNotesFields(updatedFields, newNotes);
+    }
+
+    // Apply run type update if changed
+    const currentRunType = extractRunTypeValue(run);
+    if (newRunType !== currentRunType) {
+      updatedFields = createUpdatedRunTypeFields(updatedFields, newRunType);
+    }
+
+    // Single update with both changes
+    updateRun(run.id, {
+      fields: updatedFields,
+      runType: newRunType  // Update cached property
+    });
+  };
+
   // Get all fields that are already categorized
   const categorizedFields = new Set(
     Object.values(STAT_GROUPS).flat().map(field => field)
@@ -137,14 +161,18 @@ export function RunDetails({ run }: RunDetailsProps) {
       displayName: run.fields[camelKey].originalKey,
       value: run.fields[camelKey].displayValue
     }));
-  
+
+  const notes = extractNotesValue(run.fields);
+  const runType = extractRunTypeValue(run);
+
   return (
     <div className="space-y-6">
-      <div className="border-b border-border/40 pb-3 mb-6">
-        <h4 className="font-semibold text-lg text-primary">Complete Run Data</h4>
-        <p className="text-sm text-muted-foreground mt-1">Detailed statistics and information for this run</p>
-      </div>
-      
+      <EditableUserFields
+        notes={notes}
+        runType={runType}
+        onSave={handleUserFieldsUpdate}
+      />
+
       {Object.entries(STAT_GROUPS).filter(([groupTitle]) => groupTitle !== "__SKIP__").map(([groupTitle, fields]) => (
         <StatGroup
           key={groupTitle}

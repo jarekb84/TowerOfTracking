@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import {
   generateCompositeKey,
@@ -66,6 +66,9 @@ export function useDataProvider(): DataContextType {
 
   const [runs, setRuns] = useState<ParsedGameRun[]>(initialData.runs);
   const [compositeKeys, setCompositeKeys] = useState<Set<string>>(initialData.compositeKeys);
+
+  // Ref to track debounce timer for localStorage saves
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Migration state is computed once during initialization and never changes
   // setMigrationState is intentionally unused - migrations are one-time operations
@@ -227,15 +230,34 @@ export function useDataProvider(): DataContextType {
     });
   };
 
-  // Save runs to CSV storage whenever they change
+  // Save runs to CSV storage with debouncing to avoid blocking UI
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    try {
-      saveRunsToStorage(runs);
-    } catch (error) {
-      console.error('Failed to save runs to CSV storage:', error);
+    // Clear any pending save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
+
+    // Debounce the save operation - wait 300ms after last change
+    saveTimeoutRef.current = setTimeout(() => {
+      try {
+        // Use setTimeout with 0 to defer to next event loop tick
+        // This ensures UI updates complete before expensive CSV conversion
+        setTimeout(() => {
+          saveRunsToStorage(runs);
+        }, 0);
+      } catch (error) {
+        console.error('Failed to save runs to CSV storage:', error);
+      }
+    }, 300);
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [runs]);
 
   return {

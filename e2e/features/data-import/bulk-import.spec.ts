@@ -56,6 +56,10 @@ test('bulk import loads data and persists to localStorage', async ({ page }) => 
   // Modal should close after successful import
   // (importData already waits for modal to close)
 
+  // CRITICAL: Wait for debounced localStorage save to complete (300ms debounce + async save)
+  // Our persistence layer uses a 300ms debounce to batch rapid changes
+  await page.waitForTimeout(500);
+
   // CRITICAL: Page refresh to verify localStorage persistence
   // This ensures data truly persists to localStorage, not just runtime state
   await page.reload();

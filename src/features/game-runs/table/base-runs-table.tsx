@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   getCoreRowModel,
   getExpandedRowModel,
@@ -8,6 +8,7 @@ import {
   type SortingState,
   type ColumnFiltersState,
   type ColumnDef,
+  type ExpandedState,
 } from '@tanstack/react-table';
 import { Card, CardContent, CardHeader } from '@/components/ui';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
@@ -46,8 +47,14 @@ export function BaseRunsTable({
 }: BaseRunsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [expanded, setExpanded] = useState<ExpandedState>({});
 
   const displayRuns = filteredRuns || runs;
+
+  // Reset expanded state when the data changes (e.g., run moves to different tab)
+  useEffect(() => {
+    setExpanded({});
+  }, [displayRuns.length]);
 
   const table = useReactTable({
     data: displayRuns,
@@ -58,10 +65,12 @@ export function BaseRunsTable({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onExpandedChange: setExpanded,
     getRowCanExpand: () => true,
     state: {
       sorting,
       columnFilters,
+      expanded,
     },
   });
 
