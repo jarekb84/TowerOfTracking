@@ -14,6 +14,7 @@ import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsDataManagementRouteImport } from './routes/settings/data-management'
+import { Route as ChartsTotalsRouteImport } from './routes/charts/totals'
 import { Route as ChartsTierTrendsRouteImport } from './routes/charts/tier-trends'
 import { Route as ChartsTierStatsRouteImport } from './routes/charts/tier-stats'
 import { Route as ChartsFieldsRouteImport } from './routes/charts/fields'
@@ -45,6 +46,11 @@ const SettingsDataManagementRoute = SettingsDataManagementRouteImport.update({
   id: '/data-management',
   path: '/data-management',
   getParentRoute: () => SettingsRoute,
+} as any)
+const ChartsTotalsRoute = ChartsTotalsRouteImport.update({
+  id: '/totals',
+  path: '/totals',
+  getParentRoute: () => ChartsRoute,
 } as any)
 const ChartsTierTrendsRoute = ChartsTierTrendsRouteImport.update({
   id: '/tier-trends',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/charts/fields': typeof ChartsFieldsRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/charts/totals': typeof ChartsTotalsRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/charts/fields': typeof ChartsFieldsRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/charts/totals': typeof ChartsTotalsRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/charts/fields': typeof ChartsFieldsRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/charts/totals': typeof ChartsTotalsRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/charts/fields'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
+    | '/charts/totals'
     | '/settings/data-management'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/charts/fields'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
+    | '/charts/totals'
     | '/settings/data-management'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/charts/fields'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
+    | '/charts/totals'
     | '/settings/data-management'
   fileRoutesById: FileRoutesById
 }
@@ -202,6 +214,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/data-management'
       preLoaderRoute: typeof SettingsDataManagementRouteImport
       parentRoute: typeof SettingsRoute
+    }
+    '/charts/totals': {
+      id: '/charts/totals'
+      path: '/totals'
+      fullPath: '/charts/totals'
+      preLoaderRoute: typeof ChartsTotalsRouteImport
+      parentRoute: typeof ChartsRoute
     }
     '/charts/tier-trends': {
       id: '/charts/tier-trends'
@@ -255,6 +274,7 @@ interface ChartsRouteChildren {
   ChartsFieldsRoute: typeof ChartsFieldsRoute
   ChartsTierStatsRoute: typeof ChartsTierStatsRoute
   ChartsTierTrendsRoute: typeof ChartsTierTrendsRoute
+  ChartsTotalsRoute: typeof ChartsTotalsRoute
 }
 
 const ChartsRouteChildren: ChartsRouteChildren = {
@@ -264,6 +284,7 @@ const ChartsRouteChildren: ChartsRouteChildren = {
   ChartsFieldsRoute: ChartsFieldsRoute,
   ChartsTierStatsRoute: ChartsTierStatsRoute,
   ChartsTierTrendsRoute: ChartsTierTrendsRoute,
+  ChartsTotalsRoute: ChartsTotalsRoute,
 }
 
 const ChartsRouteWithChildren =
