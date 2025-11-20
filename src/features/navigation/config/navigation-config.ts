@@ -64,6 +64,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         label: 'Tier Trends',
         href: '/charts?chart=trends',
         icon: 'tier-trends'
+      },
+      {
+        id: 'totals-analytics',
+        label: 'Totals Analysis',
+        href: '/charts?chart=totals',
+        icon: 'field-analytics'
       }
     ]
   },

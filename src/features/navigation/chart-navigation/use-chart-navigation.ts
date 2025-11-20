@@ -1,7 +1,7 @@
 import { useUrlSearchParam } from './use-url-search-param'
 import { useEffect, useState } from 'react'
 
-export type ChartType = 'coins' | 'cells' | 'deaths' | 'tiers' | 'trends' | 'fields'
+export type ChartType = 'coins' | 'cells' | 'deaths' | 'tiers' | 'trends' | 'fields' | 'totals'
 
 interface ChartSearchParams extends Record<string, unknown> {
   chart?: ChartType
