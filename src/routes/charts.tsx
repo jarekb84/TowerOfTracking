@@ -8,7 +8,7 @@ import { TierTrendsAnalysis } from '../features/analysis/tier-trends/tier-trends
 import { TimeSeriesChart } from '../features/analysis/time-series/time-series-chart'
 import { FieldSelector } from '../features/analysis/field-analytics/field-selector'
 import { useFieldSelector } from '../features/analysis/field-analytics/use-field-selector'
-import { TotalsAnalysis } from '../features/analysis/totals-analytics/totals-analysis'
+import { SourceAnalysis } from '../features/analysis/source-analysis/source-analysis'
 import { useChartNavigation, ChartType } from '../features/navigation'
 import { useData } from '../shared/domain/use-data'
 import { formatFieldDisplayName, getFieldFormatter } from '../shared/domain/fields/field-formatters'
@@ -98,11 +98,11 @@ function ChartsPage() {
                 <span className="sm:hidden">Trends</span>
               </TabsTrigger>
               <TabsTrigger
-                value="totals"
+                value="sources"
                 className="data-[state=active]:bg-purple-500/15 data-[state=active]:text-purple-100 hover:bg-purple-500/10 text-xs sm:text-sm"
               >
-                <span className="hidden sm:inline">Totals Analysis</span>
-                <span className="sm:hidden">Totals</span>
+                <span className="hidden sm:inline">Source Analysis</span>
+                <span className="sm:hidden">Sources</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -253,21 +253,21 @@ function ChartsPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="totals" className="space-y-8 lg:space-y-12">
+          <TabsContent value="sources" className="space-y-8 lg:space-y-12">
             <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 border-b border-slate-700/50">
                 <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
                   <div className="w-2 h-8 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full shadow-lg shadow-purple-500/30"></div>
-                  Totals Analysis
-                  <span className="text-sm font-normal text-slate-400 ml-auto">Income Source Breakdown</span>
+                  Source Analysis
+                  <span className="text-sm font-normal text-slate-400 ml-auto">Understand Your Aggregate Metric Breakdowns</span>
                 </CardTitle>
                 <p className="text-slate-400 text-sm mt-2">
-                  Analyze the breakdown of aggregate metrics like damage dealt and coin income.
+                  See which sources contribute to your damage dealt and coin income totals, and track how those proportions change over time.
                 </p>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="p-8 w-full">
-                  <TotalsAnalysis />
+                  <SourceAnalysis />
                 </div>
               </CardContent>
             </Card>

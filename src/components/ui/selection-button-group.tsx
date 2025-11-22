@@ -11,6 +11,8 @@ export interface SelectionOption<T = string> {
   tooltip?: string
 }
 
+type AccentColor = 'orange' | 'purple'
+
 interface SelectionButtonGroupProps<T = string> {
   options: SelectionOption<T>[]
   selectedValue: T
@@ -23,6 +25,13 @@ interface SelectionButtonGroupProps<T = string> {
   spacing?: 'tight' | 'normal' | 'loose'
   equalWidth?: boolean
   ariaLabel?: string
+  /** Accent color theme for selected state. Defaults to 'orange'. */
+  accentColor?: AccentColor
+}
+
+const accentColorClasses: Record<AccentColor, string> = {
+  orange: 'border-orange-500/70 bg-orange-500/10 hover:bg-orange-500/20 hover:border-orange-500/80 hover:shadow-orange-500/20',
+  purple: 'border-purple-500/70 bg-purple-500/10 hover:bg-purple-500/20 hover:border-purple-500/80 hover:shadow-purple-500/20'
 }
 
 export function SelectionButtonGroup<T = string>({
@@ -36,7 +45,8 @@ export function SelectionButtonGroup<T = string>({
   vertical = false,
   spacing = 'tight',
   equalWidth = false,
-  ariaLabel
+  ariaLabel,
+  accentColor = 'orange'
 }: SelectionButtonGroupProps<T>) {
   const spacingClasses = {
     tight: 'gap-1',
@@ -57,32 +67,39 @@ export function SelectionButtonGroup<T = string>({
         aria-label={ariaLabel}
       >
         {options.map((option) => {
+          const isSelected = selectedValue === option.value
+          const hasOptionColor = Boolean(option.color)
+
           const button = (
             <Button
               key={String(option.value)}
               variant="outline"
               size={size}
-              selected={selectedValue === option.value}
+              selected={false} // We handle selection styling ourselves for accent color support
+              aria-pressed={isSelected} // Override aria-pressed for accessibility (selected={false} would set this to false)
               onClick={() => onSelectionChange(option.value)}
               fullWidthOnMobile={fullWidthOnMobile}
               className={cn(
                 "whitespace-nowrap shrink-0",
                 equalWidth && "flex-1 min-w-0",
+                // Apply accent color classes for selected state when no option-specific color
+                isSelected && !hasOptionColor && accentColorClasses[accentColor],
+                isSelected && !hasOptionColor && "text-foreground shadow-xs hover:shadow-md",
                 buttonClassName
               )}
-              style={option.color && selectedValue === option.value ? {
+              style={hasOptionColor && isSelected ? {
                 backgroundColor: `${option.color}15`,
                 borderColor: `${option.color}60`,
                 color: 'var(--color-foreground)',
               } : undefined}
               onMouseEnter={(e) => {
-                if (option.color && selectedValue === option.value) {
+                if (hasOptionColor && isSelected) {
                   e.currentTarget.style.backgroundColor = `${option.color}25`;
                   e.currentTarget.style.borderColor = `${option.color}70`;
                 }
               }}
               onMouseLeave={(e) => {
-                if (option.color && selectedValue === option.value) {
+                if (hasOptionColor && isSelected) {
                   e.currentTarget.style.backgroundColor = `${option.color}15`;
                   e.currentTarget.style.borderColor = `${option.color}60`;
                 }

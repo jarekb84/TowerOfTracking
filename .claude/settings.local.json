@@ -32,7 +32,8 @@
       "Read(/C:\\Source\\TowerOfTracking/**)",
       "Write(/C:\\Source\\TowerOfTracking/**)",
       "Edit(/C:\\Source\\TowerOfTracking/**)",
-      "NotebookEdit(/C:\\Source\\TowerOfTracking/**)"
+      "NotebookEdit(/C:\\Source\\TowerOfTracking/**)",
+      "Bash(timeout 15 npm run dev)"
     ],
     "defaultMode": "acceptEdits"
   },
