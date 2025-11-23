@@ -55,7 +55,6 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(3, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 5,
           duration: TrendsDuration.PER_RUN,
           quantity: 3,
         };
@@ -85,7 +84,6 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(2, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.PER_RUN,
           quantity: 2,
         };
@@ -130,7 +128,6 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.PER_RUN,
           quantity: 2,
           aggregationType: TrendsAggregation.HOURLY,
@@ -151,7 +148,6 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(5, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.DAILY,
           quantity: 3,
           aggregationType: TrendsAggregation.SUM,
@@ -208,7 +204,6 @@ describe('tier-trends', () => {
         // Test sum aggregation
         const sumFilters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.SUM,
@@ -222,7 +217,6 @@ describe('tier-trends', () => {
         // Test average aggregation
         const avgFilters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.AVERAGE,
@@ -235,7 +229,6 @@ describe('tier-trends', () => {
         // Test min aggregation
         const minFilters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.MIN,
@@ -248,7 +241,6 @@ describe('tier-trends', () => {
         // Test max aggregation
         const maxFilters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.MAX,
@@ -299,7 +291,6 @@ describe('tier-trends', () => {
 
         const hourlyFilters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.HOURLY,
@@ -334,7 +325,6 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.PER_RUN,
           quantity: 2,
         };
@@ -348,33 +338,6 @@ describe('tier-trends', () => {
         expect(coinsField!.change.absolute).toBe(100);
       });
 
-      it('should respect change threshold filters', () => {
-        const runs = createRunsWithVariation(3, 1);
-        
-        // With 0% threshold, should include all fields
-        const lowThreshold: TierTrendsFilters = {
-          tier: 1,
-          changeThresholdPercent: 0,
-          duration: TrendsDuration.PER_RUN,
-          quantity: 3,
-        };
-
-        const lowResult = calculateTierTrends(runs, lowThreshold, RunType.FARM);
-        const lowFieldCount = lowResult.fieldTrends.length;
-
-        // With high threshold, should include fewer fields
-        const highThreshold: TierTrendsFilters = {
-          tier: 1,
-          changeThresholdPercent: 50,
-          duration: TrendsDuration.PER_RUN,
-          quantity: 3,
-        };
-
-        const highResult = calculateTierTrends(runs, highThreshold, RunType.FARM);
-        const highFieldCount = highResult.fieldTrends.length;
-
-        expect(lowFieldCount).toBeGreaterThan(highFieldCount);
-      });
     });
 
     describe('summary statistics', () => {
@@ -382,7 +345,6 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(3, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 5,
           duration: TrendsDuration.PER_RUN,
           quantity: 3,
         };
@@ -405,7 +367,6 @@ describe('tier-trends', () => {
         const runs = [createMockRun({}, undefined, 1)]; // Only 1 run
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 5,
           duration: TrendsDuration.PER_RUN,
           quantity: 3,
         };
@@ -429,7 +390,6 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.PER_RUN,
           quantity: 2,
         };
@@ -455,7 +415,6 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          changeThresholdPercent: 0,
           duration: TrendsDuration.PER_RUN,
           quantity: 2,
         };

@@ -6,6 +6,11 @@
  * constituent sources.
  */
 
+import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+
+// Re-export for convenience
+export type { RunTypeFilter }
+
 /**
  * Duration options for source analysis (matches tier-trends pattern)
  */
@@ -21,11 +26,6 @@ export enum SourceDuration {
  * Available analysis categories
  */
 export type SourceCategory = 'damageDealt' | 'coinIncome';
-
-/**
- * Run type filter options
- */
-export type RunTypeFilter = 'all' | 'farm' | 'tournament';
 
 /**
  * Filter configuration for source analysis
@@ -130,16 +130,6 @@ export const DEFAULT_FILTERS: SourceAnalysisFilters = {
   quantity: 10
 };
 
-/**
- * Duration display labels
- */
-export const DURATION_LABELS: Record<SourceDuration, string> = {
-  [SourceDuration.PER_RUN]: 'Per Run',
-  [SourceDuration.DAILY]: 'Daily',
-  [SourceDuration.WEEKLY]: 'Weekly',
-  [SourceDuration.MONTHLY]: 'Monthly',
-  [SourceDuration.YEARLY]: 'Yearly'
-};
 
 /**
  * Quantity labels based on duration

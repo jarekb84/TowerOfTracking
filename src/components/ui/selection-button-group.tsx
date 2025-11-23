@@ -9,6 +9,8 @@ export interface SelectionOption<T = string> {
   color?: string
   icon?: React.ReactNode
   tooltip?: string
+  /** Optional badge/count to display with subtle styling */
+  badge?: string | number
 }
 
 type AccentColor = 'orange' | 'purple'
@@ -113,6 +115,11 @@ export function SelectionButtonGroup<T = string>({
               )}
               {option.icon && typeof option.icon !== 'boolean' && option.icon}
               {option.label}
+              {option.badge !== undefined && (
+                <span className="ml-1.5 text-[0.65rem] leading-none text-muted-foreground/60 font-normal tabular-nums opacity-80">
+                  {option.badge}
+                </span>
+              )}
             </Button>
           )
 

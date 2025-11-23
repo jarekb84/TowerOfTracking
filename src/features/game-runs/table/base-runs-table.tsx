@@ -87,9 +87,17 @@ export function BaseRunsTable({
   if (useCardStructure) {
     return (
       <Card>
-        <CardHeader className="pb-4">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-2xl font-semibold leading-none tracking-tight">{title}</h3>
+              <p className="text-sm text-muted-foreground">
+                {displayRuns.length} runs{selectedTier !== null && selectedTier !== undefined ? ` (Tier ${selectedTier})` : ''}
+              </p>
+            </div>
+          </div>
           {onTierChange && shouldShowTierFilter && (
-            <TierFilter 
+            <TierFilter
               availableTiers={availableTiers || []}
               selectedTier={selectedTier || null}
               onTierChange={onTierChange}

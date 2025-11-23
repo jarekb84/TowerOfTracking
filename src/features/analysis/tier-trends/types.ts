@@ -36,7 +36,6 @@ export enum TrendsAggregation {
  */
 export interface TierTrendsFilters {
   tier: number;
-  changeThresholdPercent: number; // Only show fields with changes above this threshold
   duration: TrendsDuration; // Time span for analysis
   quantity: number; // Number of periods to analyze (2-7)
   aggregationType?: TrendsAggregation; // Only used when duration is not 'per-run'

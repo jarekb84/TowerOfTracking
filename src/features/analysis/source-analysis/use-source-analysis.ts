@@ -4,7 +4,7 @@
  * Manages filters, calculations, and cross-chart state for the Source Analysis feature.
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type {
   SourceAnalysisFilters,
@@ -16,6 +16,12 @@ import type {
 import { DEFAULT_FILTERS, getDefaultRunTypeForCategory } from './types';
 import { getCategoryDefinition } from './category-config';
 import { calculateSourceAnalysis } from './calculations/period-grouping';
+import {
+  useAvailableTiers,
+  useAvailableDurations,
+  Duration,
+  getDefaultPeriodCount,
+} from '@/shared/domain/filters';
 
 interface UseSourceAnalysisOptions {
   runs: ParsedGameRun[];
@@ -42,19 +48,7 @@ interface UseSourceAnalysisReturn {
 
   // Available options for filters
   availableTiers: number[];
-}
-
-/**
- * Extract unique tiers from runs
- */
-function extractAvailableTiers(runs: ParsedGameRun[]): number[] {
-  const tiers = new Set<number>();
-  for (const run of runs) {
-    if (run.tier > 0) {
-      tiers.add(run.tier);
-    }
-  }
-  return Array.from(tiers).sort((a, b) => a - b);
+  availableDurations: Duration[];
 }
 
 /**
@@ -73,8 +67,17 @@ export function useSourceAnalysis({
   // Cross-chart highlight state
   const [highlightedSource, setHighlightedSource] = useState<string | null>(null);
 
-  // Extract available tiers from runs
-  const availableTiers = useMemo(() => extractAvailableTiers(runs), [runs]);
+  // Use unified hooks for available options
+  // Filter tiers by current run type to only show tiers with data for that run type
+  const { tiers: availableTiers } = useAvailableTiers(runs, filters.runType);
+  const { durations: availableDurations } = useAvailableDurations(runs);
+
+  // Auto-reset tier to 'all' when the selected tier is no longer available
+  useEffect(() => {
+    if (filters.tier !== 'all' && !availableTiers.includes(filters.tier)) {
+      setFilters(prev => ({ ...prev, tier: 'all' }));
+    }
+  }, [availableTiers, filters.tier]);
 
   // Calculate analysis data
   const analysisData = useMemo(() => {
@@ -104,7 +107,9 @@ export function useSourceAnalysis({
   }, []);
 
   const setDuration = useCallback((duration: SourceDuration) => {
-    setFilters(prev => ({ ...prev, duration }));
+    // Reset quantity to default for the new duration
+    const newQuantity = getDefaultPeriodCount(duration as unknown as Duration);
+    setFilters(prev => ({ ...prev, duration, quantity: newQuantity }));
   }, []);
 
   const setQuantity = useCallback((quantity: number) => {
@@ -134,5 +139,6 @@ export function useSourceAnalysis({
 
     // Available options
     availableTiers,
+    availableDurations,
   };
 }

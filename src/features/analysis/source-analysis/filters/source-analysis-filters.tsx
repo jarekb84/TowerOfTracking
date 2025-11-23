@@ -6,18 +6,29 @@
  */
 
 import { FormControl, SelectionButtonGroup } from '@/components/ui'
+import {
+  TierSelector,
+  DurationSelector,
+  PeriodCountSelector,
+  Duration,
+  getPeriodCountOptions,
+  getPeriodCountLabel,
+  stringToDuration,
+  durationToString
+} from '@/shared/domain/filters'
+import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
+import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import type {
   SourceAnalysisFilters,
   SourceCategory,
-  RunTypeFilter,
   SourceDuration,
 } from '../types'
-import { DURATION_LABELS, SourceDuration as Duration } from '../types'
 import { getAvailableCategories } from '../category-config'
 
 interface SourceAnalysisFiltersProps {
   filters: SourceAnalysisFilters
   availableTiers: number[]
+  availableDurations: Duration[]
   onCategoryChange: (category: SourceCategory) => void
   onRunTypeChange: (runType: RunTypeFilter) => void
   onTierChange: (tier: number | 'all') => void
@@ -25,25 +36,10 @@ interface SourceAnalysisFiltersProps {
   onQuantityChange: (quantity: number) => void
 }
 
-const RUN_TYPE_OPTIONS: { value: RunTypeFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'farm', label: 'Farm' },
-  { value: 'tournament', label: 'Tournament' },
-]
-
-const DURATION_OPTIONS: { value: SourceDuration; label: string }[] = [
-  { value: Duration.PER_RUN, label: DURATION_LABELS[Duration.PER_RUN] },
-  { value: Duration.DAILY, label: DURATION_LABELS[Duration.DAILY] },
-  { value: Duration.WEEKLY, label: DURATION_LABELS[Duration.WEEKLY] },
-  { value: Duration.MONTHLY, label: DURATION_LABELS[Duration.MONTHLY] },
-  { value: Duration.YEARLY, label: DURATION_LABELS[Duration.YEARLY] },
-]
-
-const QUANTITY_OPTIONS = [5, 10, 15, 20, 30, 50]
-
 export function SourceAnalysisFiltersComponent({
   filters,
   availableTiers,
+  availableDurations,
   onCategoryChange,
   onRunTypeChange,
   onTierChange,
@@ -51,73 +47,65 @@ export function SourceAnalysisFiltersComponent({
   onQuantityChange,
 }: SourceAnalysisFiltersProps) {
   const categories = getAvailableCategories()
+  // Convert SourceDuration (legacy enum) to unified Duration using safe adapter
+  const unifiedDuration = stringToDuration(filters.duration)
+  const periodOptions = getPeriodCountOptions(unifiedDuration)
+  const periodLabel = getPeriodCountLabel(unifiedDuration)
 
   return (
     <div className="space-y-4">
-      {/* Category Selector */}
-      <FormControl label="Category" layout="vertical">
-        <SelectionButtonGroup<SourceCategory>
-          options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
-          selectedValue={filters.category}
-          onSelectionChange={onCategoryChange}
-          size="sm"
-          fullWidthOnMobile={false}
+      {/* Row 1: Category + Run Type */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <FormControl label="Category" layout="horizontal">
+          <SelectionButtonGroup<SourceCategory>
+            options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+            selectedValue={filters.category}
+            onSelectionChange={onCategoryChange}
+            size="sm"
+            fullWidthOnMobile={false}
+            accentColor="purple"
+          />
+        </FormControl>
+
+        <RunTypeSelector
+          selectedType={filters.runType}
+          onTypeChange={onRunTypeChange}
           accentColor="purple"
         />
-      </FormControl>
+      </div>
 
-      {/* Filter Row */}
-      <div className="flex flex-wrap gap-4">
-        {/* Run Type */}
-        <FormControl label="Run Type">
-          <SelectionButtonGroup<RunTypeFilter>
-            options={RUN_TYPE_OPTIONS}
-            selectedValue={filters.runType}
-            onSelectionChange={onRunTypeChange}
-            size="sm"
-            fullWidthOnMobile={false}
-            accentColor="purple"
-          />
-        </FormControl>
+      {/* Row 2: Tier (can grow with many options) */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <TierSelector
+          selectedTier={filters.tier}
+          onTierChange={onTierChange}
+          availableTiers={availableTiers}
+          accentColor="purple"
+        />
+      </div>
 
-        {/* Tier Selector */}
-        <FormControl label="Tier">
-          <SelectionButtonGroup<number | 'all'>
-            options={[
-              { value: 'all', label: 'All' },
-              ...availableTiers.map(tier => ({ value: tier, label: `T${tier}` }))
-            ]}
-            selectedValue={filters.tier}
-            onSelectionChange={onTierChange}
-            size="sm"
-            fullWidthOnMobile={false}
-            accentColor="purple"
-          />
-        </FormControl>
+      {/* Row 3: Duration + Period Count */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <DurationSelector
+          selectedDuration={unifiedDuration}
+          onDurationChange={(duration) => onDurationChange(durationToString(duration) as SourceDuration)}
+          availableDurations={availableDurations}
+          accentColor="purple"
+        />
 
-        {/* Aggregation Duration */}
-        <FormControl label="Aggregation">
-          <SelectionButtonGroup<SourceDuration>
-            options={DURATION_OPTIONS}
-            selectedValue={filters.duration}
-            onSelectionChange={onDurationChange}
-            size="sm"
-            fullWidthOnMobile={false}
-            accentColor="purple"
-          />
-        </FormControl>
-
-        {/* Period Quantity */}
-        <FormControl label="Periods">
-          <SelectionButtonGroup<number>
-            options={QUANTITY_OPTIONS.map(qty => ({ value: qty, label: `${qty}` }))}
-            selectedValue={filters.quantity}
-            onSelectionChange={onQuantityChange}
-            size="sm"
-            fullWidthOnMobile={false}
-            accentColor="purple"
-          />
-        </FormControl>
+        <PeriodCountSelector
+          selectedCount={filters.quantity}
+          onCountChange={(count) => {
+            // Since showAllOption={false}, we only receive numbers
+            if (typeof count === 'number') {
+              onQuantityChange(count)
+            }
+          }}
+          countOptions={periodOptions}
+          label={periodLabel}
+          showAllOption={false}
+          accentColor="purple"
+        />
       </div>
     </div>
   )

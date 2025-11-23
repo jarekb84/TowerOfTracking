@@ -9,7 +9,6 @@ import { TrendsDuration, TrendsAggregation } from './types'
  *
  * Default Settings:
  * - Tier: 0 (All)
- * - Change Threshold: 0 (All)
  * - Duration: TrendsDuration.PER_RUN
  * - Quantity: 4
  * - Aggregation Type: TrendsAggregation.AVERAGE (only used when duration is not per-run)
@@ -29,7 +28,6 @@ describe('TierTrendsAnalysis - Default Settings Documentation', () => {
   it('documents default filter values', () => {
     const expectedDefaults = {
       tier: 0, // 0 = All tiers
-      changeThresholdPercent: 0, // 0 = All (no threshold filtering)
       duration: TrendsDuration.PER_RUN,
       quantity: 4, // Default to 4 periods for better trending visibility
       aggregationType: TrendsAggregation.AVERAGE
@@ -38,7 +36,6 @@ describe('TierTrendsAnalysis - Default Settings Documentation', () => {
     // This test serves as living documentation for the default filter values
     // The actual behavior is tested in tier-trends-controls.test.tsx
     expect(expectedDefaults.tier).toBe(0)
-    expect(expectedDefaults.changeThresholdPercent).toBe(0)
     expect(expectedDefaults.duration).toBe(TrendsDuration.PER_RUN)
     expect(expectedDefaults.quantity).toBe(4)
     expect(expectedDefaults.aggregationType).toBe(TrendsAggregation.AVERAGE)
