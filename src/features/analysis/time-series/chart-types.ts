@@ -5,51 +5,6 @@ export interface ChartDataPoint {
   timestamp: Date
 }
 
-export interface DailyAggregatePoint {
-  date: string
-  totalCoins: number
-  runCount: number
-  avgCoins: number
-  timestamp: Date
-}
-
-export interface DailyCellsAggregatePoint {
-  date: string
-  totalCells: number
-  runCount: number
-  avgCells: number
-  timestamp: Date
-}
-
-export interface WeeklyAggregatePoint {
-  date: string
-  totalCoins: number
-  totalCells: number
-  runCount: number
-  avgCoins: number
-  avgCells: number
-  timestamp: Date
-}
-
-export interface MonthlyAggregatePoint {
-  date: string
-  totalCoins: number
-  totalCells: number
-  runCount: number
-  avgCoins: number
-  avgCells: number
-  timestamp: Date
-}
-
-export interface YearlyAggregatePoint {
-  date: string
-  totalCoins: number
-  totalCells: number
-  runCount: number
-  avgCoins: number
-  avgCells: number
-  timestamp: Date
-}
 
 export type TimePeriod = 'hourly' | 'run' | 'daily' | 'weekly' | 'monthly' | 'yearly'
 

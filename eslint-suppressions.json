@@ -1,7 +1,243 @@
 {
+  "e2e/page-objects/base-analytics-page.ts": {
+    "max-statements": {
+      "count": 1
+    }
+  },
   "src/components/ui/calendar.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    },
     "react/prop-types": {
       "count": 4
+    }
+  },
+  "src/components/ui/chart.tsx": {
+    "complexity": {
+      "count": 3
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/components/ui/selection-button-group.tsx": {
+    "complexity": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/deaths-radar/deaths-radar-chart.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/field-analytics/field-selector.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/shared/parsing/data-parser.ts": {
+    "complexity": {
+      "count": 4
+    },
+    "max-depth": {
+      "count": 1
+    },
+    "max-statements": {
+      "count": 2
+    }
+  },
+  "src/features/analysis/source-analysis/calculations/period-grouping.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/source-analysis/charts/source-bar-chart.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/source-analysis/charts/source-chart-tooltip.tsx": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/source-analysis/use-source-analysis.test.tsx": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-stats/calculations/tier-stats-calculator.test.ts": {
+    "max-params": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-stats/calculations/tier-stats-calculator.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-stats/config/tier-stats-config-panel.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-stats/tier-stats-table.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/calculations/period-grouping.ts": {
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/calculations/trend-analysis.ts": {
+    "complexity": {
+      "count": 2
+    },
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/mobile/tier-trends-mobile-card.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/mobile/tier-trends-mobile-utils.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/table/tier-trends-table.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/tier-trends-analysis.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/tier-trends/tier-trends-display.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/features/analysis/time-series/time-series-chart.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/data-export/csv-export/csv-export.tsx": {
+    "complexity": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/data-export/csv-export/csv-exporter.ts": {
+    "complexity": {
+      "count": 3
+    },
+    "max-statements": {
+      "count": 3
+    }
+  },
+  "src/features/data-import/csv-import/csv-import.tsx": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/features/data-import/csv-import/csv-parser.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/features/data-import/csv-import/field-mapping/field-mapping-report.tsx": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/features/data-import/csv-import/use-csv-import.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/data-import/manual-entry/data-input.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/data-import/manual-entry/use-data-input-form.ts": {
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/features/game-runs/editing/editable-user-fields.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/game-runs/table-variants/farming-table-columns.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/game-runs/table/base-runs-table.tsx": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/features/navigation/top-navbar/nav-icon.tsx": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/routes/charts.tsx": {
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/shared/domain/data-migrations.ts": {
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/shared/domain/duplicate-detection/duplicate-info.tsx": {
+    "complexity": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/shared/domain/filters/duration/duration-filter-logic.ts": {
+    "max-statements": {
+      "count": 1
+    }
+  },
+  "src/shared/domain/run-types/run-type-detection.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/shared/domain/use-data.ts": {
+    "max-lines-per-function": {
+      "count": 1
     }
   }
 }

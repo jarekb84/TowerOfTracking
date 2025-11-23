@@ -9,6 +9,33 @@ interface FieldConfig {
   type: 'number' | 'duration' | 'string' | 'date';
 }
 
+// Exact match field configurations - O(1) lookup instead of if-chain
+const EXACT_FIELD_CONFIGS: Record<string, FieldConfig> = {
+  // Internal fields (prefixed with underscore)
+  '_date': { type: 'date' },
+  'date': { type: 'date' },
+  '_time': { type: 'date' },
+  'time': { type: 'date' },
+  '_notes': { type: 'string' },
+  'notes': { type: 'string' },
+  '_runtype': { type: 'string' },
+  'runtype': { type: 'string' },
+  '_run_type': { type: 'string' },
+  'run_type': { type: 'string' },
+  // Battle date variants
+  'battle date': { type: 'date' },
+  'battledate': { type: 'date' },
+  'battle_date': { type: 'date' },
+  // Other string fields
+  'killed by': { type: 'string' },
+};
+
+// Pattern-based field detection (order matters - first match wins)
+const PATTERN_FIELD_CONFIGS: Array<{ pattern: string; config: FieldConfig }> = [
+  { pattern: 'time', config: { type: 'duration' } },
+  { pattern: 'date', config: { type: 'date' } },
+];
+
 // Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
 function parseDuration(duration: string): number {
   if (!duration || typeof duration !== 'string') return 0;
@@ -45,21 +72,19 @@ function formatDuration(seconds: number): string {
 function getFieldConfig(key: string, rawValue?: string): FieldConfig {
   const lowerKey = key.toLowerCase();
 
-  // Handle internal fields (prefixed with underscore)
-  if (lowerKey === '_date' || lowerKey === 'date') return { type: 'date' };
-  if (lowerKey === '_time' || lowerKey === 'time') return { type: 'date' };
-  if (lowerKey === '_notes' || lowerKey === 'notes') return { type: 'string' };
-  if (lowerKey === '_runtype' || lowerKey === 'runtype' || lowerKey === '_run_type' || lowerKey === 'run_type') return { type: 'string' };
+  // 1. Check exact match first (O(1) lookup)
+  const exactMatch = EXACT_FIELD_CONFIGS[lowerKey];
+  if (exactMatch) return exactMatch;
 
-  // Handle battle_date field from game (can be "Battle Date" with space or "battledate")
-  if (lowerKey === 'battle date' || lowerKey === 'battledate' || lowerKey === 'battle_date') return { type: 'date' };
+  // 2. Special case: tier with '+' suffix (e.g., "10+") is a string
+  if (lowerKey === 'tier' && rawValue?.includes('+')) return { type: 'string' };
 
-  // Existing game field detection
-  if (lowerKey.includes('time')) return { type: 'duration' };
-  if (lowerKey.includes('date')) return { type: 'date' };
-  if (lowerKey === 'killed by') return { type: 'string' };
-  if (lowerKey === 'tier' && rawValue && rawValue.includes('+')) return { type: 'string' };
+  // 3. Check pattern-based matches
+  for (const { pattern, config } of PATTERN_FIELD_CONFIGS) {
+    if (lowerKey.includes(pattern)) return config;
+  }
 
+  // 4. Default to number
   return { type: 'number' };
 }
 

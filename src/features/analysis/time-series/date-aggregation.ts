@@ -46,18 +46,6 @@ export function calculateRunAggregates(runs: ParsedGameRun[]): RunAggregates {
   }
 }
 
-// Re-export all aggregation functions for backward compatibility
-export {
-  prepareCoinsPerRunData,
-  prepareCellsPerRunData,
-  prepareCoinsPerHourData,
-  prepareCellsPerHourData,
-  prepareCoinsPerDayData,
-  prepareCellsPerDayData,
-  prepareWeeklyData,
-  prepareMonthlyData,
-  prepareYearlyData
-} from './coin-cell-aggregation'
 
 export {
   prepareFieldPerRunData,
