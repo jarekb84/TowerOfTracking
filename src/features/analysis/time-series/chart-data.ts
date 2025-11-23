@@ -7,15 +7,6 @@ import {
   TIME_PERIOD_CONFIGS
 } from './chart-types'
 import {
-  prepareCoinsPerRunData,
-  prepareCoinsPerDayData,
-  prepareCellsPerRunData,
-  prepareCoinsPerHourData,
-  prepareCellsPerHourData,
-  prepareCellsPerDayData,
-  prepareWeeklyData,
-  prepareMonthlyData,
-  prepareYearlyData,
   prepareFieldPerRunData,
   prepareFieldPerHourData,
   prepareFieldPerDayData,
@@ -33,59 +24,6 @@ export function prepareTimeSeriesData(
   period: TimePeriod,
   metric: string
 ): ChartDataPoint[] {
-  // Use coin/cell-specific functions for backwards compatibility
-  if (metric === 'coins' || metric === 'cells') {
-    switch (period) {
-      case 'hourly':
-        return metric === 'coins' ? prepareCoinsPerHourData(runs) : prepareCellsPerHourData(runs)
-      case 'run':
-        return metric === 'coins' ? prepareCoinsPerRunData(runs) : prepareCellsPerRunData(runs)
-      case 'daily':
-        if (metric === 'coins') {
-          const dailyData = prepareCoinsPerDayData(runs)
-          return dailyData.map(point => ({
-            date: point.date,
-            value: point.totalCoins,
-            timestamp: point.timestamp
-          }))
-        } else {
-          const dailyData = prepareCellsPerDayData(runs)
-          return dailyData.map(point => ({
-            date: point.date,
-            value: point.totalCells,
-            timestamp: point.timestamp
-          }))
-        }
-      case 'weekly': {
-        const weeklyData = prepareWeeklyData(runs)
-        return weeklyData.map(point => ({
-          date: point.date,
-          value: metric === 'coins' ? point.totalCoins : point.totalCells,
-          timestamp: point.timestamp
-        }))
-      }
-      case 'monthly': {
-        const monthlyData = prepareMonthlyData(runs)
-        return monthlyData.map(point => ({
-          date: point.date,
-          value: metric === 'coins' ? point.totalCoins : point.totalCells,
-          timestamp: point.timestamp
-        }))
-      }
-      case 'yearly': {
-        const yearlyData = prepareYearlyData(runs)
-        return yearlyData.map(point => ({
-          date: point.date,
-          value: metric === 'coins' ? point.totalCoins : point.totalCells,
-          timestamp: point.timestamp
-        }))
-      }
-      default:
-        return []
-    }
-  }
-
-  // Use generic field functions for any other metric
   switch (period) {
     case 'hourly':
       return prepareFieldPerHourData(runs, metric)

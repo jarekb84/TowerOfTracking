@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { groupRunsByDateKey, calculateRunAggregates, prepareWeeklyData, prepareMonthlyData, prepareYearlyData } from './date-aggregation'
+import { groupRunsByDateKey, calculateRunAggregates } from './date-aggregation'
 import { ParsedGameRun } from '@/shared/types/game-run.types'
 
 const mockRun1: ParsedGameRun = {
@@ -93,93 +93,4 @@ describe('Date Aggregation Utils', () => {
     })
   })
 
-  describe('prepareWeeklyData', () => {
-    it('should group runs by week starting on Sunday', () => {
-      // August 31, 2025 is a Sunday, September 1, 2025 is a Monday (same week)
-      const runs = [mockRun1, mockRun2, mockRun3]
-      
-      const weeklyData = prepareWeeklyData(runs)
-      
-      expect(weeklyData).toHaveLength(1) // All runs are in the same week (Aug 31-Sep 6)
-      
-      // First week (Aug 31 - Sep 6)
-      const firstWeek = weeklyData[0]
-      expect(firstWeek.date).toBe('Aug 31')
-      expect(firstWeek.totalCoins).toBe(3700000) // All three runs are in the same week
-      expect(firstWeek.totalCells).toBe(185000)
-      expect(firstWeek.runCount).toBe(3)
-    })
-
-    it('should sort weekly data by timestamp', () => {
-      const olderRun: ParsedGameRun = {
-        ...mockRun1,
-        timestamp: new Date('2025-08-24T10:00:00'), // Previous Sunday
-        id: 'older'
-      }
-      const runs = [mockRun1, olderRun]
-      
-      const weeklyData = prepareWeeklyData(runs)
-      
-      expect(weeklyData).toHaveLength(2)
-      expect(weeklyData[0].date).toBe('Aug 24') // Earlier week first
-      expect(weeklyData[1].date).toBe('Aug 31') // Later week second
-    })
-  })
-
-  describe('prepareMonthlyData', () => {
-    it('should group runs by month', () => {
-      const runs = [mockRun1, mockRun2, mockRun3]
-      
-      const monthlyData = prepareMonthlyData(runs)
-      
-      expect(monthlyData).toHaveLength(2) // August and September
-      
-      const augustData = monthlyData.find(month => month.date === 'Aug 2025')
-      expect(augustData).toBeDefined()
-      expect(augustData!.totalCoins).toBe(2200000) // First two runs
-      expect(augustData!.runCount).toBe(2)
-      
-      const septemberData = monthlyData.find(month => month.date === 'Sep 2025')
-      expect(septemberData).toBeDefined()
-      expect(septemberData!.totalCoins).toBe(1500000) // Third run
-      expect(septemberData!.runCount).toBe(1)
-    })
-  })
-
-  describe('prepareYearlyData', () => {
-    it('should group runs by year', () => {
-      const run2024: ParsedGameRun = {
-        ...mockRun1,
-        timestamp: new Date('2024-12-31T10:00:00'),
-        id: '2024'
-      }
-      const runs = [mockRun1, run2024]
-      
-      const yearlyData = prepareYearlyData(runs)
-      
-      expect(yearlyData).toHaveLength(2) // 2024 and 2025
-      
-      const data2024 = yearlyData.find(year => year.date === '2024')
-      expect(data2024).toBeDefined()
-      expect(data2024!.runCount).toBe(1)
-      
-      const data2025 = yearlyData.find(year => year.date === '2025')
-      expect(data2025).toBeDefined()
-      expect(data2025!.runCount).toBe(1)
-    })
-
-    it('should sort yearly data chronologically', () => {
-      const run2024: ParsedGameRun = {
-        ...mockRun1,
-        timestamp: new Date('2024-12-31T10:00:00'),
-        id: '2024'
-      }
-      const runs = [mockRun1, run2024] // 2025 run first, then 2024
-      
-      const yearlyData = prepareYearlyData(runs)
-      
-      expect(yearlyData[0].date).toBe('2024') // Earlier year first
-      expect(yearlyData[1].date).toBe('2025') // Later year second
-    })
-  })
 })

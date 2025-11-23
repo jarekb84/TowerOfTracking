@@ -100,7 +100,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const dailyData = prepareTimeSeriesData(runs, 'daily', 'coins')
+      const dailyData = prepareTimeSeriesData(runs, 'daily', 'coinsEarned')
       
       expect(dailyData).toHaveLength(1)
       expect(dailyData[0].value).toBe(1000000)
@@ -124,7 +124,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const weeklyData = prepareTimeSeriesData(runs, 'weekly', 'coins')
+      const weeklyData = prepareTimeSeriesData(runs, 'weekly', 'coinsEarned')
       
       expect(weeklyData).toHaveLength(1)
       expect(weeklyData[0].value).toBe(1000000)
@@ -148,7 +148,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const monthlyData = prepareTimeSeriesData(runs, 'monthly', 'coins')
+      const monthlyData = prepareTimeSeriesData(runs, 'monthly', 'coinsEarned')
       
       expect(monthlyData).toHaveLength(1)
       expect(monthlyData[0].value).toBe(1000000)
@@ -181,7 +181,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const dailyData = prepareTimeSeriesData(runs, 'daily', 'coins')
+      const dailyData = prepareTimeSeriesData(runs, 'daily', 'coinsEarned')
       
       expect(dailyData).toHaveLength(1)
       expect(dailyData[0].value).toBe(2200000) // Sum of both runs
@@ -203,7 +203,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const cellsData = prepareTimeSeriesData(runs, 'daily', 'cells')
+      const cellsData = prepareTimeSeriesData(runs, 'daily', 'cellsEarned')
       
       expect(cellsData).toHaveLength(1)
       expect(cellsData[0].value).toBe(50000)
@@ -237,7 +237,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const weeklyData = prepareTimeSeriesData(runs, 'weekly', 'coins')
+      const weeklyData = prepareTimeSeriesData(runs, 'weekly', 'coinsEarned')
       
       expect(weeklyData).toHaveLength(2) // Two different weeks
       expect(weeklyData[0].value).toBe(1000000) // First week (Saturday Aug 30)

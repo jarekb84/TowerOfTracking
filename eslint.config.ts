@@ -44,6 +44,13 @@ export default defineConfig([
         "skipBlankLines": true,
         "skipComments": true
       }],
+      // Code complexity rules for architectural analysis
+      "complexity": ["error", { "max": 10 }],
+      "max-params": ["error", { "max": 4 }],
+      "max-depth": ["error", { "max": 4 }],
+      "max-nested-callbacks": ["error", { "max": 3 }],
+      "max-statements": ["error", { "max": 20 }],
+      "max-lines-per-function": ["error", { "max": 100, "skipBlankLines": true, "skipComments": true }],
       // React rules to catch structural issues
       "react/no-unknown-property": "error",
       "react/void-dom-elements-no-children": "error",
@@ -57,6 +64,15 @@ export default defineConfig([
       "jsx-a11y/iframe-has-title": "error",
       "jsx-a11y/img-redundant-alt": "error",
       "jsx-a11y/no-redundant-roles": "error"
+    }
+  },
+  // Relaxed rules for test files - nested describe/it blocks are normal
+  {
+    files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+    rules: {
+      "max-nested-callbacks": ["error", { "max": 5 }],
+      "max-lines-per-function": "off",
+      "max-statements": "off",
     }
   }
 ]);
