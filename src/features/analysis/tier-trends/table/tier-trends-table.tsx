@@ -16,7 +16,6 @@ interface TierTrendsTableProps {
   searchTerm?: string
   isSearchActive?: boolean
   hasMatches?: boolean
-  changeThreshold?: number
   aggregationType?: TrendsAggregation
 }
 
@@ -29,19 +28,16 @@ export function TierTrendsTable({
   searchTerm,
   isSearchActive,
   hasMatches,
-  changeThreshold = 0,
   aggregationType
 }: TierTrendsTableProps) {
   const viewportSize = useViewport({ breakpoint: 'md' });
-  
+
   if (trends.length === 0) {
     return (
       <div className="text-center py-8 text-slate-400">
         {!hasMatches && isSearchActive && searchTerm
           ? `No fields match "${searchTerm}". Try a different search term.`
-          : changeThreshold === 0 
-            ? "No data available for the selected filters."
-            : `No changes found above ${changeThreshold}% threshold. Try lowering the change threshold.`
+          : "No data available for the selected filters."
         }
       </div>
     )

@@ -1,5 +1,10 @@
 import { FormControl, SelectionButtonGroup } from '@/components/ui'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
+import {
+  TierSelector,
+  zeroToAllTierAdapter,
+  allToZeroTierAdapter
+} from '@/shared/domain/filters'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import type { TierTrendsFilters } from '../types'
 import { TrendsDuration, TrendsAggregation } from '../types'
@@ -12,6 +17,7 @@ interface TierTrendsControlsProps {
   filters: TierTrendsFilters
   onFiltersChange: (filters: TierTrendsFilters) => void
   availableTiers: number[]
+  tierCounts?: Map<number, number>
 }
 
 export function TierTrendsControls({
@@ -19,28 +25,24 @@ export function TierTrendsControls({
   onRunTypeChange,
   filters,
   onFiltersChange,
-  availableTiers
+  availableTiers,
+  tierCounts
 }: TierTrendsControlsProps) {
   return (
     <div className="space-y-4">
       {/* Row 1: Run Type & Tier */}
       <div className="flex flex-wrap gap-4 items-center">
-        <RunTypeSelector 
+        <RunTypeSelector
           selectedType={runTypeFilter}
           onTypeChange={onRunTypeChange}
         />
-        <FormControl label="Tier">
-          <SelectionButtonGroup<number>
-            options={[
-              { value: 0, label: 'All' },
-              ...availableTiers.map(tier => ({ value: tier, label: tier.toString() }))
-            ]}
-            selectedValue={filters.tier}
-            onSelectionChange={(tier) => onFiltersChange({ ...filters, tier })}
-            size="sm"
-            fullWidthOnMobile={false}
-          />
-        </FormControl>
+        <TierSelector
+          selectedTier={zeroToAllTierAdapter(filters.tier)}
+          onTierChange={(tier) => onFiltersChange({ ...filters, tier: allToZeroTierAdapter(tier) })}
+          availableTiers={availableTiers}
+          tierCounts={tierCounts}
+          showCounts={Boolean(tierCounts)}
+        />
       </div>
 
       {/* Row 2: Duration, Quantity, Aggregation */}
@@ -66,6 +68,7 @@ export function TierTrendsControls({
             }}
             size="sm"
             fullWidthOnMobile={false}
+            ariaLabel="Select duration"
           />
         </FormControl>
 
@@ -77,6 +80,7 @@ export function TierTrendsControls({
             onSelectionChange={(quantity) => onFiltersChange({ ...filters, quantity })}
             size="sm"
             fullWidthOnMobile={false}
+            ariaLabel={`Select last ${getQuantityLabel(filters.duration).toLowerCase()}`}
           />
         </FormControl>
 
@@ -88,22 +92,7 @@ export function TierTrendsControls({
             onSelectionChange={(aggregationType) => onFiltersChange({ ...filters, aggregationType })}
             size="sm"
             fullWidthOnMobile={false}
-          />
-        </FormControl>
-      </div>
-
-      {/* Row 3: Change Threshold */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <FormControl label="Change Threshold">
-          <SelectionButtonGroup<number>
-            options={[
-              { value: 0, label: 'All' },
-              ...([1, 5, 10, 25].map(threshold => ({ value: threshold, label: `${threshold}%` })))
-            ]}
-            selectedValue={filters.changeThresholdPercent}
-            onSelectionChange={(changeThresholdPercent) => onFiltersChange({ ...filters, changeThresholdPercent })}
-            size="sm"
-            fullWidthOnMobile={false}
+            ariaLabel="Select aggregation method"
           />
         </FormControl>
       </div>

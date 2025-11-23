@@ -185,6 +185,7 @@ export function SourceAnalysis() {
     highlightedSource,
     setHighlightedSource,
     availableTiers,
+    availableDurations,
   } = useSourceAnalysis({ runs })
 
   // Show empty state if no runs at all
@@ -198,6 +199,7 @@ export function SourceAnalysis() {
       <SourceAnalysisFiltersComponent
         filters={filters}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
         onCategoryChange={setCategory}
         onRunTypeChange={setRunType}
         onTierChange={setTier}

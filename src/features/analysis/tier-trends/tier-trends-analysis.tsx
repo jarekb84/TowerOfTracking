@@ -4,7 +4,6 @@ import { getAvailableTiersForTrends } from './calculations/tier-trends-calculati
 import { RunType } from '@/shared/domain/run-types/types'
 import { TrendsDuration, TrendsAggregation } from './types'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
-import { TierTrendsSummary } from './table/tier-trends-summary'
 import { TierTrendsFilters as TierTrendsFiltersComponent } from './filters/tier-trends-filters'
 import { TierTrendsTable } from './table/tier-trends-table'
 import { TierTrendsControls } from './filters/tier-trends-controls'
@@ -26,7 +25,6 @@ export function TierTrendsAnalysis() {
   
   const [filters, setFilters] = useState<TierTrendsFilters>({
     tier: 0, // 0 = All tiers
-    changeThresholdPercent: 0, // 0 = All (no threshold filtering)
     duration: TrendsDuration.PER_RUN,
     quantity: 4, // Default to 4 periods for better trending visibility
     aggregationType: TrendsAggregation.AVERAGE
@@ -108,7 +106,7 @@ export function TierTrendsAnalysis() {
             )}
           </h3>
           <p className="text-slate-400 text-sm">
-            Statistical changes across your recent {formatRunTypeFilterDisplay(runTypeFilter)} runs. Showing fields with ≥{filters.changeThresholdPercent}% change.
+            Statistical changes across your recent {formatRunTypeFilterDisplay(runTypeFilter)} runs.
           </p>
         </div>
 
@@ -137,9 +135,6 @@ export function TierTrendsAnalysis() {
           role="region"
           aria-label="Tier trends results"
         >
-          {/* Summary Stats */}
-          <TierTrendsSummary trendsData={viewState.trendsData} />
-
           {/* Field Search */}
           <TierTrendsFiltersComponent
             fieldFilter={fieldFilterHook}
@@ -156,7 +151,6 @@ export function TierTrendsAnalysis() {
             searchTerm={searchTerm}
             isSearchActive={isSearchActive}
             hasMatches={hasMatches}
-            changeThreshold={filters.changeThresholdPercent}
             aggregationType={filters.aggregationType}
           />
         </div>

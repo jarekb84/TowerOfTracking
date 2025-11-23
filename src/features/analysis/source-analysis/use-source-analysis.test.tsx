@@ -137,16 +137,30 @@ describe('useSourceAnalysis', () => {
       expect(result.current.filters.tier).toBe(11);
     });
 
-    it('updates duration filter', () => {
+    it('updates duration filter and resets quantity to appropriate default', () => {
       const { result } = renderHook(() =>
         useSourceAnalysis({ runs: mockRuns })
       );
+
+      // Initial state: PER_RUN with quantity 10
+      expect(result.current.filters.duration).toBe(SourceDuration.PER_RUN);
+      expect(result.current.filters.quantity).toBe(10);
 
       act(() => {
         result.current.setDuration(SourceDuration.DAILY);
       });
 
+      // Daily default is 14 (about 2 weeks)
       expect(result.current.filters.duration).toBe(SourceDuration.DAILY);
+      expect(result.current.filters.quantity).toBe(14);
+
+      act(() => {
+        result.current.setDuration(SourceDuration.MONTHLY);
+      });
+
+      // Monthly default is 6
+      expect(result.current.filters.duration).toBe(SourceDuration.MONTHLY);
+      expect(result.current.filters.quantity).toBe(6);
     });
 
     it('updates quantity filter with bounds', () => {
@@ -247,12 +261,22 @@ describe('useSourceAnalysis', () => {
   });
 
   describe('available tiers', () => {
-    it('extracts unique tiers from runs', () => {
+    it('filters tiers by current run type', () => {
       const { result } = renderHook(() =>
         useSourceAnalysis({ runs: mockRuns })
       );
 
-      expect(result.current.availableTiers).toEqual([11, 12]);
+      // Default category is damageDealt with tournament run type
+      // Only run 2 is tournament (T11), so only T11 should be available
+      expect(result.current.availableTiers).toEqual([11]);
+
+      // Switch to farm runs to see different tiers
+      act(() => {
+        result.current.setRunType('farm');
+      });
+
+      // Farm runs include T11 (run 1) and T12 (run 3)
+      expect(result.current.availableTiers).toEqual([12, 11]);
     });
 
     it('returns empty array when no runs', () => {
@@ -261,6 +285,32 @@ describe('useSourceAnalysis', () => {
       );
 
       expect(result.current.availableTiers).toEqual([]);
+    });
+
+    it('resets tier to all when selected tier becomes unavailable', () => {
+      const { result } = renderHook(() =>
+        useSourceAnalysis({ runs: mockRuns })
+      );
+
+      // Switch to farm to get T12 available
+      act(() => {
+        result.current.setRunType('farm');
+      });
+      expect(result.current.availableTiers).toEqual([12, 11]);
+
+      // Select T12
+      act(() => {
+        result.current.setTier(12);
+      });
+      expect(result.current.filters.tier).toBe(12);
+
+      // Switch back to tournament - T12 is not available for tournament
+      act(() => {
+        result.current.setRunType('tournament');
+      });
+
+      // Tier should auto-reset to 'all' since T12 is not available
+      expect(result.current.filters.tier).toBe('all');
     });
   });
 

@@ -9,7 +9,7 @@ import type { TierTrendsFilters } from './types'
 describe('useTierTrendsViewState', () => {
   const mockFilters: TierTrendsFilters = {
     tier: 0,
-    changeThresholdPercent: 0,
+    
     duration: TrendsDuration.PER_RUN,
     quantity: 4,
     aggregationType: TrendsAggregation.AVERAGE

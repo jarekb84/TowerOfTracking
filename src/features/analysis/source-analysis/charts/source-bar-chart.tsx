@@ -128,20 +128,13 @@ export function SourceBarChart({
     [sortedSources]
   )
 
-  if (sources.length === 0) {
-    return (
-      <div className="h-56 flex items-center justify-center text-slate-400">
-        No data available.
-      </div>
-    )
-  }
-
   // Calculate dynamic height based on number of sources
   // Minimum height 300px matches pie chart for visual balance across categories
   const barHeight = 32
   const chartHeight = Math.max(300, sortedSources.length * barHeight + 40)
 
   // Memoize render functions to prevent Recharts from re-mounting elements
+  // IMPORTANT: All hooks must be called before any early returns to follow React rules of hooks
   const renderYAxisTick = useCallback(
     (props: CustomYAxisTickProps) => (
       <CustomYAxisTick
@@ -160,6 +153,15 @@ export function SourceBarChart({
     ),
     [sortedSources, highlightedSource]
   )
+
+  // Early return AFTER all hooks have been called
+  if (sources.length === 0) {
+    return (
+      <div className="h-56 flex items-center justify-center text-slate-400">
+        No data available.
+      </div>
+    )
+  }
 
   return (
     <div style={{ height: chartHeight }}>

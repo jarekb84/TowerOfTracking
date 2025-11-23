@@ -1,5 +1,5 @@
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type {
-  ParsedGameRun,
   TierTrendsFilters,
   TierTrendsData,
 } from '../types';
@@ -112,12 +112,12 @@ export function calculateTierTrends(
   });
 
   // Calculate trends for each field across periods
-  const fieldTrends = allNumericalFields.map(fieldName => 
-    calculateFieldTrendFromPeriods(periodsData, fieldName, filters.changeThresholdPercent, filters.aggregationType)
-  ).filter(trend => filters.changeThresholdPercent === 0 || Math.abs(trend.change.percent) >= filters.changeThresholdPercent);
+  const fieldTrends = allNumericalFields.map(fieldName =>
+    calculateFieldTrendFromPeriods(periodsData, fieldName, 0, filters.aggregationType)
+  );
 
   // Generate summary statistics
-  const fieldsChanged = fieldTrends.filter(t => Math.abs(t.change.percent) >= (filters.changeThresholdPercent || 1)).length;
+  const fieldsChanged = fieldTrends.filter(t => Math.abs(t.change.percent) >= 1).length;
   const topGainers = fieldTrends
     .filter(t => t.change.direction === 'up')
     .sort((a, b) => b.change.percent - a.change.percent)

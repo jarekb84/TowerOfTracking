@@ -9,7 +9,6 @@ import type { TierTrendsFilters } from '../types'
 describe('TierTrendsControls', () => {
   const defaultFilters: TierTrendsFilters = {
     tier: 0,
-    changeThresholdPercent: 0,
     duration: TrendsDuration.PER_RUN,
     quantity: 4,
     aggregationType: TrendsAggregation.AVERAGE
@@ -34,7 +33,6 @@ describe('TierTrendsControls', () => {
     expect(screen.getByText(/Tier:/i)).toBeInTheDocument()
     expect(screen.getByText(/Duration:/i)).toBeInTheDocument()
     expect(screen.getByText(/Last runs:/i)).toBeInTheDocument()
-    expect(screen.getByText(/Change Threshold:/i)).toBeInTheDocument()
   })
 
   it('shows aggregation selector with Actual and Per Hour options when duration is per-run', () => {
