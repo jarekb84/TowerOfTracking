@@ -9,7 +9,8 @@ export const createRouter = () => {
     routeTree,
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
-    basepath: import.meta.env.BASE_URL
+    basepath: import.meta.env.BASE_URL,
+    defaultSsr: false, // Disable SSR for all routes - app is client-only
   })
 }
 
