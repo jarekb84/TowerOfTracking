@@ -29,7 +29,7 @@ function CellsChartPage() {
           <CardContent className="p-0">
             <div className="p-8 w-full">
               <TimeSeriesChart
-                metric="cells"
+                metric="cellsEarned"
                 title="Cells Earned"
                 subtitle="Track your cell earnings from farm runs over different time periods"
                 defaultPeriod="hourly"

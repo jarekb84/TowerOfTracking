@@ -29,7 +29,7 @@ function CoinsChartPage() {
           <CardContent className="p-0">
             <div className="p-8 w-full">
               <TimeSeriesChart
-                metric="coins"
+                metric="coinsEarned"
                 title="Coins Earned"
                 subtitle="Track your coin earnings from farm runs over different time periods"
                 defaultPeriod="hourly"

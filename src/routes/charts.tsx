@@ -118,7 +118,7 @@ function ChartsPage() {
               <CardContent className="p-0">
                 <div className="p-8 w-full">
                   <TimeSeriesChart 
-                    metric="coins"
+                    metric="coinsEarned"
                     title="Coins Earned"
                     subtitle="Track your coin earnings from farming runs over different time periods"
                     defaultPeriod="hourly"
@@ -140,7 +140,7 @@ function ChartsPage() {
               <CardContent className="p-0">
                 <div className="p-8 w-full">
                   <TimeSeriesChart 
-                    metric="cells"
+                    metric="cellsEarned"
                     title="Cells Earned"
                     subtitle="Track your cell earnings from farming runs over different time periods"
                     defaultPeriod="hourly"
