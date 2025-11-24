@@ -4,7 +4,7 @@ import { useCsvImport } from './use-csv-import';
 import * as csvParser from './csv-parser';
 import * as useDataHook from '@/shared/domain/use-data';
 import type { DataContextType } from '@/shared/domain/use-data';
-import type { GameRun } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CsvParseResult } from './types';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 
@@ -32,7 +32,7 @@ describe('useCsvImport - Import Operations', () => {
         realTime: 28000,
         coinsEarned: 1130000000000,
         cellsEarned: 45200
-      } as GameRun,
+      } as ParsedGameRun,
       {
         id: '2',
         timestamp: new Date('2024-01-16T16:20:00'),
@@ -41,7 +41,7 @@ describe('useCsvImport - Import Operations', () => {
         realTime: 29550,
         coinsEarned: 1450000000000,
         cellsEarned: 52100
-      } as GameRun
+      } as ParsedGameRun
     ],
     failed: 0,
     errors: [],
@@ -62,11 +62,11 @@ describe('useCsvImport - Import Operations', () => {
       {
         newRun: mockParseResult.success[0],
         existingRun: mockParseResult.success[0],
-        matchType: 'exact'
+        compositeKey: 'test-key'
       }
     ],
     newRuns: [mockParseResult.success[1]],
-    allNew: false
+    compositeKeys: ['test-key-2']
   };
 
   beforeEach(() => {

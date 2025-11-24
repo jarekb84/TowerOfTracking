@@ -66,7 +66,7 @@ describe('useTierStatsConfig', () => {
       // When data loads, columns should remain intact
       const { result: finalResult, rerender } = renderHook(
         ({ runs }) => useTierStatsConfig(runs),
-        { initialProps: { runs: [] } }
+        { initialProps: { runs: [] as ParsedGameRun[] } }
       )
 
       rerender({ runs: runsWithData })

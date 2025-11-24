@@ -1,6 +1,6 @@
 npm run knip
 
-# Run unified integration pre-check (lint and test)
+# Run unified integration pre-check (lint, type-check, test, and e2e)
 npm run integration-precheck
 
 # Add suppressions file to commit if it was modified by lint

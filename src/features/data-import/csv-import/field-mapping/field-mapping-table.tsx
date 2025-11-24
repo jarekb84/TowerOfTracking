@@ -1,5 +1,5 @@
 import { CheckCircle, XCircle } from 'lucide-react';
-import type { FieldMapping } from '@/shared/types/game-run.types';
+import type { FieldMapping } from '../types';
 
 interface FieldMappingTableProps {
   mappedFields: FieldMapping[];

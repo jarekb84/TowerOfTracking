@@ -35,6 +35,7 @@ describe('useDataSettings', () => {
       overwriteRun: vi.fn(),
       checkDuplicate: vi.fn(),
       detectBatchDuplicates: vi.fn(),
+      migrationState: null,
     });
   });
   
@@ -65,6 +66,7 @@ describe('useDataSettings', () => {
         overwriteRun: vi.fn(),
         checkDuplicate: vi.fn(),
         detectBatchDuplicates: vi.fn(),
+        migrationState: null,
       });
       
       const { result } = renderHook(() => useDataSettings());
@@ -239,6 +241,7 @@ describe('useDataSettings', () => {
         overwriteRun: vi.fn(),
         checkDuplicate: vi.fn(),
         detectBatchDuplicates: vi.fn(),
+        migrationState: null,
       });
       
       rerender();

@@ -6,7 +6,8 @@ import {
   INTERNAL_FIELD_MAPPINGS,
   INTERNAL_FIELD_ORDER,
   INTERNAL_FIELD_NAMES,
-  isInternalField
+  isInternalField,
+  type InternalFieldName
 } from '@/shared/domain/fields/internal-field-config';
 
 // Interface for field information
@@ -77,14 +78,14 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
 
   return Array.from(fieldMap.values()).sort((a, b) => {
     // Sort internal fields first in specific order
-    const aIsInternal = INTERNAL_FIELD_ORDER.includes(a.fieldName);
-    const bIsInternal = INTERNAL_FIELD_ORDER.includes(b.fieldName);
+    const aIsInternal = isInternalField(a.fieldName);
+    const bIsInternal = isInternalField(b.fieldName);
 
     if (aIsInternal && !bIsInternal) return -1;
     if (!aIsInternal && bIsInternal) return 1;
 
     if (aIsInternal && bIsInternal) {
-      return INTERNAL_FIELD_ORDER.indexOf(a.fieldName) - INTERNAL_FIELD_ORDER.indexOf(b.fieldName);
+      return INTERNAL_FIELD_ORDER.indexOf(a.fieldName as InternalFieldName) - INTERNAL_FIELD_ORDER.indexOf(b.fieldName as InternalFieldName);
     }
 
     // battle_date comes first among game fields

@@ -37,6 +37,14 @@ export class FieldAnalyticsPage extends BaseAnalyticsPage {
   }
 
   /**
+   * Navigate to the Field Analytics page
+   */
+  async goto(): Promise<void> {
+    await this.page.goto('/charts?chart=fields');
+    await this.waitForChartLoad();
+  }
+
+  /**
    * Get the currently selected field text from the selector button
    */
   async getSelectedFieldText(): Promise<string> {

@@ -1,7 +1,7 @@
 interface NavigationItem {
   id: string
   label: string
-  icon?: 'runs' | 'farming' | 'tournament' | 'milestone' | 'coins' | 'cells' | 'deaths' | 'tier-stats' | 'tier-trends' | 'field-analytics' | 'settings' | 'data-management'
+  icon?: 'runs' | 'farming' | 'tournament' | 'milestone' | 'coins' | 'cells' | 'deaths' | 'tier-stats' | 'tier-trends' | 'field-analytics' | 'settings' | 'data-management' | 'discord' | 'github'
   href?: string
   children?: NavigationItem[]
 }

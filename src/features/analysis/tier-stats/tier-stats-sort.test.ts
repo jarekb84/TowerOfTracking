@@ -23,7 +23,15 @@ describe('tier-stats-sort', () => {
   const createFieldStats = (maxValue: number, run: ParsedGameRun, hourlyRate?: number): FieldStats => ({
     maxValue,
     maxValueRun: run,
-    hourlyRate
+    hourlyRate,
+    p99Value: null,
+    p99Duration: null,
+    p90Value: null,
+    p90Duration: null,
+    p75Value: null,
+    p75Duration: null,
+    p50Value: null,
+    p50Duration: null
   })
 
   const createTierStats = (tier: number, coinsValue: number, coinsHourly?: number): DynamicTierStats => {

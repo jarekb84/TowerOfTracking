@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useTierTrendsViewState } from './use-tier-trends-view-state'
-import { RunType } from '@/shared/domain/run-types/types'
+import { RunType, type RunTypeValue } from '@/shared/domain/run-types/types'
 import { TrendsDuration, TrendsAggregation } from './types'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { TierTrendsFilters } from './types'
@@ -91,13 +91,13 @@ describe('useTierTrendsViewState', () => {
 
   it('should recalculate when run type filter changes', () => {
     const { result, rerender } = renderHook(
-      ({ runTypeFilter }) => useTierTrendsViewState(mockRuns, mockFilters, runTypeFilter, [10]),
-      { initialProps: { runTypeFilter: RunType.FARM as const } }
+      ({ runTypeFilter }: { runTypeFilter: RunTypeValue }) => useTierTrendsViewState(mockRuns, mockFilters, runTypeFilter, [10]),
+      { initialProps: { runTypeFilter: RunType.FARM as RunTypeValue } }
     )
 
     expect(result.current.type).toBe('ready')
 
-    rerender({ runTypeFilter: RunType.TOURNAMENT })
+    rerender({ runTypeFilter: RunType.TOURNAMENT as RunTypeValue })
 
     // Should recalculate with new run type filter
     // Note: calculateTierTrends still returns data structure even with no matching runs
