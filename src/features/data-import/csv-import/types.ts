@@ -35,21 +35,26 @@ export interface CsvParseResult {
 }
 
 /**
+ * Individual field mapping entry
+ */
+export interface FieldMapping {
+  csvHeader: string;
+  camelCase: string;
+  supported: boolean;
+  /** Field classification: exact-match, new-field, or similar-field */
+  status?: 'exact-match' | 'new-field' | 'similar-field';
+  /** If similar-field, the suggested existing field */
+  similarTo?: string;
+  /** Type of similarity detected */
+  similarityType?: 'exact' | 'normalized' | 'levenshtein' | 'case-variation';
+}
+
+/**
  * Enhanced field mapping report with similarity detection
  */
 export interface FieldMappingReport {
   /** All mapped fields with their classification */
-  mappedFields: Array<{
-    csvHeader: string;
-    camelCase: string;
-    supported: boolean;
-    /** Field classification: exact-match, new-field, or similar-field */
-    status?: 'exact-match' | 'new-field' | 'similar-field';
-    /** If similar-field, the suggested existing field */
-    similarTo?: string;
-    /** Type of similarity detected */
-    similarityType?: 'exact' | 'normalized' | 'levenshtein' | 'case-variation';
-  }>;
+  mappedFields: FieldMapping[];
   /** Fields that are completely new (no similar matches) */
   newFields: string[];
   /** Fields that are similar to existing fields */

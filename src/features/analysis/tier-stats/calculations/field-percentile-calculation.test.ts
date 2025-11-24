@@ -13,6 +13,8 @@ describe('calculateFieldPercentiles', () => {
     tier: 1,
     wave: 100,
     realTime: duration,
+    coinsEarned: coins,
+    cellsEarned: 0,
     runType: 'farm'
   })
 
@@ -142,6 +144,8 @@ describe('calculateFieldPercentiles', () => {
       tier: 1,
       wave: 100,
       realTime: 5000,
+      coinsEarned: 0,
+      cellsEarned: 0,
       runType: 'farm'
     })
 

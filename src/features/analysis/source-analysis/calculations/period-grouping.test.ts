@@ -210,6 +210,7 @@ describe('calculateSummary', () => {
         periodLabel: 'Period 1',
         periodKey: '1',
         total: 1000,
+        runCount: 1,
         sources: [
           { fieldName: 'orbDamage', displayName: 'Orb', color: '#f97316', value: 700, percentage: 70 },
           { fieldName: 'thornDamage', displayName: 'Thorn', color: '#84cc16', value: 300, percentage: 30 },
@@ -219,6 +220,7 @@ describe('calculateSummary', () => {
         periodLabel: 'Period 2',
         periodKey: '2',
         total: 1000,
+        runCount: 1,
         sources: [
           { fieldName: 'orbDamage', displayName: 'Orb', color: '#f97316', value: 500, percentage: 50 },
           { fieldName: 'thornDamage', displayName: 'Thorn', color: '#84cc16', value: 500, percentage: 50 },
@@ -242,6 +244,7 @@ describe('calculateSummary', () => {
         periodLabel: 'Period 1',
         periodKey: '1',
         total: 1000,
+        runCount: 1,
         sources: [
           { fieldName: 'orbDamage', displayName: 'Orb', color: '#f97316', value: 1000, percentage: 100 },
           { fieldName: 'thornDamage', displayName: 'Thorn', color: '#84cc16', value: 0, percentage: 0 },

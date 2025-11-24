@@ -276,3 +276,4 @@ export function useDataProvider(): DataContextType {
 }
 
 export { DataContext };
+export type { DataContextType };

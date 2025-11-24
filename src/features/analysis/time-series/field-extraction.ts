@@ -8,7 +8,7 @@ import { ParsedGameRun } from '@/shared/types/game-run.types'
 export function extractFieldValue(run: ParsedGameRun, fieldKey: string): number | undefined {
   // Check cached properties first (tier, wave, coinsEarned, cellsEarned, realTime)
   if (fieldKey in run) {
-    const value = (run as Record<string, unknown>)[fieldKey]
+    const value = (run as unknown as Record<string, unknown>)[fieldKey]
     return typeof value === 'number' ? value : undefined
   }
 

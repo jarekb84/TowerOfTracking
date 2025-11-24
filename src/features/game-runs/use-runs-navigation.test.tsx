@@ -6,7 +6,7 @@ import { useRunsNavigation } from './use-runs-navigation'
 const mockUpdateSearch = vi.fn()
 vi.mock('@/features/navigation', () => ({
   useUrlSearchParam: () => ({
-    search: { type: 'farming' },
+    search: { type: 'farm' },
     updateSearch: mockUpdateSearch
   })
 }))
@@ -16,10 +16,10 @@ describe('useRunsNavigation', () => {
     mockUpdateSearch.mockClear()
   })
 
-  it('should return farming as default active tab', () => {
+  it('should return farm as default active tab', () => {
     const { result } = renderHook(() => useRunsNavigation())
 
-    expect(result.current.activeTab).toBe('farming')
+    expect(result.current.activeTab).toBe('farm')
   })
 
   it('should update tab when setActiveTab is called', () => {
@@ -35,7 +35,7 @@ describe('useRunsNavigation', () => {
   it('should handle all run tab types', () => {
     const { result } = renderHook(() => useRunsNavigation())
 
-    const tabTypes = ['farming', 'tournament', 'milestone'] as const
+    const tabTypes = ['farm', 'tournament', 'milestone'] as const
 
     tabTypes.forEach(tabType => {
       act(() => {

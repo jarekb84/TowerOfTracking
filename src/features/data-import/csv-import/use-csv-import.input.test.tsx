@@ -4,7 +4,7 @@ import { useCsvImport } from './use-csv-import';
 import * as csvParser from './csv-parser';
 import * as useDataHook from '@/shared/domain/use-data';
 import type { DataContextType } from '@/shared/domain/use-data';
-import type { GameRun } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CsvParseResult } from './types';
 
 // Mock dependencies
@@ -31,7 +31,7 @@ describe('useCsvImport - Input Handling', () => {
         realTime: 28000,
         coinsEarned: 1130000000000,
         cellsEarned: 45200
-      } as GameRun,
+      } as ParsedGameRun,
       {
         id: '2',
         timestamp: new Date('2024-01-16T16:20:00'),
@@ -40,7 +40,7 @@ describe('useCsvImport - Input Handling', () => {
         realTime: 29550,
         coinsEarned: 1450000000000,
         cellsEarned: 52100
-      } as GameRun
+      } as ParsedGameRun
     ],
     failed: 0,
     errors: [],

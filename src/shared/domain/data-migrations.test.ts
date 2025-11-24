@@ -300,11 +300,11 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
         realTime: 27966,
         runType: 'farm',
         fields: {
-          date: { value: '2024-01-15', rawValue: '2024-01-15', displayValue: '2024-01-15', fieldName: 'date', dataType: 'string' },
-          time: { value: '14:30:00', rawValue: '14:30:00', displayValue: '14:30:00', fieldName: 'time', dataType: 'string' },
-          notes: { value: 'Test', rawValue: 'Test', displayValue: 'Test', fieldName: 'notes', dataType: 'string' },
-          runType: { value: 'farm', rawValue: 'farm', displayValue: 'farm', fieldName: 'runType', dataType: 'string' },
-          tier: { value: 10, rawValue: '10', displayValue: '10', fieldName: 'tier', dataType: 'number' }
+          date: { value: '2024-01-15', rawValue: '2024-01-15', displayValue: '2024-01-15', originalKey: 'Date', dataType: 'string' },
+          time: { value: '14:30:00', rawValue: '14:30:00', displayValue: '14:30:00', originalKey: 'Time', dataType: 'string' },
+          notes: { value: 'Test', rawValue: 'Test', displayValue: 'Test', originalKey: 'Notes', dataType: 'string' },
+          runType: { value: 'farm', rawValue: 'farm', displayValue: 'farm', originalKey: 'Run Type', dataType: 'string' },
+          tier: { value: 10, rawValue: '10', displayValue: '10', originalKey: 'Tier', dataType: 'number' }
         }
       }];
 
@@ -336,9 +336,9 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
         realTime: 27966,
         runType: 'farm',
         fields: {
-          tier: { value: 10, rawValue: '10', displayValue: '10', fieldName: 'tier', dataType: 'number' },
-          wave: { value: 5000, rawValue: '5000', displayValue: '5,000', fieldName: 'wave', dataType: 'number' },
-          coinsEarned: { value: 1500000000000, rawValue: '1.5T', displayValue: '1.50 T', fieldName: 'coinsEarned', dataType: 'number' }
+          tier: { value: 10, rawValue: '10', displayValue: '10', originalKey: 'Tier', dataType: 'number' },
+          wave: { value: 5000, rawValue: '5000', displayValue: '5,000', originalKey: 'Wave', dataType: 'number' },
+          coinsEarned: { value: 1500000000000, rawValue: '1.5T', displayValue: '1.50 T', originalKey: 'Coins Earned', dataType: 'number' }
         }
       }];
 
@@ -365,7 +365,7 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
         realTime: 27966,
         runType: 'farm',
         fields: {
-          date: { value: '2024-01-15', rawValue: '2024-01-15', displayValue: '2024-01-15', fieldName: 'date', dataType: 'string' }
+          date: { value: '2024-01-15', rawValue: '2024-01-15', displayValue: '2024-01-15', originalKey: 'Date', dataType: 'string' }
         }
       }];
 

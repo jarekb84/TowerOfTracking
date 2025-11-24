@@ -8,7 +8,10 @@
  * Co-located with tier-trends feature per Migration Story 11B.
  */
 
-import type { GameRunField } from '@/shared/types/game-run.types';
+import type { GameRunField, ParsedGameRun } from '@/shared/types/game-run.types';
+
+// Re-export types used by tier-trends calculations
+export type { GameRunField, ParsedGameRun };
 
 /**
  * Duration options for tier trends analysis
@@ -17,7 +20,8 @@ export enum TrendsDuration {
   PER_RUN = 'per-run',
   DAILY = 'daily',
   WEEKLY = 'weekly',
-  MONTHLY = 'monthly'
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly'
 }
 
 /**
