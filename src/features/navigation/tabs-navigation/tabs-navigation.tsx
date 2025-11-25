@@ -1,4 +1,4 @@
-import { Link, useLocation } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { cn } from '@/shared/lib/utils'
 
 export interface TabConfig {
@@ -18,6 +18,16 @@ interface TabsNavigationProps {
 }
 
 /**
+ * Extract the route path from the current location, accounting for basepath.
+ * Uses router state which provides the href without basepath prefix.
+ */
+function useCurrentRoutePath(): string {
+  const routerState = useRouterState()
+  // location.href gives us the path as the router sees it (without basepath)
+  return routerState.location.href.split('?')[0].split('#')[0]
+}
+
+/**
  * Shared route-based tabs navigation component.
  * Renders a grid of Link components that navigate to different routes.
  */
@@ -28,8 +38,7 @@ export function TabsNavigation({
   columns = tabs.length,
   renderTabContent,
 }: TabsNavigationProps) {
-  const location = useLocation()
-  const currentPath = location.pathname
+  const currentPath = useCurrentRoutePath()
 
   // Determine grid columns class based on count
   const getGridColsClass = () => {
