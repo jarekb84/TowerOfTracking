@@ -27,21 +27,18 @@ test.describe('Game Runs Table', () => {
     await gameRunsPage.waitForTableLoad();
     const farmRowCount = await gameRunsPage.getTableRowCount();
     expect(farmRowCount).toBeGreaterThan(0);
-    console.log(`✓ Farm Runs: ${farmRowCount} runs loaded`);
 
     // Test Tournament Runs tab
     await gameRunsPage.switchToTournamentTab();
     await gameRunsPage.waitForTableLoad();
     const tournamentRowCount = await gameRunsPage.getTableRowCount();
     expect(tournamentRowCount).toBeGreaterThan(0);
-    console.log(`✓ Tournament Runs: ${tournamentRowCount} runs loaded`);
 
     // Test Milestone Runs tab
     await gameRunsPage.switchToMilestoneTab();
     await gameRunsPage.waitForTableLoad();
     const milestoneRowCount = await gameRunsPage.getTableRowCount();
     expect(milestoneRowCount).toBeGreaterThan(0);
-    console.log(`✓ Milestone Runs: ${milestoneRowCount} runs loaded`);
 
     // Switch back to Farm Runs for row expansion test
     await gameRunsPage.switchToFarmTab();
@@ -71,16 +68,12 @@ test.describe('Game Runs Table', () => {
     expect(tier).toBe('11')
     expect(wave).toBe('9.7K')
 
-    console.log(`✓ Row expanded - Real Time: ${realTime}, Tier: ${tier}, Wave: ${wave}`);
-
     // Collapse row
     await gameRunsPage.collapseRow(0);
 
     // Verify field is no longer accessible (row collapsed)
     const realTimeAfterCollapse = await gameRunsPage.getExpandedRowFieldValue(0, 'Real Time');
     expect(realTimeAfterCollapse).toBeNull();
-
-    console.log('✓ Row collapsed successfully');
   });
 
   test('persists data across page reloads', async ({ seededPage }) => {
@@ -101,7 +94,6 @@ test.describe('Game Runs Table', () => {
     // Verify data persists
     const reloadedRowCount = await gameRunsPage.getTableRowCount();
     expect(reloadedRowCount).toBe(initialRowCount);
-    console.log(`✓ Data persisted across reload: ${reloadedRowCount} runs`);
   });
 
   test('displays correct run counts for each tab', async ({ seededPage }) => {
@@ -137,7 +129,5 @@ test.describe('Game Runs Table', () => {
     expect(counts.farm).toBeGreaterThan(0);
     expect(counts.tournament).toBeGreaterThan(0);
     expect(counts.milestone).toBeGreaterThan(0);
-
-    console.log('✓ Run counts:', counts);
   });
 });

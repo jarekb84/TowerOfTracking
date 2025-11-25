@@ -41,10 +41,7 @@ test.describe('Single Game Run Add', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    const dismissButton = page.locator('button:has-text("Dismiss")');
-    if (await dismissButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await dismissButton.click();
-    }
+    await appPage.dismissNotificationIfVisible();
 
     const farmingRunData = await fs.readFile(
       path.join(__dirname, '../../fixtures/farming-run.txt'),

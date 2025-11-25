@@ -35,10 +35,10 @@ export class TierStatsPage {
 
   /**
    * Navigate to tier stats page
-   * NOTE: Tier stats uses query parameter routing: /charts?chart=tiers
+   * Uses route-based navigation: /charts/tier-stats
    */
   async goto() {
-    await this.page.goto('/charts?chart=tiers');
+    await this.page.goto('/charts/tier-stats');
     await this.waitForPageLoad();
   }
 
@@ -47,8 +47,8 @@ export class TierStatsPage {
    * Encapsulates URL waiting and table visibility checks
    */
   async waitForPageLoad() {
-    // Wait for correct URL (query parameter routing)
-    await this.page.waitForURL(/chart=tiers/, { timeout: 30000 });
+    // Wait for correct URL (route-based navigation)
+    await this.page.waitForURL(/\/charts\/tier-stats/, { timeout: 30000 });
     // Wait for table to be visible
     await this.table.waitFor({ state: 'visible', timeout: 30000 });
     // Wait for at least one row

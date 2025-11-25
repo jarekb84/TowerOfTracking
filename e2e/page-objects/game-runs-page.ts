@@ -29,10 +29,10 @@ export class GameRunsPage {
     this.page = page;
     this.appPage = new AppPage(page);
 
-    // Tabs for different run types
-    this.farmingRunsTab = page.locator('button:has-text("Farm Runs")');
-    this.tournamentRunsTab = page.locator('button:has-text("Tournament Runs")');
-    this.milestoneRunsTab = page.locator('button:has-text("Milestone Runs")');
+    // Tabs for different run types (route-based navigation using Link components)
+    this.farmingRunsTab = page.locator('a[role="tab"]:has-text("Farm")');
+    this.tournamentRunsTab = page.locator('a[role="tab"]:has-text("Tournament")');
+    this.milestoneRunsTab = page.locator('a[role="tab"]:has-text("Milestone")');
 
     // Table elements
     this.table = page.locator('table');
@@ -59,25 +59,31 @@ export class GameRunsPage {
 
   /**
    * Switch to Farming Runs tab
+   * Uses route-based navigation: /runs/farm
    */
   async switchToFarmTab() {
     await this.farmingRunsTab.click();
+    await this.page.waitForURL(/\/runs\/farm/);
     await this.waitForTableLoad();
   }
 
   /**
    * Switch to Tournament Runs tab
+   * Uses route-based navigation: /runs/tournament
    */
   async switchToTournamentTab() {
     await this.tournamentRunsTab.click();
+    await this.page.waitForURL(/\/runs\/tournament/);
     await this.waitForTableLoad();
   }
 
   /**
    * Switch to Milestone Runs tab
+   * Uses route-based navigation: /runs/milestone
    */
   async switchToMilestoneTab() {
     await this.milestoneRunsTab.click();
+    await this.page.waitForURL(/\/runs\/milestone/);
     await this.waitForTableLoad();
   }
 

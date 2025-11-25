@@ -32,10 +32,10 @@ export class TierTrendsPage {
 
   /**
    * Navigate to tier trends page
-   * NOTE: Tier trends uses query parameter routing: /charts?chart=trends
+   * Uses route-based navigation: /charts/tier-trends
    */
   async goto() {
-    await this.page.goto('/charts?chart=trends');
+    await this.page.goto('/charts/tier-trends');
     await this.waitForPageLoad();
   }
 
@@ -44,8 +44,8 @@ export class TierTrendsPage {
    * Encapsulates URL waiting and content visibility checks
    */
   async waitForPageLoad() {
-    // Wait for correct URL (query parameter routing)
-    await this.page.waitForURL(/chart=trends/, { timeout: 30000 });
+    // Wait for correct URL (route-based navigation)
+    await this.page.waitForURL(/\/charts\/tier-trends/, { timeout: 30000 });
     // Wait for the chart container to be visible
     const chartContainer = this.page.locator('.chart-container');
     await chartContainer.waitFor({ state: 'visible', timeout: 30000 });

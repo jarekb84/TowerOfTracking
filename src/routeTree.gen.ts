@@ -14,6 +14,9 @@ import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsDataManagementRouteImport } from './routes/settings/data-management'
+import { Route as RunsTournamentRouteImport } from './routes/runs/tournament'
+import { Route as RunsMilestoneRouteImport } from './routes/runs/milestone'
+import { Route as RunsFarmRouteImport } from './routes/runs/farm'
 import { Route as ChartsTierTrendsRouteImport } from './routes/charts/tier-trends'
 import { Route as ChartsTierStatsRouteImport } from './routes/charts/tier-stats'
 import { Route as ChartsSourcesRouteImport } from './routes/charts/sources'
@@ -46,6 +49,21 @@ const SettingsDataManagementRoute = SettingsDataManagementRouteImport.update({
   id: '/data-management',
   path: '/data-management',
   getParentRoute: () => SettingsRoute,
+} as any)
+const RunsTournamentRoute = RunsTournamentRouteImport.update({
+  id: '/tournament',
+  path: '/tournament',
+  getParentRoute: () => RunsRoute,
+} as any)
+const RunsMilestoneRoute = RunsMilestoneRouteImport.update({
+  id: '/milestone',
+  path: '/milestone',
+  getParentRoute: () => RunsRoute,
+} as any)
+const RunsFarmRoute = RunsFarmRouteImport.update({
+  id: '/farm',
+  path: '/farm',
+  getParentRoute: () => RunsRoute,
 } as any)
 const ChartsTierTrendsRoute = ChartsTierTrendsRouteImport.update({
   id: '/tier-trends',
@@ -86,7 +104,7 @@ const ChartsCellsRoute = ChartsCellsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/charts': typeof ChartsRouteWithChildren
-  '/runs': typeof RunsRoute
+  '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
@@ -95,12 +113,15 @@ export interface FileRoutesByFullPath {
   '/charts/sources': typeof ChartsSourcesRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/runs/farm': typeof RunsFarmRoute
+  '/runs/milestone': typeof RunsMilestoneRoute
+  '/runs/tournament': typeof RunsTournamentRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/charts': typeof ChartsRouteWithChildren
-  '/runs': typeof RunsRoute
+  '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
@@ -109,13 +130,16 @@ export interface FileRoutesByTo {
   '/charts/sources': typeof ChartsSourcesRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/runs/farm': typeof RunsFarmRoute
+  '/runs/milestone': typeof RunsMilestoneRoute
+  '/runs/tournament': typeof RunsTournamentRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/charts': typeof ChartsRouteWithChildren
-  '/runs': typeof RunsRoute
+  '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
@@ -124,6 +148,9 @@ export interface FileRoutesById {
   '/charts/sources': typeof ChartsSourcesRoute
   '/charts/tier-stats': typeof ChartsTierStatsRoute
   '/charts/tier-trends': typeof ChartsTierTrendsRoute
+  '/runs/farm': typeof RunsFarmRoute
+  '/runs/milestone': typeof RunsMilestoneRoute
+  '/runs/tournament': typeof RunsTournamentRoute
   '/settings/data-management': typeof SettingsDataManagementRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +167,9 @@ export interface FileRouteTypes {
     | '/charts/sources'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
+    | '/runs/farm'
+    | '/runs/milestone'
+    | '/runs/tournament'
     | '/settings/data-management'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +184,9 @@ export interface FileRouteTypes {
     | '/charts/sources'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
+    | '/runs/farm'
+    | '/runs/milestone'
+    | '/runs/tournament'
     | '/settings/data-management'
   id:
     | '__root__'
@@ -168,13 +201,16 @@ export interface FileRouteTypes {
     | '/charts/sources'
     | '/charts/tier-stats'
     | '/charts/tier-trends'
+    | '/runs/farm'
+    | '/runs/milestone'
+    | '/runs/tournament'
     | '/settings/data-management'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChartsRoute: typeof ChartsRouteWithChildren
-  RunsRoute: typeof RunsRoute
+  RunsRoute: typeof RunsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
 }
 
@@ -214,6 +250,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/data-management'
       preLoaderRoute: typeof SettingsDataManagementRouteImport
       parentRoute: typeof SettingsRoute
+    }
+    '/runs/tournament': {
+      id: '/runs/tournament'
+      path: '/tournament'
+      fullPath: '/runs/tournament'
+      preLoaderRoute: typeof RunsTournamentRouteImport
+      parentRoute: typeof RunsRoute
+    }
+    '/runs/milestone': {
+      id: '/runs/milestone'
+      path: '/milestone'
+      fullPath: '/runs/milestone'
+      preLoaderRoute: typeof RunsMilestoneRouteImport
+      parentRoute: typeof RunsRoute
+    }
+    '/runs/farm': {
+      id: '/runs/farm'
+      path: '/farm'
+      fullPath: '/runs/farm'
+      preLoaderRoute: typeof RunsFarmRouteImport
+      parentRoute: typeof RunsRoute
     }
     '/charts/tier-trends': {
       id: '/charts/tier-trends'
@@ -290,6 +347,20 @@ const ChartsRouteChildren: ChartsRouteChildren = {
 const ChartsRouteWithChildren =
   ChartsRoute._addFileChildren(ChartsRouteChildren)
 
+interface RunsRouteChildren {
+  RunsFarmRoute: typeof RunsFarmRoute
+  RunsMilestoneRoute: typeof RunsMilestoneRoute
+  RunsTournamentRoute: typeof RunsTournamentRoute
+}
+
+const RunsRouteChildren: RunsRouteChildren = {
+  RunsFarmRoute: RunsFarmRoute,
+  RunsMilestoneRoute: RunsMilestoneRoute,
+  RunsTournamentRoute: RunsTournamentRoute,
+}
+
+const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
+
 interface SettingsRouteChildren {
   SettingsDataManagementRoute: typeof SettingsDataManagementRoute
 }
@@ -305,7 +376,7 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChartsRoute: ChartsRouteWithChildren,
-  RunsRoute: RunsRoute,
+  RunsRoute: RunsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
