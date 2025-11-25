@@ -1,7 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { PostHogProvider } from 'posthog-js/react'
 
-import { ThemeProvider } from '../features/theming'
 import { DataProvider } from '../shared/domain/data-provider'
 import { GlobalDataInputProvider } from '../features/data-import/global-data-input-provider'
 import { NavigationProvider, AppLayout } from '../features/navigation'
@@ -61,17 +60,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <PostHogClientProvider>
-          <ThemeProvider>
-            <DataProvider>
-              <GlobalDataInputProvider>
-                <NavigationProvider>
-                  <AppLayout>
-                    {children}
-                  </AppLayout>
-                </NavigationProvider>
-              </GlobalDataInputProvider>
-            </DataProvider>
-          </ThemeProvider>
+          <DataProvider>
+            <GlobalDataInputProvider>
+              <NavigationProvider>
+                <AppLayout>
+                  {children}
+                </AppLayout>
+              </NavigationProvider>
+            </GlobalDataInputProvider>
+          </DataProvider>
         </PostHogClientProvider>
         <Scripts />
       </body>

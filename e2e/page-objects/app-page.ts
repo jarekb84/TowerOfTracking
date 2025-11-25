@@ -31,7 +31,6 @@ export class AppPage {
   readonly tierTrendsLink: Locator;
 
   // Sidebar navigation - Settings section (deep links to settings page)
-  readonly themeSettingsLink: Locator;
   readonly bulkImportLink: Locator;
   readonly bulkExportLink: Locator;
   readonly deleteDataLink: Locator;
@@ -60,7 +59,6 @@ export class AppPage {
     this.tierTrendsLink = page.locator('a:has-text("Tier Trends")');
 
     // Settings section (deep links to settings page)
-    this.themeSettingsLink = page.locator('a:has-text("Theme Settings")');
     this.bulkImportLink = page.locator('a:has-text("Bulk Import")');
     this.bulkExportLink = page.locator('a:has-text("Bulk Export")');
     this.deleteDataLink = page.locator('a:has-text("Delete Data")');
