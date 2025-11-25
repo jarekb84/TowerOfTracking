@@ -4,14 +4,17 @@ import { useSidebarBehavior } from './use-sidebar-behavior'
 import { useSidebarToggleProps } from './use-sidebar-toggle'
 import { NavIcon } from '../top-navbar/nav-icon'
 import { NavLink, NavSection, NavCollapseButton } from '@/components/ui'
+import { useViewport } from '@/shared/hooks/use-viewport'
 
 export function Sidebar() {
   const { isSidebarOpen, closeSidebar, isCollapsed, toggleCollapsed } = useNavigation()
   const { sidebarRef, firstLinkRef } = useSidebarBehavior({ isSidebarOpen, closeSidebar })
-  const { getClickableAreaProps } = useSidebarToggleProps({ 
-    isCollapsed, 
-    onToggle: toggleCollapsed 
+  const { getClickableAreaProps } = useSidebarToggleProps({
+    isCollapsed,
+    onToggle: toggleCollapsed
   })
+  const viewport = useViewport()
+  const isMobile = viewport === 'mobile'
 
   return (
     <>
@@ -38,7 +41,7 @@ export function Sidebar() {
           ${isCollapsed ? 'w-16' : 'w-64'}
         `}
         aria-label="Navigation sidebar"
-        aria-hidden={!isSidebarOpen && typeof window !== 'undefined' && window.innerWidth < 768}
+        aria-hidden={!isSidebarOpen && isMobile}
         role="navigation"
       >
         {/* Enhanced navigation with improved spacing, visual hierarchy, and keyboard support */}
