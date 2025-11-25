@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import type { CsvDelimiter } from '../types';
 
 interface DelimiterControlsProps {
@@ -17,16 +17,17 @@ export function DelimiterControls({
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm text-muted-foreground">Delimiter:</span>
-      <select
+      <Select
         value={selectedDelimiter}
         onChange={(e) => onDelimiterChange(e.target.value as CsvDelimiter)}
-        className="w-32 px-2 py-1 border rounded text-sm bg-background"
+        width="md"
+        aria-label="Select delimiter"
       >
         <option value="tab">Tab</option>
         <option value="comma">Comma</option>
         <option value="semicolon">Semicolon</option>
         <option value="custom">Custom</option>
-      </select>
+      </Select>
 
       {selectedDelimiter === 'custom' && (
         <Input

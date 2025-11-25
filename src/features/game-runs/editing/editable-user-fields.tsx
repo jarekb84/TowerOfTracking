@@ -2,27 +2,32 @@ import type { RunTypeValue } from '@/shared/types/game-run.types';
 import { useEditingKeyboardShortcuts } from './use-editing-keyboard-shortcuts';
 import { EditActionButtons } from './edit-action-buttons';
 import { EditIconButton } from './edit-icon-button';
+import { ClickableFieldDisplay, FieldValue } from './clickable-field-display';
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector';
 import { RunType } from '@/shared/domain/run-types/types';
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
-import { cn } from '@/shared/lib/utils';
 import { useState } from 'react';
 import { NotesField } from '@/shared/domain/fields/notes-field';
+import { RankSelector } from '@/shared/domain/fields/rank-selector';
+import type { RankValue } from './field-update-logic';
 
 interface EditableUserFieldsProps {
   notes: string;
   runType: RunTypeValue;
-  onSave: (newNotes: string, newRunType: RunTypeValue) => void;
+  rank: RankValue;
+  onSave: (newNotes: string, newRunType: RunTypeValue, newRank: RankValue) => void;
 }
 
 export function EditableUserFields({
   notes,
   runType,
+  rank,
   onSave
 }: EditableUserFieldsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedNotes, setEditedNotes] = useState(notes);
   const [editedRunType, setEditedRunType] = useState<RunTypeValue>(runType);
+  const [editedRank, setEditedRank] = useState<RankValue>(rank);
   const [isSaving, setIsSaving] = useState(false);
 
   const { handleTextareaKeyDown } = useEditingKeyboardShortcuts({
@@ -31,17 +36,29 @@ export function EditableUserFields({
   });
 
   const isEmpty = !notes || notes.trim() === '';
+  const isTournament = editedRunType === RunType.TOURNAMENT;
 
   function startEditing() {
     setEditedNotes(notes);
     setEditedRunType(runType);
+    setEditedRank(rank);
     setIsEditing(true);
   }
 
   function handleCancel() {
     setEditedNotes(notes);
     setEditedRunType(runType);
+    setEditedRank(rank);
     setIsEditing(false);
+  }
+
+  function handleRunTypeChange(type: RunTypeFilter) {
+    const newType = type === 'all' ? RunType.FARM : type;
+    setEditedRunType(newType);
+    // Clear rank when switching away from tournament
+    if (newType !== RunType.TOURNAMENT) {
+      setEditedRank('');
+    }
   }
 
   async function handleSave() {
@@ -50,8 +67,11 @@ export function EditableUserFields({
     // Defer to next tick so loading state shows immediately
     await new Promise(resolve => setTimeout(resolve, 0));
 
-    // Apply both updates in a single call
-    onSave(editedNotes, editedRunType);
+    // Clear rank if not tournament type (handle edge case of type change)
+    const finalRank = editedRunType === RunType.TOURNAMENT ? editedRank : '';
+
+    // Apply all updates in a single call
+    onSave(editedNotes, editedRunType, finalRank);
 
     // Brief delay to show loading feedback (localStorage save is now debounced/async)
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -72,12 +92,22 @@ export function EditableUserFields({
         </div>
 
         <div className="space-y-4">
-          {/* Run Type Field */}
-          <RunTypeSelector
-            selectedType={editedRunType as RunTypeFilter}
-            onTypeChange={(type) => setEditedRunType(type === 'all' ? RunType.FARM : type)}
-            mode="selection"
-          />
+          {/* Run Type and Rank Fields - same row */}
+          <div className="flex items-start gap-6">
+            <RunTypeSelector
+              selectedType={editedRunType as RunTypeFilter}
+              onTypeChange={handleRunTypeChange}
+              mode="selection"
+            />
+
+            {/* Rank Field - only shown for tournament runs */}
+            {isTournament && (
+              <RankSelector
+                value={editedRank}
+                onChange={setEditedRank}
+              />
+            )}
+          </div>
 
           {/* Notes Field */}
           <NotesField
@@ -103,6 +133,8 @@ export function EditableUserFields({
   }
 
   // Read-only view
+  const isReadOnlyTournament = runType === RunType.TOURNAMENT;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b border-border/40 pb-2">
@@ -113,51 +145,28 @@ export function EditableUserFields({
       </div>
 
       <div className="space-y-3">
-        {/* Run Type Display */}
-        <div
-          className={cn(
-            'flex items-center gap-3 p-2 rounded-md cursor-pointer',
-            'hover:bg-accent/5 hover:border-accent/20 border border-transparent'
+        {/* Run Type and Rank Display - same row */}
+        <div className="flex items-start gap-6">
+          <ClickableFieldDisplay label="Run Type" onClick={startEditing}>
+            <FieldValue>
+              <span className="capitalize">{runType}</span>
+            </FieldValue>
+          </ClickableFieldDisplay>
+
+          {/* Rank Display - only shown for tournament runs */}
+          {isReadOnlyTournament && (
+            <ClickableFieldDisplay label="Rank" onClick={startEditing}>
+              {rank === '' ? (
+                <FieldValue variant="empty">Not set</FieldValue>
+              ) : (
+                <FieldValue>{rank}</FieldValue>
+              )}
+            </ClickableFieldDisplay>
           )}
-          onClick={startEditing}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              startEditing();
-            }
-          }}
-        >
-          <span className="font-mono text-sm text-muted-foreground min-w-[80px]">
-            Run Type
-          </span>
-          <span className="font-mono text-sm text-accent font-medium capitalize">
-            {runType}
-          </span>
         </div>
 
         {/* Notes Display */}
-        <div
-          className={cn(
-            'cursor-pointer p-3 rounded-md',
-            'hover:bg-accent/5 hover:border-accent/20 border border-transparent',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50'
-          )}
-          onClick={startEditing}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              startEditing();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Click to edit notes"
-        >
-          <div className="mb-2">
-            <span className="font-mono text-sm text-muted-foreground">Notes</span>
-          </div>
+        <ClickableFieldDisplay label="Notes" onClick={startEditing} variant="stacked">
           {isEmpty ? (
             <span className="text-muted-foreground/50 italic text-sm">
               Click to add notes for this run...
@@ -167,7 +176,7 @@ export function EditableUserFields({
               {notes}
             </p>
           )}
-        </div>
+        </ClickableFieldDisplay>
       </div>
     </div>
   );

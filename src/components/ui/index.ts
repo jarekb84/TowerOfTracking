@@ -18,6 +18,7 @@ export * from "./nav-link";
 export * from "./nav-section";
 export * from "./popover";
 export * from "./responsive-dialog";
+export * from "./select";
 export * from "./selection-button-group";
 export * from "./textarea";
 export * from "./toggle-switch";

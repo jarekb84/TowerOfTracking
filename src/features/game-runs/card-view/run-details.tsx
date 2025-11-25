@@ -6,8 +6,11 @@ import { useData } from '@/shared/domain/use-data';
 import {
   createUpdatedNotesFields,
   createUpdatedRunTypeFields,
+  createUpdatedRankFields,
   extractNotesValue,
   extractRunTypeValue,
+  extractRankValue,
+  type RankValue,
 } from '../editing/field-update-logic';
 
 interface RunDetailsProps {
@@ -56,7 +59,7 @@ const STAT_GROUPS = {
     "commonModules", "rareModules"
   ],
   "__SKIP__": [
-    "_date", "_time", "_runType", "_notes", "battleDate"
+    "_date", "_time", "_runType", "_notes", "_rank", "battleDate"
   ]
 };
 
@@ -125,7 +128,7 @@ function StatGroup({ title, fields, run }: {
 export function RunDetails({ run }: RunDetailsProps) {
   const { updateRun } = useData();
 
-  const handleUserFieldsUpdate = (newNotes: string, newRunType: RunTypeValue) => {
+  const handleUserFieldsUpdate = (newNotes: string, newRunType: RunTypeValue, newRank: RankValue) => {
     let updatedFields = { ...run.fields };
 
     // Apply notes update if changed
@@ -139,7 +142,13 @@ export function RunDetails({ run }: RunDetailsProps) {
       updatedFields = createUpdatedRunTypeFields(updatedFields, newRunType);
     }
 
-    // Single update with both changes
+    // Apply rank update if changed
+    const currentRank = extractRankValue(run.fields);
+    if (newRank !== currentRank) {
+      updatedFields = createUpdatedRankFields(updatedFields, newRank);
+    }
+
+    // Single update with all changes
     updateRun(run.id, {
       fields: updatedFields,
       runType: newRunType  // Update cached property
@@ -164,12 +173,14 @@ export function RunDetails({ run }: RunDetailsProps) {
 
   const notes = extractNotesValue(run.fields);
   const runType = extractRunTypeValue(run);
+  const rank = extractRankValue(run.fields);
 
   return (
     <div className="space-y-6">
       <EditableUserFields
         notes={notes}
         runType={runType}
+        rank={rank}
         onSave={handleUserFieldsUpdate}
       />
 

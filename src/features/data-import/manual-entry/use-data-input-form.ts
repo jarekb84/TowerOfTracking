@@ -9,11 +9,13 @@ import {
 } from './data-input-state';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { RunTypeValue } from '@/shared/domain/run-types/types';
+import { RunType } from '@/shared/domain/run-types/types';
 import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import { useData } from '@/shared/domain/use-data';
 import { useRunTypeContext } from '@/shared/domain/run-types/use-run-type-context';
 import { hasExplicitRunType } from '@/shared/domain/run-types/run-type-detection';
+import type { RankValue } from '@/features/game-runs/editing/field-update-logic';
 
 interface DataInputFormState {
   inputData: string;
@@ -22,6 +24,7 @@ interface DataInputFormState {
   selectedDate: Date;
   selectedTime: { hours: string; minutes: string };
   notes: string;
+  rank: RankValue;
   duplicateResult: DuplicateDetectionResult | null;
   resolution: DuplicateResolution;
   hasBattleDate: boolean;
@@ -33,10 +36,12 @@ interface DataInputFormActions {
   setSelectedDate: (date: Date) => void;
   setSelectedTime: (time: { hours: string; minutes: string }) => void;
   setNotes: (notes: string) => void;
+  setRank: (rank: RankValue) => void;
   setResolution: (resolution: DuplicateResolution) => void;
   handleInputChange: (value: string) => void;
   handleDateSelect: (date: Date | undefined) => void;
   handleTimeChange: (field: 'hours' | 'minutes', value: string) => void;
+  handleRunTypeChange: (type: RunTypeValue) => void;
   handlePaste: () => Promise<void>;
   handleSave: () => void;
   resetForm: () => void;
@@ -57,6 +62,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const [selectedDate, setSelectedDate] = useState(initialDateTime.selectedDate);
   const [selectedTime, setSelectedTime] = useState(initialDateTime.selectedTime);
   const [notes, setNotes] = useState(initialFormState.notes);
+  const [rank, setRank] = useState<RankValue>('');
   const [duplicateResult, setDuplicateResult] = useState(initialFormState.duplicateResult);
   const [resolution, setResolution] = useState(initialFormState.resolution);
   const [hasBattleDate, setHasBattleDate] = useState(false);
@@ -163,9 +169,17 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const handleTimeChange = (field: 'hours' | 'minutes', value: string): void => {
     const newTime = { ...selectedTime, [field]: value };
     setSelectedTime(newTime);
-    
+
     if (inputData.trim()) {
       parseInputData(inputData);
+    }
+  };
+
+  const handleRunTypeChange = (type: RunTypeValue): void => {
+    setSelectedRunType(type);
+    // Clear rank when switching away from tournament
+    if (type !== RunType.TOURNAMENT) {
+      setRank('');
     }
   };
 
@@ -174,7 +188,12 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
       const updatedFields = {
         ...previewData.fields,
         _notes: createInternalField('Notes', notes),
-        _runType: createInternalField('Run Type', selectedRunType)
+        _runType: createInternalField('Run Type', selectedRunType),
+        // Only include rank for tournament runs
+        ...(selectedRunType === RunType.TOURNAMENT && rank !== ''
+          ? { _rank: createInternalField('Rank', String(rank)) }
+          : {}
+        )
       };
 
       const runWithNotes = {
@@ -205,6 +224,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     setSelectedDate(newDateTime.selectedDate);
     setSelectedTime(newDateTime.selectedTime);
     setNotes(newFormState.notes);
+    setRank('');
     setDuplicateResult(newFormState.duplicateResult);
     setResolution(newFormState.resolution);
     setHasBattleDate(false);
@@ -218,6 +238,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     selectedDate,
     selectedTime,
     notes,
+    rank,
     duplicateResult,
     resolution,
     hasBattleDate,
@@ -228,10 +249,12 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     setSelectedDate,
     setSelectedTime,
     setNotes,
+    setRank,
     setResolution,
     handleInputChange,
     handleDateSelect,
     handleTimeChange,
+    handleRunTypeChange,
     handlePaste,
     handleSave,
     resetForm,

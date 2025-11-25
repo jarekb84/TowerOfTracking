@@ -11,6 +11,7 @@ import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector';
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
 import { RunType } from '@/shared/domain/run-types/types';
 import { NotesField } from '@/shared/domain/fields/notes-field';
+import { RankSelector } from '@/shared/domain/fields/rank-selector';
 
 interface DataInputProps {
   className?: string;
@@ -79,11 +80,24 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
                 disabledReason={form.hasBattleDate ? "Using game timestamp" : undefined}
               />
               
-              <RunTypeSelector
-                selectedType={form.selectedRunType as RunTypeFilter}
-                onTypeChange={(type) => form.setSelectedRunType(type === 'all' ? RunType.FARM : type)}
-                mode="selection"
-              />
+              {/* Run Type and Rank - same row */}
+              <div className="flex items-start gap-6">
+                <RunTypeSelector
+                  selectedType={form.selectedRunType as RunTypeFilter}
+                  onTypeChange={(type) => form.handleRunTypeChange(type === 'all' ? RunType.FARM : type)}
+                  mode="selection"
+                />
+
+                {/* Rank selector - only shown for tournament runs */}
+                {form.selectedRunType === RunType.TOURNAMENT && (
+                  <RankSelector
+                    value={form.rank}
+                    onChange={form.setRank}
+                    showOptionalHint
+                  />
+                )}
+              </div>
+
               <FormField>
                 <FormLabel required>
                   Game Stats Data

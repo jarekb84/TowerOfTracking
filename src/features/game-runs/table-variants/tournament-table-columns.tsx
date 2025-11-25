@@ -94,11 +94,10 @@ export function createTournamentTableColumns(removeRun: (id: string) => void): C
     }),
     columnHelper.display({
       id: 'placement',
-      header: 'Placement',
+      header: 'Rank',
       cell: ({ row }) => {
-        // Empty for now - future enhancement for tournament placement data
-        const placement = getFieldValue<string>(row.original, 'placement');
-        return placement || '-';
+        const rank = getFieldValue<string>(row.original, '_rank');
+        return rank || '-';
       },
     }),
     columnHelper.display({
