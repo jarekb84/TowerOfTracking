@@ -1,7 +1,7 @@
 ---
 name: prd-generator
 description: Use this agent to create concise, user-focused Product Requirement Documents (PRDs) from feature requests, voice transcripts, or conversation context. This agent produces 2-3 page PRDs emphasizing user problems and scenarios while avoiding technical implementation details, code snippets, and business metrics. <example>Context: User has transcribed a voice memo describing feature ideas.user: "Here's my voice transcript with feature ideas for the app. Can you create a PRD from this?"assistant: "I'll use the prd-generator agent to analyze your transcript and create a user-focused PRD"<commentary>The user has feature ideas that need to be structured into a PRD, so invoke the prd-generator agent.</commentary></example><example>Context: User discusses a problem they're facing with the application.user: "Users are complaining that the export process is too slow and they don't know when it's done. Let's create a PRD for fixing this"assistant: "I'll invoke the prd-generator agent to analyze this problem and create a comprehensive PRD for the export progress feature"<commentary>User has identified a user experience problem that needs a structured PRD.</commentary></example>
-model: sonnet
+model: inherit
 color: blue
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: release-notes-generator
 description: Use this agent to generate Discord-friendly release notes by analyzing commits between version tags. This agent creates concise, user-focused posts highlighting major features, improvements, and bug fixes optimized for Discord's character limits.
-model: sonnet
+model: inherit
 color: purple
 ---
 

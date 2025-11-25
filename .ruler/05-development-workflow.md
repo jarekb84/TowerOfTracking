@@ -17,17 +17,27 @@ You are not just implementing features—you are stewarding the evolution of a c
 
 ## Bug Fix Detection
 
-**Identifying Bug Fixes:**
-Determine if the change is a bug fix by examining:
-- User request contains keywords: "fix", "bug", "issue", "error", "broken", "not working"
-- Branch name contains: "fix", "bug", "issue", "hotfix"
-- Change addresses unintended behavior or incorrect functionality
-- Change corrects a defect rather than adding new capability
+**Determining Change Intent:**
+Analyze the request holistically to understand whether this is a bug fix or feature work:
 
-**Bug Fix vs Feature:**
-- **Bug Fix**: Corrects unintended behavior, restores expected functionality, fixes errors
-- **Feature**: Adds new capability, enhances existing functionality with new behavior
-- **When Unclear**: Ask the user to clarify if this is fixing a bug or adding/enhancing functionality
+**Ask yourself:**
+1. Is this **restoring expected behavior** that previously worked, or **adding new capability**?
+2. Does the change **correct a defect** (something that shouldn't happen) or **extend functionality**?
+3. Would users describe this as "it's broken" vs "I wish it could do X"?
+
+**Bug Fix Indicators:**
+- Restoring functionality that was working before
+- Correcting behavior that doesn't match documented/expected behavior
+- Fixing crashes, errors, or data corruption
+- Addressing user-reported problems with existing features
+
+**Feature Indicators:**
+- Adding functionality that never existed
+- Enhancing existing features with new capabilities
+- Improving UX/design without fixing incorrect behavior
+- Refactoring or reorganizing code structure
+
+**When Unclear**: Ask the user to clarify: "Is this fixing something that's broken, or adding/enhancing functionality?"
 
 ## Mandatory Red-Green-Refactor Process
 
