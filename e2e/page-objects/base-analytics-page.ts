@@ -115,91 +115,125 @@ export abstract class BaseAnalyticsPage {
   }
 
   /**
-   * Hover over a specific X-axis label to trigger tooltip
-   *
-   * @param labelText - The X-axis label text to hover over (e.g., "Sep 2025")
-   *
-   * @example
-   * await page.hoverOverChartLabel('Sep 2025');
+   * Get chart area and axis labels for hover targeting
+   * @internal
    */
-  async hoverOverChartLabel(labelText: string) {
-    // Wait for chart to be fully rendered
-    await this.page.waitForTimeout(1500);
+  private getChartLocators(chartTitle?: string): { chartArea: Locator; axisTickLabels: Locator } {
+    if (chartTitle) {
+      // Multi-chart page: find the chart card by h3 title
+      const chartCard = this.page.locator(`h3:has-text("${chartTitle}")`).locator('..').locator('..');
+      const chartArea = chartCard.locator('.recharts-wrapper');
+      return { chartArea, axisTickLabels: chartArea.locator('.recharts-cartesian-axis-tick-value') };
+    }
+    // Single-chart page: use first recharts-wrapper
+    return {
+      chartArea: this.page.locator('.recharts-wrapper').first(),
+      axisTickLabels: this.page.locator('.recharts-cartesian-axis-tick-value'),
+    };
+  }
 
-    // Find the specific X-axis label
-    // Recharts renders axis ticks as: <text class="recharts-cartesian-axis-tick-value"><tspan>Label</tspan></text>
-    const axisTickLabels = this.page.locator('.recharts-cartesian-axis-tick-value');
+  /**
+   * Find an axis label element by text
+   * @internal
+   */
+  private async findAxisLabel(axisTickLabels: Locator, labelText: string): Promise<Locator | null> {
     const tickCount = await axisTickLabels.count();
-
-    let targetElement = null;
-
-    // Search through all tick labels to find the one with our text
     for (let i = 0; i < tickCount; i++) {
       const element = axisTickLabels.nth(i);
       const text = await element.textContent();
-
       if (text && text.trim() === labelText) {
-        targetElement = element;
-        break;
+        return element;
       }
     }
+    return null;
+  }
 
-    if (!targetElement) {
-      return;
+  /**
+   * Find tooltip content from elements matching a selector
+   * @internal
+   */
+  private async findTooltipInElements(selector: string, validator: (text: string) => boolean): Promise<string> {
+    const elements = this.page.locator(selector);
+    const count = await elements.count();
+    for (let i = 0; i < count; i++) {
+      const text = await elements.nth(i).textContent();
+      if (text && validator(text)) {
+        return text;
+      }
     }
+    return '';
+  }
 
-    // Found the label - get the chart container to find the data area
-    const box = await targetElement.boundingBox();
-    if (!box) {
-      return;
-    }
+  /**
+   * Hover over a specific X-axis label to trigger tooltip
+   *
+   * Works for both single-chart and multi-chart pages:
+   * - Single-chart: Uses .recharts-wrapper for bounding box (default)
+   * - Multi-chart: Pass chartTitle to target a specific chart by its h3 heading
+   *
+   * @param labelText - The X-axis label text to hover over (e.g., "Sep 2025", "Oct 25")
+   * @param chartTitle - Optional chart title (h3 text) to target on multi-chart pages
+   */
+  async hoverOverChartLabel(labelText: string, chartTitle?: string) {
+    await this.page.waitForTimeout(1000);
 
-    // Get the chart container to find the actual chart area
-    const chartBox = await this.chartContainer.boundingBox();
-    if (!chartBox) {
-      return;
-    }
+    const { chartArea, axisTickLabels } = this.getChartLocators(chartTitle);
+    await chartArea.waitFor({ state: 'visible', timeout: 5000 });
+    await chartArea.scrollIntoViewIfNeeded();
 
-    // Move mouse to the X position of the label, but at the vertical center of the chart area
-    // This ensures we're hovering over the data area, not too far above or below
-    const targetX = box.x + (box.width / 2);
-    const targetY = chartBox.y + (chartBox.height * 0.5);
+    const targetElement = await this.findAxisLabel(axisTickLabels, labelText);
+    if (!targetElement) return;
 
-    await this.page.mouse.move(targetX, targetY);
+    const labelBox = await targetElement.boundingBox();
+    const chartBox = await chartArea.boundingBox();
+    if (!labelBox || !chartBox) return;
 
-    // Wait for tooltip to appear and stabilize
-    await this.page.waitForTimeout(1200);
+    // Move mouse to: X position of label, Y at ~40% from top (in the data area)
+    await this.page.mouse.move(
+      labelBox.x + labelBox.width / 2,
+      chartBox.y + chartBox.height * 0.4
+    );
+    await this.page.waitForTimeout(800);
   }
 
   /**
    * Get tooltip content if visible
-   * Waits for tooltip to be visible and returns its text content
+   *
+   * Uses multiple strategies since Recharts renders tooltips differently:
+   * 1. Standard .recharts-tooltip-wrapper
+   * 2. Elements with backdrop-blur class containing data
+   * 3. Elements with slate-900 background containing percentages
    *
    * @returns The tooltip text content, or empty string if not visible
    */
   async getTooltipContent(): Promise<string> {
-    // Wait for tooltip wrapper to be visible
-    const tooltipWrapper = this.page.locator('.recharts-tooltip-wrapper');
+    // Strategy 1: Standard recharts tooltip wrapper
+    const wrapperContent = await this.tryGetTooltipFromWrapper();
+    if (wrapperContent) return wrapperContent;
 
+    // Strategy 2: backdrop-blur elements with data
+    const backdropContent = await this.findTooltipInElements(
+      '[class*="backdrop-blur"]',
+      (text) => text.includes('%') || text.includes('total')
+    );
+    if (backdropContent) return backdropContent;
+
+    // Strategy 3: slate-900 elements with percentages
+    return this.findTooltipInElements('[class*="slate-900"]', (text) => text.includes('%'));
+  }
+
+  /**
+   * Try to get tooltip content from recharts-tooltip-wrapper
+   * @internal
+   */
+  private async tryGetTooltipFromWrapper(): Promise<string> {
+    const tooltipWrapper = this.page.locator('.recharts-tooltip-wrapper');
     try {
-      // Wait for tooltip to become visible (with timeout)
       await tooltipWrapper.waitFor({ state: 'visible', timeout: 2000 });
+      const content = await tooltipWrapper.textContent();
+      return content && content.length > 0 ? content : '';
     } catch {
-      // Tooltip didn't appear
       return '';
     }
-
-    // Get the tooltip content from within the wrapper
-    // The tooltip has a specific structure with backdrop-blur class
-    const tooltipContent = tooltipWrapper.locator('[class*="backdrop-blur"]').first();
-    const isContentVisible = await tooltipContent.isVisible({ timeout: 1000 }).catch(() => false);
-
-    if (isContentVisible) {
-      const content = await tooltipContent.textContent();
-      return content || '';
-    }
-
-    // Fallback: get all text from the wrapper
-    return await tooltipWrapper.textContent() || '';
   }
 }

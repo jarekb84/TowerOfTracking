@@ -1,9 +1,4 @@
 {
-  "e2e/page-objects/base-analytics-page.ts": {
-    "max-statements": {
-      "count": 1
-    }
-  },
   "src/components/ui/calendar.tsx": {
     "max-lines-per-function": {
       "count": 1
