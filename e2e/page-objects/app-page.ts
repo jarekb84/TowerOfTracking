@@ -29,6 +29,7 @@ export class AppPage {
   readonly deathAnalyticsLink: Locator;
   readonly tierStatsLink: Locator;
   readonly tierTrendsLink: Locator;
+  readonly sourceAnalysisLink: Locator;
 
   // Sidebar navigation - Settings section (deep links to settings page)
   readonly bulkImportLink: Locator;
@@ -57,6 +58,7 @@ export class AppPage {
     this.deathAnalyticsLink = page.locator('a:has-text("Death Analytics")');
     this.tierStatsLink = page.locator('a:has-text("Tier Stats")');
     this.tierTrendsLink = page.locator('a:has-text("Tier Trends")');
+    this.sourceAnalysisLink = page.locator('a:has-text("Source Analysis")');
 
     // Settings section (deep links to settings page)
     this.bulkImportLink = page.locator('a:has-text("Bulk Import")');
