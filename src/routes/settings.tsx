@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ThemeSettings } from '../features/theming'
 import { DataSettings } from '../features/settings/data-settings/data-settings'
 import { CsvImport } from '../features/data-import/csv-import/csv-import'
 import { CsvExport } from '../features/data-export/csv-export/csv-export'
@@ -18,14 +17,6 @@ function SettingsPage() {
       </div>
 
       <div className="space-y-8">
-        {/* Theme Settings Section */}
-        <section id="theme" className="scroll-mt-6">
-          <h2 className="text-xl font-semibold mb-4">Theme Settings</h2>
-          <div className="grid gap-6">
-            <ThemeSettings />
-          </div>
-        </section>
-
         {/* Bulk Import Section */}
         <section id="import" className="scroll-mt-6">
           <h2 className="text-xl font-semibold mb-4">Bulk Import</h2>

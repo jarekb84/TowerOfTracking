@@ -78,12 +78,6 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
     label: 'Settings',
     items: [
       {
-        id: 'theme-settings',
-        label: 'Theme Settings',
-        href: '/settings#theme',
-        icon: 'settings'
-      },
-      {
         id: 'bulk-import',
         label: 'Bulk Import',
         href: '/settings#import',
