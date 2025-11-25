@@ -207,11 +207,6 @@
       "count": 1
     }
   },
-  "src/routes/charts.tsx": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "src/shared/domain/data-migrations.ts": {
     "max-statements": {
       "count": 1

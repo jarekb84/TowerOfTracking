@@ -8,19 +8,19 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
       {
         id: 'farm-runs',
         label: 'Farm Runs',
-        href: '/runs?type=farm',
+        href: '/runs/farm',
         icon: 'farming'
       },
       {
-        id: 'tournament-runs', 
+        id: 'tournament-runs',
         label: 'Tournament Runs',
-        href: '/runs?type=tournament',
+        href: '/runs/tournament',
         icon: 'tournament'
       },
       {
         id: 'milestone-runs',
-        label: 'Milestone Runs', 
-        href: '/runs?type=milestone',
+        label: 'Milestone Runs',
+        href: '/runs/milestone',
         icon: 'milestone'
       }
     ]
@@ -32,43 +32,43 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
       {
         id: 'coin-analytics',
         label: 'Coin Analytics',
-        href: '/charts?chart=coins',
+        href: '/charts/coins',
         icon: 'coins'
       },
       {
         id: 'cell-analytics',
         label: 'Cell Analytics',
-        href: '/charts?chart=cells',
+        href: '/charts/cells',
         icon: 'cells'
       },
       {
         id: 'field-analytics',
         label: 'Field Analytics',
-        href: '/charts?chart=fields',
+        href: '/charts/fields',
         icon: 'field-analytics'
       },
       {
         id: 'death-analytics',
         label: 'Death Analytics',
-        href: '/charts?chart=deaths',
+        href: '/charts/deaths',
         icon: 'deaths'
       },
       {
         id: 'tier-stats',
         label: 'Tier Stats',
-        href: '/charts?chart=tiers',
+        href: '/charts/tier-stats',
         icon: 'tier-stats'
       },
       {
         id: 'tier-trends',
         label: 'Tier Trends',
-        href: '/charts?chart=trends',
+        href: '/charts/tier-trends',
         icon: 'tier-trends'
       },
       {
         id: 'source-analytics',
         label: 'Source Analysis',
-        href: '/charts?chart=sources',
+        href: '/charts/sources',
         icon: 'field-analytics'
       }
     ]

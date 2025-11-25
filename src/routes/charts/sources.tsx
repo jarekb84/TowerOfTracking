@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
-import { SourceAnalysis } from '../../features/analysis/source-analysis/source-analysis'
+import { SourceAnalysis } from '@/features/analysis/source-analysis/source-analysis'
 
 export const Route = createFileRoute('/charts/sources')({
   component: SourceAnalysisPage,
@@ -8,31 +8,22 @@ export const Route = createFileRoute('/charts/sources')({
 
 function SourceAnalysisPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        <div className="space-y-4">
-          <div className="relative">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent">
-              Source Analysis
-            </h1>
-            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 to-violet-600/20 blur-lg -z-10 rounded-lg"></div>
-          </div>
-          <p className="text-muted-foreground text-lg">
-            Understand your aggregate metric breakdowns - see which sources contribute to your damage and coin totals
-          </p>
+    <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
+      <CardHeader className="bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 border-b border-slate-700/50">
+        <CardTitle className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
+          <div className="w-2 h-8 bg-gradient-to-b from-purple-400 to-purple-600 rounded-full shadow-lg shadow-purple-500/30"></div>
+          Source Analysis
+          <span className="text-sm font-normal text-slate-400 ml-auto">Understand Your Aggregate Metric Breakdowns</span>
+        </CardTitle>
+        <p className="text-slate-400 text-sm mt-2">
+          See which sources contribute to your damage dealt and coin income totals, and track how those proportions change over time.
+        </p>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="p-8 w-full">
+          <SourceAnalysis />
         </div>
-
-        <Card className="chart-container overflow-hidden border-slate-700/50 bg-slate-800/50 backdrop-blur-sm shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-purple-500/10 via-transparent to-purple-500/10 border-b border-slate-700/50">
-            <CardTitle className="text-xl font-medium text-slate-100">Source Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="p-8 w-full">
-              <SourceAnalysis />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

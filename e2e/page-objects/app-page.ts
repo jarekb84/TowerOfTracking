@@ -86,26 +86,29 @@ export class AppPage {
 
   /**
    * Navigate to Farm Runs page via sidebar
+   * Uses route-based navigation: /runs/farm
    */
   async navigateToFarmRuns() {
     await this.farmRunsLink.click();
-    await this.page.waitForURL(/\/runs/);
+    await this.page.waitForURL(/\/runs\/farm/);
   }
 
   /**
    * Navigate to Tournament Runs page via sidebar
+   * Uses route-based navigation: /runs/tournament
    */
   async navigateToTournamentRuns() {
     await this.tournamentRunsLink.click();
-    await this.page.waitForURL(/\/runs/);
+    await this.page.waitForURL(/\/runs\/tournament/);
   }
 
   /**
    * Navigate to Milestone Runs page via sidebar
+   * Uses route-based navigation: /runs/milestone
    */
   async navigateToMilestoneRuns() {
     await this.milestoneRunsLink.click();
-    await this.page.waitForURL(/\/runs/);
+    await this.page.waitForURL(/\/runs\/milestone/);
   }
 
   /**

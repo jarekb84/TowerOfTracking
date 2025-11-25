@@ -38,9 +38,10 @@ export class FieldAnalyticsPage extends BaseAnalyticsPage {
 
   /**
    * Navigate to the Field Analytics page
+   * Uses route-based navigation: /charts/fields
    */
   async goto(): Promise<void> {
-    await this.page.goto('/charts?chart=fields');
+    await this.page.goto('/charts/fields');
     await this.waitForChartLoad();
   }
 
