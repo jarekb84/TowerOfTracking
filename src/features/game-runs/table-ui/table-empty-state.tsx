@@ -1,28 +1,10 @@
-import type { Table } from '@tanstack/react-table';
-import type { ParsedGameRun } from '@/shared/types/game-run.types';
-import { useViewport } from '../../../shared/hooks/use-viewport';
-
-interface TableEmptyStateProps {
-  table: Table<ParsedGameRun>;
-}
-
-export function TableEmptyState({ table }: TableEmptyStateProps) {
-  const viewportSize = useViewport({ breakpoint: 'md' });
-
-  if (viewportSize === 'desktop') {
-    return (
-      <tbody>
-        <tr>
-          <td colSpan={table.getAllColumns().length} className="text-center py-6 text-muted-foreground">
-            No runs found. Add your first game run to get started!
-          </td>
-        </tr>
-      </tbody>
-    );
-  }
-
+/**
+ * Empty state displayed when there are no game runs to show.
+ * Uses div-based layout for both desktop (virtualized) and mobile (cards).
+ */
+export function TableEmptyState() {
   return (
-    <div className="text-center py-6 text-muted-foreground">
+    <div className="text-center py-8 text-muted-foreground">
       No runs found. Add your first game run to get started!
     </div>
   );

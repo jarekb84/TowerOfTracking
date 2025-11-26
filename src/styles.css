@@ -48,6 +48,16 @@
   .form-textarea {
     @apply resize-none w-full bg-background border-input/60 hover:border-accent/50 focus:border-orange-500/60 focus:bg-orange-500/5 transition-all duration-200 placeholder:text-muted-foreground/60;
   }
+
+  /* Virtualized table row - optimized for transform-based positioning */
+  .virtualized-row {
+    contain: layout style;
+  }
+
+  /* Virtualized table container - enables smooth scrolling */
+  .virtualized-container {
+    contain: strict;
+  }
 }
 
 @layer base {
