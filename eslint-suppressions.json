@@ -187,11 +187,6 @@
       "count": 1
     }
   },
-  "src/features/game-runs/table-variants/farming-table-columns.tsx": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "src/features/game-runs/table/base-runs-table.tsx": {
     "complexity": {
       "count": 1

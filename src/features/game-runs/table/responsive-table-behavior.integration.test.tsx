@@ -34,6 +34,8 @@ vi.mock('@tanstack/react-virtual', () => ({
       start: index * 200,
       size: 200,
     })),
+    measureElement: () => {},
+    measure: () => {},
   }),
 }));
 
@@ -79,41 +81,44 @@ function createMockTable(data: ParsedGameRun[]) {
   return {
     getRowModel: () => ({ rows }),
     getAllColumns: () => [{ id: 'tier' }, { id: 'wave' }],
+    getState: () => ({ expanded: {} }),
   };
 }
 
 describe('Responsive Table Behavior', () => {
   const mockRemoveRun = vi.fn();
 
-  function VirtualizedTestComponent({ 
-    table, 
-    variant, 
-    removeRun 
-  }: { 
-    table: ReturnType<typeof createMockTable>; 
-    variant: 'desktop' | 'mobile'; 
-    removeRun: (id: string) => void; 
+  function VirtualizedTestComponent({
+    table,
+    variant,
+    removeRun
+  }: {
+    table: ReturnType<typeof createMockTable>;
+    variant: 'desktop' | 'mobile';
+    removeRun: (id: string) => void;
   }) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     return (
-      <div 
-        ref={containerRef} 
+      <div
+        ref={containerRef}
         style={{ height: '400px', width: '100%', overflow: 'auto' }}
       >
         {variant === 'desktop' ? (
           <table>
-            <VirtualizedTableBody 
-              table={(table as unknown) as Table<ParsedGameRun>} 
-              removeRun={removeRun} 
+            <VirtualizedTableBody
+              table={(table as unknown) as Table<ParsedGameRun>}
+              removeRun={removeRun}
               variant={variant}
+              containerRef={containerRef}
             />
           </table>
         ) : (
-          <VirtualizedTableBody 
-            table={(table as unknown) as Table<ParsedGameRun>} 
-            removeRun={removeRun} 
+          <VirtualizedTableBody
+            table={(table as unknown) as Table<ParsedGameRun>}
+            removeRun={removeRun}
             variant={variant}
+            containerRef={containerRef}
           />
         )}
       </div>

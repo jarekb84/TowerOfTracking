@@ -34,9 +34,9 @@ export class GameRunsPage {
     this.tournamentRunsTab = page.locator('a[role="tab"]:has-text("Tournament")');
     this.milestoneRunsTab = page.locator('a[role="tab"]:has-text("Milestone")');
 
-    // Table elements
-    this.table = page.locator('table');
-    this.tableRows = page.locator('tbody tr');
+    // Table elements - uses role selectors for virtualized div-based table
+    this.table = page.locator('[role="rowgroup"]').first();
+    this.tableRows = page.locator('.virtualized-container [role="row"]');
   }
 
   /**
@@ -110,24 +110,26 @@ export class GameRunsPage {
 
   /**
    * Expand a specific row to show detailed data
-   * Clicks the expand button in the first column
+   * Clicks the row's grid cells area (not expanded content)
    */
   async expandRow(rowIndex: number) {
     const row = this.tableRows.nth(rowIndex);
-    const expandButton = row.locator('td:first-child button').first();
-    await expandButton.click();
+    // Click on the grid cells area (first child div with class 'grid')
+    const gridArea = row.locator('.grid').first();
+    await gridArea.click();
     // Wait a moment for expansion animation
     await this.page.waitForTimeout(300);
   }
 
   /**
    * Collapse a specific row
-   * Clicks the collapse button (same button, different icon state)
+   * Clicks the grid cells area to collapse (expanded content has stopPropagation)
    */
   async collapseRow(rowIndex: number) {
     const row = this.tableRows.nth(rowIndex);
-    const collapseButton = row.locator('td:first-child button').first();
-    await collapseButton.click();
+    // Click on the grid cells area, not the expanded content
+    const gridArea = row.locator('.grid').first();
+    await gridArea.click();
     // Wait a moment for collapse animation
     await this.page.waitForTimeout(300);
   }
@@ -143,33 +145,28 @@ export class GameRunsPage {
    * @returns The text value of the field, or null if row is collapsed or field not found
    */
   async getExpandedRowFieldValue(rowIndex: number, fieldName: string): Promise<string | null> {
-    // The expanded row is the next tr after the main row
-    // For row 0, the expanded content is in tbody tr[1]
-    const expandedRowIndex = (rowIndex * 2) + 1;
-    const expandedRow = this.page.locator('tbody tr').nth(expandedRowIndex);
+    // In virtualized table, expanded content is within the same row div
+    const row = this.tableRows.nth(rowIndex);
 
-    // Check if expanded content exists and is visible (don't wait - return null immediately if not)
-    const count = await expandedRow.count();
+    // Check if row exists
+    const count = await row.count();
     if (count === 0) return null;
 
-    const isVisible = await expandedRow.isVisible({ timeout: 1000 }).catch(() => false);
-    if (!isVisible) return null;
-
-    // Find the field by its label text
-    // Fields are rendered in divs with format: <label text><value>
-    // We look for a div containing the field name, then get its value
-    const fieldContainer = expandedRow.locator('div.flex.items-center', {
-      has: this.page.locator(`text="${fieldName}"`)
-    }).first();
-
     try {
-      // The value is typically in a span after the label
-      const value = await fieldContainer.textContent({ timeout: 1000 });
-      if (!value) return null;
+      // Find the label element with exact text match using text= selector
+      // This finds the div that directly contains the field name
+      const labelElement = row.locator(`text="${fieldName}"`).first();
 
-      // Extract just the value part (remove the label)
-      // Format is usually "LabelValue" so we strip the label
-      return value.replace(fieldName, '').trim();
+      // Check if label exists (indicating row is expanded)
+      const labelVisible = await labelElement.isVisible({ timeout: 1000 }).catch(() => false);
+      if (!labelVisible) return null;
+
+      // The value is the next sibling element after the label
+      // Structure: <div><div>Label</div><div>Value</div></div>
+      const valueElement = labelElement.locator('xpath=following-sibling::*[1]');
+
+      const value = await valueElement.textContent({ timeout: 1000 });
+      return value?.trim() ?? null;
     } catch {
       return null;
     }
