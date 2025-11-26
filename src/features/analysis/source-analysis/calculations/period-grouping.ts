@@ -19,6 +19,7 @@ import type {
 import {
   extractFieldValue,
   calculatePercentage,
+  sortSourceSummaryByPercentage,
 } from './source-extraction';
 import {
   getPeriodKey,
@@ -121,10 +122,10 @@ export function calculateSummary(
     percentage: calculatePercentage(sourceTotals.get(source.fieldName) || 0, grandTotal)
   }));
 
-  // Sort by percentage descending and filter non-zero
-  const sortedSources = sources
-    .filter(s => s.totalValue > 0)
-    .sort((a, b) => b.percentage - a.percentage);
+  // Sort by percentage descending (with totalValue tiebreaker) and filter non-zero
+  const sortedSources = sortSourceSummaryByPercentage(
+    sources.filter(s => s.totalValue > 0)
+  );
 
   return {
     totalValue: grandTotal,

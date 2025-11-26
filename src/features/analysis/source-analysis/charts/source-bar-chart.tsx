@@ -17,7 +17,7 @@ import {
   LabelList,
 } from 'recharts'
 import type { SourceSummaryValue } from '../types'
-import { sortByPercentageDescending } from '../calculations/source-extraction'
+import { sortSourceSummaryByPercentage } from '../calculations/source-extraction'
 import { getGradientConfig, type GradientConfig } from '../category-config'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
 
@@ -117,8 +117,9 @@ export function SourceBarChart({
   onSourceHover,
 }: SourceBarChartProps) {
   // Memoize sorted sources to prevent label re-renders on hover state changes
+  // Uses totalValue as tiebreaker when percentages are equal for stable ordering
   const sortedSources = useMemo(
-    () => sortByPercentageDescending(sources),
+    () => sortSourceSummaryByPercentage(sources),
     [sources]
   )
 

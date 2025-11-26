@@ -17,6 +17,7 @@ import {
 import type { PeriodSourceBreakdown, SourceSummaryValue } from '../types'
 import { SourceChartTooltip } from './source-chart-tooltip'
 import { getGradientConfig, type GradientConfig } from '../category-config'
+import { sortSourcesByValue } from '../calculations/source-extraction'
 
 interface SourceTimelineChartProps {
   periods: PeriodSourceBreakdown[]
@@ -64,22 +65,18 @@ function CustomTooltip({ active, payload, label, periods, highlightedSource }: C
   const period = periods.find(p => p.periodLabel === label)
   if (!period) return null
 
-  // Sort by value descending
-  const sortedPayload = [...payload].sort((a, b) => b.value - a.value)
+  // Use period.sources directly instead of Recharts payload
+  // This ensures ALL sources with data are shown, not just those in payload
+  // Sort by actual value (not percentage) for stable ordering
+  const sourcesWithData = sortSourcesByValue(period.sources).filter(source => source.value > 0)
 
-  const entries = sortedPayload
-    .map(entry => {
-      const source = period.sources.find(s => s.fieldName === entry.dataKey)
-      if (!source) return null
-      return {
-        displayName: source.displayName,
-        color: entry.color,
-        value: source.value,
-        percentage: source.percentage,
-        fieldName: source.fieldName,
-      }
-    })
-    .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+  const entries = sourcesWithData.map(source => ({
+    displayName: source.displayName,
+    color: source.color,
+    value: source.value,
+    percentage: source.percentage,
+    fieldName: source.fieldName,
+  }))
 
   return (
     <SourceChartTooltip
