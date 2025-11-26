@@ -127,6 +127,8 @@ function detectDelimiterConflicts(
           value = run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '';
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
           value = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RANK) {
+          value = run.fields[INTERNAL_FIELD_NAMES.RANK]?.rawValue || '';
         }
       } else {
         // Handle regular game fields (including battle_date)
@@ -215,6 +217,8 @@ export function exportToCsv(
           rawValue = run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '';
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
           rawValue = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
+        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RANK) {
+          rawValue = run.fields[INTERNAL_FIELD_NAMES.RANK]?.rawValue || '';
         }
       } else {
         // Handle regular game fields (including battle_date)

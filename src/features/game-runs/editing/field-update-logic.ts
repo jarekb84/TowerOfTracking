@@ -59,3 +59,54 @@ export function extractNotesValue(fields: Record<string, GameRunField>): string 
 export function extractRunTypeValue(run: ParsedGameRun): RunTypeValue {
   return (run.fields._runType?.value || run.runType) as RunTypeValue;
 }
+
+/**
+ * Tournament rank value type - number 1-30 or empty string for "not set"
+ */
+export type RankValue = number | '';
+
+/**
+ * Creates updated fields object with new rank value
+ * Empty string clears the rank field
+ */
+export function createUpdatedRankFields(
+  currentFields: Record<string, GameRunField>,
+  newRank: RankValue
+): Record<string, GameRunField> {
+  // If clearing the rank, remove the field entirely
+  if (newRank === '') {
+    const { _rank: _removed, ...fieldsWithoutRank } = currentFields;
+    void _removed; // Explicitly mark as intentionally unused
+    return fieldsWithoutRank;
+  }
+
+  const rankField = currentFields._rank || {
+    originalKey: '_rank',
+    dataType: 'string' as const,
+  };
+
+  const rankString = String(newRank);
+
+  return {
+    ...currentFields,
+    _rank: {
+      ...rankField,
+      value: rankString,
+      rawValue: rankString,
+      displayValue: rankString,
+    },
+  };
+}
+
+/**
+ * Extracts rank value from run fields
+ * Returns empty string if not set
+ */
+export function extractRankValue(fields: Record<string, GameRunField>): RankValue {
+  const rankField = fields._rank;
+  if (!rankField || !rankField.displayValue || rankField.displayValue.trim() === '') {
+    return '';
+  }
+  const parsed = parseInt(rankField.displayValue, 10);
+  return isNaN(parsed) ? '' : parsed;
+}

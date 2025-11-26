@@ -1,3 +1,7 @@
+/**
+ * Tests for notes and run type field update logic
+ * Rank field tests are in rank-field-logic.test.ts
+ */
 import { describe, it, expect } from 'vitest';
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
 import {

@@ -3,6 +3,7 @@
     "_time",
     "_notes",
     "_runType",
+    "_rank",
     "battleDate",
     "coinsPerHour",
     "gameTime",

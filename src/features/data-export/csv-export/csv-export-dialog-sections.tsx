@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { CsvExportResult } from './csv-exporter';
 import { getExportStatsDisplay } from './csv-export-helpers';
@@ -24,16 +24,17 @@ export function ExportControls({
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">Delimiter:</span>
-        <select 
-          value={selectedDelimiter} 
+        <Select
+          value={selectedDelimiter}
           onChange={(e) => onDelimiterChange(e.target.value as CsvDelimiter)}
-          className="w-32 px-2 py-1 border rounded text-sm bg-background"
+          width="md"
+          aria-label="Select delimiter"
         >
           <option value="tab">Tab</option>
           <option value="comma">Comma</option>
           <option value="semicolon">Semicolon</option>
           <option value="custom">Custom</option>
-        </select>
+        </Select>
         {selectedDelimiter === 'custom' && (
           <Input
             placeholder="Enter delimiter"
@@ -50,9 +51,9 @@ export function ExportControls({
           id="includeAppFields"
           checked={includeAppFields}
           onChange={(e) => onIncludeAppFieldsChange(e.target.checked)}
-          className="w-4 h-4"
+          className="w-4 h-4 accent-accent cursor-pointer"
         />
-        <label htmlFor="includeAppFields" className="text-sm text-muted-foreground">
+        <label htmlFor="includeAppFields" className="text-sm text-muted-foreground cursor-pointer">
           Include Date/Time columns
         </label>
       </div>

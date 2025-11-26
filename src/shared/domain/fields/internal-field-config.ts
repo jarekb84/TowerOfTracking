@@ -19,7 +19,8 @@ export const INTERNAL_FIELD_NAMES = {
   DATE: '_date',
   TIME: '_time',
   NOTES: '_notes',
-  RUN_TYPE: '_runType'
+  RUN_TYPE: '_runType',
+  RANK: '_rank'
 } as const;
 
 /**
@@ -36,7 +37,8 @@ export const INTERNAL_FIELD_MAPPINGS: Record<InternalFieldName, string> = {
   [INTERNAL_FIELD_NAMES.DATE]: '_Date',
   [INTERNAL_FIELD_NAMES.TIME]: '_Time',
   [INTERNAL_FIELD_NAMES.NOTES]: '_Notes',
-  [INTERNAL_FIELD_NAMES.RUN_TYPE]: '_Run Type'
+  [INTERNAL_FIELD_NAMES.RUN_TYPE]: '_Run Type',
+  [INTERNAL_FIELD_NAMES.RANK]: '_Rank'
 };
 
 /**
@@ -47,7 +49,8 @@ export const INTERNAL_FIELD_ORDER: readonly InternalFieldName[] = [
   INTERNAL_FIELD_NAMES.DATE,
   INTERNAL_FIELD_NAMES.TIME,
   INTERNAL_FIELD_NAMES.NOTES,
-  INTERNAL_FIELD_NAMES.RUN_TYPE
+  INTERNAL_FIELD_NAMES.RUN_TYPE,
+  INTERNAL_FIELD_NAMES.RANK
 ] as const;
 
 /**
@@ -59,7 +62,9 @@ export const LEGACY_FIELD_MIGRATIONS: Record<string, InternalFieldName> = {
   'time': INTERNAL_FIELD_NAMES.TIME,
   'notes': INTERNAL_FIELD_NAMES.NOTES,
   'runType': INTERNAL_FIELD_NAMES.RUN_TYPE,
-  'run_type': INTERNAL_FIELD_NAMES.RUN_TYPE
+  'run_type': INTERNAL_FIELD_NAMES.RUN_TYPE,
+  'rank': INTERNAL_FIELD_NAMES.RANK,
+  'placement': INTERNAL_FIELD_NAMES.RANK
 };
 
 /**
