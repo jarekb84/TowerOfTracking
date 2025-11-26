@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AppPage } from '../../page-objects/app-page';
 import { AddGameRunModal } from '../../page-objects/add-game-run-modal';
-import { SettingsPage } from '../../page-objects/settings-page';
+import { ExportPage } from '../../page-objects/export-page';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -15,8 +15,8 @@ const __dirname = path.dirname(__filename);
  *
  * Purpose: Verify bulk export functionality works correctly by:
  * 1. Adding three runs (farming, tournament, milestone) from fixture files
- * 2. Navigating to bulk export
- * 3. Exporting the data to CSV
+ * 2. Navigating to bulk export page
+ * 3. Getting the exported CSV content
  * 4. Comparing the exported CSV against expected fixture
  *
  * This test does NOT use seededPage - it starts from clean state to test
@@ -28,6 +28,7 @@ test.describe('Bulk Export', () => {
   test('exports farming, tournament, and milestone runs to CSV matching expected format', async ({ page }) => {
     const appPage = new AppPage(page);
     const addModal = new AddGameRunModal(page);
+    const exportPage = new ExportPage(page);
 
     // Navigate to app (clean state)
     await appPage.goto();
@@ -74,15 +75,14 @@ test.describe('Bulk Export', () => {
     await addModal.addGameRun(milestoneRunData, 'milestone');
     await addModal.waitForClose();
 
-    // === Step 2: Navigate to bulk export ===
+    // === Step 2: Navigate to bulk export page ===
     await appPage.navigateToBulkExport();
-    const settingsPage = new SettingsPage(page);
 
-    // Open export modal (chained POM pattern)
-    const exportModal = await settingsPage.openBulkExportModal();
+    // Wait for export page to load and CSV to be generated
+    await exportPage.waitForPageLoad();
 
     // === Step 3: Get exported CSV content ===
-    const exportedCsv = await exportModal.getCsvContent();
+    const exportedCsv = await exportPage.getCsvContent();
 
     // Basic sanity checks on the exported content
     expect(exportedCsv).toBeTruthy();
@@ -108,8 +108,5 @@ test.describe('Bulk Export', () => {
     const normalizeLineEndings = (str: string) => str.replace(/\r\n/g, '\n').trim();
 
     expect(normalizeLineEndings(exportedCsv)).toBe(normalizeLineEndings(expectedCsv));
-
-    // Close modal
-    await exportModal.close();
   });
 });

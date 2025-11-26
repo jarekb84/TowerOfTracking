@@ -130,25 +130,12 @@
       "count": 1
     }
   },
-  "src/features/data-export/csv-export/csv-export.tsx": {
-    "complexity": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "src/features/data-export/csv-export/csv-exporter.ts": {
     "complexity": {
       "count": 3
     },
     "max-statements": {
       "count": 3
-    }
-  },
-  "src/features/data-import/csv-import/csv-import.tsx": {
-    "complexity": {
-      "count": 1
     }
   },
   "src/features/data-import/csv-import/csv-parser.ts": {

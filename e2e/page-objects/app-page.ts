@@ -112,29 +112,30 @@ export class AppPage {
   }
 
   /**
-   * Navigate to Bulk Import (deep link to settings page)
-   * This clicks the nav bar link and waits for settings page to load
+   * Navigate to Bulk Import page via sidebar
+   * Uses route-based navigation: /settings/import
    */
   async navigateToBulkImport() {
     await this.bulkImportLink.click();
-    // Settings page loads, and should scroll to/focus bulk import section
-    await this.page.waitForURL(/\/settings/);
+    await this.page.waitForURL(/\/settings\/import/);
   }
 
   /**
-   * Navigate to Bulk Export (deep link to settings page)
+   * Navigate to Bulk Export page via sidebar
+   * Uses route-based navigation: /settings/export
    */
   async navigateToBulkExport() {
     await this.bulkExportLink.click();
-    await this.page.waitForURL(/\/settings/);
+    await this.page.waitForURL(/\/settings\/export/);
   }
 
   /**
-   * Navigate to Delete Data (deep link to settings page)
+   * Navigate to Delete Data page via sidebar
+   * Uses route-based navigation: /settings/delete
    */
   async navigateToDeleteData() {
     await this.deleteDataLink.click();
-    await this.page.waitForURL(/\/settings/);
+    await this.page.waitForURL(/\/settings\/delete/);
   }
 
   /**

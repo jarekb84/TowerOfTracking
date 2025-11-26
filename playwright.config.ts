@@ -34,7 +34,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'on-first-retry',
-    viewport: { width: 1600, height: 900 },
+    viewport: { width: 1600, height: 1200 },
   },
 
   // Projects configuration
@@ -42,13 +42,19 @@ export default defineConfig({
     {
       name: 'seed',
       testMatch: /bulk-import\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1600, height: 1200 }
+      },
     },
     {
       name: 'main',
       testIgnore: /bulk-import\.spec\.ts/,
       dependencies: ['seed'],
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1600, height: 1200 },
+      },
     },
   ],
 
