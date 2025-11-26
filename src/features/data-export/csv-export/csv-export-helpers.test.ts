@@ -38,13 +38,13 @@ describe('csv-export-helpers', () => {
     it('should return success classes when copySuccess is true', () => {
       const result = getCopyButtonClassName(true);
       expect(result).toContain('gap-2');
-      expect(result).toContain('bg-green-600');
-      expect(result).toContain('hover:bg-green-700');
+      expect(result).toContain('bg-emerald-600');
+      expect(result).toContain('hover:bg-emerald-700');
     });
 
     it('should return basic classes when copySuccess is false', () => {
       const result = getCopyButtonClassName(false);
-      expect(result).toBe('gap-2 ');
+      expect(result).toBe('gap-2');
     });
   });
 
@@ -52,13 +52,13 @@ describe('csv-export-helpers', () => {
     it('should return success classes when downloadSuccess is true', () => {
       const result = getDownloadButtonClassName(true);
       expect(result).toContain('gap-2');
-      expect(result).toContain('border-green-600');
-      expect(result).toContain('text-green-600');
+      expect(result).toContain('border-emerald-500');
+      expect(result).toContain('text-emerald-200');
     });
 
     it('should return basic classes when downloadSuccess is false', () => {
       const result = getDownloadButtonClassName(false);
-      expect(result).toBe('gap-2 ');
+      expect(result).toBe('gap-2');
     });
   });
 

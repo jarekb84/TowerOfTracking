@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
-import { parseGenericCsv, getDelimiterString } from './csv-parser';
 import { useData } from '@/shared/domain/use-data';
 import { useFileImport } from './input/csv-file-upload';
+import { resolveDelimiter, parseCsvSafe } from './csv-import-parsing';
+import { executeImport } from './csv-import-executor';
 import type { CsvDelimiter, CsvParseResult } from './types';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
+
+interface UseCsvImportOptions {
+  /** When true, hook operates in page context (no dialog state management) */
+  pageMode?: boolean;
+}
 
 interface UseCsvImportReturn {
   // State
@@ -15,6 +21,8 @@ interface UseCsvImportReturn {
   customDelimiter: string;
   duplicateResult: BatchDuplicateDetectionResult | null;
   resolution: DuplicateResolution;
+  /** Only available in pageMode - indicates successful import */
+  importSuccess: boolean;
 
   // Actions
   setIsDialogOpen: (open: boolean) => void;
@@ -24,11 +32,13 @@ interface UseCsvImportReturn {
   handleCustomDelimiterChange: (value: string) => void;
   handleImport: () => void;
   handleCancel: () => void;
+  /** Clear form without closing dialog (useful in page mode) */
+  handleClear: () => void;
   setResolution: (resolution: DuplicateResolution) => void;
   importFile: () => void;
 }
 
-export function useCsvImport(): UseCsvImportReturn {
+export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): UseCsvImportReturn {
   const [inputData, setInputData] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [parseResult, setParseResult] = useState<CsvParseResult | null>(null);
@@ -36,34 +46,18 @@ export function useCsvImport(): UseCsvImportReturn {
   const [customDelimiter, setCustomDelimiter] = useState('');
   const [duplicateResult, setDuplicateResult] = useState<BatchDuplicateDetectionResult | null>(null);
   const [resolution, setResolution] = useState<DuplicateResolution>('new-only');
+  const [importSuccess, setImportSuccess] = useState(false);
   const { addRuns, detectBatchDuplicates, overwriteRun } = useData();
 
-  // Parse data helper
+  // Parse data helper using extracted pure function
   const parseData = useCallback((text: string): void => {
     if (!text.trim()) {
       setParseResult(null);
       setDuplicateResult(null);
       return;
     }
-
-    try {
-      const delimiter = selectedDelimiter === 'custom' ? customDelimiter : getDelimiterString(selectedDelimiter);
-      const result = parseGenericCsv(text, { delimiter });
-      setParseResult(result);
-    } catch (error) {
-      setParseResult({
-        success: [],
-        failed: 0,
-        errors: ['Failed to parse data: ' + (error instanceof Error ? error.message : 'Unknown error')],
-        fieldMappingReport: {
-          mappedFields: [],
-          newFields: [],
-          similarFields: [],
-          unsupportedFields: [],
-          skippedFields: []
-        }
-      });
-    }
+    const delimiter = resolveDelimiter(selectedDelimiter, customDelimiter);
+    setParseResult(parseCsvSafe(text, delimiter));
   }, [selectedDelimiter, customDelimiter]);
 
   // Check for duplicates when parse result changes
@@ -113,24 +107,8 @@ export function useCsvImport(): UseCsvImportReturn {
     setSelectedDelimiter(delimiter);
     if (inputData.trim()) {
       // Manually parse with new delimiter since state hasn't updated yet
-      try {
-        const delimiterStr = delimiter === 'custom' ? customDelimiter : getDelimiterString(delimiter);
-        const result = parseGenericCsv(inputData, { delimiter: delimiterStr });
-        setParseResult(result);
-      } catch (error) {
-        setParseResult({
-          success: [],
-          failed: 0,
-          errors: ['Failed to parse data: ' + (error instanceof Error ? error.message : 'Unknown error')],
-          fieldMappingReport: {
-            mappedFields: [],
-            newFields: [],
-            similarFields: [],
-            unsupportedFields: [],
-            skippedFields: []
-          }
-        });
-      }
+      const delimiterStr = resolveDelimiter(delimiter, customDelimiter);
+      setParseResult(parseCsvSafe(inputData, delimiterStr));
     }
   }, [inputData, customDelimiter]);
 
@@ -139,71 +117,51 @@ export function useCsvImport(): UseCsvImportReturn {
     setCustomDelimiter(value);
     if (selectedDelimiter === 'custom' && inputData.trim()) {
       // Manually parse with new custom delimiter since state hasn't updated yet
-      try {
-        const result = parseGenericCsv(inputData, { delimiter: value });
-        setParseResult(result);
-      } catch (error) {
-        setParseResult({
-          success: [],
-          failed: 0,
-          errors: ['Failed to parse data: ' + (error instanceof Error ? error.message : 'Unknown error')],
-          fieldMappingReport: {
-            mappedFields: [],
-            newFields: [],
-            similarFields: [],
-            unsupportedFields: [],
-            skippedFields: []
-          }
-        });
-      }
+      setParseResult(parseCsvSafe(inputData, value));
     }
   }, [selectedDelimiter, inputData]);
 
-  // Reset form helper
-  const resetForm = useCallback((): void => {
+  // Clear form state without closing dialog (useful for page mode)
+  const clearFormState = useCallback((): void => {
     setInputData('');
     setParseResult(null);
     setSelectedDelimiter('tab');
     setCustomDelimiter('');
     setDuplicateResult(null);
     setResolution('new-only');
-    setIsDialogOpen(false);
+    setImportSuccess(false);
   }, []);
+
+  // Reset form helper (closes dialog in modal mode)
+  const resetForm = useCallback((): void => {
+    clearFormState();
+    if (!pageMode) {
+      setIsDialogOpen(false);
+    }
+  }, [clearFormState, pageMode]);
 
   // Import runs
   const handleImport = useCallback((): void => {
-    if (parseResult?.success && parseResult.success.length > 0) {
-      // Handle based on duplicate detection and user resolution choice
-      if (duplicateResult && duplicateResult.duplicates.length > 0) {
-        if (resolution === 'new-only') {
-          // Only import new runs
-          addRuns(duplicateResult.newRuns, false);
-        } else if (resolution === 'overwrite') {
-          // Import new runs + overwrite existing duplicates
-          if (duplicateResult.newRuns.length > 0) {
-            addRuns(duplicateResult.newRuns, false);
-          }
-          // Overwrite existing runs with duplicate data
-          duplicateResult.duplicates.forEach(({ newRun, existingRun }) => {
-            if (existingRun) {
-              // Use the new overwriteRun method with date/time preservation
-              overwriteRun(existingRun.id, newRun, true);
-            }
-          });
-        }
+    const imported = executeImport({
+      parseResult,
+      duplicateResult,
+      resolution,
+      addRuns,
+      overwriteRun
+    });
+
+    if (imported) {
+      // In page mode, show success feedback; in modal mode, close dialog
+      if (pageMode) {
+        setImportSuccess(true);
+        clearFormState();
+        // Auto-hide success after 3 seconds
+        setTimeout(() => setImportSuccess(false), 3000);
       } else {
-        // No duplicates, import all runs
-        addRuns(parseResult.success, false);
+        resetForm();
       }
-
-      resetForm();
     }
-  }, [parseResult, duplicateResult, resolution, addRuns, overwriteRun, resetForm]);
-
-  // Cancel handler
-  const handleCancel = useCallback((): void => {
-    resetForm();
-  }, [resetForm]);
+  }, [parseResult, duplicateResult, resolution, addRuns, overwriteRun, resetForm, pageMode, clearFormState]);
 
   return {
     inputData,
@@ -213,13 +171,15 @@ export function useCsvImport(): UseCsvImportReturn {
     customDelimiter,
     duplicateResult,
     resolution,
+    importSuccess,
     setIsDialogOpen,
     handlePaste,
     handleInputChange,
     handleDelimiterChange,
     handleCustomDelimiterChange,
     handleImport,
-    handleCancel,
+    handleCancel: resetForm,
+    handleClear: clearFormState,
     setResolution,
     importFile
   };

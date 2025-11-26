@@ -80,19 +80,19 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
       {
         id: 'bulk-import',
         label: 'Bulk Import',
-        href: '/settings#import',
+        href: '/settings/import',
         icon: 'data-management'
       },
       {
         id: 'bulk-export',
-        label: 'Bulk Export', 
-        href: '/settings#export',
+        label: 'Bulk Export',
+        href: '/settings/export',
         icon: 'data-management'
       },
       {
         id: 'delete-data',
         label: 'Delete Data',
-        href: '/settings#delete',
+        href: '/settings/delete',
         icon: 'data-management'
       }
     ]

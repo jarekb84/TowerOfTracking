@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { AppPage } from '../../page-objects/app-page';
-import { SettingsPage } from '../../page-objects/settings-page';
+import { ImportPage } from '../../page-objects/import-page';
 import { GameRunsPage } from '../../page-objects/game-runs-page';
 import { seedLocalStorageToFiles } from '../../helpers/seed-storage';
 
@@ -20,29 +20,28 @@ const __dirname = path.dirname(__filename);
  *
  * Test Flow:
  * 1. Navigate to Bulk Import via nav bar deep link (AppPage)
- * 2. Open bulk import modal (SettingsPage)
- * 3. Paste CSV data from fixture file
- * 4. Import data and verify success (modal closes)
- * 5. **CRITICAL**: Reload page to verify localStorage persistence
- * 6. Navigate to Farm Runs via nav bar and verify data appears after refresh
- * 7. Extract localStorage to seed files for other tests (uses utility)
+ * 2. Paste CSV data into import page textarea
+ * 3. Click import button and verify success message
+ * 4. **CRITICAL**: Reload page to verify localStorage persistence
+ * 5. Navigate to Farm Runs via nav bar and verify data appears after refresh
+ * 6. Extract localStorage to seed files for other tests (uses utility)
  *
  * Uses Page Object Model pattern for maintainability and reusability.
  */
 test('bulk import loads data and persists to localStorage', async ({ page }) => {
   // Initialize page objects
   const appPage = new AppPage(page);
-  const settingsPage = new SettingsPage(page);
+  const importPage = new ImportPage(page);
   const gameRunsPage = new GameRunsPage(page);
 
   // Navigate to app home first
   await appPage.goto();
 
-  // Navigate to Bulk Import via nav bar deep link
+  // Navigate to Bulk Import via nav bar deep link (goes directly to /settings/import)
   await appPage.navigateToBulkImport();
 
-  // Open bulk import modal (SettingsPage handles modal interaction)
-  const bulkImportModal = await settingsPage.openBulkImportModal();
+  // Wait for import page to load
+  await importPage.waitForPageLoad();
 
   // Read fixture data
   const fixtureData = await fs.readFile(
@@ -50,11 +49,8 @@ test('bulk import loads data and persists to localStorage', async ({ page }) => 
     'utf-8'
   );
 
-  // Import data using the modal
-  await bulkImportModal.importData(fixtureData);
-
-  // Modal should close after successful import
-  // (importData already waits for modal to close)
+  // Import data using the import page (paste + click import + wait for success)
+  await importPage.importData(fixtureData);
 
   // CRITICAL: Wait for debounced localStorage save to complete (300ms debounce + async save)
   // Our persistence layer uses a 300ms debounce to batch rapid changes

@@ -13,7 +13,9 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsDataManagementRouteImport } from './routes/settings/data-management'
+import { Route as SettingsImportRouteImport } from './routes/settings/import'
+import { Route as SettingsExportRouteImport } from './routes/settings/export'
+import { Route as SettingsDeleteRouteImport } from './routes/settings/delete'
 import { Route as RunsTournamentRouteImport } from './routes/runs/tournament'
 import { Route as RunsMilestoneRouteImport } from './routes/runs/milestone'
 import { Route as RunsFarmRouteImport } from './routes/runs/farm'
@@ -45,9 +47,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsDataManagementRoute = SettingsDataManagementRouteImport.update({
-  id: '/data-management',
-  path: '/data-management',
+const SettingsImportRoute = SettingsImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsExportRoute = SettingsExportRouteImport.update({
+  id: '/export',
+  path: '/export',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsDeleteRoute = SettingsDeleteRouteImport.update({
+  id: '/delete',
+  path: '/delete',
   getParentRoute: () => SettingsRoute,
 } as any)
 const RunsTournamentRoute = RunsTournamentRouteImport.update({
@@ -116,7 +128,9 @@ export interface FileRoutesByFullPath {
   '/runs/farm': typeof RunsFarmRoute
   '/runs/milestone': typeof RunsMilestoneRoute
   '/runs/tournament': typeof RunsTournamentRoute
-  '/settings/data-management': typeof SettingsDataManagementRoute
+  '/settings/delete': typeof SettingsDeleteRoute
+  '/settings/export': typeof SettingsExportRoute
+  '/settings/import': typeof SettingsImportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,7 +147,9 @@ export interface FileRoutesByTo {
   '/runs/farm': typeof RunsFarmRoute
   '/runs/milestone': typeof RunsMilestoneRoute
   '/runs/tournament': typeof RunsTournamentRoute
-  '/settings/data-management': typeof SettingsDataManagementRoute
+  '/settings/delete': typeof SettingsDeleteRoute
+  '/settings/export': typeof SettingsExportRoute
+  '/settings/import': typeof SettingsImportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,7 +167,9 @@ export interface FileRoutesById {
   '/runs/farm': typeof RunsFarmRoute
   '/runs/milestone': typeof RunsMilestoneRoute
   '/runs/tournament': typeof RunsTournamentRoute
-  '/settings/data-management': typeof SettingsDataManagementRoute
+  '/settings/delete': typeof SettingsDeleteRoute
+  '/settings/export': typeof SettingsExportRoute
+  '/settings/import': typeof SettingsImportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +188,9 @@ export interface FileRouteTypes {
     | '/runs/farm'
     | '/runs/milestone'
     | '/runs/tournament'
-    | '/settings/data-management'
+    | '/settings/delete'
+    | '/settings/export'
+    | '/settings/import'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -187,7 +207,9 @@ export interface FileRouteTypes {
     | '/runs/farm'
     | '/runs/milestone'
     | '/runs/tournament'
-    | '/settings/data-management'
+    | '/settings/delete'
+    | '/settings/export'
+    | '/settings/import'
   id:
     | '__root__'
     | '/'
@@ -204,7 +226,9 @@ export interface FileRouteTypes {
     | '/runs/farm'
     | '/runs/milestone'
     | '/runs/tournament'
-    | '/settings/data-management'
+    | '/settings/delete'
+    | '/settings/export'
+    | '/settings/import'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -244,11 +268,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/data-management': {
-      id: '/settings/data-management'
-      path: '/data-management'
-      fullPath: '/settings/data-management'
-      preLoaderRoute: typeof SettingsDataManagementRouteImport
+    '/settings/import': {
+      id: '/settings/import'
+      path: '/import'
+      fullPath: '/settings/import'
+      preLoaderRoute: typeof SettingsImportRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/export': {
+      id: '/settings/export'
+      path: '/export'
+      fullPath: '/settings/export'
+      preLoaderRoute: typeof SettingsExportRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/delete': {
+      id: '/settings/delete'
+      path: '/delete'
+      fullPath: '/settings/delete'
+      preLoaderRoute: typeof SettingsDeleteRouteImport
       parentRoute: typeof SettingsRoute
     }
     '/runs/tournament': {
@@ -362,11 +400,15 @@ const RunsRouteChildren: RunsRouteChildren = {
 const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
 
 interface SettingsRouteChildren {
-  SettingsDataManagementRoute: typeof SettingsDataManagementRoute
+  SettingsDeleteRoute: typeof SettingsDeleteRoute
+  SettingsExportRoute: typeof SettingsExportRoute
+  SettingsImportRoute: typeof SettingsImportRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
-  SettingsDataManagementRoute: SettingsDataManagementRoute,
+  SettingsDeleteRoute: SettingsDeleteRoute,
+  SettingsExportRoute: SettingsExportRoute,
+  SettingsImportRoute: SettingsImportRoute,
 }
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(

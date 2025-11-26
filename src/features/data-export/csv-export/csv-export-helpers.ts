@@ -19,14 +19,18 @@ export function getDelimiterDisplayString(
  * Gets button class names based on success state
  */
 export function getCopyButtonClassName(copySuccess: boolean): string {
-  return `gap-2 ${copySuccess ? 'bg-green-600 hover:bg-green-700' : ''}`;
+  return copySuccess
+    ? 'gap-2 bg-emerald-600 hover:bg-emerald-700 text-white'
+    : 'gap-2';
 }
 
 /**
  * Gets download button class names based on success state
  */
 export function getDownloadButtonClassName(downloadSuccess: boolean): string {
-  return `gap-2 ${downloadSuccess ? 'border-green-600 text-green-600' : ''}`;
+  return downloadSuccess
+    ? 'gap-2 border-emerald-500/70 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20'
+    : 'gap-2';
 }
 
 /**
