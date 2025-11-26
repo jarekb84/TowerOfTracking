@@ -5,7 +5,7 @@
  */
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
-import type { CategoryDefinition, SourceFieldDefinition, SourceValue } from '../types';
+import type { CategoryDefinition, SourceFieldDefinition, SourceValue, SourceSummaryValue } from '../types';
 import { FIELD_ALIASES } from '../category-config';
 
 /**
@@ -119,6 +119,30 @@ export function sortByPercentageDescending<T extends { percentage: number }>(
   items: T[]
 ): T[] {
   return [...items].sort((a, b) => b.percentage - a.percentage);
+}
+
+/**
+ * Sort summary sources by percentage descending, with totalValue as tiebreaker.
+ * Ensures stable ordering when percentages are equal (e.g., when many sources
+ * round to 0.0% because one source dominates).
+ */
+export function sortSourceSummaryByPercentage(
+  sources: SourceSummaryValue[]
+): SourceSummaryValue[] {
+  return [...sources].sort((a, b) => {
+    const percentDiff = b.percentage - a.percentage;
+    if (percentDiff !== 0) return percentDiff;
+    // When percentages are equal, sort by totalValue descending
+    return b.totalValue - a.totalValue;
+  });
+}
+
+/**
+ * Sort period sources by value descending.
+ * Uses actual numeric value (not percentage) for stable ordering in tooltips.
+ */
+export function sortSourcesByValue(sources: SourceValue[]): SourceValue[] {
+  return [...sources].sort((a, b) => b.value - a.value);
 }
 
 /**
