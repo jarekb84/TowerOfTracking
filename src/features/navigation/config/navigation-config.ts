@@ -78,6 +78,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
     label: 'Settings',
     items: [
       {
+        id: 'locale-settings',
+        label: 'Regional Format',
+        href: '/settings/locale',
+        icon: 'locale'
+      },
+      {
         id: 'bulk-import',
         label: 'Bulk Import',
         href: '/settings/import',

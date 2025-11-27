@@ -128,7 +128,7 @@ describe('useCsvImport - Delimiter Handling', () => {
       expect(result.current.customDelimiter).toBe('|');
       expect(csvParser.parseGenericCsv).toHaveBeenCalledWith(
         'Date|Tier\n2024-01-15|10',
-        { delimiter: '|' }
+        expect.objectContaining({ delimiter: '|' })
       );
     });
 

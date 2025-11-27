@@ -5,6 +5,7 @@ import type {
   GameRunField
 } from '@/shared/types/game-run.types';
 import type { RunTypeValue } from '@/shared/domain/run-types/types';
+import type { ImportFormatSettings } from '@/shared/locale/types';
 import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
 import { determineRunType } from '../filtering/run-type-filter';
 import {
@@ -156,16 +157,21 @@ export function calculatePerHour(value: number, durationInSeconds: number): numb
 }
 
 // Main parsing function with enhanced field structure and battle_date support
-export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGameRun {
+export function parseGameRun(
+  rawInput: string,
+  customTimestamp?: Date,
+  importFormat?: ImportFormatSettings
+): ParsedGameRun {
   try {
     const clipboardData = parseTabDelimitedData(rawInput);
 
     // Generate field-based structure
     const fields: Record<string, GameRunField> = {};
+    const dateFormat = importFormat?.dateFormat ?? 'month-first';
 
     for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
       const camelKey = toCamelCase(originalKey);
-      const field = createGameRunField(originalKey, rawValue);
+      const field = createGameRunField(originalKey, rawValue, importFormat);
 
       fields[camelKey] = field;
     }
@@ -176,7 +182,7 @@ export function parseGameRun(rawInput: string, customTimestamp?: Date): ParsedGa
 
     // Check for battle_date field (new game export format)
     if (fields.battleDate) {
-      const battleDate = parseBattleDate(fields.battleDate.rawValue);
+      const battleDate = parseBattleDate(fields.battleDate.rawValue, dateFormat);
       if (battleDate) {
         timestamp = battleDate;
         hasBattleDate = true;

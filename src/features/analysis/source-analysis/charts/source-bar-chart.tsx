@@ -19,7 +19,7 @@ import {
 import type { SourceSummaryValue } from '../types'
 import { sortSourceSummaryByPercentage } from '../calculations/source-extraction'
 import { getGradientConfig, type GradientConfig } from '../category-config'
-import { formatLargeNumber } from '@/shared/formatting/number-scale'
+import { formatLargeNumber, formatPercentage } from '@/shared/formatting/number-scale'
 
 interface SourceBarChartProps {
   sources: SourceSummaryValue[]
@@ -105,7 +105,7 @@ function BarLabel({ x, y, width, index, sources, highlightedSource }: BarLabelPr
     >
       <tspan fill="#94a3b8">{formatLargeNumber(source.totalValue)}</tspan>
       <tspan dx={6} fill="#e2e8f0" fontWeight={500}>
-        {source.percentage.toFixed(1)}%
+        {formatPercentage(source.percentage)}
       </tspan>
     </text>
   )

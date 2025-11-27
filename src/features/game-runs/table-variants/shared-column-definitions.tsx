@@ -3,7 +3,8 @@
  * These columns are identical across farming, tournament, and milestone tables.
  */
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
-import { formatNumber, formatDuration } from '@/features/analysis/shared/parsing/data-parser';
+import { formatDuration } from '@/features/analysis/shared/parsing/data-parser';
+import { formatLargeNumber } from '@/shared/formatting/number-scale';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { StickyNote } from 'lucide-react';
@@ -147,7 +148,7 @@ export function createCoinsColumn(): ColumnDef<ParsedGameRun> {
     header: 'Coins',
     cell: (info) => {
       const value = info.getValue();
-      return value ? formatNumber(value) : '-';
+      return value ? formatLargeNumber(value) : '-';
     },
     size: COLUMN_SIZES.coins,
   }) as ColumnDef<ParsedGameRun>;
@@ -161,7 +162,7 @@ export function createCellsColumn(): ColumnDef<ParsedGameRun> {
     header: 'Cells',
     cell: (info) => {
       const value = info.getValue();
-      return value ? formatNumber(value) : '-';
+      return value ? formatLargeNumber(value) : '-';
     },
     size: COLUMN_SIZES.cells,
   }) as ColumnDef<ParsedGameRun>;

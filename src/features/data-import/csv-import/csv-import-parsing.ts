@@ -1,5 +1,6 @@
 import { parseGenericCsv, getDelimiterString } from './csv-parser';
 import type { CsvDelimiter, CsvParseResult } from './types';
+import type { ImportFormatSettings } from '@/shared/locale/types';
 
 /**
  * Creates an error parse result with the given error message.
@@ -30,9 +31,13 @@ export function resolveDelimiter(selectedDelimiter: CsvDelimiter, customDelimite
 /**
  * Parses CSV text with the given delimiter, returning a parse result or error result.
  */
-export function parseCsvSafe(text: string, delimiter: string): CsvParseResult {
+export function parseCsvSafe(
+  text: string,
+  delimiter: string,
+  importFormat?: ImportFormatSettings
+): CsvParseResult {
   try {
-    return parseGenericCsv(text, { delimiter });
+    return parseGenericCsv(text, { delimiter, importFormat });
   } catch (error) {
     return createErrorParseResult(error);
   }

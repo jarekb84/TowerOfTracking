@@ -3,7 +3,18 @@
  *
  * Provides consistent date/time formatting across the application.
  * All date operations should use these utilities to ensure consistency.
+ *
+ * Display functions use Intl.DateTimeFormat with the user's locale from the store.
+ * Parsing functions handle game-specific date formats for data import.
  */
+
+import type { DateFormat } from '@/shared/locale/types';
+import { MONTH_MAPPINGS } from '@/shared/locale/locale-config';
+import { getImportFormat } from '@/shared/locale/locale-store';
+
+// ============================================================================
+// ISO format functions (locale-independent, for data storage/keys)
+// ============================================================================
 
 /**
  * Format date as ISO date string (yyyy-MM-dd)
@@ -74,28 +85,79 @@ export function formatDurationForKey(seconds: number): string {
 
 /**
  * Parse battle_date field from game export format
- * Format: "Oct 14, 2025 13:14" (abbreviated month, 24-hour time)
+ * Supports multiple formats:
+ * - "Oct 14, 2025 13:14" (capitalized month)
+ * - "nov. 20, 2025 22:28" (lowercase month with period)
+ *
+ * Uses the import format from the locale store if not explicitly provided.
  *
  * @param battleDateStr - Battle date string from game export
+ * @param format - Date format to use for parsing (defaults to store's import format)
  * @returns Date object or null if parsing fails
  *
  * @example
  * parseBattleDate('Oct 14, 2025 13:14') // Date object
+ * parseBattleDate('nov. 20, 2025 22:28', 'month-first-lowercase') // Date object
  * parseBattleDate('invalid') // null
  */
-export function parseBattleDate(battleDateStr: string): Date | null {
+export function parseBattleDate(
+  battleDateStr: string,
+  format?: DateFormat
+): Date | null {
   if (!battleDateStr || typeof battleDateStr !== 'string') return null;
 
-  try {
-    const date = new Date(battleDateStr);
-    if (!isNaN(date.getTime())) {
-      return date;
+  // Use provided format or get from store
+  const dateFormat = format ?? getImportFormat().dateFormat;
+
+  // For capitalized month format, try native parsing first (usually works)
+  if (dateFormat === 'month-first') {
+    try {
+      const date = new Date(battleDateStr);
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    } catch {
+      // Fall through to manual parsing
     }
-  } catch {
-    // Fall through to null
   }
 
-  return null;
+  // Manual parsing for formats that native Date() doesn't handle
+  return parseWithFormat(battleDateStr, dateFormat);
+}
+
+/**
+ * Parse date string using format-specific month mappings
+ *
+ * @param dateStr - Date string to parse
+ * @param format - Date format to use
+ * @returns Date object or null if parsing fails
+ */
+function parseWithFormat(dateStr: string, format: DateFormat): Date | null {
+  const monthMappings = MONTH_MAPPINGS[format];
+
+  // Pattern: "nov. 20, 2025 22:28" or "Nov 20, 2025 22:28"
+  // Captures: month, day, year, hour, minute
+  const match = dateStr.match(
+    /^(\S+?)\.?\s+(\d{1,2}),?\s+(\d{4})\s+(\d{1,2}):(\d{2})/i
+  );
+
+  if (!match) return null;
+
+  const [, monthStr, day, year, hour, minute] = match;
+  const monthKey = monthStr.toLowerCase();
+
+  // Try with and without period
+  const month = monthMappings[monthKey] ?? monthMappings[monthKey + '.'];
+
+  if (month === undefined) return null;
+
+  return new Date(
+    parseInt(year),
+    month,
+    parseInt(day),
+    parseInt(hour),
+    parseInt(minute)
+  );
 }
 
 /**

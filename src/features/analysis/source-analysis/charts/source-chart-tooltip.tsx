@@ -5,7 +5,7 @@
  * Shows source name, value, and percentage in that order per PRD requirements.
  */
 
-import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
+import { formatLargeNumber, formatPercentage } from '@/shared/formatting/number-scale'
 
 interface SourceTooltipEntry {
   displayName: string
@@ -91,7 +91,7 @@ export function SourceChartTooltip({
                 {formatLargeNumber(entry.value)}
               </span>
               <span className="text-slate-200 font-medium tabular-nums w-14 text-right">
-                {entry.percentage.toFixed(1)}%
+                {formatPercentage(entry.percentage)}
               </span>
             </div>
           )

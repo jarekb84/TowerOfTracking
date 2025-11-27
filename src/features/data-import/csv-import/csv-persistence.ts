@@ -1,6 +1,7 @@
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { parseGenericCsv } from './csv-parser';
 import { exportToCsv } from '../../data-export/csv-export/csv-exporter';
+import { getImportFormat } from '@/shared/locale/locale-store';
 
 // Storage configuration
 const STORAGE_KEY = 'tower-tracking-csv-data';
@@ -28,6 +29,7 @@ export function runsToStorageCsv(runs: ParsedGameRun[]): string {
 
 /**
  * Parse CSV from localStorage back to ParsedGameRun objects
+ * CRITICAL: Loads locale settings to correctly parse localized numbers/dates
  */
 export function storageCsvToRuns(csvData: string): ParsedGameRun[] {
   if (!csvData.trim()) {
@@ -35,8 +37,12 @@ export function storageCsvToRuns(csvData: string): ParsedGameRun[] {
   }
 
   try {
-    const result = parseGenericCsv(csvData, { 
-      delimiter: CSV_DELIMITER 
+    // Load import format settings to ensure correct number/date parsing
+    const importFormat = getImportFormat();
+
+    const result = parseGenericCsv(csvData, {
+      delimiter: CSV_DELIMITER,
+      importFormat
     });
 
     if (result.errors.length > 0) {

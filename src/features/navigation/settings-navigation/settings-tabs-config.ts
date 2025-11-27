@@ -6,6 +6,13 @@ import { TabConfig } from '../tabs-navigation/tabs-navigation'
  */
 export const SETTINGS_TABS: TabConfig[] = [
   {
+    value: 'locale',
+    route: '/settings/locale',
+    label: 'Regional Format',
+    shortLabel: 'Format',
+    activeClassName: 'data-[active=true]:bg-purple-500/15 data-[active=true]:text-purple-100 hover:bg-purple-500/10',
+  },
+  {
     value: 'import',
     route: '/settings/import',
     label: 'Import Data',

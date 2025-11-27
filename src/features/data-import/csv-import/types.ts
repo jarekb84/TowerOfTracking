@@ -9,6 +9,7 @@
  */
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import type { ImportFormatSettings } from '@/shared/locale/types';
 
 /**
  * CSV delimiter options for parsing and exporting
@@ -22,6 +23,7 @@ export type CsvDelimiter = 'tab' | 'comma' | 'semicolon' | 'custom';
 export interface CsvParseConfig {
   delimiter?: string;
   supportedFields: string[];
+  importFormat?: ImportFormatSettings;
 }
 
 /**

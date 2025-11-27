@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import type { CellTooltipData } from '../types'
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
-import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
+import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import { TooltipContentWrapper } from '@/components/ui/tooltip-content'
 
 interface TierStatsCellTooltipProps {

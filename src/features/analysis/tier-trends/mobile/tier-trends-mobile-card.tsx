@@ -1,5 +1,5 @@
 import { MobileCard, MobileCardContent, MobileCardHeader, MobileCardSection } from '@/components/ui'
-import { formatNumber } from '@/features/analysis/shared/parsing/data-parser'
+import { formatLargeNumber, formatPercentage } from '@/shared/formatting/number-scale'
 import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from '../table/trend-indicators'
 import { useTierTrendsMobile } from './use-tier-trends-mobile'
@@ -15,6 +15,15 @@ interface TierTrendsMobileCardProps {
 export function TierTrendsMobileCard({ trend, comparisonColumns, aggregationType }: TierTrendsMobileCardProps) {
   const sparklinePath = generateSparklinePath(trend.values, 60, 20)
   const { useCompact, leftColumns, rightColumns, columnData } = useTierTrendsMobile(trend, comparisonColumns)
+
+  // Format percentage with locale-aware decimal separator
+  const formatChangePercent = (percent: number): string => {
+    const sign = percent > 0 ? '+' : '';
+    if (Math.abs(percent) >= 1000) {
+      return `${sign}${formatPercentage(percent / 1000)}`.replace('%', 'K%');
+    }
+    return `${sign}${formatPercentage(percent)}`;
+  };
 
   return (
     <MobileCard variant="elevated" className="p-4 hover:shadow-xl hover:shadow-black/10 transition-all duration-300">
@@ -54,17 +63,14 @@ export function TierTrendsMobileCard({ trend, comparisonColumns, aggregationType
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 bg-muted/20 rounded-lg px-3 py-1.5">
                 <span className={`font-mono text-base font-semibold ${getTrendChangeColor(trend.change)}`}>
-                  {trend.change.percent > 0 ? '+' : ''}
-                  {Math.abs(trend.change.percent) >= 1000 
-                    ? `${(trend.change.percent / 1000).toFixed(1)}K` 
-                    : trend.change.percent.toFixed(1)}%
+                  {formatChangePercent(trend.change.percent)}
                 </span>
                 <span className={`text-base ${getTrendChangeColor(trend.change)}`}>
                   {getTrendChangeIcon(trend.change.direction)}
                 </span>
               </div>
               <div className="font-mono text-sm text-muted-foreground pl-2 border-l-2 border-muted/30">
-                {trend.change.absolute > 0 ? '+' : ''}{formatNumber(trend.change.absolute)}
+                {trend.change.absolute > 0 ? '+' : ''}{formatLargeNumber(trend.change.absolute)}
               </div>
             </div>
           </div>

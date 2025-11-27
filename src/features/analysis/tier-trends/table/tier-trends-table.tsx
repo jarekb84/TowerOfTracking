@@ -1,7 +1,7 @@
 import type { FieldTrendData, ComparisonColumn, TrendsAggregation } from '../types'
 import { TierTrendsMobileCard } from '../mobile/tier-trends-mobile-card'
 import { useViewport } from '@/shared/hooks/use-viewport'
-import { formatNumber } from '@/features/analysis/shared/parsing/data-parser'
+import { formatLargeNumber, formatPercentage } from '@/shared/formatting/number-scale'
 import { formatFieldDisplayName, generateSparklinePath } from '../calculations/tier-trends-calculations'
 import { getTrendChangeColor, getTrendChangeIcon, getTrendSparklineColor } from './trend-indicators'
 import { parseColumnHeader, getHeaderLineClasses } from './column-header-renderer'
@@ -150,11 +150,19 @@ interface SimpleTrendRowProps {
 
 function SimpleTrendRow({ trend, index, comparisonColumns, aggregationType }: SimpleTrendRowProps) {
   const isEven = index % 2 === 0;
-  const rowBg = isEven 
-    ? 'bg-gradient-to-r from-muted/15 via-muted/8 to-muted/15' 
+  const rowBg = isEven
+    ? 'bg-gradient-to-r from-muted/15 via-muted/8 to-muted/15'
     : 'bg-gradient-to-r from-muted/25 via-muted/12 to-muted/25';
-  
+
   const sparklinePath = generateSparklinePath(trend.values, 60, 20);
+
+  const formatChangePercent = (percent: number): string => {
+    const sign = percent > 0 ? '+' : '';
+    if (Math.abs(percent) >= 1000) {
+      return `${sign}${formatPercentage(percent / 1000)}`.replace('%', 'K%');
+    }
+    return `${sign}${formatPercentage(percent)}`;
+  };
 
   return (
     <tr className={`border-b border-border/40 transition-all duration-200 hover:bg-gradient-to-r hover:from-orange-500/8 hover:via-orange-500/4 hover:to-orange-500/8 hover:border-orange-500/30 ${rowBg}`}>
@@ -181,10 +189,7 @@ function SimpleTrendRow({ trend, index, comparisonColumns, aggregationType }: Si
       <td className="px-6 py-4 text-right">
         <div className="flex items-center gap-1.5 justify-end">
           <span className={`font-mono text-base font-semibold ${getTrendChangeColor(trend.change)}`}>
-            {trend.change.percent > 0 ? '+' : ''}
-            {Math.abs(trend.change.percent) >= 1000 
-              ? `${(trend.change.percent / 1000).toFixed(1)}K` 
-              : trend.change.percent.toFixed(1)}%
+            {formatChangePercent(trend.change.percent)}
           </span>
           <span className={`text-base ${getTrendChangeColor(trend.change)}`}>
             {getTrendChangeIcon(trend.change.direction)}
@@ -193,7 +198,7 @@ function SimpleTrendRow({ trend, index, comparisonColumns, aggregationType }: Si
       </td>
       <td className="px-6 py-4 text-right">
         <span className={`font-mono text-sm font-medium ${getTrendChangeColor(trend.change)}`}>
-          {trend.change.absolute > 0 ? '+' : ''}{formatNumber(trend.change.absolute)}
+          {trend.change.absolute > 0 ? '+' : ''}{formatLargeNumber(trend.change.absolute)}
         </span>
       </td>
       {comparisonColumns.map((column, index) => (
