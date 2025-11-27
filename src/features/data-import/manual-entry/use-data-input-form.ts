@@ -16,6 +16,7 @@ import { useData } from '@/shared/domain/use-data';
 import { useRunTypeContext } from '@/shared/domain/run-types/use-run-type-context';
 import { hasExplicitRunType } from '@/shared/domain/run-types/run-type-detection';
 import type { RankValue } from '@/features/game-runs/editing/field-update-logic';
+import { useLocaleStore } from '@/shared/locale';
 
 interface DataInputFormState {
   inputData: string;
@@ -51,6 +52,7 @@ interface DataInputFormActions {
 export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   // Memoize the context-aware default run type to avoid recalculating on every render
   const defaultRunType = useRunTypeContext();
+  const { importFormat } = useLocaleStore();
 
   // Memoize initial states to ensure they're only created once
   const initialFormState = useMemo(() => createInitialFormState(defaultRunType), [defaultRunType]);
@@ -98,7 +100,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const parseInputData = (data: string): void => {
     if (data.trim()) {
       try {
-        const parsed = parseGameRun(data, getDateTimeFromSelection());
+        const parsed = parseGameRun(data, getDateTimeFromSelection(), importFormat);
         setPreviewData(parsed);
 
         // Only override run type if clipboard data has explicit run_type field

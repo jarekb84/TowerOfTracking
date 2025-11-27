@@ -52,13 +52,13 @@ describe('getFieldFormatter', () => {
   it('should return formatLargeNumber for coin fields', () => {
     const formatter = getFieldFormatter('coinsEarned', 'number')
     const result = formatter(50000)
-    expect(result).toBe('50.0K')
+    expect(result).toBe('50K')
   })
 
   it('should return formatLargeNumber for cell fields', () => {
     const formatter = getFieldFormatter('cellsEarned', 'number')
     const result = formatter(1000000)
-    expect(result).toBe('1.0M')
+    expect(result).toBe('1M')
   })
 
   it('should return formatLargeNumber for all numeric fields', () => {
@@ -76,7 +76,7 @@ describe('getFieldFormatter', () => {
   it('should return formatLargeNumber for wave field', () => {
     const formatter = getFieldFormatter('wave', 'number')
     const result = formatter(1000)
-    expect(result).toBe('1.0K')
+    expect(result).toBe('1K')
   })
 
   it('should return formatLargeNumber for large damage values', () => {

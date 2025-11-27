@@ -97,7 +97,7 @@ describe('useCsvImport - Input Handling', () => {
       expect(result.current.inputData).toBe('Date\tTier\n2024-01-15\t10');
       expect(csvParser.parseGenericCsv).toHaveBeenCalledWith(
         'Date\tTier\n2024-01-15\t10',
-        { delimiter: '\t' }
+        expect.objectContaining({ delimiter: '\t' })
       );
       expect(result.current.parseResult).toEqual(mockParseResult);
     });

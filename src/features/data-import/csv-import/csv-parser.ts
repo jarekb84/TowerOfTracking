@@ -114,15 +114,16 @@ export function parseGenericCsv(
 
       // Build field structure using only supported fields
       const fields: Record<string, GameRunField> = {};
-      
+
       // Process each column that maps to a supported field
+      const importFormat = fullConfig.importFormat;
       for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
         const rawValue = values[columnIndex] || '';
         if (!rawValue) continue; // Skip empty values
-        
+
         const originalHeader = headers[columnIndex];
-        const field = createGameRunField(originalHeader, rawValue);
-        
+        const field = createGameRunField(originalHeader, rawValue, importFormat);
+
         fields[fieldName] = field;
       }
 

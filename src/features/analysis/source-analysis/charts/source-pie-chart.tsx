@@ -15,7 +15,7 @@ import {
 import type { SourceSummaryValue } from '../types'
 import { sortByPercentageDescending } from '../calculations/source-extraction'
 import { getGradientConfig } from '../category-config'
-import { formatLargeNumber } from '@/shared/formatting/number-scale'
+import { formatLargeNumber, formatPercentage } from '@/shared/formatting/number-scale'
 
 interface SourcePieChartProps {
   sources: SourceSummaryValue[]
@@ -46,7 +46,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
       </div>
       <div className="text-sm">
         <span className="text-slate-400">{formatLargeNumber(source.totalValue)}</span>
-        <span className="text-slate-200 font-semibold ml-2">{source.percentage.toFixed(1)}%</span>
+        <span className="text-slate-200 font-semibold ml-2">{formatPercentage(source.percentage)}</span>
       </div>
     </div>
   )
@@ -57,6 +57,7 @@ export function SourcePieChart({
   highlightedSource,
   onSourceHover,
 }: SourcePieChartProps) {
+
   if (sources.length === 0) {
     return (
       <div className="h-56 flex items-center justify-center text-slate-400">
