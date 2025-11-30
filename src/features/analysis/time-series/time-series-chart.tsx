@@ -35,7 +35,8 @@ export function TimeSeriesChart({
   const { runs } = useData()
 
   // Use provided formatter or locale-aware default (formatLargeNumber reads from locale store)
-  const formatter = valueFormatter ?? formatLargeNumber
+  // Wrap formatLargeNumber to ignore extra arguments from chart library (like index)
+  const formatter = valueFormatter ?? ((value: number) => formatLargeNumber(value))
   
   // Filter runs based on showFarmingOnly prop
   const filteredRuns = useMemo(() => {

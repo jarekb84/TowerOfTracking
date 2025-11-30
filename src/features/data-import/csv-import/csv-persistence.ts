@@ -1,14 +1,18 @@
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { parseGenericCsv } from './csv-parser';
 import { exportToCsv } from '../../data-export/csv-export/csv-exporter';
-import { getImportFormat } from '@/shared/locale/locale-store';
+import { CANONICAL_STORAGE_FORMAT } from '@/shared/locale/types';
 
 // Storage configuration
 const STORAGE_KEY = 'tower-tracking-csv-data';
 const CSV_DELIMITER = '\t'; // Tab-separated for maximum compatibility
 
 /**
- * Convert runs to CSV format suitable for localStorage storage
+ * Convert runs to CSV format suitable for localStorage storage.
+ *
+ * CRITICAL: Always uses 'canonical' output format to ensure consistent storage.
+ * This normalizes all numeric values to US format (period decimal), preventing
+ * data corruption when users change their locale settings.
  */
 export function runsToStorageCsv(runs: ParsedGameRun[]): string {
   if (runs.length === 0) {
@@ -18,7 +22,8 @@ export function runsToStorageCsv(runs: ParsedGameRun[]): string {
   // Use existing CSV exporter with specific configuration for storage
   const result = exportToCsv(runs, {
     delimiter: 'tab',
-    includeAppFields: true // Include Date/Time columns for complete storage
+    includeAppFields: true, // Include Date/Time columns for complete storage
+    outputFormat: 'canonical', // Always canonical format for localStorage
   });
 
   const lines = result.csvContent.split('\n');
@@ -28,8 +33,13 @@ export function runsToStorageCsv(runs: ParsedGameRun[]): string {
 }
 
 /**
- * Parse CSV from localStorage back to ParsedGameRun objects
- * CRITICAL: Loads locale settings to correctly parse localized numbers/dates
+ * Parse CSV from localStorage back to ParsedGameRun objects.
+ *
+ * CRITICAL: Always uses CANONICAL_STORAGE_FORMAT for reading localStorage.
+ * This prevents data corruption when users change their locale settings.
+ * Previously used getImportFormat() which caused corruption on setting change.
+ *
+ * @see CANONICAL_STORAGE_FORMAT for why US format is used as canonical
  */
 export function storageCsvToRuns(csvData: string): ParsedGameRun[] {
   if (!csvData.trim()) {
@@ -37,12 +47,10 @@ export function storageCsvToRuns(csvData: string): ParsedGameRun[] {
   }
 
   try {
-    // Load import format settings to ensure correct number/date parsing
-    const importFormat = getImportFormat();
-
+    // Always use canonical format for reading localStorage
     const result = parseGenericCsv(csvData, {
       delimiter: CSV_DELIMITER,
-      importFormat
+      importFormat: CANONICAL_STORAGE_FORMAT,
     });
 
     if (result.errors.length > 0) {

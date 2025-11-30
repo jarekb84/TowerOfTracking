@@ -31,16 +31,17 @@ export function LocaleSettingsContent() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      {/* Left Column: Import Format */}
+      {/* Left Column: Import/Export Format */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Download className="h-5 w-5 text-purple-400" />
-            Import Format
+            Import/Export Format
           </CardTitle>
           <CardDescription>
-            Configure how the game exports your data. These settings help the
-            app correctly parse your pasted battle history.
+            Configure how the game formats your data. These settings help the
+            app correctly parse your pasted battle history and format exported
+            CSV files.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -51,8 +52,8 @@ export function LocaleSettingsContent() {
                 Decimal Separator
               </h3>
               <p className="text-xs text-muted-foreground">
-                How decimals appear in your game exports (e.g., 43.91T vs
-                43,91T).
+                How decimals appear in your game data and exported files (e.g.,
+                43.91T vs 43,91T).
               </p>
             </div>
             <SelectionButtonGroup
@@ -74,7 +75,8 @@ export function LocaleSettingsContent() {
                 Thousands Separator
               </h3>
               <p className="text-xs text-muted-foreground">
-                How large numbers are grouped in your game exports.
+                How large numbers are grouped in your game data and exported
+                files.
               </p>
             </div>
             <SelectionButtonGroup
@@ -94,7 +96,7 @@ export function LocaleSettingsContent() {
             <div className="space-y-1">
               <h3 className="text-sm font-medium text-slate-200">Date Format</h3>
               <p className="text-xs text-muted-foreground">
-                How dates appear in your game exports.
+                How dates appear in your game data.
               </p>
             </div>
             <SelectionButtonGroup

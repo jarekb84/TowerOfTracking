@@ -1,11 +1,11 @@
-export type {  
+export type {
   DateFormat,
 } from './types';
 
 export type {
   ThousandsSeparator,
-  DecimalSeparator,  
-  DisplayLocale,  
+  DecimalSeparator,
+  DisplayLocale,
 } from './types';
 
 // Context and hooks

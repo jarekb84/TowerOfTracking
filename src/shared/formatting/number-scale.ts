@@ -158,33 +158,55 @@ export function parseShorthandNumber(
 }
 
 /**
+ * Format a number with explicit decimal separator (bypassing locale store).
+ * Used for storage/export where we need predictable output regardless of display locale.
+ */
+function formatWithExplicitSeparators(
+  value: number,
+  format: ImportFormatSettings
+): string {
+  // Round to 1 decimal place, remove trailing .0
+  const fixed = value.toFixed(1).replace(/\.0$/, '');
+  return format.decimalSeparator === ','
+    ? fixed.replace('.', ',')
+    : fixed;
+}
+
+/**
  * Format a numeric value to human-readable shorthand format using scale suffixes.
  * Examples: 1000 -> "1K", 1500000 -> "1.5M", 2300000000 -> "2.3B"
  *
  * For values < 1000, returns the value rounded to nearest integer with no suffix.
  * For larger values, uses scale suffixes with 1 decimal place.
  *
- * Uses the display locale from the locale store for number formatting.
+ * By default, uses the display locale from the locale store for number formatting.
  * Game-specific suffixes (K, M, B, T, etc.) are preserved regardless of locale.
  *
  * @param value - Numeric value to format
+ * @param overrideFormat - Optional explicit format to use instead of display locale.
+ *                         Use this for storage/export where format must be predictable.
  * @returns Formatted string representation
  */
-export function formatLargeNumber(value: number): string {
+export function formatLargeNumber(
+  value: number,
+  overrideFormat?: ImportFormatSettings
+): string {
   if (Math.abs(value) < 1000) {
     return Math.round(value).toString();
   }
 
   const { scaledValue, suffix } = findScaleForValue(value);
 
-  // Use cached Intl.NumberFormat for locale-aware decimal formatting
-  // Configure for 1 decimal place to match game display
-  const formatter = getNumberFormatter();
-
-  // Format the scaled value with the user's locale
-  // Note: getNumberFormatter() returns a formatter with maximumFractionDigits: 2
-  // We want exactly 1 decimal for game display, so we round first
+  // Round to 1 decimal place for game display
   const roundedValue = Math.round(scaledValue * 10) / 10;
+
+  if (overrideFormat) {
+    // Explicit format provided - use it (for storage/export)
+    return formatWithExplicitSeparators(roundedValue, overrideFormat) + suffix;
+  }
+
+  // No override - use display locale from store (for UI rendering)
+  const formatter = getNumberFormatter();
   const formatted = formatter.format(roundedValue);
 
   // Append game-specific suffix (K, M, B, T, etc.)

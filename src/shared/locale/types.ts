@@ -72,3 +72,20 @@ export interface LocaleStoreContextType {
   /** Update display locale */
   setDisplayLocale: (locale: DisplayLocale) => void;
 }
+
+/**
+ * Canonical US-centric format used for all internal storage.
+ * This ensures data consistency regardless of user's locale preferences.
+ * Data is normalized to this format on import, formatted from it on display/export.
+ *
+ * Benefits:
+ * - Data is always in predictable format - no ambiguity
+ * - Locale setting changes are safe - just affects presentation
+ * - Multi-device sync friendly - same data everywhere, different display per device
+ * - No risk of corruption from interrupted operations or setting changes
+ */
+export const CANONICAL_STORAGE_FORMAT: ImportFormatSettings = {
+  decimalSeparator: '.',
+  thousandsSeparator: ',',
+  dateFormat: 'month-first',
+} as const;
