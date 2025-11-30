@@ -43,7 +43,7 @@ test.describe('Source Analysis', () => {
     // Verify specific source appears with its value and percentage
     // Chain Lightning is the top damage source in the seed data
     expect(sourceRankingContent).toContain('Chain Lightning');
-    expect(sourceRankingContent).toContain('2.9S'); // ~2.9 sextillion damage
+    expect(sourceRankingContent).toContain('2.92S'); // ~2.92 sextillion damage
     expect(sourceRankingContent).toContain('56%'); // Top source percentage
   });
 });

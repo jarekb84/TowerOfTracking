@@ -2,7 +2,7 @@ import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
 import { CANONICAL_STORAGE_FORMAT } from '@/shared/locale/types';
-import { getImportFormat } from '@/shared/locale/locale-store';
+import { getImportFormat, getDisplayLocale } from '@/shared/locale/locale-store';
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
 import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from '../../../shared/formatting/date-formatters';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
@@ -196,13 +196,46 @@ function resolveOutputFormat(outputFormat?: CsvOutputFormat): ImportFormatSettin
 }
 
 /**
+ * Check if a raw value ends with a letter (indicates shorthand like K, M, T, aa).
+ * Simple check: if last char is a-z/A-Z, it's shorthand. If it's 0-9, it's exact.
+ */
+function hasScaleSuffix(rawValue: string): boolean {
+  const lastChar = rawValue.trim().slice(-1);
+  return /[a-zA-Z]/.test(lastChar);
+}
+
+/**
+ * Format an exact number for STORAGE (canonical).
+ * Raw number, no thousands separator, period decimal.
+ */
+function formatExactNumberCanonical(value: number): string {
+  return Number.isInteger(value)
+    ? Math.round(value).toString()
+    : value.toString();
+}
+
+/**
+ * Format an exact number for USER EXPORT (localized).
+ * Uses locale decimal separator but NO thousands separators.
+ */
+function formatExactNumberLocalized(value: number, displayLocale: string): string {
+  return new Intl.NumberFormat(displayLocale, {
+    useGrouping: false, // No thousands separators
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+/**
  * Format a field value for CSV output.
- * If format is provided, re-formats number fields using formatLargeNumber.
- * Otherwise, returns the rawValue as-is.
+ * Behavior differs based on outputFormat:
+ * - 'canonical': Raw exact numbers, shorthand with period decimal
+ * - 'localized': Exact numbers with locale decimal sep (no thousands), shorthand with locale decimal
+ * - undefined: Use rawValue as-is (backward compatibility)
  */
 function formatFieldValue(
   field: { value: unknown; rawValue: string; dataType: string } | undefined,
-  format: ImportFormatSettings | undefined
+  format: ImportFormatSettings | undefined,
+  outputFormat: CsvOutputFormat | undefined
 ): string {
   if (!field) return '';
 
@@ -211,9 +244,23 @@ function formatFieldValue(
     return field.rawValue;
   }
 
-  // For number fields with format specified, re-format the numeric value
   const numValue = typeof field.value === 'number' ? field.value : 0;
-  return formatLargeNumber(numValue, format);
+  const isShorthand = hasScaleSuffix(field.rawValue);
+
+  if (isShorthand) {
+    // Original used shorthand → format with shorthand (formatLargeNumber handles locale)
+    return formatLargeNumber(numValue, format);
+  }
+
+  // Original was exact number → preserve precision
+  if (outputFormat === 'canonical') {
+    // Storage: raw number, no formatting
+    return formatExactNumberCanonical(numValue);
+  } else {
+    // User export: locale-aware thousands separator
+    const displayLocale = getDisplayLocale();
+    return formatExactNumberLocalized(numValue, displayLocale);
+  }
 }
 
 /**
@@ -245,7 +292,7 @@ export function exportToCsv(
   const conflicts = detectDelimiterConflicts(runs, delimiter, config.includeAppFields);
 
   // Resolve output format for number formatting
-  const outputFormat = resolveOutputFormat(config.outputFormat);
+  const formatSettings = resolveOutputFormat(config.outputFormat);
 
   // Build CSV content
   const lines: string[] = [];
@@ -280,7 +327,7 @@ export function exportToCsv(
         // Handle regular game fields (including battle_date)
         // Apply number formatting if outputFormat is specified
         const field = run.fields[fieldInfo.fieldName];
-        value = formatFieldValue(field, outputFormat);
+        value = formatFieldValue(field, formatSettings, config.outputFormat);
       }
 
       values.push(value);

@@ -156,10 +156,10 @@ describe('formatLargeNumber', () => {
   });
 
   describe('decimal precision', () => {
-    it('should use 1 decimal place for formatted numbers', () => {
-      expect(formatLargeNumber(1234)).toBe('1.2K');
-      expect(formatLargeNumber(1567)).toBe('1.6K');
-      expect(formatLargeNumber(1234567)).toBe('1.2M');
+    it('should preserve up to 2 decimal places for formatted numbers', () => {
+      expect(formatLargeNumber(1234)).toBe('1.23K');
+      expect(formatLargeNumber(1567)).toBe('1.57K');
+      expect(formatLargeNumber(1234567)).toBe('1.23M');
     });
   });
 

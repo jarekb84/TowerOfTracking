@@ -138,8 +138,8 @@ describe('CSV Persistence', () => {
       expect(csv).toContain('2024-01-15'); // Should have formatted date
       expect(csv).toContain('14:30:00'); // Should have formatted time
       expect(csv).toContain('10'); // Should have tier value
-      // Wave 5881 is formatted as "5.9K" in canonical format (1 decimal place)
-      expect(csv).toContain('5.9K'); // Should have formatted wave value
+      // Wave 5881 preserves precision since rawValue didn't use shorthand
+      expect(csv).toContain('5881'); // Should have exact wave value (precision preserved)
     });
     it('should return empty string for empty runs array', () => {
       const csv = runsToStorageCsv([]);
@@ -194,14 +194,13 @@ describe('CSV Persistence', () => {
       expect(parsedRuns[0].tier).toBe(10);
       expect(parsedRuns[0].runType).toBe('farm');
 
-      // Numeric values have minor rounding due to canonical formatting (1 decimal place)
-      // Wave: 5881 -> "5.9K" -> 5900 (0.3% difference)
-      // CoinsEarned: 1130000000000 -> "1.1T" -> 1100000000000 (2.7% difference)
-      // CellsEarned: 45200 -> "45.2K" -> 45200 (exact)
-      // These are acceptable precision losses compared to 10x corruption bugs
-      expect(parsedRuns[0].wave).toBeCloseTo(5881, -2); // Within 100
-      expect(parsedRuns[0].coinsEarned).toBeCloseTo(1130000000000, -11); // Within 100B
-      expect(parsedRuns[0].cellsEarned).toBeCloseTo(45200, -2); // Within 100
+      // Numeric values: exact numbers preserve precision, shorthand now preserves 2 decimals
+      // Wave: 5881 -> "5881" -> 5881 (exact, rawValue had no shorthand suffix)
+      // CoinsEarned: 1130000000000 -> "1.13T" -> 1130000000000 (exact, rawValue was "1.13T")
+      // CellsEarned: 45200 -> "45.2K" -> 45200 (exact, rawValue was "45.2K")
+      expect(parsedRuns[0].wave).toBe(5881); // Exact preservation (no shorthand in original)
+      expect(parsedRuns[0].coinsEarned).toBe(1130000000000); // Exact preservation (2 decimal precision)
+      expect(parsedRuns[0].cellsEarned).toBe(45200); // Exact preservation
 
       // Duration is preserved (not a number type)
       expect(parsedRuns[0].realTime).toBe(27966);
@@ -367,8 +366,8 @@ describe('CSV Persistence', () => {
       const csv = runsToStorageCsv(runs);
 
       // CSV should contain US-formatted numbers (period decimal)
-      // The number 1.13T should be stored as "1.1T" (rounded to 1 decimal)
-      expect(csv).toContain('1.1T'); // NOT "1,1T"
+      // The number 1.13T should be stored as "1.13T" (preserves 2 decimals)
+      expect(csv).toContain('1.13T'); // NOT "1,13T"
       expect(csv).toContain('45.2K'); // NOT "45,2K"
     });
   });

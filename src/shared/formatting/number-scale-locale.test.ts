@@ -70,9 +70,9 @@ describe('comma-decimal format support', () => {
     });
 
     it('should format with comma as decimal separator', () => {
-      expect(formatLargeNumber(43.91e12)).toBe('43,9T');
+      expect(formatLargeNumber(43.91e12)).toBe('43,91T');
       expect(formatLargeNumber(1.5e6)).toBe('1,5M');
-      expect(formatLargeNumber(248.55e3)).toBe('248,6K');
+      expect(formatLargeNumber(248.55e3)).toBe('248,55K');
     });
 
     it('should format small numbers without separator', () => {
@@ -135,10 +135,10 @@ describe('comma-decimal format support', () => {
 describe('formatLargeNumber with explicit format override', () => {
   describe('CANONICAL_STORAGE_FORMAT (US period-decimal)', () => {
     it('should format with period as decimal separator', () => {
-      expect(formatLargeNumber(43.91e12, CANONICAL_STORAGE_FORMAT)).toBe('43.9T');
+      expect(formatLargeNumber(43.91e12, CANONICAL_STORAGE_FORMAT)).toBe('43.91T');
       expect(formatLargeNumber(1.5e6, CANONICAL_STORAGE_FORMAT)).toBe('1.5M');
-      expect(formatLargeNumber(248.55e3, CANONICAL_STORAGE_FORMAT)).toBe('248.6K');
-      expect(formatLargeNumber(3.79e9, CANONICAL_STORAGE_FORMAT)).toBe('3.8B');
+      expect(formatLargeNumber(248.55e3, CANONICAL_STORAGE_FORMAT)).toBe('248.55K');
+      expect(formatLargeNumber(3.79e9, CANONICAL_STORAGE_FORMAT)).toBe('3.79B');
     });
 
     it('should format whole numbers without trailing .0', () => {
@@ -166,10 +166,10 @@ describe('formatLargeNumber with explicit format override', () => {
 
   describe('comma-decimal format (Italian style)', () => {
     it('should format with comma as decimal separator', () => {
-      expect(formatLargeNumber(43.91e12, COMMA_DECIMAL_FORMAT)).toBe('43,9T');
+      expect(formatLargeNumber(43.91e12, COMMA_DECIMAL_FORMAT)).toBe('43,91T');
       expect(formatLargeNumber(1.5e6, COMMA_DECIMAL_FORMAT)).toBe('1,5M');
-      expect(formatLargeNumber(248.55e3, COMMA_DECIMAL_FORMAT)).toBe('248,6K');
-      expect(formatLargeNumber(3.79e9, COMMA_DECIMAL_FORMAT)).toBe('3,8B');
+      expect(formatLargeNumber(248.55e3, COMMA_DECIMAL_FORMAT)).toBe('248,55K');
+      expect(formatLargeNumber(3.79e9, COMMA_DECIMAL_FORMAT)).toBe('3,79B');
     });
 
     it('should format whole numbers without trailing ,0', () => {
@@ -207,12 +207,12 @@ describe('formatLargeNumber with explicit format override', () => {
     });
 
     it('should use explicit format regardless of display locale', () => {
-      expect(formatLargeNumber(43.91e12, CANONICAL_STORAGE_FORMAT)).toBe('43.9T');
+      expect(formatLargeNumber(43.91e12, CANONICAL_STORAGE_FORMAT)).toBe('43.91T');
       expect(formatLargeNumber(1.5e6, CANONICAL_STORAGE_FORMAT)).toBe('1.5M');
     });
 
     it('should use display locale when no explicit format provided', () => {
-      expect(formatLargeNumber(43.91e12)).toBe('43,9T');
+      expect(formatLargeNumber(43.91e12)).toBe('43,91T');
       expect(formatLargeNumber(1.5e6)).toBe('1,5M');
     });
   });

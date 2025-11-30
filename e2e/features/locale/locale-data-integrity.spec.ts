@@ -42,9 +42,9 @@ test.describe('Locale Support', () => {
     await gameRunsPage.waitForTableLoad();
 
     // Verify first row Coins column shows US format (period decimal)
-    // Seed data has 11.51T which displays as "11.5T" in US format
+    // Seed data has 11.51T which displays as "11.51T" in US format
     const usCoins = await gameRunsPage.getCellValue(0, 'Coins');
-    expect(usCoins).toBe('11.5T');
+    expect(usCoins).toBe('11.51T');
 
     // =================================================================
     // STEP 2: Navigate to locale settings and change formats
@@ -73,9 +73,9 @@ test.describe('Locale Support', () => {
     await gameRunsPage.waitForTableLoad();
 
     // Verify first row now shows Italian format (comma decimal)
-    // Same value 11.5T now displays as "11,5T"
+    // Same value 11.51T now displays as "11,51T"
     const italianCoins = await gameRunsPage.getCellValue(0, 'Coins');
-    expect(italianCoins).toBe('11,5T');
+    expect(italianCoins).toBe('11,51T');
 
     // =================================================================
     // STEP 4: Add a new run using Italian/comma format via Add Game Run modal
@@ -96,11 +96,11 @@ test.describe('Locale Support', () => {
     // The newly added run should be at index 0 (newest first)
     // Fixture has 43,91T which displays as "43,9T" with Italian locale
     const addedCoins = await gameRunsPage.getCellValue(0, 'Coins');
-    expect(addedCoins).toBe('43,9T');
+    expect(addedCoins).toBe('43,91T');
 
     // Previous first row is now at index 1
     const originalCoins = await gameRunsPage.getCellValue(1, 'Coins');
-    expect(originalCoins).toBe('11,5T');
+    expect(originalCoins).toBe('11,51T');
 
     // =================================================================
     // STEP 6: Refresh the page and verify data persists correctly
@@ -112,7 +112,7 @@ test.describe('Locale Support', () => {
     const reloadedAddedCoins = await gameRunsPage.getCellValue(0, 'Coins');
     const reloadedOriginalCoins = await gameRunsPage.getCellValue(1, 'Coins');
 
-    expect(reloadedAddedCoins).toBe('43,9T');
-    expect(reloadedOriginalCoins).toBe('11,5T');
+    expect(reloadedAddedCoins).toBe('43,91T');
+    expect(reloadedOriginalCoins).toBe('11,51T');
   });
 });

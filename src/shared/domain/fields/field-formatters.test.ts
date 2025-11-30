@@ -64,7 +64,7 @@ describe('getFieldFormatter', () => {
   it('should return formatLargeNumber for all numeric fields', () => {
     const formatter = getFieldFormatter('damageDealt', 'number')
     const result = formatter(1234567)
-    expect(result).toBe('1.2M')
+    expect(result).toBe('1.23M')
   })
 
   it('should return formatLargeNumber for tier field', () => {
@@ -82,6 +82,6 @@ describe('getFieldFormatter', () => {
   it('should return formatLargeNumber for large damage values', () => {
     const formatter = getFieldFormatter('damageDealt', 'number')
     const result = formatter(31083533633462460000000000000000)
-    expect(result).toBe('31.1N')
+    expect(result).toBe('31.08N')
   })
 })

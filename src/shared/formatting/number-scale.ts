@@ -165,8 +165,8 @@ function formatWithExplicitSeparators(
   value: number,
   format: ImportFormatSettings
 ): string {
-  // Round to 1 decimal place, remove trailing .0
-  const fixed = value.toFixed(1).replace(/\.0$/, '');
+  // Round to 2 decimal places, remove trailing .00 or .X0
+  const fixed = value.toFixed(2).replace(/\.?0+$/, '');
   return format.decimalSeparator === ','
     ? fixed.replace('.', ',')
     : fixed;
@@ -177,7 +177,7 @@ function formatWithExplicitSeparators(
  * Examples: 1000 -> "1K", 1500000 -> "1.5M", 2300000000 -> "2.3B"
  *
  * For values < 1000, returns the value rounded to nearest integer with no suffix.
- * For larger values, uses scale suffixes with 1 decimal place.
+ * For larger values, uses scale suffixes with up to 2 decimal places.
  *
  * By default, uses the display locale from the locale store for number formatting.
  * Game-specific suffixes (K, M, B, T, etc.) are preserved regardless of locale.
@@ -197,8 +197,8 @@ export function formatLargeNumber(
 
   const { scaledValue, suffix } = findScaleForValue(value);
 
-  // Round to 1 decimal place for game display
-  const roundedValue = Math.round(scaledValue * 10) / 10;
+  // Round to 2 decimal places for game display (preserves precision like 100.19K)
+  const roundedValue = Math.round(scaledValue * 100) / 100;
 
   if (overrideFormat) {
     // Explicit format provided - use it (for storage/export)

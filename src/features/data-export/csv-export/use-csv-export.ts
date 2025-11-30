@@ -48,7 +48,8 @@ export function useCsvExport(runs: ParsedGameRun[], isDialogOpen: boolean): UseC
       const config: CsvExportConfig = {
         delimiter: selectedDelimiter,
         customDelimiter: selectedDelimiter === 'custom' ? customDelimiter : undefined,
-        includeAppFields
+        includeAppFields,
+        outputFormat: 'localized', // Use user's import/export format settings
       };
       
       const result = exportToCsv(runs, config);
