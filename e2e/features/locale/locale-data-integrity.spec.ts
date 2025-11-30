@@ -49,13 +49,17 @@ test.describe('Locale Support', () => {
     // =================================================================
     // STEP 2: Navigate to locale settings and change formats
     // =================================================================
-    await seededPage.goto('/settings/locale');
-    await seededPage.waitForLoadState('networkidle');
+    // Use sidebar navigation to handle base URL correctly (CI uses /TowerOfTracking prefix)
+    await appPage.navigateToRegionalFormat();
+
+    // Wait for locale settings form to be fully rendered
+    const decimalSeparatorGroup = seededPage.locator('[aria-label="Decimal separator selection"]');
+    await expect(decimalSeparatorGroup).toBeVisible();
 
     // Change Import/Export Format decimal separator to comma
     // The button label shows "43,91T" for comma format
-    const decimalSeparatorGroup = seededPage.locator('[aria-label="Decimal separator selection"]');
     const commaDecimalButton = decimalSeparatorGroup.locator('button:has-text("43,91T")');
+    await expect(commaDecimalButton).toBeVisible();
     await commaDecimalButton.click();
 
     // Change Display Format to Italian locale
