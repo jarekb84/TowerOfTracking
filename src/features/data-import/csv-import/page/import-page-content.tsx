@@ -4,6 +4,7 @@ import { DuplicateInfo } from '@/shared/domain/duplicate-detection/duplicate-inf
 import { useCsvImport } from '../use-csv-import';
 import { CsvInputSection } from '../input/csv-input-section';
 import { DelimiterControls } from '../delimiter/delimiter-controls';
+import { FormatMismatchWarning } from '../format-warning';
 import { StickyActionFooter } from './sticky-action-footer';
 import { ParseResultSections } from './parse-result-sections';
 import { getImportButtonText } from './import-button-text';
@@ -60,6 +61,9 @@ export function ImportPageContent() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Format Mismatch Warning - shows at top when data format doesn't match settings */}
+          <FormatMismatchWarning parsedRuns={parseResult?.success} />
+
           <CsvInputSection
             inputData={inputData}
             onInputChange={handleInputChange}
