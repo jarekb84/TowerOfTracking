@@ -160,6 +160,9 @@
     }
   },
   "src/features/data-import/manual-entry/data-input.tsx": {
+    "complexity": {
+      "count": 1
+    },
     "max-lines-per-function": {
       "count": 1
     }
