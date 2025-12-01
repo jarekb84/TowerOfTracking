@@ -1,6 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Alert, AlertDescription } from '@/components/ui';
-import { CheckCircle, XCircle, Trash2, Database, AlertTriangle, X } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Button,
+} from '@/components/ui';
+import { Trash2, Database, AlertTriangle } from 'lucide-react';
 import { useDataSettings } from './use-data-settings';
+import { DeleteConfirmationDialog } from './delete-confirmation-dialog';
+import { SuccessAlert, ErrorAlert } from './data-settings-alerts';
 
 export function DataSettings() {
   const {
@@ -9,12 +18,16 @@ export function DataSettings() {
     error,
     showSuccess,
     canClear,
+    isConfirmationOpen,
     handleClearAllData,
     dismissError,
     dismissSuccess,
+    openConfirmation,
+    closeConfirmation,
   } = useDataSettings();
 
   return (
+    <>
     <Card className="w-full max-w-sm min-w-80 sm:min-w-72 transition-shadow duration-200 hover:shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -39,41 +52,8 @@ export function DataSettings() {
           </div>
         </div>
 
-        {/* Success Alert */}
-        {showSuccess && (
-          <Alert className="border-green-500/20 bg-green-500/5 transition-all duration-300 ease-in-out">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-700 dark:text-green-300 pr-6">
-              Successfully cleared all data from local storage.
-            </AlertDescription>
-            <Button
-              variant="ghost"
-              size="compact"
-              onClick={dismissSuccess}
-              className="absolute right-2 top-2 h-6 w-6 p-0 text-green-600 hover:text-green-800 hover:bg-green-500/10"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </Alert>
-        )}
-
-        {/* Error Alert */}
-        {error && (
-          <Alert className="border-red-500/20 bg-red-500/5 transition-all duration-300 ease-in-out">
-            <XCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-700 dark:text-red-300 pr-6">
-              {error}
-            </AlertDescription>
-            <Button
-              variant="ghost"
-              size="compact"
-              onClick={dismissError}
-              className="absolute right-2 top-2 h-6 w-6 p-0 text-red-600 hover:text-red-800 hover:bg-red-500/10"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </Alert>
-        )}
+        {showSuccess && <SuccessAlert onDismiss={dismissSuccess} />}
+        {error && <ErrorAlert error={error} onDismiss={dismissError} />}
         
         {/* Danger Zone */}
         <div className="rounded-lg border-2 border-dashed border-destructive/30 bg-destructive/5 p-4 space-y-4 transition-all duration-200 hover:border-destructive/40">
@@ -91,16 +71,25 @@ export function DataSettings() {
             
             <Button
               variant="destructive"
-              onClick={handleClearAllData}
+              onClick={openConfirmation}
               disabled={!canClear}
               className="w-full transition-all duration-200 disabled:opacity-60"
             >
-              <Trash2 className={`h-4 w-4 transition-transform duration-200 ${isClearing ? 'animate-pulse' : ''}`} />
-              {isClearing ? 'Clearing Data...' : 'Clear All Data'}
+              <Trash2 className="h-4 w-4" />
+              Clear All Data
             </Button>
           </div>
         </div>
       </CardContent>
     </Card>
+
+    <DeleteConfirmationDialog
+      isOpen={isConfirmationOpen}
+      isDeleting={isClearing}
+      runsCount={runsCount}
+      onConfirm={handleClearAllData}
+      onCancel={closeConfirmation}
+    />
+  </>
   );
 }
