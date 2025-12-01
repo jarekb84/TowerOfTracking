@@ -4,6 +4,7 @@ import {
   parseShorthandNumber,
   formatLargeNumber
 } from '../../../../shared/formatting/number-scale';
+import { decodeNotesFromStorage } from '@/shared/domain/fields/notes-encoding';
 
 // Field configuration for processing rules
 interface FieldConfig {
@@ -90,6 +91,15 @@ function getFieldConfig(key: string, rawValue?: string): FieldConfig {
 }
 
 /**
+ * Process a string field value, decoding notes if necessary.
+ */
+function processStringField(originalKey: string, rawValue: string): string {
+  const lowerKey = originalKey.toLowerCase();
+  const isNotesField = lowerKey === '_notes' || lowerKey === 'notes';
+  return isNotesField ? decodeNotesFromStorage(rawValue) : rawValue;
+}
+
+/**
  * Create rich field object with all representations.
  *
  * @param originalKey - The original field key from the import data
@@ -107,6 +117,7 @@ export function createGameRunField(
   let processedValue: number | string | Date;
   let displayValue: string;
   let dataType: GameRunField['dataType'];
+  let finalRawValue = rawValue; // Track if we need to decode rawValue
 
   switch (fieldConfig.type) {
     case 'duration':
@@ -135,11 +146,14 @@ export function createGameRunField(
       dataType = 'number';
       break;
 
-    case 'string':
-      processedValue = rawValue;
-      displayValue = rawValue;
+    case 'string': {
+      const decodedValue = processStringField(originalKey, rawValue);
+      processedValue = decodedValue;
+      displayValue = decodedValue;
+      finalRawValue = decodedValue; // Store decoded value so exports re-encode correctly
       dataType = 'string';
       break;
+    }
 
     default:
       processedValue = rawValue;
@@ -149,7 +163,7 @@ export function createGameRunField(
 
   return {
     value: processedValue,
-    rawValue,
+    rawValue: finalRawValue,
     displayValue,
     originalKey,
     dataType,
