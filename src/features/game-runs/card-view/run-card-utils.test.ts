@@ -28,6 +28,12 @@ vi.mock('@/features/analysis/shared/parsing/field-utils', () => ({
   },
 }));
 
+// Mock the date formatters to return predictable values
+vi.mock('@/shared/formatting/date-formatters', () => ({
+  formatDisplayDate: (date: Date) => `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+  formatDisplayTime: (date: Date) => date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+}));
+
 const createMockRun = (overrides: Partial<ParsedGameRun> = {}): ParsedGameRun => ({
   id: 'test-id',
   timestamp: new Date('2024-01-15T14:30:00Z'),
@@ -60,10 +66,11 @@ describe('extractCardHeaderData', () => {
   it('should format complete header data', () => {
     const run = createMockRun();
     const result = extractCardHeaderData(run);
-    
+
     expect(result.shortDuration).toBe('2h');
-    expect(result.dateStr).toBe(run.timestamp.toLocaleDateString());
-    expect(result.timeStr).toBe(run.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    // Date and time are now formatted using locale-aware formatters from date-formatters.ts
+    expect(result.dateStr).toBe(run.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+    expect(result.timeStr).toBe(run.timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }));
     expect(result.hasNotes).toBe(true);
   });
 
@@ -165,11 +172,12 @@ describe('extractRunCardData', () => {
   it('should combine all data extraction functions', () => {
     const run = createMockRun();
     const result = extractRunCardData(run);
-    
+
+    // Date and time are now formatted using locale-aware formatters from date-formatters.ts
     expect(result.header).toEqual({
       shortDuration: '2h',
-      dateStr: run.timestamp.toLocaleDateString(),
-      timeStr: run.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dateStr: run.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      timeStr: run.timestamp.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
       hasNotes: true,
     });
     

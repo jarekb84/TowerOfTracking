@@ -6,6 +6,11 @@
  */
 
 import type { SourceDuration } from '../types';
+import {
+  formatDisplayDate,
+  formatDisplayMonthDay,
+  formatDisplayMonth,
+} from '@/shared/formatting/date-formatters';
 
 /**
  * Get the period key for a timestamp based on duration
@@ -60,7 +65,7 @@ export function formatPeriodLabel(
       if (index !== undefined && totalRuns !== undefined) {
         return `Run #${totalRuns - index}`;
       }
-      return new Date(key).toLocaleDateString();
+      return formatDisplayDate(new Date(key));
     case 'daily':
       return formatDailyLabel(key);
     case 'weekly':
@@ -75,30 +80,32 @@ export function formatPeriodLabel(
 }
 
 /**
- * Format daily period key (YYYY-MM-DD) to display label (e.g., "Mar 15")
+ * Format daily period key (YYYY-MM-DD) to display label using user's locale
  */
 function formatDailyLabel(key: string): string {
   const [year, month, day] = key.split('-');
   const date = new Date(Number(year), Number(month) - 1, Number(day));
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return formatDisplayMonthDay(date);
 }
 
 /**
- * Format weekly period key (YYYY-MM-DD) to display label (e.g., "Nov 17")
+ * Format weekly period key (YYYY-MM-DD) to display label using user's locale
  * Shows the Sunday date (start of the week).
  */
 function formatWeeklyLabel(key: string): string {
   // Key is now YYYY-MM-DD format (the Sunday date)
   const [year, month, day] = key.split('-');
   const date = new Date(Number(year), Number(month) - 1, Number(day));
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return formatDisplayMonthDay(date);
 }
 
 /**
- * Format monthly period key (YYYY-MM) to display label (e.g., "Mar '24")
+ * Format monthly period key (YYYY-MM) to display label using user's locale
+ * Shows month abbreviation and 2-digit year (e.g., "Mar '24" or "März '24")
  */
 function formatMonthlyLabel(key: string): string {
   const [year, month] = key.split('-');
   const date = new Date(Number(year), Number(month) - 1);
-  return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+  const yearSuffix = `'${year.slice(-2)}`;
+  return `${formatDisplayMonth(date)} ${yearSuffix}`;
 }

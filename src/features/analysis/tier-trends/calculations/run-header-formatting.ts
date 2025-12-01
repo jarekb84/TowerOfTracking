@@ -1,4 +1,5 @@
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
+import { formatDisplayShortDateTime } from '@/shared/formatting/date-formatters'
 
 // ============================================================================
 // Main Header Creation Functions
@@ -59,19 +60,10 @@ export function formatDurationHoursMinutes(durationSeconds: number): string {
 
 /**
  * Formats a timestamp to a date/time string for display
- * Example: Date(2024-08-17T15:45:00Z) -> "8/17 3:45 PM"
+ * Uses user's locale setting for format (e.g., "8/17 3:45 PM" or "17/8 15:45")
  */
 export function formatTimestampDisplay(timestamp: Date): string {
-  const date = timestamp.toLocaleDateString('en-US', { 
-    month: 'numeric', 
-    day: 'numeric' 
-  })
-  const time = timestamp.toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
-    minute: '2-digit',
-    hour12: true 
-  })
-  return `${date} ${time}`
+  return formatDisplayShortDateTime(timestamp)
 }
 
 /**

@@ -11,6 +11,19 @@ import { Download, Globe } from 'lucide-react';
 import { useLocaleSettings } from './use-locale-settings';
 
 /**
+ * A single row in the locale preview definition list.
+ * Displays a label and formatted value with consistent styling.
+ */
+function PreviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between">
+      <dt className="text-muted-foreground">{label}:</dt>
+      <dd className="font-mono text-foreground">{value}</dd>
+    </div>
+  );
+}
+
+/**
  * Content component for the /settings/locale route.
  * Two-column layout separating import format (parsing) from display locale (rendering).
  */
@@ -48,7 +61,7 @@ export function LocaleSettingsContent() {
           {/* Decimal Separator */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-slate-200">
+              <h3 className="text-sm font-medium text-foreground">
                 Decimal Separator
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -66,12 +79,12 @@ export function LocaleSettingsContent() {
             />
           </div>
 
-          <div className="border-t border-slate-700/50" />
+          <div className="border-t border-muted" />
 
           {/* Thousands Separator */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-slate-200">
+              <h3 className="text-sm font-medium text-foreground">
                 Thousands Separator
               </h3>
               <p className="text-xs text-muted-foreground">
@@ -89,12 +102,12 @@ export function LocaleSettingsContent() {
             />
           </div>
 
-          <div className="border-t border-slate-700/50" />
+          <div className="border-t border-muted" />
 
           {/* Date Format */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-slate-200">Date Format</h3>
+              <h3 className="text-sm font-medium text-foreground">Date Format</h3>
               <p className="text-xs text-muted-foreground">
                 How dates appear in your game data.
               </p>
@@ -126,7 +139,7 @@ export function LocaleSettingsContent() {
           {/* Locale Dropdown */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-slate-200">Locale</h3>
+              <h3 className="text-sm font-medium text-foreground">Locale</h3>
               <p className="text-xs text-muted-foreground">
                 Select your preferred display format.
               </p>
@@ -145,44 +158,27 @@ export function LocaleSettingsContent() {
             </Select>
           </div>
 
-          <div className="border-t border-slate-700/50" />
+          <div className="border-t border-muted" />
 
           {/* Preview */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <h3 className="text-sm font-medium text-slate-200">Preview</h3>
+              <h3 className="text-sm font-medium text-foreground">Preview</h3>
               <p className="text-xs text-muted-foreground">
                 See how values will be displayed with your selected locale.
               </p>
             </div>
-            <div className="rounded-md border border-slate-700 bg-slate-800/50 p-4">
+            <div className="rounded-lg bg-muted/30 border border-muted p-4 transition-all duration-200 hover:bg-muted/40 hover:border-primary/20">
               <dl className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Number:</dt>
-                  <dd className="font-mono text-slate-200">{preview.number}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Large Number:</dt>
-                  <dd className="font-mono text-slate-200">
-                    {preview.largeNumber}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Percentage:</dt>
-                  <dd className="font-mono text-slate-200">
-                    {preview.percentage}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Date:</dt>
-                  <dd className="font-mono text-slate-200">{preview.date}</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Date & Time:</dt>
-                  <dd className="font-mono text-slate-200">
-                    {preview.dateTime}
-                  </dd>
-                </div>
+                <PreviewRow label="Number" value={preview.number} />
+                <PreviewRow label="Large Number" value={preview.largeNumber} />
+                <PreviewRow label="Percentage" value={preview.percentage} />
+                <PreviewRow label="Date" value={preview.date} />
+                <PreviewRow label="Numeric Date" value={preview.numericDate} />
+                <PreviewRow label="Short Date" value={preview.shortDate} />
+                <PreviewRow label="Month Format" value={preview.monthDay} />
+                <PreviewRow label="Time" value={preview.time} />
+                <PreviewRow label="Date & Time" value={preview.dateTime} />
               </dl>
             </div>
           </div>

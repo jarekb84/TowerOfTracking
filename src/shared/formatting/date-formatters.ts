@@ -10,7 +10,16 @@
 
 import type { DateFormat } from '@/shared/locale/types';
 import { MONTH_MAPPINGS } from '@/shared/locale/locale-config';
-import { getImportFormat } from '@/shared/locale/locale-store';
+import {
+  getImportFormat,
+  getDateFormatter,
+  getDateTimeFormatter,
+  getShortDateFormatter,
+  getNumericDateFormatter,
+  getTimeFormatter,
+  getMonthDayFormatter,
+  getMonthFormatter,
+} from '@/shared/locale/locale-store';
 
 // ============================================================================
 // ISO format functions (locale-independent, for data storage/keys)
@@ -250,4 +259,154 @@ export function parseTimestampFromFields(
 
   // Priority 3: Fallback to provided date or current time
   return fallbackDate || new Date();
+}
+
+// ============================================================================
+// Display format functions (locale-aware, for UI rendering)
+// ============================================================================
+
+/**
+ * Format date for display using user's locale (e.g., Nov 20, 2025 or 20 nov. 2025)
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted date string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayDate(new Date('2025-11-20')) // 'Nov 20, 2025'
+ * // With de-DE locale
+ * formatDisplayDate(new Date('2025-11-20')) // '20. Nov. 2025'
+ */
+export function formatDisplayDate(date: Date): string {
+  return getDateFormatter().format(date);
+}
+
+/**
+ * Format date and time for display using user's locale
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted date+time string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayDateTime(new Date('2025-11-20T15:45')) // 'Nov 20, 2025, 15:45'
+ * // With de-DE locale
+ * formatDisplayDateTime(new Date('2025-11-20T15:45')) // '20. Nov. 2025, 15:45'
+ */
+export function formatDisplayDateTime(date: Date): string {
+  return getDateTimeFormatter().format(date);
+}
+
+/**
+ * Format short date without year using user's locale (e.g., 11/30 or 30/11)
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted short date string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayShortDate(new Date('2025-11-30')) // '11/30'
+ * // With de-DE locale
+ * formatDisplayShortDate(new Date('2025-11-30')) // '30.11.'
+ */
+export function formatDisplayShortDate(date: Date): string {
+  return getShortDateFormatter().format(date);
+}
+
+/**
+ * Format date with year in numeric-only format using user's locale (e.g., 11/30/2025 or 30/11/2025)
+ * Uses locale conventions for day/month order but only numeric components (no month names)
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted numeric date string with year
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayNumericDate(new Date('2025-11-30')) // '11/30/2025'
+ * // With de-DE locale
+ * formatDisplayNumericDate(new Date('2025-11-30')) // '30.11.2025'
+ */
+export function formatDisplayNumericDate(date: Date): string {
+  return getNumericDateFormatter().format(date);
+}
+
+/**
+ * Format time only using user's locale (e.g., 3:45 PM or 15:45)
+ *
+ * @param date - Date to extract and format time from
+ * @returns Locale-formatted time string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayTime(new Date('2025-11-20T15:45')) // '3:45 PM'
+ * // With de-DE locale
+ * formatDisplayTime(new Date('2025-11-20T15:45')) // '15:45'
+ */
+export function formatDisplayTime(date: Date): string {
+  return getTimeFormatter().format(date);
+}
+
+/**
+ * Format month and day using user's locale (e.g., NOV 30 or 30 NOV)
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted month+day string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayMonthDay(new Date('2025-11-30')) // 'Nov 30'
+ * // With de-DE locale
+ * formatDisplayMonthDay(new Date('2025-11-30')) // '30. Nov.'
+ */
+export function formatDisplayMonthDay(date: Date): string {
+  return getMonthDayFormatter().format(date);
+}
+
+/**
+ * Format month only using user's locale (e.g., Nov or nov.)
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted month string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayMonth(new Date('2025-11-20')) // 'Nov'
+ * // With de-DE locale
+ * formatDisplayMonth(new Date('2025-11-20')) // 'Nov.'
+ */
+export function formatDisplayMonth(date: Date): string {
+  return getMonthFormatter().format(date);
+}
+
+/**
+ * Format week label using user's locale (e.g., "Week of 11/30" or "Week of 30/11")
+ *
+ * @param date - Start date of the week
+ * @returns Formatted week label string
+ *
+ * @example
+ * // With en-US locale
+ * formatWeekOfLabel(new Date('2025-11-30')) // 'Week of 11/30'
+ * // With de-DE locale
+ * formatWeekOfLabel(new Date('2025-11-30')) // 'Week of 30.11.'
+ */
+export function formatWeekOfLabel(date: Date): string {
+  return `Week of ${formatDisplayShortDate(date)}`;
+}
+
+/**
+ * Format short date and time together (e.g., "11/30 3:45 PM" or "30/11 15:45")
+ * Used for per-run tier trends column headers
+ *
+ * @param date - Date to format
+ * @returns Locale-formatted short date + time string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayShortDateTime(new Date('2025-11-30T15:45')) // '11/30 3:45 PM'
+ * // With de-DE locale
+ * formatDisplayShortDateTime(new Date('2025-11-30T15:45')) // '30.11. 15:45'
+ */
+export function formatDisplayShortDateTime(date: Date): string {
+  return `${formatDisplayShortDate(date)} ${formatDisplayTime(date)}`;
 }
