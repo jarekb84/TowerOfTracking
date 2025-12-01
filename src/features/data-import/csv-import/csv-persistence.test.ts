@@ -1,6 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { runsToStorageCsv, storageCsvToRuns } from './csv-persistence';
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
+import {
+  __resetForTesting,
+  __setStateForTesting,
+} from '@/shared/locale/locale-store';
+import type { ImportFormatSettings } from '@/shared/locale/types';
 
 // Mock localStorage
 const localStorageMock = {
@@ -120,12 +125,12 @@ describe('CSV Persistence', () => {
   });
 
   describe('runsToStorageCsv', () => {
-    it('should convert runs to CSV format', () => {
+    it('should convert runs to CSV format with canonical formatting', () => {
       const runs = [createTestRun('test-1')];
       const csv = runsToStorageCsv(runs);
-      
+
       console.log('Generated CSV:', csv);
-      
+
       expect(csv).toContain('Date'); // Should have date column
       expect(csv).toContain('Time'); // Should have time column
       expect(csv).toContain('Tier'); // Should have tier column
@@ -133,7 +138,8 @@ describe('CSV Persistence', () => {
       expect(csv).toContain('2024-01-15'); // Should have formatted date
       expect(csv).toContain('14:30:00'); // Should have formatted time
       expect(csv).toContain('10'); // Should have tier value
-      expect(csv).toContain('5881'); // Should have wave value
+      // Wave 5881 preserves precision since rawValue didn't use shorthand
+      expect(csv).toContain('5881'); // Should have exact wave value (precision preserved)
     });
     it('should return empty string for empty runs array', () => {
       const csv = runsToStorageCsv([]);
@@ -171,7 +177,7 @@ describe('CSV Persistence', () => {
   });
 
   describe('round-trip conversion', () => {
-    it('should preserve data through CSV conversion and back', () => {
+    it('should preserve data through CSV conversion and back (with minor formatting precision loss)', () => {
       const originalRuns = [
         createTestRun('test-1', 'Simple notes'),
         createTestRun('test-2', 'Complex notes with "quotes", commas, and\nnewlines')
@@ -183,15 +189,22 @@ describe('CSV Persistence', () => {
 
       console.log('Round-trip parsed runs length:', parsedRuns.length);
       expect(parsedRuns.length).toBeGreaterThanOrEqual(2);
-      
-      // Check that key data is preserved - match by tier since that's the unique identifier in our test data
+
+      // Tier and runType are preserved exactly (no formatting)
       expect(parsedRuns[0].tier).toBe(10);
-      expect(parsedRuns[0].wave).toBe(5881);
-      expect(parsedRuns[0].coinsEarned).toBe(1130000000000);
-      expect(parsedRuns[0].cellsEarned).toBe(45200);
-      expect(parsedRuns[0].realTime).toBe(27966);
       expect(parsedRuns[0].runType).toBe('farm');
-      
+
+      // Numeric values: exact numbers preserve precision, shorthand now preserves 2 decimals
+      // Wave: 5881 -> "5881" -> 5881 (exact, rawValue had no shorthand suffix)
+      // CoinsEarned: 1130000000000 -> "1.13T" -> 1130000000000 (exact, rawValue was "1.13T")
+      // CellsEarned: 45200 -> "45.2K" -> 45200 (exact, rawValue was "45.2K")
+      expect(parsedRuns[0].wave).toBe(5881); // Exact preservation (no shorthand in original)
+      expect(parsedRuns[0].coinsEarned).toBe(1130000000000); // Exact preservation (2 decimal precision)
+      expect(parsedRuns[0].cellsEarned).toBe(45200); // Exact preservation
+
+      // Duration is preserved (not a number type)
+      expect(parsedRuns[0].realTime).toBe(27966);
+
       // Find the run with notes and check notes preservation
       const runWithNotes = parsedRuns.find(r => r.fields.notes);
       if (runWithNotes) {
@@ -211,11 +224,151 @@ describe('CSV Persistence', () => {
       const parsedRuns = storageCsvToRuns(csv);
 
       expect(parsedRuns).toHaveLength(3);
-      
+
       // Check each run type is preserved (order should match original)
       expect(parsedRuns[0].runType).toBe('farm');
       expect(parsedRuns[1].runType).toBe('tournament');
       expect(parsedRuns[2].runType).toBe('milestone');
+    });
+  });
+
+  describe('locale change resistance (data integrity)', () => {
+    /**
+     * These tests verify the fix for the data corruption bug where changing
+     * locale settings would cause stored data to be re-interpreted incorrectly.
+     *
+     * Example corruption scenario (pre-fix):
+     * 1. User imports data with US format: "12.3T" (12.3 trillion)
+     * 2. User changes import format to Italian (comma = decimal)
+     * 3. App reloads, reads "12.3T" with Italian format
+     * 4. The "." is interpreted as thousands separator (stripped), result: "123T"
+     * 5. User's 12.3 trillion becomes 123 trillion - 10x data corruption!
+     *
+     * The fix ensures storage always uses canonical US format, regardless of
+     * user's locale settings.
+     */
+
+    const US_FORMAT: ImportFormatSettings = {
+      decimalSeparator: '.',
+      thousandsSeparator: ',',
+      dateFormat: 'month-first',
+    };
+
+    const ITALIAN_FORMAT: ImportFormatSettings = {
+      decimalSeparator: ',',
+      thousandsSeparator: '.',
+      dateFormat: 'month-first',
+    };
+
+    afterEach(() => {
+      __resetForTesting();
+    });
+
+    it('should not corrupt data when user changes from US to Italian format', () => {
+      // 1. Start with US locale (user imports US-formatted data)
+      __setStateForTesting({
+        importFormat: US_FORMAT,
+        displayLocale: 'en-US',
+      });
+
+      // Create test data with typical US-formatted values
+      const originalRuns = [createTestRun('test-1')];
+
+      // Verify original values
+      expect(originalRuns[0].coinsEarned).toBe(1130000000000); // 1.13T
+
+      // 2. Store to CSV (should use canonical US format)
+      const storedCsv = runsToStorageCsv(originalRuns);
+
+      // 3. User changes locale to Italian
+      __setStateForTesting({
+        importFormat: ITALIAN_FORMAT,
+        displayLocale: 'it-IT',
+      });
+
+      // 4. Reload from storage - this is where corruption would occur pre-fix
+      const reloadedRuns = storageCsvToRuns(storedCsv);
+
+      // 5. Verify data is NOT corrupted (10x would make it 11.3T or 113T)
+      // Minor precision loss from formatting is acceptable (1.13T -> 1.1T)
+      // But should NOT be 11.3T (10x too big) or 113B (10x too small)
+      expect(reloadedRuns[0].coinsEarned).toBeCloseTo(1130000000000, -11); // ~1.1T, within 100B
+      expect(reloadedRuns[0].coinsEarned).toBeGreaterThan(100000000000); // > 100B (not 10x too small)
+      expect(reloadedRuns[0].coinsEarned).toBeLessThan(10000000000000); // < 10T (not 10x too big)
+
+      expect(reloadedRuns[0].cellsEarned).toBeCloseTo(45200, -2); // ~45.2K, within 100
+      expect(reloadedRuns[0].cellsEarned).toBeGreaterThan(4000); // > 4K (not 10x too small)
+      expect(reloadedRuns[0].cellsEarned).toBeLessThan(500000); // < 500K (not 10x too big)
+    });
+
+    it('should not corrupt data when user changes from Italian to US format', () => {
+      // 1. Start with Italian locale
+      __setStateForTesting({
+        importFormat: ITALIAN_FORMAT,
+        displayLocale: 'it-IT',
+      });
+
+      // Create test data (same numeric values)
+      const originalRuns = [createTestRun('test-1')];
+
+      // 2. Store to CSV (should use canonical US format regardless of display locale)
+      const storedCsv = runsToStorageCsv(originalRuns);
+
+      // 3. User changes locale to US
+      __setStateForTesting({
+        importFormat: US_FORMAT,
+        displayLocale: 'en-US',
+      });
+
+      // 4. Reload from storage
+      const reloadedRuns = storageCsvToRuns(storedCsv);
+
+      // 5. Verify data is NOT corrupted (order of magnitude check)
+      expect(reloadedRuns[0].coinsEarned).toBeCloseTo(1130000000000, -11); // ~1.1T
+      expect(reloadedRuns[0].coinsEarned).toBeGreaterThan(100000000000); // > 100B
+      expect(reloadedRuns[0].coinsEarned).toBeLessThan(10000000000000); // < 10T
+
+      expect(reloadedRuns[0].cellsEarned).toBeCloseTo(45200, -2); // ~45.2K
+    });
+
+    it('should preserve data through multiple locale changes', () => {
+      const originalRuns = [createTestRun('test-1')];
+      const originalCoins = originalRuns[0].coinsEarned;
+
+      // First save with US locale
+      __setStateForTesting({ importFormat: US_FORMAT, displayLocale: 'en-US' });
+      let csv = runsToStorageCsv(originalRuns);
+
+      // Switch to Italian, reload and re-save
+      __setStateForTesting({ importFormat: ITALIAN_FORMAT, displayLocale: 'it-IT' });
+      let runs = storageCsvToRuns(csv);
+      csv = runsToStorageCsv(runs);
+
+      // Switch back to US, reload
+      __setStateForTesting({ importFormat: US_FORMAT, displayLocale: 'en-US' });
+      runs = storageCsvToRuns(csv);
+
+      // Data should maintain order of magnitude (minor rounding acceptable)
+      // NOT 10x corrupted
+      expect(runs[0].coinsEarned).toBeCloseTo(originalCoins, -11);
+      expect(runs[0].coinsEarned).toBeGreaterThan(originalCoins * 0.1); // Not 10x too small
+      expect(runs[0].coinsEarned).toBeLessThan(originalCoins * 10); // Not 10x too big
+    });
+
+    it('should store CSV data in canonical US format', () => {
+      // Even with Italian display locale, storage should be US format
+      __setStateForTesting({
+        importFormat: ITALIAN_FORMAT,
+        displayLocale: 'it-IT',
+      });
+
+      const runs = [createTestRun('test-1')];
+      const csv = runsToStorageCsv(runs);
+
+      // CSV should contain US-formatted numbers (period decimal)
+      // The number 1.13T should be stored as "1.13T" (preserves 2 decimals)
+      expect(csv).toContain('1.13T'); // NOT "1,13T"
+      expect(csv).toContain('45.2K'); // NOT "45,2K"
     });
   });
 });

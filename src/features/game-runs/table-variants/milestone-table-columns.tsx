@@ -16,7 +16,13 @@ import {
 
 const columnHelper = createColumnHelper<ParsedGameRun>();
 
-export function createMilestoneTableColumns(removeRun: (id: string) => void): ColumnDef<ParsedGameRun>[] {
+/**
+ * Creates column definitions for the milestone runs table.
+ * Uses locale-aware formatting from the locale store.
+ */
+export function createMilestoneTableColumns(
+  removeRun: (id: string) => void
+): ColumnDef<ParsedGameRun>[] {
   return [
     createExpanderColumn(),
     createNotesColumn(),

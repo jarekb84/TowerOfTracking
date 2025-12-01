@@ -4,6 +4,11 @@ import {
   formatLargeNumber
 } from './number-scale';
 
+/**
+ * Core tests for number-scale.ts functions.
+ * Locale-specific tests are in number-scale-locale.test.ts.
+ */
+
 describe('parseShorthandNumber', () => {
   describe('edge cases', () => {
     it('should return 0 for empty string', () => {
@@ -137,30 +142,30 @@ describe('formatLargeNumber', () => {
     });
 
     it('should format two-letter suffixes (aa through aj)', () => {
-      expect(formatLargeNumber(1e36)).toBe('1.0aa');
+      expect(formatLargeNumber(1e36)).toBe('1aa');
       expect(formatLargeNumber(2.5e39)).toBe('2.5ab');
       expect(formatLargeNumber(3.7e42)).toBe('3.7ac');
-      expect(formatLargeNumber(1e45)).toBe('1.0ad');
-      expect(formatLargeNumber(1e48)).toBe('1.0ae');
-      expect(formatLargeNumber(1e51)).toBe('1.0af');
-      expect(formatLargeNumber(1e54)).toBe('1.0ag');
-      expect(formatLargeNumber(1e57)).toBe('1.0ah');
-      expect(formatLargeNumber(1e60)).toBe('1.0ai');
-      expect(formatLargeNumber(1e63)).toBe('1.0aj');
+      expect(formatLargeNumber(1e45)).toBe('1ad');
+      expect(formatLargeNumber(1e48)).toBe('1ae');
+      expect(formatLargeNumber(1e51)).toBe('1af');
+      expect(formatLargeNumber(1e54)).toBe('1ag');
+      expect(formatLargeNumber(1e57)).toBe('1ah');
+      expect(formatLargeNumber(1e60)).toBe('1ai');
+      expect(formatLargeNumber(1e63)).toBe('1aj');
     });
   });
 
   describe('decimal precision', () => {
-    it('should use 1 decimal place for formatted numbers', () => {
-      expect(formatLargeNumber(1234)).toBe('1.2K');
-      expect(formatLargeNumber(1567)).toBe('1.6K');
-      expect(formatLargeNumber(1234567)).toBe('1.2M');
+    it('should preserve up to 2 decimal places for formatted numbers', () => {
+      expect(formatLargeNumber(1234)).toBe('1.23K');
+      expect(formatLargeNumber(1567)).toBe('1.57K');
+      expect(formatLargeNumber(1234567)).toBe('1.23M');
     });
   });
 
   describe('negative numbers', () => {
     it('should handle negative large numbers', () => {
-      expect(formatLargeNumber(-1_000)).toBe('-1.0K');
+      expect(formatLargeNumber(-1_000)).toBe('-1K');
       expect(formatLargeNumber(-1_500_000)).toBe('-1.5M');
       expect(formatLargeNumber(-2_300_000_000)).toBe('-2.3B');
     });

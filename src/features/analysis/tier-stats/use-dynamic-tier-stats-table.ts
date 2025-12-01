@@ -13,7 +13,7 @@ import {
 import { sortTierStats, sortByTier } from './tier-stats-sort'
 import { filterRunsByType, RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils'
-import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
+import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
 
 interface UseDynamicTierStatsTableReturn {
@@ -165,7 +165,10 @@ export function useDynamicTierStatsTable(
 }
 
 // Helper function to format cell values based on data type
-function formatCellValue(value: number, dataType: 'number' | 'duration' | 'string' | 'date'): string {
+function formatCellValue(
+  value: number,
+  dataType: 'number' | 'duration' | 'string' | 'date'
+): string {
   if (dataType === 'duration') {
     return formatDuration(Math.round(value))
   }

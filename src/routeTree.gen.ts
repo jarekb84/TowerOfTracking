@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsLocaleRouteImport } from './routes/settings/locale'
 import { Route as SettingsImportRouteImport } from './routes/settings/import'
 import { Route as SettingsExportRouteImport } from './routes/settings/export'
 import { Route as SettingsDeleteRouteImport } from './routes/settings/delete'
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsLocaleRoute = SettingsLocaleRouteImport.update({
+  id: '/locale',
+  path: '/locale',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsImportRoute = SettingsImportRouteImport.update({
   id: '/import',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/settings/delete': typeof SettingsDeleteRoute
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
+  '/settings/locale': typeof SettingsLocaleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/settings/delete': typeof SettingsDeleteRoute
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
+  '/settings/locale': typeof SettingsLocaleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/settings/delete': typeof SettingsDeleteRoute
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
+  '/settings/locale': typeof SettingsLocaleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/settings/delete'
     | '/settings/export'
     | '/settings/import'
+    | '/settings/locale'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/settings/delete'
     | '/settings/export'
     | '/settings/import'
+    | '/settings/locale'
   id:
     | '__root__'
     | '/'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/settings/delete'
     | '/settings/export'
     | '/settings/import'
+    | '/settings/locale'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -267,6 +279,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/locale': {
+      id: '/settings/locale'
+      path: '/locale'
+      fullPath: '/settings/locale'
+      preLoaderRoute: typeof SettingsLocaleRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/settings/import': {
       id: '/settings/import'
@@ -403,12 +422,14 @@ interface SettingsRouteChildren {
   SettingsDeleteRoute: typeof SettingsDeleteRoute
   SettingsExportRoute: typeof SettingsExportRoute
   SettingsImportRoute: typeof SettingsImportRoute
+  SettingsLocaleRoute: typeof SettingsLocaleRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsDeleteRoute: SettingsDeleteRoute,
   SettingsExportRoute: SettingsExportRoute,
   SettingsImportRoute: SettingsImportRoute,
+  SettingsLocaleRoute: SettingsLocaleRoute,
 }
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(

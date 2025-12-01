@@ -1,6 +1,7 @@
 import { useState, memo } from 'react';
 import { Button, Textarea, FormField, FormLabel, ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogBody, ResponsiveDialogFooter } from '@/components/ui';
 import { useFileImport } from '../csv-import/input/csv-file-upload';
+import { FormatMismatchWarning } from '../csv-import/format-warning';
 import { useDataInputForm } from './use-data-input-form';
 import { useGlobalDataInput } from './use-global-data-input';
 import { DuplicateInfo } from '@/shared/domain/duplicate-detection/duplicate-info';
@@ -34,14 +35,20 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
     }
   });
 
-  const handleCancel = (): void => {
+  /**
+   * Reset form state and close the modal.
+   * Used for all modal close scenarios: Cancel, X button, ESC, clicking outside,
+   * navigating away via links, and after saving.
+   * This ensures stale parsed data never persists when modal reopens.
+   */
+  const closeModal = (): void => {
     form.resetForm();
     closeDialog();
   };
 
   const handleSave = (): void => {
     form.handleSave();
-    closeDialog();
+    closeModal();
   };
 
   const handleDateSelect = (date: Date | undefined): void => {
@@ -52,9 +59,11 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
   };
 
   return (
-    <ResponsiveDialog 
-      open={isDialogOpen} 
-      onOpenChange={(open) => { if (!open) closeDialog(); }}
+    <ResponsiveDialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) closeModal();
+      }}
     >
         <ResponsiveDialogContent className={className}>
           <ResponsiveDialogHeader
@@ -63,6 +72,15 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
           />
           
           <ResponsiveDialogBody>
+            {/* Format Mismatch Warning - shows when data format doesn't match settings */}
+            {form.previewData && (
+              <FormatMismatchWarning
+                parsedRuns={[form.previewData]}
+                className="mb-5"
+                onSettingsClick={closeModal}
+              />
+            )}
+
             <div className="space-y-5">
               <DataInputActionsSection 
                 onPaste={form.handlePaste}
@@ -130,8 +148,8 @@ Coins per hour	860.06B"
             </div>
 
             {form.previewData && (
-              <DataInputPreview 
-                previewData={form.previewData} 
+              <DataInputPreview
+                previewData={form.previewData}
                 selectedRunType={form.selectedRunType}
               />
             )}
@@ -151,7 +169,7 @@ Coins per hour	860.06B"
           <ResponsiveDialogFooter mobileLayout="1-2">
             <Button 
               variant="outline" 
-              onClick={handleCancel}
+              onClick={closeModal}
               className="h-10 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all duration-200"
             >
               Cancel

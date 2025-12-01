@@ -69,8 +69,8 @@ describe('DataInputPreview', () => {
     expect(screen.getByText('Farm')).toBeInTheDocument();
     expect(screen.getByText('7h 56m 6s')).toBeInTheDocument(); // formatDuration result for 28566 seconds
     expect(screen.getByText('10')).toBeInTheDocument(); // formatTierLabel shows raw value
-    expect(screen.getByText('5.9K')).toBeInTheDocument(); // formatNumber result for 5881
-    expect(screen.getByText('1.1T')).toBeInTheDocument(); // formatNumber result for 1.13T
+    expect(screen.getByText('5.88K')).toBeInTheDocument(); // formatNumber result for 5881 (2 decimal precision)
+    expect(screen.getByText('1.13T')).toBeInTheDocument(); // formatNumber result for 1.13T (2 decimal precision)
     expect(screen.getByText('45.2K')).toBeInTheDocument();
   });
 
@@ -93,7 +93,7 @@ describe('DataInputPreview', () => {
     expect(screen.getByText('Tournament')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
     expect(screen.queryByText('7h 56m 6s')).not.toBeInTheDocument();
-    expect(screen.queryByText('5.9K')).not.toBeInTheDocument();
+    expect(screen.queryByText('5.88K')).not.toBeInTheDocument();
   });
 
   it('should display per-hour calculations for earnings', () => {
@@ -107,7 +107,7 @@ describe('DataInputPreview', () => {
     // Should show per-hour calculations in parentheses for both coins and cells
     const perHourElements = screen.getAllByText(/\/hr\)/);
     expect(perHourElements).toHaveLength(2); // One for coins, one for cells
-    expect(screen.getByText('(142.4B/hr)')).toBeInTheDocument();
+    expect(screen.getByText('(142.41B/hr)')).toBeInTheDocument();
     expect(screen.getByText('(5.7K/hr)')).toBeInTheDocument();
   });
 });

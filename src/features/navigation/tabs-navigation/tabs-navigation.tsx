@@ -36,6 +36,8 @@ export function TabsNavigation({
     switch (columns) {
       case 3:
         return 'grid-cols-3'
+      case 4:
+        return 'grid-cols-2 sm:grid-cols-4'
       case 7:
         return 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7'
       default:

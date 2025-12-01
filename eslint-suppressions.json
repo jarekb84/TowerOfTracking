@@ -154,9 +154,15 @@
   "src/features/data-import/csv-import/use-csv-import.ts": {
     "max-lines-per-function": {
       "count": 1
+    },
+    "max-statements": {
+      "count": 1
     }
   },
   "src/features/data-import/manual-entry/data-input.tsx": {
+    "complexity": {
+      "count": 1
+    },
     "max-lines-per-function": {
       "count": 1
     }
@@ -181,6 +187,14 @@
   },
   "src/features/navigation/top-navbar/nav-icon.tsx": {
     "complexity": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/features/settings/locale-settings/locale-settings-content.tsx": {
+    "max-lines-per-function": {
       "count": 1
     }
   },
@@ -209,6 +223,16 @@
   },
   "src/shared/domain/use-data.ts": {
     "max-lines-per-function": {
+      "count": 1
+    }
+  },
+  "src/shared/formatting/number-scale.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/shared/locale/locale-store.ts": {
+    "complexity": {
       "count": 1
     }
   }

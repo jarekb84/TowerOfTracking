@@ -181,4 +181,47 @@ export class GameRunsPage {
       throw new Error(`Expected at least ${minCount} rows, but found ${count}`);
     }
   }
+
+  /**
+   * Get the value of a specific cell in a table row by column header name.
+   * This works for visible table columns without needing to expand the row.
+   *
+   * @param rowIndex - The row index (0-based)
+   * @param columnHeader - The exact header text of the column (e.g., "Coins", "Wave", "Tier")
+   * @returns The text value of the cell, or null if not found
+   */
+  async getCellValue(rowIndex: number, columnHeader: string): Promise<string | null> {
+    // Find the column index by looking at the header row
+    const headerCells = this.page.locator('[role="columnheader"]');
+    const headerCount = await headerCells.count();
+
+    let columnIndex = -1;
+    for (let i = 0; i < headerCount; i++) {
+      const headerText = await headerCells.nth(i).textContent();
+      if (headerText?.trim() === columnHeader) {
+        columnIndex = i;
+        break;
+      }
+    }
+
+    if (columnIndex === -1) {
+      return null;
+    }
+
+    // Get the row
+    const row = this.tableRows.nth(rowIndex);
+    const rowExists = await row.count();
+    if (rowExists === 0) return null;
+
+    // Get the cells within the row's grid (main row cells, not expanded content)
+    const cells = row.locator('.grid [role="cell"]');
+    const cell = cells.nth(columnIndex);
+
+    try {
+      const value = await cell.textContent({ timeout: 1000 });
+      return value?.trim() ?? null;
+    } catch {
+      return null;
+    }
+  }
 }

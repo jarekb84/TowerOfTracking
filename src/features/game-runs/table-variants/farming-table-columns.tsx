@@ -1,5 +1,6 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
-import { formatNumber, calculatePerHour } from '@/features/analysis/shared/parsing/data-parser';
+import { calculatePerHour } from '@/features/analysis/shared/parsing/data-parser';
+import { formatLargeNumber } from '@/shared/formatting/number-scale';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import {
   createExpanderColumn,
@@ -17,7 +18,13 @@ import {
 
 const columnHelper = createColumnHelper<ParsedGameRun>();
 
-export function createFarmingTableColumns(removeRun: (id: string) => void): ColumnDef<ParsedGameRun>[] {
+/**
+ * Creates column definitions for the farming runs table.
+ * Uses locale-aware formatting from the locale store.
+ */
+export function createFarmingTableColumns(
+  removeRun: (id: string) => void
+): ColumnDef<ParsedGameRun>[] {
   return [
     createExpanderColumn(),
     createNotesColumn(),
@@ -44,7 +51,7 @@ export function createFarmingTableColumns(removeRun: (id: string) => void): Colu
       header: 'Coins/Hour',
       cell: (info) => {
         const value = info.getValue() as number;
-        return value ? formatNumber(value) : '-';
+        return value ? formatLargeNumber(value) : '-';
       },
       size: COLUMN_SIZES.coinsPerHour,
     }),
@@ -57,7 +64,7 @@ export function createFarmingTableColumns(removeRun: (id: string) => void): Colu
       header: 'Cells/Hour',
       cell: (info) => {
         const value = info.getValue() as number;
-        return value ? formatNumber(value) : '-';
+        return value ? formatLargeNumber(value) : '-';
       },
       size: COLUMN_SIZES.cellsPerHour,
     }),

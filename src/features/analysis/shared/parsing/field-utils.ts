@@ -1,4 +1,5 @@
 import type { GameRunField, ParsedGameRun } from '@/shared/types/game-run.types';
+import type { ImportFormatSettings } from '@/shared/locale/types';
 import {
   parseShorthandNumber,
   formatLargeNumber
@@ -88,21 +89,32 @@ function getFieldConfig(key: string, rawValue?: string): FieldConfig {
   return { type: 'number' };
 }
 
-// Create rich field object with all representations
-export function createGameRunField(originalKey: string, rawValue: string): GameRunField {
+/**
+ * Create rich field object with all representations.
+ *
+ * @param originalKey - The original field key from the import data
+ * @param rawValue - The raw string value from the import
+ * @param importFormat - Optional import format settings (defaults to store's import format)
+ * @returns GameRunField with processed value, raw value, and display value
+ */
+export function createGameRunField(
+  originalKey: string,
+  rawValue: string,
+  importFormat?: ImportFormatSettings
+): GameRunField {
   const fieldConfig = getFieldConfig(originalKey, rawValue);
-  
+
   let processedValue: number | string | Date;
   let displayValue: string;
   let dataType: GameRunField['dataType'];
-  
+
   switch (fieldConfig.type) {
     case 'duration':
       processedValue = parseDuration(rawValue);
       displayValue = formatDuration(processedValue as number);
       dataType = 'duration';
       break;
-      
+
     case 'date':
       try {
         processedValue = new Date(rawValue);
@@ -114,25 +126,27 @@ export function createGameRunField(originalKey: string, rawValue: string): GameR
         dataType = 'string';
       }
       break;
-      
+
     case 'number':
-      processedValue = parseShorthandNumber(rawValue);
+      // parseShorthandNumber uses store's import format if not explicitly provided
+      processedValue = parseShorthandNumber(rawValue, importFormat);
+      // formatLargeNumber uses store's display locale
       displayValue = formatLargeNumber(processedValue as number);
       dataType = 'number';
       break;
-      
+
     case 'string':
       processedValue = rawValue;
       displayValue = rawValue;
       dataType = 'string';
       break;
-      
+
     default:
       processedValue = rawValue;
       displayValue = rawValue;
       dataType = 'string';
   }
-  
+
   return {
     value: processedValue,
     rawValue,

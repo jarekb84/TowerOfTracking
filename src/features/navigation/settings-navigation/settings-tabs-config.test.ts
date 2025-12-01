@@ -3,8 +3,8 @@ import { SETTINGS_TABS, getValidSettingsRoutes } from './settings-tabs-config'
 
 describe('settings-tabs-config', () => {
   describe('SETTINGS_TABS', () => {
-    it('should have 3 settings tabs', () => {
-      expect(SETTINGS_TABS).toHaveLength(3)
+    it('should have 4 settings tabs', () => {
+      expect(SETTINGS_TABS).toHaveLength(4)
     })
 
     it('should have all required properties for each tab', () => {
@@ -39,7 +39,7 @@ describe('settings-tabs-config', () => {
   describe('getValidSettingsRoutes', () => {
     it('should return all settings routes', () => {
       const routes = getValidSettingsRoutes()
-      expect(routes).toHaveLength(3)
+      expect(routes).toHaveLength(4)
     })
 
     it('should return routes matching SETTINGS_TABS', () => {
@@ -56,6 +56,11 @@ describe('settings-tabs-config', () => {
     it('should include export route', () => {
       const routes = getValidSettingsRoutes()
       expect(routes).toContain('/settings/export')
+    })
+
+    it('should include locale route', () => {
+      const routes = getValidSettingsRoutes()
+      expect(routes).toContain('/settings/locale')
     })
 
     it('should include delete route', () => {

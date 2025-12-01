@@ -58,7 +58,8 @@ describe('useCsvExport', () => {
       expect(csvExporter.exportToCsv).toHaveBeenCalledWith(mockRuns, {
         delimiter: 'tab',
         customDelimiter: undefined,
-        includeAppFields: true
+        includeAppFields: true,
+        outputFormat: 'localized',
       });
       expect(result.current.exportResult).toEqual(mockExportResult);
     });
@@ -93,7 +94,8 @@ describe('useCsvExport', () => {
         expect(csvExporter.exportToCsv).toHaveBeenCalledWith(mockRuns, {
           delimiter: 'comma',
           customDelimiter: undefined,
-          includeAppFields: true
+          includeAppFields: true,
+          outputFormat: 'localized',
         });
       });
     });

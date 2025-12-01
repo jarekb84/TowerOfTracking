@@ -66,7 +66,7 @@ test.describe('Game Runs Table', () => {
     // Assert that we got real data
     expect(realTime).toBe('12h 44m 28s')
     expect(tier).toBe('11')
-    expect(wave).toBe('9.7K')
+    expect(wave).toBe('9.74K')
 
     // Collapse row
     await gameRunsPage.collapseRow(0);

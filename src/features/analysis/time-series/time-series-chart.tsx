@@ -30,9 +30,13 @@ export function TimeSeriesChart({
   subtitle = 'Track your performance over time',
   defaultPeriod = 'run',
   showFarmingOnly = false,
-  valueFormatter = formatLargeNumber
+  valueFormatter
 }: TimeSeriesChartProps) {
   const { runs } = useData()
+
+  // Use provided formatter or locale-aware default (formatLargeNumber reads from locale store)
+  // Wrap formatLargeNumber to ignore extra arguments from chart library (like index)
+  const formatter = valueFormatter ?? ((value: number) => formatLargeNumber(value))
   
   // Filter runs based on showFarmingOnly prop
   const filteredRuns = useMemo(() => {
@@ -164,16 +168,16 @@ export function TimeSeriesChart({
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 12, fill: '#94a3b8' }}
-            tickFormatter={valueFormatter}
+            tickFormatter={formatter}
             ticks={yAxisTicks}
             domain={[0, 'dataMax']}
             tickMargin={8}
           />
-          
+
           <ChartTooltip
             content={<ChartTooltipContent
               formatter={(value) => {
-                const formattedValue = valueFormatter(Number(value))
+                const formattedValue = formatter(Number(value))
                 const suffix = selectedPeriod === 'hourly' ? '/hour' : ''
                 return [`${formattedValue}${suffix} `, title]
               }}

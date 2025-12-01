@@ -32,6 +32,7 @@ export class AppPage {
   readonly sourceAnalysisLink: Locator;
 
   // Sidebar navigation - Settings section (deep links to settings page)
+  readonly regionalFormatLink: Locator;
   readonly bulkImportLink: Locator;
   readonly bulkExportLink: Locator;
   readonly deleteDataLink: Locator;
@@ -61,6 +62,7 @@ export class AppPage {
     this.sourceAnalysisLink = page.locator('a:has-text("Source Analysis")');
 
     // Settings section (deep links to settings page)
+    this.regionalFormatLink = page.locator('a:has-text("Regional Format")');
     this.bulkImportLink = page.locator('a:has-text("Bulk Import")');
     this.bulkExportLink = page.locator('a:has-text("Bulk Export")');
     this.deleteDataLink = page.locator('a:has-text("Delete Data")');
@@ -136,6 +138,15 @@ export class AppPage {
   async navigateToDeleteData() {
     await this.deleteDataLink.click();
     await this.page.waitForURL(/\/settings\/delete/);
+  }
+
+  /**
+   * Navigate to Regional Format (Locale) settings page via sidebar
+   * Uses route-based navigation: /settings/locale
+   */
+  async navigateToRegionalFormat() {
+    await this.regionalFormatLink.click();
+    await this.page.waitForURL(/\/settings\/locale/);
   }
 
   /**

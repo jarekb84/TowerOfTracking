@@ -6,6 +6,7 @@ import { executeImport } from './csv-import-executor';
 import type { CsvDelimiter, CsvParseResult } from './types';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
+import { useLocaleStore } from '@/shared/locale';
 
 interface UseCsvImportOptions {
   /** When true, hook operates in page context (no dialog state management) */
@@ -48,6 +49,7 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
   const [resolution, setResolution] = useState<DuplicateResolution>('new-only');
   const [importSuccess, setImportSuccess] = useState(false);
   const { addRuns, detectBatchDuplicates, overwriteRun } = useData();
+  const { importFormat } = useLocaleStore();
 
   // Parse data helper using extracted pure function
   const parseData = useCallback((text: string): void => {
@@ -57,8 +59,8 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
       return;
     }
     const delimiter = resolveDelimiter(selectedDelimiter, customDelimiter);
-    setParseResult(parseCsvSafe(text, delimiter));
-  }, [selectedDelimiter, customDelimiter]);
+    setParseResult(parseCsvSafe(text, delimiter, importFormat));
+  }, [selectedDelimiter, customDelimiter, importFormat]);
 
   // Check for duplicates when parse result changes
   useEffect(() => {
@@ -108,18 +110,18 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
     if (inputData.trim()) {
       // Manually parse with new delimiter since state hasn't updated yet
       const delimiterStr = resolveDelimiter(delimiter, customDelimiter);
-      setParseResult(parseCsvSafe(inputData, delimiterStr));
+      setParseResult(parseCsvSafe(inputData, delimiterStr, importFormat));
     }
-  }, [inputData, customDelimiter]);
+  }, [inputData, customDelimiter, importFormat]);
 
   // Custom delimiter change handler
   const handleCustomDelimiterChange = useCallback((value: string): void => {
     setCustomDelimiter(value);
     if (selectedDelimiter === 'custom' && inputData.trim()) {
       // Manually parse with new custom delimiter since state hasn't updated yet
-      setParseResult(parseCsvSafe(inputData, value));
+      setParseResult(parseCsvSafe(inputData, value, importFormat));
     }
-  }, [selectedDelimiter, inputData]);
+  }, [selectedDelimiter, inputData, importFormat]);
 
   // Clear form state without closing dialog (useful for page mode)
   const clearFormState = useCallback((): void => {

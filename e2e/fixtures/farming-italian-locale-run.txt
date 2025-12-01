@@ -1,0 +1,92 @@
+Battle Report
+Battle Date	Nov 20, 2025 22:28
+Game Time	2d 9h 35m 20s
+Real Time	11h 35m 9s
+Tier	12
+Wave	9135
+Killed By	Scatter
+Coins earned	43,91T
+Coins per hour	3,79T
+Cash earned	$3,74B
+Interest earned	$5,02M
+Gem Blocks Tapped	10
+Cells Earned	248,55K
+Reroll Shards Earned	21,49K
+Combat
+Damage dealt	4,96aa
+Damage Taken	35,38q
+Damage Taken Wall	1,76Q
+Damage Taken While Berserked	0
+Damage Gain From Berserk	x0,00
+Death Defy	0
+Lifesteal	3,06T
+Projectiles Damage	24,42D
+Projectiles Count	48,84M
+Thorn damage	81,15D
+Orb Damage	4,24aa
+Enemies Hit by Orbs	1,40M
+Land Mine Damage	63,84s
+Land Mines Spawned	549317
+Rend Armor Damage	24,60s
+Death Ray Damage	1,49O
+Smart Missile Damage	0
+Inner Land Mine Damage	43,49Q
+Chain Lightning Damage	0
+Death Wave Damage	33,35Q
+Tagged by Deathwave	263019
+Swamp Damage	0
+Black Hole Damage	610,86D
+Utility
+Waves Skipped	2163
+Recovery Packages	5484
+Free Attack Upgrade	660
+Free Defense Upgrade	569
+Free Utility Upgrade	581
+HP From Death Wave	9,98T
+Coins From Death Wave	37,36B
+Cash From Golden Tower	$653,27M
+Coins From Golden Tower	1,31T
+Coins From Black Hole	469,15B
+Coins From Spotlight	68,06B
+Coins From Orb	0
+Coins from Coin Upgrade	1,60T
+Coins from Coin Bonuses	40,33T
+Enemies Destroyed
+Total Enemies	1531196
+Basic	550738
+Fast	318669
+Tank	301351
+Ranged	273877
+Boss	704
+Protector	1392
+Total Elites	9346
+Vampires	3195
+Rays	3041
+Scatters	3110
+Saboteur	0
+Commander	0
+Overcharge	0
+Destroyed By Orbs	1398553
+Destroyed by Thorns	82694
+Destroyed by Death Ray	131
+Destroyed by Land Mine	6095
+Destroyed in Spotlight	731448
+Bots
+Flame Bot Damage	314,22Q
+Thunder Bot Stuns	0
+Golden Bot Coins Earned	0
+Destroyed in Golden Bot	0
+Guardian
+Damage	0
+Summoned enemies	126,05K
+Guardian coins stolen	0
+Coins Fetched	55,29B
+Gems	15
+Medals	6
+Reroll Shards	322
+Cannon Shards	15
+Armor Shards	21
+Generator Shards	21
+Core Shards	21
+Common Modules	3
+Rare Modules	0

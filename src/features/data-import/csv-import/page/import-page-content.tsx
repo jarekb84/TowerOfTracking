@@ -4,10 +4,9 @@ import { DuplicateInfo } from '@/shared/domain/duplicate-detection/duplicate-inf
 import { useCsvImport } from '../use-csv-import';
 import { CsvInputSection } from '../input/csv-input-section';
 import { DelimiterControls } from '../delimiter/delimiter-controls';
-import { FieldMappingReport } from '../field-mapping/field-mapping-report';
-import { ImportStatusCard } from '../validation/import-status-card';
-import { ImportPreview } from '../preview/import-preview';
+import { FormatMismatchWarning } from '../format-warning';
 import { StickyActionFooter } from './sticky-action-footer';
+import { ParseResultSections } from './parse-result-sections';
 import { getImportButtonText } from './import-button-text';
 
 /**
@@ -62,6 +61,9 @@ export function ImportPageContent() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Format Mismatch Warning - shows at top when data format doesn't match settings */}
+          <FormatMismatchWarning parsedRuns={parseResult?.success} />
+
           <CsvInputSection
             inputData={inputData}
             onInputChange={handleInputChange}
@@ -76,11 +78,7 @@ export function ImportPageContent() {
             onCustomDelimiterChange={handleCustomDelimiterChange}
           />
 
-          {parseResult && <FieldMappingReport parseResult={parseResult} />}
-
-          {parseResult && <ImportStatusCard parseResult={parseResult} />}
-
-          {parseResult?.success && <ImportPreview runs={parseResult.success} />}
+          <ParseResultSections parseResult={parseResult} />
 
           {/* Duplicate Detection - shows immediately when duplicates are found */}
           {duplicateResult && duplicateResult.duplicates.length > 0 && (

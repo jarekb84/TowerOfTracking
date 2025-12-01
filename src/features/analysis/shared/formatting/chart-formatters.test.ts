@@ -5,32 +5,32 @@ describe('Chart Formatters', () => {
   describe('formatLargeNumber', () => {
     it('should format numbers in quadrillions (lowercase q)', () => {
       expect(formatLargeNumber(1.5e15)).toBe('1.5q')
-      expect(formatLargeNumber(2.34e15)).toBe('2.3q')
+      expect(formatLargeNumber(2.34e15)).toBe('2.34q')
     })
 
     it('should format numbers in quintillions (uppercase Q)', () => {
       expect(formatLargeNumber(1.5e18)).toBe('1.5Q')
-      expect(formatLargeNumber(2.34e18)).toBe('2.3Q')
+      expect(formatLargeNumber(2.34e18)).toBe('2.34Q')
     })
 
     it('should format numbers in trillions', () => {
       expect(formatLargeNumber(1.5e12)).toBe('1.5T')
-      expect(formatLargeNumber(2.34e12)).toBe('2.3T')
+      expect(formatLargeNumber(2.34e12)).toBe('2.34T')
     })
 
     it('should format numbers in billions', () => {
       expect(formatLargeNumber(1.5e9)).toBe('1.5B')
-      expect(formatLargeNumber(2.34e9)).toBe('2.3B')
+      expect(formatLargeNumber(2.34e9)).toBe('2.34B')
     })
 
     it('should format numbers in millions', () => {
       expect(formatLargeNumber(1.5e6)).toBe('1.5M')
-      expect(formatLargeNumber(2.34e6)).toBe('2.3M')
+      expect(formatLargeNumber(2.34e6)).toBe('2.34M')
     })
 
     it('should format numbers in thousands', () => {
       expect(formatLargeNumber(1500)).toBe('1.5K')
-      expect(formatLargeNumber(2340)).toBe('2.3K')
+      expect(formatLargeNumber(2340)).toBe('2.34K')
     })
 
     it('should return exact string for small numbers', () => {
