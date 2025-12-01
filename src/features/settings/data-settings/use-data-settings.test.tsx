@@ -46,12 +46,13 @@ describe('useDataSettings', () => {
   describe('initial state', () => {
     it('should initialize with correct default values', () => {
       const { result } = renderHook(() => useDataSettings());
-      
+
       expect(result.current.runsCount).toBe(3);
       expect(result.current.isClearing).toBe(false);
       expect(result.current.error).toBe(null);
       expect(result.current.showSuccess).toBe(false);
       expect(result.current.canClear).toBe(true);
+      expect(result.current.isConfirmationOpen).toBe(false);
     });
     
     it('should disable clearing when no runs exist', () => {
@@ -219,6 +220,82 @@ describe('useDataSettings', () => {
       });
       
       expect(result.current.showSuccess).toBe(false);
+    });
+  });
+
+  describe('confirmation management', () => {
+    it('should open confirmation when openConfirmation is called', () => {
+      const { result } = renderHook(() => useDataSettings());
+
+      expect(result.current.isConfirmationOpen).toBe(false);
+
+      act(() => {
+        result.current.openConfirmation();
+      });
+
+      expect(result.current.isConfirmationOpen).toBe(true);
+    });
+
+    it('should close confirmation when closeConfirmation is called', () => {
+      const { result } = renderHook(() => useDataSettings());
+
+      // Open first
+      act(() => {
+        result.current.openConfirmation();
+      });
+
+      expect(result.current.isConfirmationOpen).toBe(true);
+
+      // Then close
+      act(() => {
+        result.current.closeConfirmation();
+      });
+
+      expect(result.current.isConfirmationOpen).toBe(false);
+    });
+
+    it('should close confirmation after successful deletion', async () => {
+      const { result } = renderHook(() => useDataSettings());
+
+      // Open confirmation first
+      act(() => {
+        result.current.openConfirmation();
+      });
+
+      expect(result.current.isConfirmationOpen).toBe(true);
+
+      // Execute deletion
+      await act(async () => {
+        await result.current.handleClearAllData();
+      });
+
+      // Dialog should be closed
+      expect(result.current.isConfirmationOpen).toBe(false);
+      expect(result.current.showSuccess).toBe(true);
+    });
+
+    it('should keep confirmation open on deletion error', async () => {
+      mockClearAllRuns.mockImplementation(() => {
+        throw new Error('Storage error');
+      });
+
+      const { result } = renderHook(() => useDataSettings());
+
+      // Open confirmation first
+      act(() => {
+        result.current.openConfirmation();
+      });
+
+      expect(result.current.isConfirmationOpen).toBe(true);
+
+      // Execute deletion (will fail)
+      await act(async () => {
+        await result.current.handleClearAllData();
+      });
+
+      // Dialog should remain open for retry
+      expect(result.current.isConfirmationOpen).toBe(true);
+      expect(result.current.error).toBe('Storage error');
     });
   });
 

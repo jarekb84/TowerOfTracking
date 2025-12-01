@@ -17,9 +17,12 @@ describe('DataSettings', () => {
     error: null,
     showSuccess: false,
     canClear: true,
+    isConfirmationOpen: false,
     handleClearAllData: vi.fn(),
     dismissError: vi.fn(),
     dismissSuccess: vi.fn(),
+    openConfirmation: vi.fn(),
+    closeConfirmation: vi.fn(),
   };
 
   beforeEach(() => {
@@ -37,7 +40,7 @@ describe('DataSettings', () => {
     expect(screen.getByText('Danger Zone')).toBeInTheDocument();
   });
 
-  it('should show loading state when clearing', () => {
+  it('should disable clear button when clearing is in progress', () => {
     mockUseDataSettings.mockReturnValue({
       ...mockHandlers,
       isClearing: true,
@@ -45,8 +48,8 @@ describe('DataSettings', () => {
     });
 
     render(<DataSettings />);
-    
-    const clearButton = screen.getByRole('button', { name: 'Clearing Data...' });
+
+    const clearButton = screen.getByRole('button', { name: 'Clear All Data' });
     expect(clearButton).toBeDisabled();
   });
 
