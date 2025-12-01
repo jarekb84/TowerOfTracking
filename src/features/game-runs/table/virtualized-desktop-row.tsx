@@ -3,6 +3,15 @@ import { type VirtualItem } from '@tanstack/react-virtual';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { isFixedWidthColumn } from './virtualization';
 
+/** Interactive element tags that should not trigger row toggle */
+const INTERACTIVE_ELEMENTS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A']);
+
+/** Check if event target is an interactive element (typing in form fields should not toggle row) */
+function isInteractiveElement(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return INTERACTIVE_ELEMENTS.has(target.tagName) || target.isContentEditable;
+}
+
 interface VirtualizedDesktopRowProps {
   row: Row<ParsedGameRun>;
   children?: React.ReactNode;
@@ -35,7 +44,8 @@ export function VirtualizedDesktopRow({
       tabIndex={0}
       onClick={row.getToggleExpandedHandler()}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        // Only toggle if Enter/Space pressed and not from an interactive element (e.g., textarea)
+        if ((e.key === 'Enter' || e.key === ' ') && !isInteractiveElement(e.target)) {
           e.preventDefault();
           row.getToggleExpandedHandler()();
         }

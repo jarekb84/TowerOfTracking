@@ -13,6 +13,7 @@ import {
   isInternalField,
   type InternalFieldName
 } from '@/shared/domain/fields/internal-field-config';
+import { encodeNotesForStorage } from '@/shared/domain/fields/notes-encoding';
 
 // Interface for field information
 interface FieldInfo {
@@ -143,7 +144,8 @@ function detectDelimiterConflicts(
           const timeField = run.fields[INTERNAL_FIELD_NAMES.TIME];
           value = timeField?.rawValue || formatIsoTime(run.timestamp);
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.NOTES) {
-          value = run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '';
+          // Encode notes to escape tabs/newlines that would break CSV format
+          value = encodeNotesForStorage(run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '');
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
           value = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RANK) {
@@ -154,7 +156,7 @@ function detectDelimiterConflicts(
         const field = run.fields[fieldInfo.fieldName];
         value = field?.rawValue || '';
       }
-      
+
       // Check if value contains delimiter
       if (value.includes(delimiter)) {
         const key = fieldInfo.fieldName;
@@ -317,7 +319,8 @@ export function exportToCsv(
           const timeField = run.fields[INTERNAL_FIELD_NAMES.TIME];
           value = timeField?.rawValue || formatIsoTime(run.timestamp);
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.NOTES) {
-          value = run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '';
+          // Encode notes to escape tabs/newlines that would break CSV format
+          value = encodeNotesForStorage(run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '');
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
           value = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
         } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RANK) {
