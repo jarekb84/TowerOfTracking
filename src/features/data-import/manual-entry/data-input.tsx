@@ -35,14 +35,20 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
     }
   });
 
-  const handleCancel = (): void => {
+  /**
+   * Reset form state and close the modal.
+   * Used for all modal close scenarios: Cancel, X button, ESC, clicking outside,
+   * navigating away via links, and after saving.
+   * This ensures stale parsed data never persists when modal reopens.
+   */
+  const closeModal = (): void => {
     form.resetForm();
     closeDialog();
   };
 
   const handleSave = (): void => {
     form.handleSave();
-    closeDialog();
+    closeModal();
   };
 
   const handleDateSelect = (date: Date | undefined): void => {
@@ -53,9 +59,11 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
   };
 
   return (
-    <ResponsiveDialog 
-      open={isDialogOpen} 
-      onOpenChange={(open) => { if (!open) closeDialog(); }}
+    <ResponsiveDialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        if (!open) closeModal();
+      }}
     >
         <ResponsiveDialogContent className={className}>
           <ResponsiveDialogHeader
@@ -69,7 +77,7 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
               <FormatMismatchWarning
                 parsedRuns={[form.previewData]}
                 className="mb-5"
-                onSettingsClick={closeDialog}
+                onSettingsClick={closeModal}
               />
             )}
 
@@ -161,7 +169,7 @@ Coins per hour	860.06B"
           <ResponsiveDialogFooter mobileLayout="1-2">
             <Button 
               variant="outline" 
-              onClick={handleCancel}
+              onClick={closeModal}
               className="h-10 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all duration-200"
             >
               Cancel
