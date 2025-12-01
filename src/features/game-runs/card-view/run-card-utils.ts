@@ -1,5 +1,6 @@
 import { formatNumber, formatDuration, calculatePerHour } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
+import { formatDisplayDate, formatDisplayTime } from '@/shared/formatting/date-formatters';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
 /**
@@ -7,8 +8,8 @@ import type { ParsedGameRun } from '@/shared/types/game-run.types';
  */
 export function extractCardHeaderData(run: ParsedGameRun) {
   const shortDuration = run.realTime ? formatDuration(run.realTime).replace(/(\d+)s?$/, '') : '-';
-  const dateStr = run.timestamp.toLocaleDateString();
-  const timeStr = run.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateStr = formatDisplayDate(run.timestamp);
+  const timeStr = formatDisplayTime(run.timestamp);
 
   return {
     shortDuration,

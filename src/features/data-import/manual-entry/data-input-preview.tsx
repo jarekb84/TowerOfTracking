@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
-import { format } from 'date-fns';
 import { formatNumber, formatDuration, calculatePerHour, formatTierLabel } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue, getFieldRaw } from '@/features/analysis/shared/parsing/field-utils';
+import { formatDisplayDateTime } from '@/shared/formatting/date-formatters';
 import { capitalizeFirst } from '../../../shared/formatting/string-formatters';
 import { ParsedGameRun } from '@/shared/types/game-run.types';
 import { RunType } from '@/shared/domain/run-types/types';
@@ -81,7 +81,7 @@ export function DataInputPreview({ previewData, selectedRunType }: DataInputPrev
               )}
               <div className="flex items-center gap-2 pt-1 border-t border-border/50">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">Timestamp:</span>
-                <span className="text-foreground text-xs">{format(previewData.timestamp, "PPp")}</span>
+                <span className="text-foreground text-xs">{formatDisplayDateTime(previewData.timestamp)}</span>
               </div>
             </div>
           </div>

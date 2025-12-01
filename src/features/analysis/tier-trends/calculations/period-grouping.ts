@@ -1,6 +1,11 @@
 import type { ParsedGameRun, TierTrendsFilters } from '../types';
 import { TrendsDuration } from '../types';
 import { createEnhancedRunHeader } from './run-header-formatting';
+import {
+  formatDisplayShortDate,
+  formatWeekOfLabel,
+  formatDisplayMonth,
+} from '@/shared/formatting/date-formatters';
 
 /**
  * Represents data for a specific time period with associated runs
@@ -103,7 +108,7 @@ export function getPeriodBounds(
       return {
         startDate,
         endDate,
-        label: targetDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
+        label: formatDisplayShortDate(targetDate)
       };
     }
 
@@ -124,7 +129,7 @@ export function getPeriodBounds(
       return {
         startDate,
         endDate,
-        label: `Week of ${startDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}`
+        label: formatWeekOfLabel(startDate)
       };
     }
 
@@ -138,7 +143,7 @@ export function getPeriodBounds(
       return {
         startDate,
         endDate,
-        label: targetDate.toLocaleDateString('en-US', { month: 'short' })
+        label: formatDisplayMonth(targetDate)
       };
     }
 

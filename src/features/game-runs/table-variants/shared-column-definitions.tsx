@@ -5,6 +5,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
+import { formatDisplayNumericDate, formatDisplayTime } from '@/shared/formatting/date-formatters';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { StickyNote } from 'lucide-react';
@@ -71,11 +72,12 @@ export function createNotesColumn(): ColumnDef<ParsedGameRun> {
 
 /**
  * Creates the date column.
+ * Uses numeric-only format (11/30/2025 or 30/11/2025) respecting locale day/month order.
  */
 export function createDateColumn(): ColumnDef<ParsedGameRun> {
   return columnHelper.accessor('timestamp', {
     header: 'Date',
-    cell: (info) => info.getValue().toLocaleDateString(),
+    cell: (info) => formatDisplayNumericDate(info.getValue()),
     sortingFn: 'datetime',
     size: COLUMN_SIZES.date,
   }) as ColumnDef<ParsedGameRun>;
@@ -88,11 +90,7 @@ export function createTimeColumn(): ColumnDef<ParsedGameRun> {
   return columnHelper.accessor('timestamp', {
     id: 'time',
     header: 'Time',
-    cell: (info) =>
-      info.getValue().toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+    cell: (info) => formatDisplayTime(info.getValue()),
     size: COLUMN_SIZES.time,
   }) as ColumnDef<ParsedGameRun>;
 }

@@ -41,6 +41,11 @@ let state: LocaleStoreState = getInitialState();
 let numberFormatter: Intl.NumberFormat | null = null;
 let dateFormatter: Intl.DateTimeFormat | null = null;
 let dateTimeFormatter: Intl.DateTimeFormat | null = null;
+let shortDateFormatter: Intl.DateTimeFormat | null = null;
+let numericDateFormatter: Intl.DateTimeFormat | null = null;
+let timeFormatter: Intl.DateTimeFormat | null = null;
+let monthDayFormatter: Intl.DateTimeFormat | null = null;
+let monthFormatter: Intl.DateTimeFormat | null = null;
 
 // Subscription listeners for React reactivity
 const listeners = new Set<() => void>();
@@ -180,6 +185,36 @@ function createFormatters(locale: DisplayLocale): void {
       minute: '2-digit',
       hour12: false, // 24-hour time as per user requirement
     });
+
+    // Short date formatter for date without year (e.g., 11/30 or 30/11)
+    shortDateFormatter = new Intl.DateTimeFormat(locale, {
+      month: 'numeric',
+      day: 'numeric',
+    });
+
+    // Numeric date formatter for date with year in numeric format (e.g., 11/30/2025 or 30/11/2025)
+    numericDateFormatter = new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    });
+
+    // Time formatter for time only (e.g., 3:45 PM or 15:45)
+    timeFormatter = new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+
+    // Month + day formatter (e.g., NOV 30 or 30 NOV)
+    monthDayFormatter = new Intl.DateTimeFormat(locale, {
+      month: 'short',
+      day: 'numeric',
+    });
+
+    // Month-only formatter (e.g., Nov or nov.)
+    monthFormatter = new Intl.DateTimeFormat(locale, {
+      month: 'short',
+    });
   } catch (error) {
     console.error('[LocaleStore] Failed to create formatters:', error);
     // Fallback to en-US if locale is invalid
@@ -199,6 +234,26 @@ function createFormatters(locale: DisplayLocale): void {
       minute: '2-digit',
       hour12: false,
     });
+    shortDateFormatter = new Intl.DateTimeFormat('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+    });
+    numericDateFormatter = new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+    });
+    timeFormatter = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+    monthDayFormatter = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+    monthFormatter = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+    });
   }
 }
 
@@ -209,6 +264,11 @@ function invalidateFormatters(): void {
   numberFormatter = null;
   dateFormatter = null;
   dateTimeFormatter = null;
+  shortDateFormatter = null;
+  numericDateFormatter = null;
+  timeFormatter = null;
+  monthDayFormatter = null;
+  monthFormatter = null;
 }
 
 // ============================================================================
@@ -280,6 +340,56 @@ export function getDateTimeFormatter(): Intl.DateTimeFormat {
     createFormatters(state.displayLocale);
   }
   return dateTimeFormatter!;
+}
+
+/**
+ * Get cached short date formatter (date without year, e.g., 11/30 or 30/11).
+ */
+export function getShortDateFormatter(): Intl.DateTimeFormat {
+  if (!shortDateFormatter) {
+    createFormatters(state.displayLocale);
+  }
+  return shortDateFormatter!;
+}
+
+/**
+ * Get cached numeric date formatter (date with year in numeric format, e.g., 11/30/2025 or 30/11/2025).
+ */
+export function getNumericDateFormatter(): Intl.DateTimeFormat {
+  if (!numericDateFormatter) {
+    createFormatters(state.displayLocale);
+  }
+  return numericDateFormatter!;
+}
+
+/**
+ * Get cached time formatter (time only, e.g., 3:45 PM or 15:45).
+ */
+export function getTimeFormatter(): Intl.DateTimeFormat {
+  if (!timeFormatter) {
+    createFormatters(state.displayLocale);
+  }
+  return timeFormatter!;
+}
+
+/**
+ * Get cached month+day formatter (e.g., NOV 30 or 30 NOV).
+ */
+export function getMonthDayFormatter(): Intl.DateTimeFormat {
+  if (!monthDayFormatter) {
+    createFormatters(state.displayLocale);
+  }
+  return monthDayFormatter!;
+}
+
+/**
+ * Get cached month-only formatter (e.g., Nov or nov.).
+ */
+export function getMonthFormatter(): Intl.DateTimeFormat {
+  if (!monthFormatter) {
+    createFormatters(state.displayLocale);
+  }
+  return monthFormatter!;
 }
 
 // ============================================================================

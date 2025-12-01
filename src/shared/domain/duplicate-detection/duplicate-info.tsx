@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui';
 import type { BatchDuplicateDetectionResult, DuplicateDetectionResult } from './duplicate-detection';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import { formatDisplayDate } from '@/shared/formatting/date-formatters';
 
 export type DuplicateResolution = 'new-only' | 'overwrite';
 
@@ -106,7 +107,7 @@ export function DuplicateInfo({
                 { label: 'Tier', newVal: newRun.tier.toString(), existingVal: singleResult.existingRun.tier.toString() },
                 { label: 'Wave', newVal: newRun.wave.toString(), existingVal: singleResult.existingRun.wave.toString() },
                 { label: 'Duration', newVal: formatDuration(newRun.realTime), existingVal: formatDuration(singleResult.existingRun.realTime) },
-                { label: 'Import Date', newVal: newRun.timestamp.toLocaleDateString(), existingVal: singleResult.existingRun.timestamp.toLocaleDateString() }
+                { label: 'Import Date', newVal: formatDisplayDate(newRun.timestamp), existingVal: formatDisplayDate(singleResult.existingRun.timestamp) }
               ].map((row, i) => (
                 <div key={i} className="grid grid-cols-3 gap-4 py-2 px-3 text-sm">
                   <div className="font-medium">{row.label}</div>

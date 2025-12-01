@@ -1,7 +1,7 @@
-import { format } from 'date-fns'
 import type { CellTooltipData } from '../types'
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
+import { formatDisplayShortDate, formatDisplayTime } from '@/shared/formatting/date-formatters'
 import { TooltipContentWrapper } from '@/components/ui/tooltip-content'
 
 interface TierStatsCellTooltipProps {
@@ -69,7 +69,7 @@ export function TierStatsCellTooltip({ data }: TierStatsCellTooltipProps) {
           <div className="flex justify-between items-center gap-4">
             <span className="text-xs text-slate-300">Date:</span>
             <span className="text-sm font-mono text-white font-medium">
-              {format(data.timestamp, 'MM/dd \'at\' h:mm a')}
+              {formatDisplayShortDate(data.timestamp)} at {formatDisplayTime(data.timestamp)}
             </span>
           </div>
         </div>

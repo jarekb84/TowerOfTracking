@@ -16,6 +16,10 @@ import {
   getNumberFormatter,
   getDateFormatter,
   getDateTimeFormatter,
+  getShortDateFormatter,
+  getNumericDateFormatter,
+  getTimeFormatter,
+  getMonthDayFormatter,
 } from '@/shared/locale/locale-store';
 import type { SelectionOption } from '@/components/ui/selection-button-group';
 
@@ -69,6 +73,14 @@ interface LocalePreview {
   percentage: string;
   /** Example date: Nov 20, 2025 */
   date: string;
+  /** Example short date without year: 11/20 or 20/11 */
+  shortDate: string;
+  /** Example numeric date with year: 11/20/2025 or 20/11/2025 */
+  numericDate: string;
+  /** Example month+day: Nov 20 or 20 Nov */
+  monthDay: string;
+  /** Example time: 10:28 PM or 22:28 */
+  time: string;
   /** Example datetime: Nov 20, 2025, 22:28 */
   dateTime: string;
 }
@@ -80,6 +92,10 @@ function generatePreview(): LocalePreview {
   const numberFormatter = getNumberFormatter();
   const dateFormatter = getDateFormatter();
   const dateTimeFormatter = getDateTimeFormatter();
+  const shortDateFormatter = getShortDateFormatter();
+  const numericDateFormatter = getNumericDateFormatter();
+  const timeFormatter = getTimeFormatter();
+  const monthDayFormatter = getMonthDayFormatter();
 
   // Use a sample date for preview
   const sampleDate = new Date(2025, 10, 20, 22, 28, 0); // Nov 20, 2025 22:28
@@ -94,6 +110,10 @@ function generatePreview(): LocalePreview {
     largeNumber: largeFormatted,
     percentage: numberFormatter.format(45.3) + '%',
     date: dateFormatter.format(sampleDate),
+    shortDate: shortDateFormatter.format(sampleDate),
+    numericDate: numericDateFormatter.format(sampleDate),
+    monthDay: monthDayFormatter.format(sampleDate),
+    time: timeFormatter.format(sampleDate),
     dateTime: dateTimeFormatter.format(sampleDate),
   };
 }

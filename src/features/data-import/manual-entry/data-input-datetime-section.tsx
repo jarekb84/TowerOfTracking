@@ -1,5 +1,5 @@
 import { Button, Calendar, Popover, PopoverContent, PopoverTrigger, Input, FormControl } from '@/components/ui';
-import { format } from 'date-fns';
+import { formatDisplayDate } from '@/shared/formatting/date-formatters';
 import { CalendarIcon, Clock } from 'lucide-react';
 
 interface DataInputDateTimeSectionProps {
@@ -37,7 +37,7 @@ export function DataInputDateTimeSection({
               disabled={disabled}
             >
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-foreground">{format(selectedDate, "MMM d, yyyy")}</span>
+              <span className="text-foreground">{formatDisplayDate(selectedDate)}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

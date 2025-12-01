@@ -3,6 +3,10 @@ import { ParsedGameRun } from '@/shared/types/game-run.types'
 import { ChartDataPoint } from '@/features/analysis/time-series/chart-types'
 import { extractFieldValue } from './field-extraction'
 import { groupRunsByDateKey } from './date-aggregation'
+import {
+  formatDisplayMonthDay,
+  formatDisplayMonth,
+} from '@/shared/formatting/date-formatters'
 
 /**
  * Field aggregation functions
@@ -20,7 +24,7 @@ export function prepareFieldPerRunData(
     .map(run => {
       const value = extractFieldValue(run, fieldKey)
       return {
-        date: format(run.timestamp, 'MMM dd'),
+        date: formatDisplayMonthDay(run.timestamp),
         value: value ?? 0,
         timestamp: run.timestamp,
       }
@@ -41,7 +45,7 @@ export function prepareFieldPerHourData(
       const value = extractFieldValue(run, fieldKey)
       const hourlyRate = ((value ?? 0) / run.realTime) * 3600
       return {
-        date: format(run.timestamp, 'MMM dd'),
+        date: formatDisplayMonthDay(run.timestamp),
         value: hourlyRate,
         timestamp: run.timestamp,
       }
@@ -71,7 +75,7 @@ export function prepareFieldPerDayData(
     const timestamp = startOfDay(dayRuns[0].timestamp)
 
     dailyData.push({
-      date: format(timestamp, 'MMM dd'),
+      date: formatDisplayMonthDay(timestamp),
       value: total,
       timestamp,
     })
@@ -102,7 +106,7 @@ export function prepareFieldPerWeekData(
     const timestamp = startOfWeek(weekRuns[0].timestamp, { weekStartsOn: 0 })
 
     weeklyData.push({
-      date: format(timestamp, 'MMM dd'),
+      date: formatDisplayMonthDay(timestamp),
       value: total,
       timestamp,
     })
@@ -133,7 +137,7 @@ export function prepareFieldPerMonthData(
     const timestamp = startOfMonth(monthRuns[0].timestamp)
 
     monthlyData.push({
-      date: format(timestamp, 'MMM yyyy'),
+      date: `${formatDisplayMonth(timestamp)} ${timestamp.getFullYear()}`,
       value: total,
       timestamp,
     })
