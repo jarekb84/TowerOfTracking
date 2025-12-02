@@ -70,6 +70,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         label: 'Source Analysis',
         href: '/charts/sources',
         icon: 'field-analytics'
+      },
+      {
+        id: 'coverage-report',
+        label: 'Coverage Report',
+        href: '/charts/coverage',
+        icon: 'field-analytics'
       }
     ]
   },

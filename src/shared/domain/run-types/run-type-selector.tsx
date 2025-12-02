@@ -10,7 +10,7 @@ interface RunTypeSelectorProps {
   /** Optional counts per run type for display */
   counts?: RunTypeCounts
   /** Accent color theme. Defaults to 'orange'. */
-  accentColor?: 'orange' | 'purple'
+  accentColor?: 'orange' | 'purple' | 'cyan'
 }
 
 export function RunTypeSelector({

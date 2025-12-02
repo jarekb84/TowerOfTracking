@@ -39,9 +39,11 @@ export function TabsNavigation({
       case 4:
         return 'grid-cols-2 sm:grid-cols-4'
       case 7:
-        return 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-7'
+        return 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-7'
+      case 8:
+        return 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-8'
       default:
-        return `grid-cols-${Math.min(columns, 2)} sm:grid-cols-${Math.min(columns, 3)} lg:grid-cols-${columns}`
+        return 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-8'
     }
   }
 

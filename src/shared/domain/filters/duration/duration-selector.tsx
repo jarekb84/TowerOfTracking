@@ -19,7 +19,7 @@ interface DurationSelectorProps {
   /** Optional className for the wrapper */
   className?: string
   /** Accent color theme */
-  accentColor?: 'orange' | 'purple'
+  accentColor?: 'orange' | 'purple' | 'cyan'
   /** Label for the selector */
   label?: string
 }

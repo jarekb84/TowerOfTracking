@@ -25,6 +25,7 @@ import { Route as ChartsTierStatsRouteImport } from './routes/charts/tier-stats'
 import { Route as ChartsSourcesRouteImport } from './routes/charts/sources'
 import { Route as ChartsFieldsRouteImport } from './routes/charts/fields'
 import { Route as ChartsDeathsRouteImport } from './routes/charts/deaths'
+import { Route as ChartsCoverageRouteImport } from './routes/charts/coverage'
 import { Route as ChartsCoinsRouteImport } from './routes/charts/coins'
 import { Route as ChartsCellsRouteImport } from './routes/charts/cells'
 
@@ -108,6 +109,11 @@ const ChartsDeathsRoute = ChartsDeathsRouteImport.update({
   path: '/deaths',
   getParentRoute: () => ChartsRoute,
 } as any)
+const ChartsCoverageRoute = ChartsCoverageRouteImport.update({
+  id: '/coverage',
+  path: '/coverage',
+  getParentRoute: () => ChartsRoute,
+} as any)
 const ChartsCoinsRoute = ChartsCoinsRouteImport.update({
   id: '/coins',
   path: '/coins',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
+  '/charts/coverage': typeof ChartsCoverageRoute
   '/charts/deaths': typeof ChartsDeathsRoute
   '/charts/fields': typeof ChartsFieldsRoute
   '/charts/sources': typeof ChartsSourcesRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
+  '/charts/coverage': typeof ChartsCoverageRoute
   '/charts/deaths': typeof ChartsDeathsRoute
   '/charts/fields': typeof ChartsFieldsRoute
   '/charts/sources': typeof ChartsSourcesRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
+  '/charts/coverage': typeof ChartsCoverageRoute
   '/charts/deaths': typeof ChartsDeathsRoute
   '/charts/fields': typeof ChartsFieldsRoute
   '/charts/sources': typeof ChartsSourcesRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/charts/cells'
     | '/charts/coins'
+    | '/charts/coverage'
     | '/charts/deaths'
     | '/charts/fields'
     | '/charts/sources'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/charts/cells'
     | '/charts/coins'
+    | '/charts/coverage'
     | '/charts/deaths'
     | '/charts/fields'
     | '/charts/sources'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/charts/cells'
     | '/charts/coins'
+    | '/charts/coverage'
     | '/charts/deaths'
     | '/charts/fields'
     | '/charts/sources'
@@ -364,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChartsDeathsRouteImport
       parentRoute: typeof ChartsRoute
     }
+    '/charts/coverage': {
+      id: '/charts/coverage'
+      path: '/coverage'
+      fullPath: '/charts/coverage'
+      preLoaderRoute: typeof ChartsCoverageRouteImport
+      parentRoute: typeof ChartsRoute
+    }
     '/charts/coins': {
       id: '/charts/coins'
       path: '/coins'
@@ -384,6 +403,7 @@ declare module '@tanstack/react-router' {
 interface ChartsRouteChildren {
   ChartsCellsRoute: typeof ChartsCellsRoute
   ChartsCoinsRoute: typeof ChartsCoinsRoute
+  ChartsCoverageRoute: typeof ChartsCoverageRoute
   ChartsDeathsRoute: typeof ChartsDeathsRoute
   ChartsFieldsRoute: typeof ChartsFieldsRoute
   ChartsSourcesRoute: typeof ChartsSourcesRoute
@@ -394,6 +414,7 @@ interface ChartsRouteChildren {
 const ChartsRouteChildren: ChartsRouteChildren = {
   ChartsCellsRoute: ChartsCellsRoute,
   ChartsCoinsRoute: ChartsCoinsRoute,
+  ChartsCoverageRoute: ChartsCoverageRoute,
   ChartsDeathsRoute: ChartsDeathsRoute,
   ChartsFieldsRoute: ChartsFieldsRoute,
   ChartsSourcesRoute: ChartsSourcesRoute,
