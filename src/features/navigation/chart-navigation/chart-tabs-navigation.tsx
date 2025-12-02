@@ -10,8 +10,8 @@ export function ChartTabsNavigation() {
     <TabsNavigation
       tabs={CHART_TABS}
       ariaLabel="Chart analytics navigation"
-      maxWidth="max-w-5xl"
-      columns={7}
+      maxWidth="max-w-6xl"
+      columns={8}
     />
   )
 }

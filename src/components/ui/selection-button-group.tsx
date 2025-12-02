@@ -13,7 +13,7 @@ export interface SelectionOption<T = string> {
   badge?: string | number
 }
 
-type AccentColor = 'orange' | 'purple'
+type AccentColor = 'orange' | 'purple' | 'cyan'
 
 interface SelectionButtonGroupProps<T = string> {
   options: SelectionOption<T>[]
@@ -33,7 +33,8 @@ interface SelectionButtonGroupProps<T = string> {
 
 const accentColorClasses: Record<AccentColor, string> = {
   orange: 'border-orange-500/70 bg-orange-500/10 hover:bg-orange-500/20 hover:border-orange-500/80 hover:shadow-orange-500/20',
-  purple: 'border-purple-500/70 bg-purple-500/10 hover:bg-purple-500/20 hover:border-purple-500/80 hover:shadow-purple-500/20'
+  purple: 'border-purple-500/70 bg-purple-500/10 hover:bg-purple-500/20 hover:border-purple-500/80 hover:shadow-purple-500/20',
+  cyan: 'border-cyan-500/70 bg-cyan-500/10 hover:bg-cyan-500/20 hover:border-cyan-500/80 hover:shadow-cyan-500/20'
 }
 
 export function SelectionButtonGroup<T = string>({

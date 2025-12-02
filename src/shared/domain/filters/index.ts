@@ -5,7 +5,7 @@
  */
 
 // Types
-export { Duration,   } from './types'
+export { Duration,  PERIOD_UNIT_LABELS } from './types'
 
 // Tier filter - pure logic functions, hooks, and components
 export {

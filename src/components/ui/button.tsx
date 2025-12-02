@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "border border-orange-500/70 bg-orange-500/10 text-foreground shadow-xs hover:bg-orange-500/20 hover:border-orange-500/80 transition-all duration-200 hover:shadow-md hover:shadow-orange-500/20",
         "outline-selected-purple":
           "border border-purple-500/70 bg-purple-500/10 text-foreground shadow-xs hover:bg-purple-500/20 hover:border-purple-500/80 transition-all duration-200 hover:shadow-md hover:shadow-purple-500/20",
+        "outline-selected-cyan":
+          "border border-cyan-500/70 bg-cyan-500/10 text-foreground shadow-xs hover:bg-cyan-500/20 hover:border-cyan-500/80 transition-all duration-200 hover:shadow-md hover:shadow-cyan-500/20",
         secondary:
           "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
         ghost:
