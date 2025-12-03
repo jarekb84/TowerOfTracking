@@ -64,7 +64,7 @@ const COVERAGE_METRICS: readonly CoverageMetricDefinition[] = [
   },
   {
     fieldName: 'destroyedByOrbs',
-    label: 'Orb Kills',
+    label: 'Orbs',
     category: 'combat',
     color: COLORS.orbKills,
   },

@@ -16,6 +16,7 @@ interface MetricToggleSelectorProps {
 
 interface MetricColumnProps {
   title: string
+  subtitle: string
   metrics: CoverageMetricDefinition[]
   selectedMetrics: Set<CoverageFieldName>
   onToggleMetric: (fieldName: CoverageFieldName) => void
@@ -23,15 +24,19 @@ interface MetricColumnProps {
 
 function MetricColumn({
   title,
+  subtitle,
   metrics,
   selectedMetrics,
   onToggleMetric,
 }: MetricColumnProps) {
   return (
     <div className="space-y-2">
-      <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-        {title}
-      </span>
+      <div>
+        <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          {title}
+        </span>
+        <p className="text-[11px] text-muted-foreground/50">{subtitle}</p>
+      </div>
       <div className="flex flex-wrap gap-1.5">
         {metrics.map((metric) => {
           const isSelected = selectedMetrics.has(metric.fieldName)
@@ -74,12 +79,14 @@ export function MetricToggleSelector({
     <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
       <MetricColumn
         title="Economic"
+        subtitle="Tagged, killed in range, or summoned"
         metrics={economicMetrics}
         selectedMetrics={selectedMetrics}
         onToggleMetric={onToggleMetric}
       />
       <MetricColumn
         title="Combat"
+        subtitle="Kills (or Hits where specified)"
         metrics={combatMetrics}
         selectedMetrics={selectedMetrics}
         onToggleMetric={onToggleMetric}
