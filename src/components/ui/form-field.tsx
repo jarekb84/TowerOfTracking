@@ -47,7 +47,7 @@ export function FormControl({
         labelWidth,
         labelClassName
       )}>
-        {label}:
+        {label}
         {required && <span className="ml-1 text-destructive">*</span>}
       </span>
       <div className={cn("flex-1 min-w-0", controlsClassName)}>

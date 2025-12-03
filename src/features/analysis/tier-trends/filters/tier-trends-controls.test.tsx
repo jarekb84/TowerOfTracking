@@ -30,9 +30,9 @@ describe('TierTrendsControls', () => {
       />
     )
 
-    expect(screen.getByText(/Tier:/i)).toBeInTheDocument()
-    expect(screen.getByText(/Duration:/i)).toBeInTheDocument()
-    expect(screen.getByText(/Last runs:/i)).toBeInTheDocument()
+    expect(screen.getByText(/Tier/i)).toBeInTheDocument()
+    expect(screen.getByText(/Duration/i)).toBeInTheDocument()
+    expect(screen.getByText(/Last runs/i)).toBeInTheDocument()
   })
 
   it('shows aggregation selector with Actual and Per Hour options when duration is per-run', () => {
@@ -50,7 +50,7 @@ describe('TierTrendsControls', () => {
     )
 
     // Aggregation selector should be visible
-    expect(screen.getByText(/Aggregation:/i)).toBeInTheDocument()
+    expect(screen.getByText(/Aggregation/i)).toBeInTheDocument()
 
     // Should show Actual and Per Hour options for per-run
     expect(screen.getByRole('button', { name: 'Actual' })).toBeInTheDocument()
@@ -76,7 +76,7 @@ describe('TierTrendsControls', () => {
       />
     )
 
-    expect(screen.getByText(/Aggregation:/i)).toBeInTheDocument()
+    expect(screen.getByText(/Aggregation/i)).toBeInTheDocument()
 
     // Should show all 5 aggregation options for time-based durations
     expect(screen.getByRole('button', { name: 'Sum' })).toBeInTheDocument()
