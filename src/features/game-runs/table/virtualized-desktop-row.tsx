@@ -76,7 +76,7 @@ export function VirtualizedDesktopRow({
       {row.getIsExpanded() && (
         // eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events
         <div
-          className="bg-muted/15 border-t border-border/50"
+          className="bg-muted/15 border-t border-border/50 cursor-default"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-4 sm:p-5 md:p-6 space-y-4">{children}</div>

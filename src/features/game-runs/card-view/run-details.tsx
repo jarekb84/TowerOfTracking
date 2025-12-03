@@ -2,6 +2,7 @@ import type { ParsedGameRun, RunTypeValue } from '@/shared/types/game-run.types'
 import { getFieldDisplayConfig } from '../fields/field-display-config';
 import { buildContainerClassName, buildValueClassName } from '../fields/field-rendering-utils';
 import { EditableUserFields } from '../editing/editable-user-fields';
+import { MiniCoverageReport } from './coverage-report/mini-coverage-report';
 import { useData } from '@/shared/domain/use-data';
 import {
   createUpdatedNotesFields,
@@ -183,6 +184,8 @@ export function RunDetails({ run }: RunDetailsProps) {
         rank={rank}
         onSave={handleUserFieldsUpdate}
       />
+
+      <MiniCoverageReport run={run} />
 
       {Object.entries(STAT_GROUPS).filter(([groupTitle]) => groupTitle !== "__SKIP__").map(([groupTitle, fields]) => (
         <StatGroup
