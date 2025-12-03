@@ -35,6 +35,7 @@ const SOURCE_COLORS = {
   projectilesDamage: '#e879f9', // Fuchsia-400 - Pink-ish (Lighter than Black Hole)
   lifesteal: '#f43f5e', // Rose-500 - Red/Pink
   flameBotDamage: '#fca5a5', // Red-300 - Light Red
+  electronsDamage: '#0ED1EB', // Turquoise - Matches in-game electron color
 
   // Coin sources - Aligned with source themes where possible
   coinsFromGoldenTower: '#eab308', // Yellow-500 - Pure Gold
@@ -98,6 +99,7 @@ const DAMAGE_DEALT_CATEGORY: CategoryDefinition = {
     { fieldName: 'projectilesDamage', displayName: 'Projectiles Damage', color: SOURCE_COLORS.projectilesDamage },
     { fieldName: 'lifesteal', displayName: 'Lifesteal', color: SOURCE_COLORS.lifesteal },
     { fieldName: 'flameBotDamage', displayName: 'Flame Bot Damage', color: SOURCE_COLORS.flameBotDamage },
+    { fieldName: 'electronsDamage', displayName: 'Electrons Damage', color: SOURCE_COLORS.electronsDamage },
   ]
 };
 

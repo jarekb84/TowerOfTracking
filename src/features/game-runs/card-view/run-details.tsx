@@ -25,12 +25,12 @@ const STAT_GROUPS = {
     "gemBlocksTapped", "cellsEarned", "rerollShardsEarned"
   ],
   "Combat": [
-    "damageDealt","damageTaken", "damageTakenWall", "damageTakenWhileBerserked", "damageGainFromBerserk", "deathDefy", 
+    "damageDealt","damageTaken", "damageTakenWall", "damageTakenWhileBerserked", "damageGainFromBerserk", "deathDefy",
     "lifesteal", "projectilesDamage", "projectilesCount", "thornDamage",
-    "orbHits","orbDamage", "enemiesHitByOrbs", 
-    "landMineDamage", "landMinesSpawned", "rendArmorDamage", "deathRayDamage", 
-    "smartMissileDamage", "innerLandMineDamage", "chainLightningDamage", 
-    "deathWaveDamage", "taggedByDeathwave" ,"swampDamage", "blackHoleDamage", 
+    "orbHits","orbDamage", "enemiesHitByOrbs",
+    "landMineDamage", "landMinesSpawned", "rendArmorDamage", "deathRayDamage",
+    "smartMissileDamage", "innerLandMineDamage", "chainLightningDamage",
+    "deathWaveDamage", "taggedByDeathwave" ,"swampDamage", "blackHoleDamage", "electronsDamage",
   ],
   "Utility": [     
     "wavesSkipped", "recoveryPackages", 
