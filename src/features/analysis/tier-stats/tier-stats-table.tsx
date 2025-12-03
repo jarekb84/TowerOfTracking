@@ -1,5 +1,4 @@
 import { useData } from '@/shared/domain/use-data'
-import { FarmingOnlyIndicator } from '@/shared/domain/run-types/farming-only-indicator'
 import { RunType } from '@/shared/domain/run-types/types'
 import { TierStatsConfigPanel } from './config/tier-stats-config-panel'
 import { TierStatsCellTooltip } from './cells/tier-stats-cell-tooltip'
@@ -7,7 +6,6 @@ import { useTierStatsConfig } from './config/use-tier-stats-config'
 import { useDynamicTierStatsTable } from './use-dynamic-tier-stats-table'
 import { filterRunsByType } from '@/features/analysis/shared/filtering/run-type-filter'
 import { getTierStatsCellClassName } from './cells/tier-stats-cell-styles'
-import { getAggregationDescription } from './config/tier-stats-aggregation-options'
 import { LoadingState } from '@/components/ui/loading-state'
 import * as Tooltip from '@radix-ui/react-tooltip'
 
@@ -26,16 +24,7 @@ export function TierStatsTable() {
   // Show loading state while data is initializing
   if (!config.isDataLoaded) {
     return (
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-100">Performance by Tier</h3>
-            <FarmingOnlyIndicator />
-          </div>
-          <p className="text-slate-400 text-sm">
-            Loading tier statistics...
-          </p>
-        </div>
+      <div className="space-y-4">
         <LoadingState rows={5} height="500px" />
       </div>
     )
@@ -59,7 +48,7 @@ export function TierStatsTable() {
 
   return (
     <Tooltip.Provider delayDuration={300}>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* ARIA live region for screen reader announcements */}
         <div
           role="status"
@@ -70,16 +59,6 @@ export function TierStatsTable() {
           {config.isDataLoaded && config.selectedColumns.length > 0 && (
             `Tier statistics loaded with ${config.selectedColumns.length} columns displayed.`
           )}
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-100">Performance by Tier</h3>
-            <FarmingOnlyIndicator />
-          </div>
-          <p className="text-slate-400 text-sm">
-            {getAggregationDescription(config.aggregationType)}
-          </p>
         </div>
 
         {/* Configuration Panel */}

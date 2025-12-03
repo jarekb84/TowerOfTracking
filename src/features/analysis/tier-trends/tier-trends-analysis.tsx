@@ -10,7 +10,6 @@ import { TierTrendsControls } from './filters/tier-trends-controls'
 import { TierTrendsEmptyState } from './empty-states/tier-trends-empty-state'
 import { useFieldFilter } from '@/features/settings/column-config/use-field-filter'
 import { useTierTrendsViewState } from './use-tier-trends-view-state'
-import { formatPeriodSummary, formatRunTypeFilterDisplay } from './tier-trends-display'
 import type { TierTrendsFilters } from './types'
 
 type SortField = 'fieldName' | 'change'
@@ -92,33 +91,15 @@ export function TierTrendsAnalysis() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header - Always Visible */}
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
-            <div className="w-2 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded-full shadow-lg shadow-orange-500/30"></div>
-            {filters.tier === 0 ? 'All Tiers' : `Tier ${filters.tier}`} Trends Analysis
-            {viewState.type === 'ready' && viewState.trendsData && (
-              <span className="text-sm font-normal text-slate-400 ml-auto">
-                {formatPeriodSummary(viewState.trendsData.periodCount, filters.duration, runTypeFilter)}
-              </span>
-            )}
-          </h3>
-          <p className="text-slate-400 text-sm">
-            Statistical changes across your recent {formatRunTypeFilterDisplay(runTypeFilter)} runs.
-          </p>
-        </div>
-
-        {/* Filter Controls - Always Visible */}
-        <TierTrendsControls
-          runTypeFilter={runTypeFilter}
-          onRunTypeChange={setRunTypeFilter}
-          filters={filters}
-          onFiltersChange={setFilters}
-          availableTiers={availableTiers}
-        />
-      </div>
+    <div className="space-y-4">
+      {/* Filter Controls - Always Visible */}
+      <TierTrendsControls
+        runTypeFilter={runTypeFilter}
+        onRunTypeChange={setRunTypeFilter}
+        filters={filters}
+        onFiltersChange={setFilters}
+        availableTiers={availableTiers}
+      />
 
       {/* Conditional Results Area */}
       {viewState.type === 'no-data' && (
@@ -131,7 +112,7 @@ export function TierTrendsAnalysis() {
 
       {viewState.type === 'ready' && viewState.trendsData && (
         <div
-          className="space-y-6 animate-in fade-in duration-300"
+          className="space-y-4 animate-in fade-in duration-300"
           role="region"
           aria-label="Tier trends results"
         >

@@ -63,23 +63,3 @@ export function getAggregationTooltip(aggregationType: TierStatsAggregation): st
   const option = getAggregationOptions().find(opt => opt.value === aggregationType)
   return option?.tooltip ?? ''
 }
-
-/**
- * Get description text for the tier stats table based on aggregation type
- */
-export function getAggregationDescription(aggregationType: TierStatsAggregation): string {
-  switch (aggregationType) {
-    case TierStatsAggregation.MAX:
-      return 'Maximum values achieved across farming runs for each tier. Customize columns to track any resource.'
-    case TierStatsAggregation.P99:
-      return '99th percentile values for each tier, filtering out the top 1% of extreme outliers. Shows your best typical performance.'
-    case TierStatsAggregation.P90:
-      return '90th percentile values for each tier, filtering out the top 10% of outliers. Represents what a good typical run looks like.'
-    case TierStatsAggregation.P75:
-      return '75th percentile values for each tier. Shows above-average performance, with one quarter of runs exceeding this value.'
-    case TierStatsAggregation.P50:
-      return 'Median values for each tier. Half your runs are better, half are worse. Less affected by extreme outliers than average.'
-    default:
-      return 'Performance statistics for each tier. Customize columns to track any resource.'
-  }
-}
