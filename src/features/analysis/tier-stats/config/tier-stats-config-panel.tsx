@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button'
 import { InfoBox } from '@/components/ui/info-box'
 import { EmptyState } from '@/components/ui/empty-state'
 import { FormControl, SelectionButtonGroup } from '@/components/ui'
-import { getAggregationOptions } from './tier-stats-aggregation-options'
+import { getAggregationOptions, getAggregationTooltip } from './tier-stats-aggregation-options'
+import { FarmingOnlyIndicator } from '@/shared/domain/run-types/farming-only-indicator'
 
 interface TierStatsConfigPanelProps {
   config: UseTierStatsConfigReturn
@@ -35,15 +36,25 @@ export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
   return (
     <div className="space-y-4">
       {/* Aggregation Selector - Always Visible */}
-      <FormControl label="Aggregation Method">
-        <SelectionButtonGroup<TierStatsAggregation>
-          options={getAggregationOptions()}
-          selectedValue={config.aggregationType}
-          onSelectionChange={config.setAggregationType}
-          size="sm"
-          fullWidthOnMobile={false}
-        />
-      </FormControl>
+      <div className="space-y-1.5">
+        <FormControl label="Aggregation Method">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <SelectionButtonGroup<TierStatsAggregation>
+                options={getAggregationOptions()}
+                selectedValue={config.aggregationType}
+                onSelectionChange={config.setAggregationType}
+                size="sm"
+                fullWidthOnMobile={false}
+              />
+              <FarmingOnlyIndicator />
+            </div>
+            <p className="text-xs text-slate-400">
+              {getAggregationTooltip(config.aggregationType)}
+            </p>
+          </div>
+        </FormControl>
+      </div>
 
       {/* Enhanced Toggle Button with Visual Prominence */}
       <div className="flex items-center justify-between gap-4">

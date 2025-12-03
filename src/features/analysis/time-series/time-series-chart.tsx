@@ -1,18 +1,21 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Area, AreaChart, XAxis, YAxis } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui'
-import { Button } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import { TimePeriod } from './chart-types'
 import { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters'
 import { getFarmingRuns } from '@/features/analysis/shared/filtering/run-type-filter'
-import { FarmingOnlyIndicator } from '@/shared/domain/run-types/farming-only-indicator'
+import { TimeSeriesHeader } from './time-series-header'
+import { PeriodSelectorButton } from './period-selector-button'
+import { DataPointsIndicator } from './data-points-indicator'
 
 interface TimeSeriesChartProps {
   metric: string
-  title: string
+  title?: string
   subtitle?: string
+  /** Label shown in tooltip. Defaults to title if not provided. */
+  tooltipLabel?: string
   defaultPeriod?: TimePeriod
   showFarmingOnly?: boolean
   valueFormatter?: (value: number) => string
@@ -27,7 +30,8 @@ const chartConfig = {
 export function TimeSeriesChart({
   metric,
   title,
-  subtitle = 'Track your performance over time',
+  subtitle,
+  tooltipLabel,
   defaultPeriod = 'run',
   showFarmingOnly = false,
   valueFormatter
@@ -37,18 +41,18 @@ export function TimeSeriesChart({
   // Use provided formatter or locale-aware default (formatLargeNumber reads from locale store)
   // Wrap formatLargeNumber to ignore extra arguments from chart library (like index)
   const formatter = valueFormatter ?? ((value: number) => formatLargeNumber(value))
-  
+
   // Filter runs based on showFarmingOnly prop
   const filteredRuns = useMemo(() => {
     return showFarmingOnly ? getFarmingRuns(runs) : runs
   }, [runs, showFarmingOnly])
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
-  
+
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
     return getAvailableTimePeriods(filteredRuns)
   }, [filteredRuns])
-  
+
   // Reset period if current selection is not available
   useEffect(() => {
     const isCurrentPeriodAvailable = availablePeriodConfigs.some(config => config.period === selectedPeriod)
@@ -56,9 +60,9 @@ export function TimeSeriesChart({
       setSelectedPeriod(availablePeriodConfigs[0].period)
     }
   }, [availablePeriodConfigs, selectedPeriod])
-  
+
   const currentConfig = availablePeriodConfigs.find(config => config.period === selectedPeriod) || availablePeriodConfigs[0]
-  
+
   const chartData = useMemo(() => {
     return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
   }, [filteredRuns, selectedPeriod, metric])
@@ -78,75 +82,45 @@ export function TimeSeriesChart({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header with period selector */}
       <div className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-semibold text-slate-100 flex items-center gap-3">
-              <div 
-                className="w-2 h-8 rounded-full shadow-lg animate-pulse"
-                style={{ 
-                  background: `linear-gradient(to bottom, ${currentConfig.color}CC, ${currentConfig.color})`,
-                  boxShadow: `0 4px 12px ${currentConfig.color}30`
-                }}
+        {title && (
+          <TimeSeriesHeader
+            title={title}
+            subtitle={subtitle}
+            currentConfig={currentConfig}
+            dataPointCount={chartData.length}
+            showFarmingOnly={showFarmingOnly}
+          />
+        )}
+
+        {/* Period selector with data point count when no title */}
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {availablePeriodConfigs.map((config) => (
+              <PeriodSelectorButton
+                key={config.period}
+                config={config}
+                isSelected={selectedPeriod === config.period}
+                onSelect={setSelectedPeriod}
               />
-              {title}
-              <span className="text-sm font-normal text-slate-400 ml-auto">
-                {currentConfig.label}
-                {chartData.length > 0 && (
-                  <span className="ml-2 text-xs px-2 py-1 bg-slate-700/50 rounded-md">
-                    {chartData.length} points
-                  </span>
-                )}
-              </span>
-            </h3>
-            {showFarmingOnly && <FarmingOnlyIndicator />}
+            ))}
           </div>
-          <p className="text-slate-400 text-sm">{subtitle}</p>
-        </div>
-        
-        {/* Period selector */}
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          {availablePeriodConfigs.map((config) => (
-            <Button
-              key={config.period}
-              variant={selectedPeriod === config.period ? "outline-selected" : "outline"}
-              size="sm"
-              fullWidthOnMobile={false}
-              onClick={() => setSelectedPeriod(config.period)}
-              className="transition-all duration-200 group min-w-0 flex-shrink-0"
-              style={{
-                '--period-color': config.color,
-                backgroundColor: selectedPeriod === config.period 
-                  ? `color-mix(in srgb, ${config.color} 15%, transparent)` 
-                  : undefined,
-                borderColor: selectedPeriod === config.period 
-                  ? `color-mix(in srgb, ${config.color} 60%, transparent)` 
-                  : undefined,
-                color: selectedPeriod === config.period ? '#e2e8f0' : '#94a3b8'
-              } as React.CSSProperties}
-            >
-              <div 
-                className="w-3 h-3 rounded-full mr-2 transition-all duration-200 flex-shrink-0" 
-                style={{ 
-                  backgroundColor: config.color,
-                  filter: selectedPeriod === config.period 
-                    ? 'none' 
-                    : 'opacity(0.6)'
-                }}
-              />
-              <span className="whitespace-nowrap">{config.label}</span>
-            </Button>
-          ))}
+          {!title && (
+            <DataPointsIndicator
+              dataPointCount={chartData.length}
+              showFarmingOnly={showFarmingOnly}
+            />
+          )}
         </div>
       </div>
 
       {/* Chart */}
       <div className="transition-all duration-300 ease-in-out">
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <AreaChart 
-            data={chartData} 
+          <AreaChart
+            data={chartData}
             margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
           >
           <defs>
@@ -155,15 +129,15 @@ export function TimeSeriesChart({
               <stop offset="95%" stopColor={currentConfig.color} stopOpacity={0.05}/>
             </linearGradient>
           </defs>
-          
-          <XAxis 
-            dataKey="date" 
+
+          <XAxis
+            dataKey="date"
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 12, fill: '#94a3b8' }}
             tickMargin={8}
           />
-          
+
           <YAxis
             axisLine={false}
             tickLine={false}
@@ -179,7 +153,7 @@ export function TimeSeriesChart({
               formatter={(value) => {
                 const formattedValue = formatter(Number(value))
                 const suffix = selectedPeriod === 'hourly' ? '/hour' : ''
-                return [`${formattedValue}${suffix} `, title]
+                return [`${formattedValue}${suffix} `, tooltipLabel ?? title]
               }}
               labelFormatter={(label) => `${currentConfig.label}: ${label}`}
               className="bg-slate-800/95 border-slate-600 backdrop-blur-sm shadow-lg shadow-black/20"
@@ -188,7 +162,7 @@ export function TimeSeriesChart({
               }}
             />}
           />
-          
+
           <Area
             type="monotone"
             dataKey="value"
@@ -196,10 +170,10 @@ export function TimeSeriesChart({
             fill={`url(#gradient-${metric})`}
             strokeWidth={2}
             dot={{ fill: currentConfig.color, strokeWidth: 0, r: 4 }}
-            activeDot={{ 
-              r: 6, 
-              stroke: currentConfig.color, 
-              strokeWidth: 2, 
+            activeDot={{
+              r: 6,
+              stroke: currentConfig.color,
+              strokeWidth: 2,
               fill: '#1e293b',
               filter: `drop-shadow(0 0 6px ${currentConfig.color}50)`
             }}
