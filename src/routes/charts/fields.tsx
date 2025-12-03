@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ChartPageLayout } from '@/shared/layouts'
 import { TimeSeriesChart } from '@/features/analysis/time-series/time-series-chart'
 import { FieldSelector } from '@/features/analysis/field-analytics/field-selector'
@@ -7,6 +7,8 @@ import { useFieldSelector } from '@/features/analysis/field-analytics/use-field-
 import { useData } from '@/shared/domain/use-data'
 import { formatFieldDisplayName, getFieldFormatter } from '@/shared/domain/fields/field-formatters'
 import { getFieldDataType } from '@/shared/domain/fields/field-discovery'
+import { RunType } from '@/shared/domain/run-types/types'
+import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 export const Route = createFileRoute('/charts/fields')({
   component: FieldAnalyticsPage,
@@ -15,6 +17,7 @@ export const Route = createFileRoute('/charts/fields')({
 function FieldAnalyticsPage() {
   const { runs } = useData()
   const { selectedField, setSelectedField, availableFields } = useFieldSelector(runs)
+  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>(RunType.FARM)
 
   // Get field display name for tooltip
   const tooltipLabel = useMemo(() =>
@@ -44,7 +47,7 @@ function FieldAnalyticsPage() {
         />
       </div>
 
-      {/* Time Series Chart */}
+      {/* Time Series Chart with integrated filters */}
       {runs.length === 0 ? (
         <div className="h-[400px] flex items-center justify-center text-slate-400 px-4 text-center">
           <p>No run data available. Import your game data to get started.</p>
@@ -54,7 +57,8 @@ function FieldAnalyticsPage() {
           metric={selectedField}
           tooltipLabel={tooltipLabel}
           defaultPeriod="hourly"
-          showFarmingOnly={true}
+          runTypeFilter={runTypeFilter}
+          onRunTypeChange={setRunTypeFilter}
           valueFormatter={valueFormatter}
         />
       )}

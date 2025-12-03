@@ -1,14 +1,16 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Area, AreaChart, XAxis, YAxis } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui'
+import { ChartContainer, ChartTooltip, ChartTooltipContent, FormControl } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import { TimePeriod } from './chart-types'
 import { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters'
-import { getFarmingRuns } from '@/features/analysis/shared/filtering/run-type-filter'
+import { filterRunsByType, type RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import { RunType } from '@/shared/domain/run-types/types'
+import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
-import { DataPointsIndicator } from './data-points-indicator'
+import { DataPointsCount } from './data-points-count'
 
 interface TimeSeriesChartProps {
   metric: string
@@ -17,7 +19,10 @@ interface TimeSeriesChartProps {
   /** Label shown in tooltip. Defaults to title if not provided. */
   tooltipLabel?: string
   defaultPeriod?: TimePeriod
-  showFarmingOnly?: boolean
+  /** Filter runs by type. Defaults to 'farm' for backwards compatibility. */
+  runTypeFilter?: RunTypeFilter
+  /** Callback when run type changes. If provided, enables the run type selector. */
+  onRunTypeChange?: (runType: RunTypeFilter) => void
   valueFormatter?: (value: number) => string
 }
 
@@ -33,7 +38,8 @@ export function TimeSeriesChart({
   subtitle,
   tooltipLabel,
   defaultPeriod = 'run',
-  showFarmingOnly = false,
+  runTypeFilter = RunType.FARM,
+  onRunTypeChange,
   valueFormatter
 }: TimeSeriesChartProps) {
   const { runs } = useData()
@@ -42,10 +48,10 @@ export function TimeSeriesChart({
   // Wrap formatLargeNumber to ignore extra arguments from chart library (like index)
   const formatter = valueFormatter ?? ((value: number) => formatLargeNumber(value))
 
-  // Filter runs based on showFarmingOnly prop
+  // Filter runs based on runTypeFilter prop
   const filteredRuns = useMemo(() => {
-    return showFarmingOnly ? getFarmingRuns(runs) : runs
-  }, [runs, showFarmingOnly])
+    return filterRunsByType(runs, runTypeFilter)
+  }, [runs, runTypeFilter])
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
 
   // Get available periods based on data span
@@ -81,6 +87,9 @@ export function TimeSeriesChart({
     )
   }
 
+  // Show run type selector when callback is provided
+  const showRunTypeSelector = Boolean(onRunTypeChange)
+
   return (
     <div className="space-y-4">
       {/* Header with period selector */}
@@ -90,29 +99,38 @@ export function TimeSeriesChart({
             title={title}
             subtitle={subtitle}
             currentConfig={currentConfig}
-            dataPointCount={chartData.length}
-            showFarmingOnly={showFarmingOnly}
           />
         )}
 
-        {/* Period selector with data point count when no title */}
-        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {availablePeriodConfigs.map((config) => (
-              <PeriodSelectorButton
-                key={config.period}
-                config={config}
-                isSelected={selectedPeriod === config.period}
-                onSelect={setSelectedPeriod}
+        {/* Filter controls row */}
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+          {/* Left side: Duration selector */}
+          <FormControl label="Duration" layout="vertical">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {availablePeriodConfigs.map((config) => (
+                <PeriodSelectorButton
+                  key={config.period}
+                  config={config}
+                  isSelected={selectedPeriod === config.period}
+                  onSelect={setSelectedPeriod}
+                />
+              ))}
+            </div>
+          </FormControl>
+
+          {/* Right side: Run type selector + Data points count */}
+          <div className="flex items-start gap-4">
+            {showRunTypeSelector && onRunTypeChange && (
+              <RunTypeSelector
+                selectedType={runTypeFilter}
+                onTypeChange={onRunTypeChange}
+                layout="vertical"
               />
-            ))}
+            )}
+
+            {/* Data points indicator - aligned with controls */}
+            <DataPointsCount count={chartData.length} />
           </div>
-          {!title && (
-            <DataPointsIndicator
-              dataPointCount={chartData.length}
-              showFarmingOnly={showFarmingOnly}
-            />
-          )}
         </div>
       </div>
 
