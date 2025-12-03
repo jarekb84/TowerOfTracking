@@ -39,6 +39,7 @@
     "deathWaveDamage",
     "swampDamage",
     "blackHoleDamage",
+    "electronsDamage",
     "wavesSkipped",
     "recoveryPackages",
     "freeAttackUpgrade",
