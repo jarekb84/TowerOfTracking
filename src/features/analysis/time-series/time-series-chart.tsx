@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Area, AreaChart, XAxis, YAxis } from 'recharts'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, FormControl } from '@/components/ui'
+import { Area, AreaChart, XAxis, YAxis, Tooltip } from 'recharts'
+import { ChartContainer, FormControl } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
-import { TimePeriod } from './chart-types'
+import type { TimePeriod, TimePeriodConfig } from './chart-types'
 import { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters'
 import { filterRunsByType, type RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { RunType } from '@/shared/domain/run-types/types'
@@ -11,6 +11,7 @@ import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
 import { DataPointsCount } from './data-points-count'
+import { TimeSeriesChartTooltip } from './time-series-tooltip'
 
 interface TimeSeriesChartProps {
   metric: string
@@ -30,6 +31,58 @@ const chartConfig = {
   value: {
     label: 'Value',
   },
+}
+
+interface FilterControlsProps {
+  availablePeriodConfigs: TimePeriodConfig[]
+  selectedPeriod: TimePeriod
+  onSelectPeriod: (period: TimePeriod) => void
+  showRunTypeSelector: boolean
+  runTypeFilter: RunTypeFilter
+  onRunTypeChange?: (runType: RunTypeFilter) => void
+  dataPointCount: number
+}
+
+function FilterControls({
+  availablePeriodConfigs,
+  selectedPeriod,
+  onSelectPeriod,
+  showRunTypeSelector,
+  runTypeFilter,
+  onRunTypeChange,
+  dataPointCount,
+}: FilterControlsProps) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      {/* Left side: Duration selector */}
+      <FormControl label="Duration" layout="vertical">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          {availablePeriodConfigs.map((config) => (
+            <PeriodSelectorButton
+              key={config.period}
+              config={config}
+              isSelected={selectedPeriod === config.period}
+              onSelect={onSelectPeriod}
+            />
+          ))}
+        </div>
+      </FormControl>
+
+      {/* Right side: Run type selector + Data points count */}
+      <div className="flex items-end gap-4">
+        {showRunTypeSelector && onRunTypeChange && (
+          <RunTypeSelector
+            selectedType={runTypeFilter}
+            onTypeChange={onRunTypeChange}
+            layout="vertical"
+          />
+        )}
+
+        {/* Data points indicator - aligned with controls */}
+        <DataPointsCount count={dataPointCount} />
+      </div>
+    </div>
+  )
 }
 
 export function TimeSeriesChart({
@@ -102,36 +155,15 @@ export function TimeSeriesChart({
           />
         )}
 
-        {/* Filter controls row */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          {/* Left side: Duration selector */}
-          <FormControl label="Duration" layout="vertical">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              {availablePeriodConfigs.map((config) => (
-                <PeriodSelectorButton
-                  key={config.period}
-                  config={config}
-                  isSelected={selectedPeriod === config.period}
-                  onSelect={setSelectedPeriod}
-                />
-              ))}
-            </div>
-          </FormControl>
-
-          {/* Right side: Run type selector + Data points count */}
-          <div className="flex items-end gap-4">
-            {showRunTypeSelector && onRunTypeChange && (
-              <RunTypeSelector
-                selectedType={runTypeFilter}
-                onTypeChange={onRunTypeChange}
-                layout="vertical"
-              />
-            )}
-
-            {/* Data points indicator - aligned with controls */}
-            <DataPointsCount count={chartData.length} />
-          </div>
-        </div>
+        <FilterControls
+          availablePeriodConfigs={availablePeriodConfigs}
+          selectedPeriod={selectedPeriod}
+          onSelectPeriod={setSelectedPeriod}
+          showRunTypeSelector={showRunTypeSelector}
+          runTypeFilter={runTypeFilter}
+          onRunTypeChange={onRunTypeChange}
+          dataPointCount={chartData.length}
+        />
       </div>
 
       {/* Chart */}
@@ -166,19 +198,16 @@ export function TimeSeriesChart({
             tickMargin={8}
           />
 
-          <ChartTooltip
-            content={<ChartTooltipContent
-              formatter={(value) => {
-                const formattedValue = formatter(Number(value))
-                const suffix = selectedPeriod === 'hourly' ? '/hour' : ''
-                return [`${formattedValue}${suffix} `, tooltipLabel ?? title]
-              }}
-              labelFormatter={(label) => `${currentConfig.label}: ${label}`}
-              className="bg-slate-800/95 border-slate-600 backdrop-blur-sm shadow-lg shadow-black/20"
-              style={{
-                borderColor: `color-mix(in srgb, ${currentConfig.color} 40%, transparent)`
-              }}
-            />}
+          <Tooltip
+            content={
+              <TimeSeriesChartTooltip
+                periodLabel={currentConfig.label}
+                metricLabel={tooltipLabel ?? title ?? ''}
+                formatter={formatter}
+                isHourlyPeriod={selectedPeriod === 'hourly'}
+                accentColor={currentConfig.color}
+              />
+            }
           />
 
           <Area

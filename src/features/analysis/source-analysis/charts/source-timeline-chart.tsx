@@ -85,6 +85,7 @@ function CustomTooltip({ active, payload, label, periods, highlightedSource }: C
       dataPointCount={period.runCount}
       periodTotal={period.total}
       highlightedSource={highlightedSource}
+      runInfo={period.runInfo}
     />
   )
 }

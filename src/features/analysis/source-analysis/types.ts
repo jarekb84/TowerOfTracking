@@ -7,9 +7,16 @@
  */
 
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
+
+// Re-export shared RunInfo for source analysis consumers
+export type { RunInfo as SourceRunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
 
 // Re-export for convenience
 export type { RunTypeFilter }
+
+// Local alias for use within this file
+type SourceRunInfo = RunInfo
 
 /**
  * Duration options for source analysis (matches tier-trends pattern)
@@ -67,6 +74,7 @@ export interface PeriodSourceBreakdown {
   total: number; // Total value for the period
   runCount: number; // Number of runs included in this period
   sources: SourceValue[]; // Individual source values
+  runInfo?: SourceRunInfo; // Optional run info for per-run periods
 }
 
 /**

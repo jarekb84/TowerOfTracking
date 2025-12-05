@@ -6,15 +6,16 @@
  */
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
-import type {
-  CategoryDefinition,
-  PeriodSourceBreakdown,
+import {
   SourceDuration,
-  SourceValue,
-  SourceSummary,
-  SourceSummaryValue,
-  SourceAnalysisData,
-  SourceAnalysisFilters,
+  type CategoryDefinition,
+  type PeriodSourceBreakdown,
+  type SourceValue,
+  type SourceSummary,
+  type SourceSummaryValue,
+  type SourceAnalysisData,
+  type SourceAnalysisFilters,
+  type SourceRunInfo,
 } from '../types';
 import {
   extractFieldValue,
@@ -48,14 +49,40 @@ export function groupRunsByPeriod(
 }
 
 /**
+ * Extract run info from a single run for per-run periods
+ */
+function extractRunInfo(run: ParsedGameRun): SourceRunInfo {
+  return {
+    tier: run.tier,
+    wave: run.wave,
+    realTime: run.realTime,
+    timestamp: run.timestamp,
+  };
+}
+
+/**
+ * Options for calculating period breakdown
+ */
+interface PeriodBreakdownOptions {
+  runs: ParsedGameRun[];
+  category: CategoryDefinition;
+  periodKey: string;
+  periodLabel: string;
+  isPerRunPeriod?: boolean;
+}
+
+/**
  * Calculate source breakdown for a group of runs in one period
  */
-export function calculatePeriodBreakdown(
-  runs: ParsedGameRun[],
-  category: CategoryDefinition,
-  periodKey: string,
-  periodLabel: string
-): PeriodSourceBreakdown {
+export function calculatePeriodBreakdown(options: PeriodBreakdownOptions): PeriodSourceBreakdown {
+  const {
+    runs,
+    category,
+    periodKey,
+    periodLabel,
+    isPerRunPeriod = false,
+  } = options;
+
   // Sum all sources across runs in this period
   const sourceTotals = new Map<string, number>();
   let periodTotal = 0;
@@ -81,12 +108,18 @@ export function calculatePeriodBreakdown(
     percentage: calculatePercentage(sourceTotals.get(source.fieldName) || 0, periodTotal)
   }));
 
+  // Include run info only for per-run periods with a single run
+  const runInfo = isPerRunPeriod && runs.length === 1
+    ? extractRunInfo(runs[0])
+    : undefined;
+
   return {
     periodLabel,
     periodKey,
     total: periodTotal,
     runCount: runs.length,
-    sources
+    sources,
+    runInfo,
   };
 }
 
@@ -212,10 +245,17 @@ export function calculateSourceAnalysis(
   // Calculate breakdown for each period
   const groupEntries = Array.from(groups.entries());
   const totalRuns = groupEntries.length;
+  const isPerRunPeriod = filters.duration === SourceDuration.PER_RUN;
 
   const periods: PeriodSourceBreakdown[] = groupEntries.map(([key, periodRuns], index) => {
     const label = formatPeriodLabel(key, filters.duration, index, totalRuns);
-    return calculatePeriodBreakdown(periodRuns, category, key, label);
+    return calculatePeriodBreakdown({
+      runs: periodRuns,
+      category,
+      periodKey: key,
+      periodLabel: label,
+      isPerRunPeriod,
+    });
   });
 
   // Calculate overall summary

@@ -16,6 +16,7 @@ import type {
   CoverageAnalysisData,
   MetricCoverage,
 } from '../types'
+import { extractRunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
 import { getMetricByFieldName } from '../coverage-config'
 import {
   hasValidCoverageData,
@@ -118,14 +119,27 @@ export function limitToPeriods(
 }
 
 /**
+ * Options for calculating period coverage
+ */
+interface PeriodCoverageOptions {
+  runs: ParsedGameRun[]
+  selectedMetrics: Set<CoverageFieldName>
+  periodKey: string
+  periodLabel: string
+  isPerRunPeriod?: boolean
+}
+
+/**
  * Calculate coverage metrics for a group of runs in one period
  */
-export function calculatePeriodCoverage(
-  runs: ParsedGameRun[],
-  selectedMetrics: Set<CoverageFieldName>,
-  periodKey: string,
-  periodLabel: string
-): PeriodCoverageData {
+export function calculatePeriodCoverage(options: PeriodCoverageOptions): PeriodCoverageData {
+  const {
+    runs,
+    selectedMetrics,
+    periodKey,
+    periodLabel,
+    isPerRunPeriod = false,
+  } = options
   const totalEnemies = sumTotalEnemies(runs)
 
   const metrics: MetricCoverage[] = Array.from(selectedMetrics).map(fieldName => {
@@ -147,12 +161,18 @@ export function calculatePeriodCoverage(
     }
   })
 
+  // Include run info only for per-run periods with a single run
+  const runInfo = isPerRunPeriod && runs.length === 1
+    ? extractRunInfo(runs[0])
+    : undefined
+
   return {
     periodKey,
     periodLabel,
     metrics,
     totalEnemies,
     runCount: runs.length,
+    runInfo,
   }
 }
 
@@ -230,10 +250,17 @@ export function calculateCoverageAnalysis(
   // Calculate coverage for each period
   const groupEntries = Array.from(groups.entries())
   const totalRuns = groupEntries.length
+  const isPerRunPeriod = filters.duration === 'per-run'
 
   const periods: PeriodCoverageData[] = groupEntries.map(([key, periodRuns], index) => {
     const label = formatPeriodLabel(key, filters.duration, index, totalRuns)
-    return calculatePeriodCoverage(periodRuns, filters.selectedMetrics, key, label)
+    return calculatePeriodCoverage({
+      runs: periodRuns,
+      selectedMetrics: filters.selectedMetrics,
+      periodKey: key,
+      periodLabel: label,
+      isPerRunPeriod,
+    })
   })
 
   // Calculate overall summary

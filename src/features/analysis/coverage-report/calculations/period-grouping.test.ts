@@ -200,7 +200,12 @@ describe('calculatePeriodCoverage', () => {
     ]
 
     const selectedMetrics = new Set<CoverageFieldName>(['taggedByDeathwave', 'destroyedInSpotlight'])
-    const result = calculatePeriodCoverage(runs, selectedMetrics, '2024-03-15', 'Mar 15')
+    const result = calculatePeriodCoverage({
+      runs,
+      selectedMetrics,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    })
 
     expect(result.periodKey).toBe('2024-03-15')
     expect(result.periodLabel).toBe('Mar 15')
@@ -228,7 +233,12 @@ describe('calculatePeriodCoverage', () => {
     ]
 
     const selectedMetrics = new Set<CoverageFieldName>(['taggedByDeathwave'])
-    const result = calculatePeriodCoverage(runs, selectedMetrics, '2024-03-15', 'Mar 15')
+    const result = calculatePeriodCoverage({
+      runs,
+      selectedMetrics,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    })
 
     expect(result.totalEnemies).toBe(2000)
     expect(result.runCount).toBe(2)

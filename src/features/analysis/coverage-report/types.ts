@@ -7,6 +7,13 @@
 
 import type { Duration } from '@/shared/domain/filters'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
+
+// Re-export shared RunInfo for coverage report consumers
+export type { RunInfo as CoverageRunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
+
+// Local alias for use within this file
+type CoverageRunInfo = RunInfo
 
 /**
  * Category grouping for coverage metrics
@@ -84,6 +91,8 @@ export interface PeriodCoverageData {
   totalEnemies: number
   /** Number of runs in this period */
   runCount: number
+  /** Optional run info for per-run periods (single run data points) */
+  runInfo?: CoverageRunInfo
 }
 
 /**

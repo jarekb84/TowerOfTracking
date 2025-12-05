@@ -53,6 +53,7 @@ function CustomTooltip({ active, payload, label, periods, highlightedMetric }: C
       totalEnemies={period.totalEnemies}
       runCount={period.runCount}
       highlightedMetric={highlightedMetric}
+      runInfo={period.runInfo}
     />
   )
 }
