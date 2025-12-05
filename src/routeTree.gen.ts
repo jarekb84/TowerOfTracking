@@ -13,6 +13,9 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as RunsIndexRouteImport } from './routes/runs/index'
+import { Route as ChartsIndexRouteImport } from './routes/charts/index'
 import { Route as SettingsLocaleRouteImport } from './routes/settings/locale'
 import { Route as SettingsImportRouteImport } from './routes/settings/import'
 import { Route as SettingsExportRouteImport } from './routes/settings/export'
@@ -48,6 +51,21 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const RunsIndexRoute = RunsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RunsRoute,
+} as any)
+const ChartsIndexRoute = ChartsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ChartsRoute,
 } as any)
 const SettingsLocaleRoute = SettingsLocaleRouteImport.update({
   id: '/locale',
@@ -145,12 +163,12 @@ export interface FileRoutesByFullPath {
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
+  '/charts/': typeof ChartsIndexRoute
+  '/runs/': typeof RunsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/charts': typeof ChartsRouteWithChildren
-  '/runs': typeof RunsRouteWithChildren
-  '/settings': typeof SettingsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -166,6 +184,9 @@ export interface FileRoutesByTo {
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
+  '/charts': typeof ChartsIndexRoute
+  '/runs': typeof RunsIndexRoute
+  '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,6 +209,9 @@ export interface FileRoutesById {
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
+  '/charts/': typeof ChartsIndexRoute
+  '/runs/': typeof RunsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,12 +235,12 @@ export interface FileRouteTypes {
     | '/settings/export'
     | '/settings/import'
     | '/settings/locale'
+    | '/charts/'
+    | '/runs/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/charts'
-    | '/runs'
-    | '/settings'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -232,6 +256,9 @@ export interface FileRouteTypes {
     | '/settings/export'
     | '/settings/import'
     | '/settings/locale'
+    | '/charts'
+    | '/runs'
+    | '/settings'
   id:
     | '__root__'
     | '/'
@@ -253,6 +280,9 @@ export interface FileRouteTypes {
     | '/settings/export'
     | '/settings/import'
     | '/settings/locale'
+    | '/charts/'
+    | '/runs/'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -291,6 +321,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/runs/': {
+      id: '/runs/'
+      path: '/'
+      fullPath: '/runs/'
+      preLoaderRoute: typeof RunsIndexRouteImport
+      parentRoute: typeof RunsRoute
+    }
+    '/charts/': {
+      id: '/charts/'
+      path: '/'
+      fullPath: '/charts/'
+      preLoaderRoute: typeof ChartsIndexRouteImport
+      parentRoute: typeof ChartsRoute
     }
     '/settings/locale': {
       id: '/settings/locale'
@@ -409,6 +460,7 @@ interface ChartsRouteChildren {
   ChartsSourcesRoute: typeof ChartsSourcesRoute
   ChartsTierStatsRoute: typeof ChartsTierStatsRoute
   ChartsTierTrendsRoute: typeof ChartsTierTrendsRoute
+  ChartsIndexRoute: typeof ChartsIndexRoute
 }
 
 const ChartsRouteChildren: ChartsRouteChildren = {
@@ -420,6 +472,7 @@ const ChartsRouteChildren: ChartsRouteChildren = {
   ChartsSourcesRoute: ChartsSourcesRoute,
   ChartsTierStatsRoute: ChartsTierStatsRoute,
   ChartsTierTrendsRoute: ChartsTierTrendsRoute,
+  ChartsIndexRoute: ChartsIndexRoute,
 }
 
 const ChartsRouteWithChildren =
@@ -429,12 +482,14 @@ interface RunsRouteChildren {
   RunsFarmRoute: typeof RunsFarmRoute
   RunsMilestoneRoute: typeof RunsMilestoneRoute
   RunsTournamentRoute: typeof RunsTournamentRoute
+  RunsIndexRoute: typeof RunsIndexRoute
 }
 
 const RunsRouteChildren: RunsRouteChildren = {
   RunsFarmRoute: RunsFarmRoute,
   RunsMilestoneRoute: RunsMilestoneRoute,
   RunsTournamentRoute: RunsTournamentRoute,
+  RunsIndexRoute: RunsIndexRoute,
 }
 
 const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
@@ -444,6 +499,7 @@ interface SettingsRouteChildren {
   SettingsExportRoute: typeof SettingsExportRoute
   SettingsImportRoute: typeof SettingsImportRoute
   SettingsLocaleRoute: typeof SettingsLocaleRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
@@ -451,6 +507,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsExportRoute: SettingsExportRoute,
   SettingsImportRoute: SettingsImportRoute,
   SettingsLocaleRoute: SettingsLocaleRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
 }
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
