@@ -36,24 +36,22 @@ export function TierStatsConfigPanel({ config }: TierStatsConfigPanelProps) {
   return (
     <div className="space-y-4">
       {/* Aggregation Selector - Always Visible */}
-      <div className="space-y-1.5">
-        <FormControl label="Aggregation Method">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <FormControl label="Aggregation Method" layout="vertical">
           <div className="flex flex-col gap-1.5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <SelectionButtonGroup<TierStatsAggregation>
-                options={getAggregationOptions()}
-                selectedValue={config.aggregationType}
-                onSelectionChange={config.setAggregationType}
-                size="sm"
-                fullWidthOnMobile={false}
-              />
-              <FarmingOnlyIndicator />
-            </div>
+            <SelectionButtonGroup<TierStatsAggregation>
+              options={getAggregationOptions()}
+              selectedValue={config.aggregationType}
+              onSelectionChange={config.setAggregationType}
+              size="sm"
+              fullWidthOnMobile={false}
+            />
             <p className="text-xs text-slate-400">
               {getAggregationTooltip(config.aggregationType)}
             </p>
           </div>
         </FormControl>
+        <FarmingOnlyIndicator />
       </div>
 
       {/* Enhanced Toggle Button with Visual Prominence */}

@@ -7,9 +7,9 @@
 
 import { FormControl } from '@/components/ui/form-field'
 import { SelectionButtonGroup, type SelectionOption } from '@/components/ui'
-import type { PeriodCountFilter } from '../types'
+import type { PeriodCountFilter, SelectorStyleProps } from '../types'
 
-interface PeriodCountSelectorProps {
+interface PeriodCountSelectorProps extends SelectorStyleProps {
   /** Currently selected period count */
   selectedCount: PeriodCountFilter
   /** Callback when count selection changes */
@@ -20,10 +20,6 @@ interface PeriodCountSelectorProps {
   label: string
   /** Whether to include "All" option */
   showAllOption?: boolean
-  /** Optional className for the wrapper */
-  className?: string
-  /** Accent color theme */
-  accentColor?: 'orange' | 'purple' | 'cyan'
 }
 
 /**
@@ -53,12 +49,13 @@ export function PeriodCountSelector({
   label,
   showAllOption = true,
   className,
-  accentColor = 'orange'
+  accentColor = 'orange',
+  layout = 'auto'
 }: PeriodCountSelectorProps) {
   const options = buildCountOptions(countOptions, showAllOption)
 
   return (
-    <FormControl label={label} className={className}>
+    <FormControl label={label} className={className} layout={layout}>
       <SelectionButtonGroup<PeriodCountFilter>
         options={options}
         selectedValue={selectedCount}

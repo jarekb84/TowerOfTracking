@@ -1,4 +1,5 @@
 import { cn } from "../../shared/lib/utils"
+import type { SelectorLayout } from "./form-field-types"
 
 interface FormFieldProps {
   children: React.ReactNode
@@ -20,7 +21,7 @@ interface FormControlProps {
   className?: string
   labelClassName?: string
   controlsClassName?: string
-  layout?: 'horizontal' | 'vertical' | 'auto'
+  layout?: SelectorLayout
   labelWidth?: string
 }
 

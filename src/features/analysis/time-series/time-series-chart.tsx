@@ -103,7 +103,7 @@ export function TimeSeriesChart({
         )}
 
         {/* Filter controls row */}
-        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
           {/* Left side: Duration selector */}
           <FormControl label="Duration" layout="vertical">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -119,7 +119,7 @@ export function TimeSeriesChart({
           </FormControl>
 
           {/* Right side: Run type selector + Data points count */}
-          <div className="flex items-start gap-4">
+          <div className="flex items-end gap-4">
             {showRunTypeSelector && onRunTypeChange && (
               <RunTypeSelector
                 selectedType={runTypeFilter}

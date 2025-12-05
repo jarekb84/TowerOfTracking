@@ -50,11 +50,12 @@ export function CoverageReportFiltersComponent({
       />
 
       {/* Row 2: Run Type + Tier */}
-      <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex flex-wrap gap-4 items-end">
         <RunTypeSelector
           selectedType={filters.runType}
           onTypeChange={onRunTypeChange}
           accentColor="cyan"
+          layout="vertical"
         />
 
         <TierSelector
@@ -62,16 +63,18 @@ export function CoverageReportFiltersComponent({
           onTierChange={onTierChange}
           availableTiers={availableTiers}
           accentColor="cyan"
+          layout="vertical"
         />
       </div>
 
       {/* Row 3: Duration + Period Count */}
-      <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex flex-wrap gap-4 items-end">
         <DurationSelector
           selectedDuration={filters.duration}
           onDurationChange={onDurationChange}
           availableDurations={availableDurations}
           accentColor="cyan"
+          layout="vertical"
         />
 
         <PeriodCountSelector
@@ -85,6 +88,7 @@ export function CoverageReportFiltersComponent({
           label={periodLabel}
           showAllOption={false}
           accentColor="cyan"
+          layout="vertical"
         />
       </div>
     </div>

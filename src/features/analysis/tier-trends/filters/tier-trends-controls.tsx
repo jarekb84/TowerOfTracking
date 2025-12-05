@@ -31,10 +31,11 @@ export function TierTrendsControls({
   return (
     <div className="space-y-4">
       {/* Row 1: Run Type & Tier */}
-      <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex flex-wrap gap-4 items-end">
         <RunTypeSelector
           selectedType={runTypeFilter}
           onTypeChange={onRunTypeChange}
+          layout="vertical"
         />
         <TierSelector
           selectedTier={zeroToAllTierAdapter(filters.tier)}
@@ -42,13 +43,14 @@ export function TierTrendsControls({
           availableTiers={availableTiers}
           tierCounts={tierCounts}
           showCounts={Boolean(tierCounts)}
+          layout="vertical"
         />
       </div>
 
       {/* Row 2: Duration, Quantity, Aggregation */}
-      <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex flex-wrap gap-4 items-end">
         {/* Duration Selector */}
-        <FormControl label="Duration">
+        <FormControl label="Duration" layout="vertical">
           <SelectionButtonGroup<TrendsDuration>
             options={[
               { value: TrendsDuration.PER_RUN, label: 'Per Run' },
@@ -73,7 +75,7 @@ export function TierTrendsControls({
         </FormControl>
 
         {/* Quantity Selector */}
-        <FormControl label={`Last ${getQuantityLabel(filters.duration)}`}>
+        <FormControl label={`Last ${getQuantityLabel(filters.duration)}`} layout="vertical">
           <SelectionButtonGroup<number>
             options={[2, 3, 4, 5, 6, 7].map(count => ({ value: count, label: count.toString() }))}
             selectedValue={filters.quantity}
@@ -85,7 +87,7 @@ export function TierTrendsControls({
         </FormControl>
 
         {/* Aggregation Selector */}
-        <FormControl label="Aggregation">
+        <FormControl label="Aggregation" layout="vertical">
           <SelectionButtonGroup<TrendsAggregation>
             options={getAggregationOptions(filters.duration)}
             selectedValue={filters.aggregationType || getDefaultAggregationType(filters.duration)}

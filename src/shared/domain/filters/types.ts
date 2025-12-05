@@ -53,3 +53,9 @@ export const PERIOD_UNIT_LABELS: Record<Duration, PeriodUnitLabels> = {
   [Duration.MONTHLY]: { singular: 'Month', plural: 'Months' },
   [Duration.YEARLY]: { singular: 'Year', plural: 'Years' }
 }
+
+/**
+ * Re-export UI-layer styling types for backwards compatibility
+ * These types are owned by the UI layer but re-exported here for convenience
+ */
+export type {   SelectorStyleProps } from '@/components/ui/form-field-types'

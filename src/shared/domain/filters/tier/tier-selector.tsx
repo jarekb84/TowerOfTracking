@@ -7,10 +7,10 @@
 
 import { FormControl } from '@/components/ui/form-field'
 import { SelectionButtonGroup, type SelectionOption } from '@/components/ui'
-import type { TierFilter } from '../types'
+import type { TierFilter, SelectorStyleProps } from '../types'
 import { formatTierLabel } from './tier-filter-logic'
 
-interface TierSelectorProps {
+interface TierSelectorProps extends SelectorStyleProps {
   /** Currently selected tier (number or 'all') */
   selectedTier: TierFilter
   /** Callback when tier selection changes */
@@ -23,10 +23,6 @@ interface TierSelectorProps {
   showCounts?: boolean
   /** Whether to include "All" option */
   showAllOption?: boolean
-  /** Optional className for the wrapper */
-  className?: string
-  /** Accent color theme */
-  accentColor?: 'orange' | 'purple' | 'cyan'
   /** Label for the selector */
   label?: string
 }
@@ -69,7 +65,8 @@ export function TierSelector({
   showAllOption = true,
   className,
   accentColor = 'orange',
-  label = 'Tier'
+  label = 'Tier',
+  layout = 'auto'
 }: TierSelectorProps) {
   const options = buildTierOptions(
     availableTiers,
@@ -79,7 +76,7 @@ export function TierSelector({
   )
 
   return (
-    <FormControl label={label} className={className}>
+    <FormControl label={label} className={className} layout={layout}>
       <SelectionButtonGroup<TierFilter>
         options={options}
         selectedValue={selectedTier}
