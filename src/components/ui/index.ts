@@ -8,6 +8,7 @@ export * from "./chart";
 export * from "./dialog";
 export * from "./empty-state";
 export * from "./form-field";
+export * from "./form-field-types";
 export * from "./form-label";
 export * from "./info-box";
 export * from "./input";

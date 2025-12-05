@@ -54,9 +54,9 @@ export function SourceAnalysisFiltersComponent({
 
   return (
     <div className="space-y-4">
-      {/* Row 1: Category + Run Type */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <FormControl label="Category" layout="horizontal">
+      {/* Row 1: Category */}
+      <div className="flex flex-wrap gap-4 items-end">
+        <FormControl label="Category" layout="vertical">
           <SelectionButtonGroup<SourceCategory>
             options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
             selectedValue={filters.category}
@@ -66,31 +66,34 @@ export function SourceAnalysisFiltersComponent({
             accentColor="purple"
           />
         </FormControl>
+      </div>
 
+      {/* Row 2: Run Type + Tier (related concepts) */}
+      <div className="flex flex-wrap gap-4 items-end">
         <RunTypeSelector
           selectedType={filters.runType}
           onTypeChange={onRunTypeChange}
           accentColor="purple"
+          layout="vertical"
         />
-      </div>
 
-      {/* Row 2: Tier (can grow with many options) */}
-      <div className="flex flex-wrap gap-4 items-center">
         <TierSelector
           selectedTier={filters.tier}
           onTierChange={onTierChange}
           availableTiers={availableTiers}
           accentColor="purple"
+          layout="vertical"
         />
       </div>
 
       {/* Row 3: Duration + Period Count */}
-      <div className="flex flex-wrap gap-4 items-center">
+      <div className="flex flex-wrap gap-4 items-end">
         <DurationSelector
           selectedDuration={unifiedDuration}
           onDurationChange={(duration) => onDurationChange(durationToString(duration) as SourceDuration)}
           availableDurations={availableDurations}
           accentColor="purple"
+          layout="vertical"
         />
 
         <PeriodCountSelector
@@ -105,6 +108,7 @@ export function SourceAnalysisFiltersComponent({
           label={periodLabel}
           showAllOption={false}
           accentColor="purple"
+          layout="vertical"
         />
       </div>
     </div>

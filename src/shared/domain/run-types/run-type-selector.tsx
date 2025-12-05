@@ -1,18 +1,14 @@
 import { FormControl, SelectionButtonGroup } from '@/components/ui'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { getOptionsForMode, RunTypeSelectorMode, RunTypeCounts } from '../run-types/run-type-selector-options'
+import type { SelectorStyleProps } from '@/components/ui/form-field-types'
 
-interface RunTypeSelectorProps {
+interface RunTypeSelectorProps extends SelectorStyleProps {
   selectedType: RunTypeFilter
   onTypeChange: (type: RunTypeFilter) => void
-  className?: string
   mode?: RunTypeSelectorMode
   /** Optional counts per run type for display */
   counts?: RunTypeCounts
-  /** Accent color theme. Defaults to 'orange'. */
-  accentColor?: 'orange' | 'purple' | 'cyan'
-  /** Label layout direction. Defaults to 'auto' (horizontal on desktop, vertical on mobile). */
-  layout?: 'horizontal' | 'vertical' | 'auto'
 }
 
 export function RunTypeSelector({
