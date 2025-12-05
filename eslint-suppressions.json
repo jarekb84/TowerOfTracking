@@ -54,11 +54,6 @@
       "count": 1
     }
   },
-  "src/features/analysis/source-analysis/charts/source-chart-tooltip.tsx": {
-    "complexity": {
-      "count": 1
-    }
-  },
   "src/features/analysis/source-analysis/use-source-analysis.test.tsx": {
     "max-params": {
       "count": 1

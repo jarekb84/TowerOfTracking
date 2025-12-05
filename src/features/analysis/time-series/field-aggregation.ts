@@ -15,6 +15,7 @@ import {
 
 /**
  * Function to prepare per-run data for any field
+ * Includes run context info (tier, wave, duration, timestamp) for enhanced tooltips
  */
 export function prepareFieldPerRunData(
   runs: ParsedGameRun[],
@@ -27,6 +28,12 @@ export function prepareFieldPerRunData(
         date: formatDisplayMonthDay(run.timestamp),
         value: value ?? 0,
         timestamp: run.timestamp,
+        runInfo: {
+          tier: run.tier,
+          wave: run.wave,
+          realTime: run.realTime,
+          timestamp: run.timestamp,
+        },
       }
     })
     .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())

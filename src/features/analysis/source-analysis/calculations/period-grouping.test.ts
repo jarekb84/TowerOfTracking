@@ -192,7 +192,12 @@ describe('calculatePeriodBreakdown', () => {
       createMockRun('2', new Date(), { orbDamage: 400, thornDamage: 600 }),
     ];
 
-    const breakdown = calculatePeriodBreakdown(runs, mockCategory, '2024-03-15', 'Mar 15');
+    const breakdown = calculatePeriodBreakdown({
+      runs,
+      category: mockCategory,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    });
 
     expect(breakdown.periodLabel).toBe('Mar 15');
     expect(breakdown.total).toBe(2000);

@@ -1,8 +1,15 @@
 // Chart data types and interfaces
+
+// Re-export shared RunInfo type for consumers of this module
+export type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
+import type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
+
 export interface ChartDataPoint {
   date: string
   value: number
   timestamp: Date
+  /** Optional run info for per-run data points */
+  runInfo?: RunInfo
 }
 
 

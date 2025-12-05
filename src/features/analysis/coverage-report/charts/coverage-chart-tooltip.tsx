@@ -3,9 +3,12 @@
  *
  * Provides consistent tooltip styling across timeline and summary charts.
  * Shows metric name, affected count, and coverage percentage.
+ * For per-run periods, displays enhanced run context (tier, wave, duration, date/time).
  */
 
 import { formatLargeNumber, formatPercentage } from '@/shared/formatting/number-scale'
+import { RunInfoHeader } from '@/features/analysis/shared/tooltips/run-info-header'
+import type { CoverageRunInfo } from '../types'
 
 interface CoverageTooltipEntry {
   label: string
@@ -26,18 +29,37 @@ interface CoverageChartTooltipProps {
   runCount?: number
   /** Currently highlighted metric field name for emphasis */
   highlightedMetric?: string | null
+  /** Optional run info for per-run periods */
+  runInfo?: CoverageRunInfo
 }
 
 interface TooltipHeaderProps {
   title?: string
   totalEnemies?: number
   runCount?: number
+  runInfo?: CoverageRunInfo
 }
 
-function TooltipHeader({ title, totalEnemies, runCount }: TooltipHeaderProps) {
-  const hasHeader = title || runCount !== undefined || totalEnemies !== undefined
-  if (!hasHeader) return null
+/**
+ * Renders the per-run header with run context information
+ */
+function PerRunHeader({ runInfo, totalEnemies }: { runInfo: CoverageRunInfo; totalEnemies?: number }) {
+  return (
+    <div className="mb-2.5 pb-2.5 border-b border-slate-700/50">
+      <RunInfoHeader runInfo={runInfo} />
+      {totalEnemies !== undefined && (
+        <div className="text-xs text-slate-300 mt-2 pt-2 border-t border-slate-700/30">
+          {formatLargeNumber(totalEnemies)} enemies
+        </div>
+      )}
+    </div>
+  )
+}
 
+/**
+ * Renders the standard aggregated period header
+ */
+function AggregatedHeader({ title, totalEnemies, runCount }: Omit<TooltipHeaderProps, 'runInfo'>) {
   return (
     <div className="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-slate-700/50">
       {title && <p className="text-slate-200 font-medium">{title}</p>}
@@ -55,6 +77,17 @@ function TooltipHeader({ title, totalEnemies, runCount }: TooltipHeaderProps) {
       </div>
     </div>
   )
+}
+
+function TooltipHeader({ title, totalEnemies, runCount, runInfo }: TooltipHeaderProps) {
+  if (runInfo) {
+    return <PerRunHeader runInfo={runInfo} totalEnemies={totalEnemies} />
+  }
+
+  const hasAggregatedHeader = title || runCount !== undefined || totalEnemies !== undefined
+  if (!hasAggregatedHeader) return null
+
+  return <AggregatedHeader title={title} totalEnemies={totalEnemies} runCount={runCount} />
 }
 
 interface TooltipEntryRowProps {
@@ -104,6 +137,7 @@ export function CoverageChartTooltip({
   totalEnemies,
   runCount,
   highlightedMetric,
+  runInfo,
 }: CoverageChartTooltipProps) {
   const filteredEntries = showZeroValues
     ? entries
@@ -115,7 +149,12 @@ export function CoverageChartTooltip({
 
   return (
     <div className="bg-slate-900/95 border border-slate-600/80 rounded-lg p-3 shadow-xl backdrop-blur-sm">
-      <TooltipHeader title={title} totalEnemies={totalEnemies} runCount={runCount} />
+      <TooltipHeader
+        title={title}
+        totalEnemies={totalEnemies}
+        runCount={runCount}
+        runInfo={runInfo}
+      />
       <div className="space-y-1.5">
         {filteredEntries.map(entry => (
           <TooltipEntryRow
