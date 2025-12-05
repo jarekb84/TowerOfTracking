@@ -9,6 +9,10 @@ import type {
   BreakdownConfig,
   PlainFieldsConfig,
 } from './types'
+import {
+  DAMAGE_DEALT_CATEGORY,
+  COINS_EARNED_CATEGORY,
+} from '@/shared/domain/fields/breakdown-sources'
 
 // =============================================================================
 // Battle Report Section
@@ -41,26 +45,13 @@ export const BATTLE_REPORT_MISCELLANEOUS: PlainFieldsConfig = {
 // =============================================================================
 
 export const DAMAGE_DEALT_CONFIG: BreakdownConfig = {
-  totalField: 'damageDealt',
-  label: 'DAMAGE DEALT',
-  sources: [
-    { fieldName: 'deathWaveDamage', displayName: 'Death Wave', color: '#ef4444' },
-    { fieldName: 'chainLightningDamage', displayName: 'Chain Lightning', color: '#3b82f6' },
-    { fieldName: 'thornDamage', displayName: 'Thorn', color: '#22d3ee' },
-    { fieldName: 'orbDamage', displayName: 'Orb', color: '#f87171' },
-    { fieldName: 'flameBotDamage', displayName: 'Flame Bot Damage', color: '#fbbf24' },
-    { fieldName: 'damage', displayName: 'Guardian Damage', color: '#a855f7' },
-    { fieldName: 'landMineDamage', displayName: 'Land Mine', color: '#9333ea' },
-    { fieldName: 'deathRayDamage', displayName: 'Death Ray', color: '#ff5722' },
-    { fieldName: 'smartMissileDamage', displayName: 'Smart Missile', color: '#64748b' },
-    { fieldName: 'innerLandMineDamage', displayName: 'Inner Land Mine', color: '#7c3aed' },
-    { fieldName: 'swampDamage', displayName: 'Swamp', color: '#22c55e' },
-    { fieldName: 'blackHoleDamage', displayName: 'Black Hole', color: '#475569' },
-    { fieldName: 'electronsDamage', displayName: 'Electrons', color: '#06b6d4' },
-    { fieldName: 'projectilesDamage', displayName: 'Projectiles', color: '#f59e0b' },
-    { fieldName: 'rendArmorDamage', displayName: 'Rend Armor', color: '#dc2626' },
-    { fieldName: 'lifesteal', displayName: 'Lifesteal', color: '#f43f5e' }
-  ],
+  totalField: DAMAGE_DEALT_CATEGORY.totalField!,
+  label: DAMAGE_DEALT_CATEGORY.name.toUpperCase(),
+  sources: DAMAGE_DEALT_CATEGORY.fields.map((f) => ({
+    fieldName: f.fieldName,
+    displayName: f.displayName,
+    color: f.color,
+  })),
 }
 
 export const DAMAGE_TAKEN_CONFIG: PlainFieldsConfig = {
@@ -132,22 +123,14 @@ export const ENEMIES_AFFECTED_BY_CONFIG: BreakdownConfig = {
 // =============================================================================
 
 export const COINS_EARNED_CONFIG: BreakdownConfig = {
-  totalField: 'coinsEarned',
-  label: 'COINS EARNED',
-  perHourField: 'coinsPerHour',
-  sources: [
-    { fieldName: 'coinsFromDeathWave', displayName: 'Death Wave', color: '#ef4444' },
-    { fieldName: 'coinsFromGoldenTower', displayName: 'Golden Tower', color: '#fbbf24' },    
-    { fieldName: 'coinsFromSpotlight', displayName: 'Spotlight', color: '#e2e8f0' },
-    { fieldName: 'goldenBotCoinsEarned', displayName: 'Golden Bot', color: '#fbbf24' },
-    { fieldName: 'guardianCoinsStolen', displayName: 'Guardian Stolen', color: '#a855f7' },
-    { fieldName: 'coinsStolen', displayName: 'Coins Stolen', color: '#8b5cf6' },
-    { fieldName: 'coinsFetched', displayName: 'Guardian Fetched', color: '#7c3aed' },
-    { fieldName: 'coinsFromBlackHole', displayName: 'Black Hole', color: '#475569' },
-    { fieldName: 'coinsFromBlackhole', displayName: 'Black Hole', color: '#475569' },
-    { fieldName: 'coinsFromCoinUpgrade', displayName: 'Coin Upgrade', color: '#f59e0b' },
-    { fieldName: 'coinsFromCoinBonuses', displayName: 'Coin Bonuses', color: '#fb923c' },
-  ],
+  totalField: COINS_EARNED_CATEGORY.totalField!,
+  label: COINS_EARNED_CATEGORY.name.toUpperCase(),
+  perHourField: COINS_EARNED_CATEGORY.perHourField,
+  sources: COINS_EARNED_CATEGORY.fields.map((f) => ({
+    fieldName: f.fieldName,
+    displayName: f.displayName,
+    color: f.color,
+  })),
 }
 
 export const OTHER_EARNINGS_CONFIG: PlainFieldsConfig = {
