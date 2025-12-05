@@ -1,0 +1,260 @@
+/**
+ * Section Configuration
+ *
+ * Purpose-based field groupings for run details display.
+ * Fields are organized by what users want to understand, not by game export structure.
+ */
+
+import type {
+  BreakdownConfig,
+  PlainFieldsConfig,
+} from './types'
+
+// =============================================================================
+// Battle Report Section
+// =============================================================================
+
+export const BATTLE_REPORT_ESSENTIAL: PlainFieldsConfig = {
+  fields: [
+    { fieldName: 'tier', displayName: 'Tier' },
+    { fieldName: 'wave', displayName: 'Wave' },    
+    { fieldName: 'killedBy', displayName: 'Killed By' },
+    { fieldName: 'gameTime', displayName: 'Game Time' },    
+    { fieldName: 'realTime', displayName: 'Real Time' },
+  ],
+}
+
+export const BATTLE_REPORT_MISCELLANEOUS: PlainFieldsConfig = {
+  label: 'MISCELLANEOUS',
+  fields: [
+    { fieldName: 'freeAttackUpgrade', displayName: 'Free Attack Upgrade' },    
+    { fieldName: 'freeDefenseUpgrade', displayName: 'Free Defense Upgrade' },    
+    { fieldName: 'freeUtilityUpgrade', displayName: 'Free Utility Upgrade' },
+    { fieldName: 'recoveryPackages', displayName: 'Recovery Packages' },
+    { fieldName: 'wavesSkipped', displayName: 'Waves Skipped' },
+    { fieldName: 'deathDefy', displayName: 'Death Defy' },
+  ],
+}
+
+// =============================================================================
+// Combat Section
+// =============================================================================
+
+export const DAMAGE_DEALT_CONFIG: BreakdownConfig = {
+  totalField: 'damageDealt',
+  label: 'DAMAGE DEALT',
+  sources: [
+    { fieldName: 'deathWaveDamage', displayName: 'Death Wave', color: '#ef4444' },
+    { fieldName: 'chainLightningDamage', displayName: 'Chain Lightning', color: '#3b82f6' },
+    { fieldName: 'thornDamage', displayName: 'Thorn', color: '#22d3ee' },
+    { fieldName: 'orbDamage', displayName: 'Orb', color: '#f87171' },
+    { fieldName: 'flameBotDamage', displayName: 'Flame Bot Damage', color: '#fbbf24' },
+    { fieldName: 'damage', displayName: 'Guardian Damage', color: '#a855f7' },
+    { fieldName: 'landMineDamage', displayName: 'Land Mine', color: '#9333ea' },
+    { fieldName: 'deathRayDamage', displayName: 'Death Ray', color: '#ff5722' },
+    { fieldName: 'smartMissileDamage', displayName: 'Smart Missile', color: '#64748b' },
+    { fieldName: 'innerLandMineDamage', displayName: 'Inner Land Mine', color: '#7c3aed' },
+    { fieldName: 'swampDamage', displayName: 'Swamp', color: '#22c55e' },
+    { fieldName: 'blackHoleDamage', displayName: 'Black Hole', color: '#475569' },
+    { fieldName: 'electronsDamage', displayName: 'Electrons', color: '#06b6d4' },
+    { fieldName: 'projectilesDamage', displayName: 'Projectiles', color: '#f59e0b' },
+    { fieldName: 'rendArmorDamage', displayName: 'Rend Armor', color: '#dc2626' },
+    { fieldName: 'lifesteal', displayName: 'Lifesteal', color: '#f43f5e' }
+  ],
+}
+
+export const DAMAGE_TAKEN_CONFIG: PlainFieldsConfig = {
+  label: 'DAMAGE TAKEN',
+  fields: [
+    { fieldName: 'damageTaken', displayName: 'Total' },
+    { fieldName: 'damageTakenWall', displayName: 'Wall' },
+    { fieldName: 'damageTakenWhileBerserked', displayName: 'While Berserked' },
+  ],
+}
+
+export const COMBAT_MISC_CONFIG: PlainFieldsConfig = {
+  label: 'MISCELLANEOUS',
+  fields: [
+    { fieldName: 'projectilesCount', displayName: 'Projectiles Count' },
+    { fieldName: 'landMinesSpawned', displayName: 'Land Mines Spawned' },
+    { fieldName: 'thunderBotStuns', displayName: 'Thunder Bot Stuns' },
+    { fieldName: 'hpFromDeathWave', displayName: 'HP From Death Wave' },
+    { fieldName: 'damageGainFromBerserk', displayName: 'Damage Gain From Berserk' },
+    { fieldName: 'totalElites', displayName: 'Total Elites' },
+  ],
+}
+
+export const ENEMIES_DESTROYED_CONFIG: BreakdownConfig = {
+  totalField: 'totalEnemies',
+  label: 'ENEMIES DESTROYED',
+  sources: [
+    { fieldName: 'basic', displayName: 'Basic', color: '#94a3b8' },
+    { fieldName: 'fast', displayName: 'Fast', color: '#38bdf8' },
+    { fieldName: 'tank', displayName: 'Tank', color: '#84cc16' },
+    { fieldName: 'ranged', displayName: 'Ranged', color: '#f97316' },
+    { fieldName: 'boss', displayName: 'Boss', color: '#ef4444' },
+    { fieldName: 'protector', displayName: 'Protector', color: '#8b5cf6' },    
+    { fieldName: 'vampires', displayName: 'Vampires', color: '#dc2626' },
+    { fieldName: 'rays', displayName: 'Rays', color: '#facc15' },
+    { fieldName: 'scatters', displayName: 'Scatters', color: '#fb923c' },
+    { fieldName: 'saboteur', displayName: 'Saboteur', color: '#6366f1' },
+    { fieldName: 'commander', displayName: 'Commander', color: '#d97706' },
+    { fieldName: 'overcharge', displayName: 'Overcharge', color: '#38bdf8' },
+  ],
+}
+
+export const DESTROYED_BY_CONFIG: BreakdownConfig = {
+  totalField: 'totalEnemies',
+  label: 'ENEMIES KILLED (OR HIT) BY',
+  sources: [
+    { fieldName: 'enemiesHitByOrbs', displayName: 'Orb Hits', color: '#f87171' },
+    { fieldName: 'destroyedByOrbs', displayName: 'Orbs', color: '#f87171' },
+    { fieldName: 'destroyedByThorns', displayName: 'Thorns', color: '#22d3ee' },
+    { fieldName: 'destroyedByDeathRay', displayName: 'Death Ray', color: '#ff5722' },
+    { fieldName: 'destroyedByLandMine', displayName: 'Land Mine', color: '#9333ea' },
+  ],
+}
+
+export const ENEMIES_AFFECTED_BY_CONFIG: BreakdownConfig = {
+  totalField: 'totalEnemies',
+  label: 'ENEMIES AFFECTED BY',
+  sources: [
+    { fieldName: 'destroyedInSpotlight', displayName: 'Spotlight', color: '#e2e8f0' },
+    { fieldName: 'taggedByDeathwave', displayName: 'Deathwave', color: '#ef4444' },
+    { fieldName: 'destroyedInGoldenBot', displayName: 'Golden Bot', color: '#fbbf24' },
+    { fieldName: 'summonedEnemies', displayName: 'Guardian Summoned Enemies', color: '#a855f7' },
+  ],
+}
+
+
+// =============================================================================
+// Economic Section
+// =============================================================================
+
+export const COINS_EARNED_CONFIG: BreakdownConfig = {
+  totalField: 'coinsEarned',
+  label: 'COINS EARNED',
+  perHourField: 'coinsPerHour',
+  sources: [
+    { fieldName: 'coinsFromDeathWave', displayName: 'Death Wave', color: '#ef4444' },
+    { fieldName: 'coinsFromGoldenTower', displayName: 'Golden Tower', color: '#fbbf24' },    
+    { fieldName: 'coinsFromSpotlight', displayName: 'Spotlight', color: '#e2e8f0' },
+    { fieldName: 'goldenBotCoinsEarned', displayName: 'Golden Bot', color: '#fbbf24' },
+    { fieldName: 'guardianCoinsStolen', displayName: 'Guardian Stolen', color: '#a855f7' },
+    { fieldName: 'coinsStolen', displayName: 'Coins Stolen', color: '#8b5cf6' },
+    { fieldName: 'coinsFetched', displayName: 'Guardian Fetched', color: '#7c3aed' },
+    { fieldName: 'coinsFromBlackHole', displayName: 'Black Hole', color: '#475569' },
+    { fieldName: 'coinsFromBlackhole', displayName: 'Black Hole', color: '#475569' },
+    { fieldName: 'coinsFromCoinUpgrade', displayName: 'Coin Upgrade', color: '#f59e0b' },
+    { fieldName: 'coinsFromCoinBonuses', displayName: 'Coin Bonuses', color: '#fb923c' },
+  ],
+}
+
+export const OTHER_EARNINGS_CONFIG: PlainFieldsConfig = {
+  label: 'OTHER EARNINGS',
+  fields: [
+    { fieldName: 'cashEarned', displayName: 'Cash' },
+    { fieldName: 'interestEarned', displayName: 'Interest' },
+    { fieldName: 'cashFromGoldenTower', displayName: 'Golden Tower (Cash)'},
+    { fieldName: 'medals', displayName: 'Guardian Medals' },
+    { fieldName: 'gems', displayName: 'Guardian Gems' },    
+    { fieldName: 'gemBlocksTapped', displayName: 'Gem Blocks Tapped'},    
+    { fieldName: 'cellsEarned', displayName: 'Cells' },    
+  ],
+}
+
+// =============================================================================
+// Modules Section
+// =============================================================================
+
+export const UPGRADE_SHARDS_CONFIG: BreakdownConfig = {
+  totalField: null, // Computed sum
+  label: 'UPGRADE SHARDS',
+  sources: [
+    { fieldName: 'armorShards', displayName: 'Armor', color: '#64748b' },
+    { fieldName: 'coreShards', displayName: 'Core', color: '#f59e0b' },
+    { fieldName: 'cannonShards', displayName: 'Cannon', color: '#ef4444' },
+    { fieldName: 'generatorShards', displayName: 'Generator', color: '#22c55e' },
+  ],
+}
+
+export const REROLL_SHARDS_CONFIG: BreakdownConfig = {
+  totalField: null, // Computed sum
+  label: 'REROLL SHARDS',
+  sources: [
+    { fieldName: 'rerollShardsEarned', displayName: 'Earned', color: '#94a3b8' }, 
+    { fieldName: 'rerollShards', displayName: 'from Guardian', color: '#94a3b8' },    
+  ],
+}
+
+export const MODULES_CONFIG: BreakdownConfig = {
+  totalField: null, // Computed sum
+  label: 'MODULES',
+  sources: [
+    { fieldName: 'commonModules', displayName: 'Common', color: '#94a3b8' },
+    { fieldName: 'rareModules', displayName: 'Rare', color: '#3b82f6' },
+  ],
+}
+
+// =============================================================================
+// Fields to Skip (internal app fields, handled elsewhere)
+// =============================================================================
+
+export const SKIP_FIELDS = new Set([
+  '_date',
+  '_time',
+  '_runType',
+  '_notes',
+  '_rank',
+  'battleDate',
+])
+
+// =============================================================================
+// All Categorized Fields (for uncategorized field detection)
+// =============================================================================
+
+function collectFieldNames(configs: (BreakdownConfig | PlainFieldsConfig)[]): Set<string> {
+  const fields = new Set<string>()
+
+  for (const config of configs) {
+    if ('sources' in config) {
+      // BreakdownConfig
+      if (config.totalField) {
+        fields.add(config.totalField)
+      }
+      if (config.perHourField) {
+        fields.add(config.perHourField)
+      }
+      for (const source of config.sources) {
+        fields.add(source.fieldName)
+      }
+    } else {
+      // PlainFieldsConfig
+      for (const field of config.fields) {
+        fields.add(field.fieldName)
+      }
+    }
+  }
+
+  return fields
+}
+
+export const CATEGORIZED_FIELDS = collectFieldNames([
+  BATTLE_REPORT_ESSENTIAL,
+  BATTLE_REPORT_MISCELLANEOUS,
+  DAMAGE_DEALT_CONFIG,
+  DAMAGE_TAKEN_CONFIG,
+  COMBAT_MISC_CONFIG,
+  ENEMIES_DESTROYED_CONFIG,
+  DESTROYED_BY_CONFIG,
+  ENEMIES_AFFECTED_BY_CONFIG,
+  COINS_EARNED_CONFIG,
+  OTHER_EARNINGS_CONFIG,
+  UPGRADE_SHARDS_CONFIG,
+  REROLL_SHARDS_CONFIG,
+  MODULES_CONFIG,
+])
+
+// NOTE: Any field NOT in the configs above will appear in the "Miscellaneous" section.
+// This is intentional - it ensures new/unknown game fields are always visible.
+// If you want to hide a field completely, add it to SKIP_FIELDS instead.
