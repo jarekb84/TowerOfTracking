@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createErrorParseResult, resolveDelimiter, parseCsvSafe } from './csv-import-parsing';
+import { INTERNAL_FIELD_NAMES } from '../../../shared/domain/fields/internal-field-config';
 
 describe('csv-import-parsing', () => {
   describe('createErrorParseResult', () => {
@@ -86,6 +87,55 @@ describe('csv-import-parsing', () => {
 
       expect(result.success).toEqual([]);
       expect(result.failed).toBe(0);
+    });
+
+    describe('battleDate derivation', () => {
+      it('should derive _date and _time from Battle Date when both are missing', () => {
+        const data = 'Battle Date\tTier\tWave\nOct 14, 2025 13:14\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        const run = result.success[0];
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE]).toBeDefined();
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-10-14');
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME]).toBeDefined();
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('13:14:00');
+      });
+
+      it('should preserve existing _Date and _Time columns when provided', () => {
+        const data = 'Battle Date\t_Date\t_Time\tTier\nOct 14, 2025 13:14\t2025-01-01\t00:00:00\t12';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        const run = result.success[0];
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-01-01');
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('00:00:00');
+      });
+
+      it('should not create _date/_time when battleDate is missing', () => {
+        const data = 'Tier\tWave\n12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        const run = result.success[0];
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE]).toBeUndefined();
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME]).toBeUndefined();
+      });
+
+      it('should handle lowercase month format in Battle Date', () => {
+        const data = 'Battle Date\tTier\tWave\nnov. 20, 2025 22:28\t12\t7639';
+        const result = parseCsvSafe(data, '\t', {
+          dateFormat: 'month-first-lowercase',
+          decimalSeparator: '.',
+          thousandsSeparator: ','
+        });
+
+        expect(result.success.length).toBe(1);
+        const run = result.success[0];
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE]).toBeDefined();
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-11-20');
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('22:28:00');
+      });
     });
   });
 });

@@ -8,7 +8,10 @@ import type {
   FieldMappingReport,
   CsvDelimiter
 } from './types';
-import { createGameRunField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
+import { createGameRunField, createInternalField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
+import { deriveDateTimeFromBattleDate } from '@/features/analysis/shared/parsing/data-parser';
+import { INTERNAL_FIELD_NAMES } from '@/shared/domain/fields/internal-field-config';
+import { parseBattleDate } from '@/shared/formatting/date-formatters';
 import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
 import { parseTimestampFromFields } from '../../../shared/formatting/date-formatters';
 import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
@@ -125,6 +128,16 @@ export function parseGenericCsv(
         const field = createGameRunField(originalHeader, rawValue, importFormat);
 
         fields[fieldName] = field;
+      }
+
+      // Derive _date/_time from battleDate if not already present
+      if (fields.battleDate && !fields[INTERNAL_FIELD_NAMES.DATE] && !fields[INTERNAL_FIELD_NAMES.TIME]) {
+        const battleDate = parseBattleDate(fields.battleDate.rawValue, importFormat?.dateFormat);
+        if (battleDate) {
+          const derived = deriveDateTimeFromBattleDate(battleDate);
+          fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
+          fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
+        }
       }
 
       // Parse timestamp using unified parsing logic
