@@ -9,6 +9,7 @@
  */
 
 import type { DateFormat } from '@/shared/locale/types';
+import type { GameRunField } from '@/shared/types/game-run.types';
 import { MONTH_MAPPINGS } from '@/shared/locale/locale-config';
 export { validateBattleDate } from './date-validation';
 import {
@@ -91,6 +92,64 @@ export function formatDurationForKey(seconds: number): string {
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
   return `${hours}h ${minutes}m ${secs}s`;
+}
+
+// Canonical month abbreviations for storage format (US-centric, English)
+const CANONICAL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * Format a Date to canonical battleDate storage format.
+ *
+ * Uses "Oct 14, 2025 13:14" format (month-first with capitalized English months)
+ * which is parseable by parseBattleDate() with 'month-first' format.
+ *
+ * This is the inverse of parseBattleDate() - they form a symmetrical format/parse pair.
+ * Use this for internal storage only - for user-facing display, use formatDisplayDateTime().
+ *
+ * @param date - Date to format
+ * @returns Formatted date string in canonical storage format
+ *
+ * @example
+ * formatCanonicalBattleDate(new Date('2025-10-14T13:14:00')) // 'Oct 14, 2025 13:14'
+ * formatCanonicalBattleDate(new Date('2025-01-05T08:05:00')) // 'Jan 5, 2025 08:05'
+ */
+export function formatCanonicalBattleDate(date: Date): string {
+  const month = CANONICAL_MONTHS[date.getMonth()];
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${month} ${day}, ${year} ${hours}:${minutes}`;
+}
+
+/**
+ * Create a complete battleDate GameRunField from a Date.
+ *
+ * This centralizes battleDate field creation to ensure:
+ * - rawValue uses canonical storage format (formatCanonicalBattleDate)
+ * - displayValue uses locale-aware formatting (formatDisplayDateTime)
+ * - Consistent metadata (originalKey, dataType)
+ *
+ * Use this function whenever you need to create a battleDate field,
+ * whether in bulk import auto-fix or single-entry import.
+ *
+ * @param date - Date to create field from
+ * @returns Complete GameRunField for battleDate
+ *
+ * @example
+ * const field = createBattleDateField(new Date('2025-01-15T13:45:00'));
+ * // field.rawValue = 'Jan 15, 2025 13:45' (canonical)
+ * // field.displayValue = locale-dependent
+ * // field.value = Date object
+ */
+export function createBattleDateField(date: Date): GameRunField {
+  return {
+    rawValue: formatCanonicalBattleDate(date),
+    value: date,
+    displayValue: formatDisplayDateTime(date),
+    originalKey: 'Battle Date',
+    dataType: 'date',
+  };
 }
 
 /**

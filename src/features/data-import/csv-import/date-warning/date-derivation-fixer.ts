@@ -5,25 +5,9 @@
  * fixes to derive battleDate from _date/_time fields.
  */
 
-import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { DateValidationWarning } from '../types';
-
-/**
- * Format a date for battleDate rawValue in a format parseable by parseBattleDate.
- * Uses "Oct 14, 2025 13:14" format (month-first with capitalized month).
- *
- * @param date - Date to format
- * @returns Formatted date string
- */
-function formatBattleDateRawValue(date: Date): string {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const month = months[date.getMonth()];
-  const day = date.getDate();
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${month} ${day}, ${year} ${hours}:${minutes}`;
-}
+import { createBattleDateField } from '@/shared/formatting/date-formatters';
 
 /**
  * Categorized warnings split by fixability
@@ -108,17 +92,8 @@ export function applyDateDerivationFixes(
     const warning = fixableWarnings.get(index + 1);
 
     if (warning?.derivedBattleDate) {
-      // Create the formatted date string for rawValue/displayValue
-      const formattedDate = formatBattleDateRawValue(warning.derivedBattleDate);
-
-      // Create a proper battleDate field
-      const battleDateField: GameRunField = {
-        rawValue: formattedDate,
-        value: warning.derivedBattleDate,
-        displayValue: formattedDate,
-        originalKey: 'Battle Date',
-        dataType: 'date',
-      };
+      // Use shared field creation for consistent formatting
+      const battleDateField = createBattleDateField(warning.derivedBattleDate);
 
       return {
         ...run,

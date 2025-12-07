@@ -226,10 +226,13 @@ describe('applyDateDerivationFixes', () => {
     expect(battleDateField.value).toEqual(derivedTimestamp);
     expect(battleDateField.originalKey).toBe('Battle Date');
     expect(battleDateField.dataType).toBe('date');
-    // rawValue and displayValue should be formatted date strings
+    // rawValue should be in canonical storage format (English)
     expect(typeof battleDateField.rawValue).toBe('string');
     expect(battleDateField.rawValue.length).toBeGreaterThan(0);
-    expect(battleDateField.displayValue).toBe(battleDateField.rawValue);
+    expect(battleDateField.rawValue).toContain('Jan'); // Canonical format uses English months
+    // displayValue should be locale-aware (different from rawValue)
+    expect(typeof battleDateField.displayValue).toBe('string');
+    expect(battleDateField.displayValue.length).toBeGreaterThan(0);
   });
 
   it('clears dateValidationError when fixing', () => {

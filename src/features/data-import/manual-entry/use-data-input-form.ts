@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { parseGameRun } from '@/features/analysis/shared/parsing/data-parser';
-import { extractTimestampFromFields, createInternalField } from '@/features/analysis/shared/parsing/field-utils';
+import { extractTimestampFromFields } from '@/features/analysis/shared/parsing/field-utils';
 import {
   createInitialFormState,
   createInitialDateTimeState,
   formatTimeFromDate,
   createDateTimeFromComponents
 } from './data-input-state';
+import { prepareRunForSave, createResetDateIssueState, parseAndAnalyzeInput } from './data-input-form-logic';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import { RunType } from '@/shared/domain/run-types/types';
@@ -14,9 +14,9 @@ import type { DuplicateDetectionResult } from '@/shared/domain/duplicate-detecti
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import { useData } from '@/shared/domain/use-data';
 import { useRunTypeContext } from '@/shared/domain/run-types/use-run-type-context';
-import { hasExplicitRunType } from '@/shared/domain/run-types/run-type-detection';
 import type { RankValue } from '@/features/game-runs/editing/field-update-logic';
 import { useLocaleStore } from '@/shared/locale';
+import type { DateIssueInfo } from '@/shared/formatting/date-issue-detection';
 
 interface DataInputFormState {
   inputData: string;
@@ -29,6 +29,10 @@ interface DataInputFormState {
   duplicateResult: DuplicateDetectionResult | null;
   resolution: DuplicateResolution;
   hasBattleDate: boolean;
+  /** Date issue detection info (missing/invalid battleDate) */
+  dateIssueInfo: DateIssueInfo | null;
+  /** Whether to auto-fix date issues */
+  autoFixDateEnabled: boolean;
 }
 
 interface DataInputFormActions {
@@ -39,6 +43,7 @@ interface DataInputFormActions {
   setNotes: (notes: string) => void;
   setRank: (rank: RankValue) => void;
   setResolution: (resolution: DuplicateResolution) => void;
+  setAutoFixDateEnabled: (enabled: boolean) => void;
   handleInputChange: (value: string) => void;
   handleDateSelect: (date: Date | undefined) => void;
   handleTimeChange: (field: 'hours' | 'minutes', value: string) => void;
@@ -68,6 +73,8 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   const [duplicateResult, setDuplicateResult] = useState(initialFormState.duplicateResult);
   const [resolution, setResolution] = useState(initialFormState.resolution);
   const [hasBattleDate, setHasBattleDate] = useState(false);
+  const [dateIssueInfo, setDateIssueInfo] = useState<DateIssueInfo | null>(null);
+  const [autoFixDateEnabled, setAutoFixDateEnabled] = useState(false);
 
   const { addRun, checkDuplicate, overwriteRun } = useData();
 
@@ -89,39 +96,32 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     }
   };
 
-  const updateNotesFromParsedData = (parsed: ParsedGameRun): void => {
-    // Check both _notes (internal field) and notes (legacy)
-    const notesField = parsed.fields._notes || parsed.fields.notes;
-    if (notesField && notesField.rawValue) {
-      setNotes(notesField.rawValue);
-    }
-  };
-
   const parseInputData = (data: string): void => {
-    if (data.trim()) {
-      try {
-        const parsed = parseGameRun(data, getDateTimeFromSelection(), importFormat);
-        setPreviewData(parsed);
+    const userSelectedDate = getDateTimeFromSelection();
+    const result = parseAndAnalyzeInput(data, userSelectedDate, importFormat);
 
-        // Only override run type if clipboard data has explicit run_type field
-        // Otherwise preserve the context-aware default (e.g., tournament tab → tournament type)
-        if (hasExplicitRunType(parsed.fields)) {
-          setSelectedRunType(parsed.runType);
-        }
-
-        const hasBattleDateField = !!parsed.fields.battleDate;
-        setHasBattleDate(hasBattleDateField);
-
-        updateDateTimeFromParsedData(parsed);
-        updateNotesFromParsedData(parsed);
-      } catch (error) {
-        setPreviewData(null);
-        setHasBattleDate(false);
-      }
-    } else {
+    if (!result.success) {
       setPreviewData(null);
-      setHasBattleDate(false);
+      const resetState = createResetDateIssueState();
+      setHasBattleDate(resetState.hasBattleDate);
+      setDateIssueInfo(resetState.dateIssueInfo);
+      setAutoFixDateEnabled(resetState.autoFixDateEnabled);
+      return;
     }
+
+    setPreviewData(result.parsed);
+    setHasBattleDate(result.hasBattleDate);
+    setDateIssueInfo(result.dateIssueInfo);
+    setAutoFixDateEnabled(result.shouldAutoFix);
+
+    if (result.shouldUpdateRunType) {
+      setSelectedRunType(result.detectedRunType);
+    }
+    if (result.extractedNotes) {
+      setNotes(result.extractedNotes);
+    }
+
+    updateDateTimeFromParsedData(result.parsed);
   };
 
   const checkForDuplicates = (parsed: ParsedGameRun) => {
@@ -186,39 +186,30 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
   };
 
   const handleSave = (): void => {
-    if (previewData) {
-      const updatedFields = {
-        ...previewData.fields,
-        _notes: createInternalField('Notes', notes),
-        _runType: createInternalField('Run Type', selectedRunType),
-        // Only include rank for tournament runs
-        ...(selectedRunType === RunType.TOURNAMENT && rank !== ''
-          ? { _rank: createInternalField('Rank', String(rank)) }
-          : {}
-        )
-      };
+    if (!previewData) return;
 
-      const runWithNotes = {
-        ...previewData,
-        runType: selectedRunType,
-        fields: updatedFields
-      };
+    const runToSave = prepareRunForSave({
+      previewData,
+      autoFixDateEnabled,
+      dateIssueInfo,
+      notes,
+      selectedRunType,
+      rank,
+    });
 
-      if (duplicateResult?.isDuplicate && duplicateResult.existingRun) {
-        if (resolution === 'overwrite') {
-          overwriteRun(duplicateResult.existingRun.id, runWithNotes, true);
-        }
-      } else {
-        addRun(runWithNotes);
-      }
-
-      resetForm();
+    if (duplicateResult?.isDuplicate && duplicateResult.existingRun && resolution === 'overwrite') {
+      overwriteRun(duplicateResult.existingRun.id, runToSave, true);
+    } else {
+      addRun(runToSave);
     }
+
+    resetForm();
   };
 
   const resetForm = (): void => {
     const newFormState = createInitialFormState(defaultRunType);
     const newDateTime = createInitialDateTimeState();
+    const resetDateState = createResetDateIssueState();
 
     setInputData(newFormState.inputData);
     setPreviewData(null);
@@ -229,7 +220,9 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     setRank('');
     setDuplicateResult(newFormState.duplicateResult);
     setResolution(newFormState.resolution);
-    setHasBattleDate(false);
+    setHasBattleDate(resetDateState.hasBattleDate);
+    setDateIssueInfo(resetDateState.dateIssueInfo);
+    setAutoFixDateEnabled(resetDateState.autoFixDateEnabled);
   };
 
   return {
@@ -244,6 +237,8 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     duplicateResult,
     resolution,
     hasBattleDate,
+    dateIssueInfo,
+    autoFixDateEnabled,
 
     // Actions
     setInputData,
@@ -253,6 +248,7 @@ export function useDataInputForm(): DataInputFormState & DataInputFormActions {
     setNotes,
     setRank,
     setResolution,
+    setAutoFixDateEnabled,
     handleInputChange,
     handleDateSelect,
     handleTimeChange,

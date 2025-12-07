@@ -82,10 +82,12 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
               />
             )}
 
-            {/* Date Validation Warning - shows when battleDate field has invalid value */}
-            {form.previewData?.dateValidationError && (
+            {/* Date Validation Warning - shows when battleDate is missing or invalid */}
+            {form.dateIssueInfo?.hasIssue && (
               <SingleEntryDateWarning
-                error={form.previewData.dateValidationError}
+                dateIssueInfo={form.dateIssueInfo}
+                autoFixEnabled={form.autoFixDateEnabled}
+                onAutoFixToggle={form.setAutoFixDateEnabled}
                 className="mb-5"
               />
             )}

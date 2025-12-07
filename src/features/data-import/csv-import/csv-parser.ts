@@ -11,7 +11,8 @@ import type {
 import { createGameRunField, createInternalField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 import { deriveDateTimeFromBattleDate } from '@/features/analysis/shared/parsing/data-parser';
 import { INTERNAL_FIELD_NAMES, isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
-import { validateBattleDate, parseTimestampFromFields, constructDate } from '@/shared/formatting/date-formatters';
+import { validateBattleDate, parseTimestampFromFields } from '@/shared/formatting/date-formatters';
+import { tryDeriveFromInternalFields } from '@/shared/formatting/date-issue-detection';
 import { detectDelimiter } from './csv-helpers';
 import { createFieldMappingReport, extractKeyStatsFromFields } from './csv-field-mapping';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
@@ -120,29 +121,14 @@ function shouldDeriveDateTimeFields(
 function detectFixability(
   fields: Record<string, GameRunField>
 ): { isFixable: boolean; dateFieldValue?: string; timeFieldValue?: string; derivedBattleDate?: Date } {
-  const dateField = fields[INTERNAL_FIELD_NAMES.DATE];
-  const timeField = fields[INTERNAL_FIELD_NAMES.TIME];
-
-  const dateFieldValue = dateField?.rawValue;
-  const timeFieldValue = timeField?.rawValue;
-
-  // Both fields must exist to be fixable
-  if (!dateFieldValue || !timeFieldValue) {
-    return {
-      isFixable: false,
-      dateFieldValue,
-      timeFieldValue,
-    };
-  }
-
-  // Attempt to construct a Date from the fields
-  const derivedBattleDate = constructDate(dateFieldValue, timeFieldValue);
+  // Use the shared derivation logic
+  const result = tryDeriveFromInternalFields(fields);
 
   return {
-    isFixable: derivedBattleDate !== null,
-    dateFieldValue,
-    timeFieldValue,
-    derivedBattleDate: derivedBattleDate ?? undefined,
+    isFixable: result.success,
+    dateFieldValue: result.dateValue,
+    timeFieldValue: result.timeValue,
+    derivedBattleDate: result.date ?? undefined,
   };
 }
 
