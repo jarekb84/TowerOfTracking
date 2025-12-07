@@ -22,6 +22,7 @@ export function ImportPageContent() {
     duplicateResult,
     resolution,
     importSuccess,
+    deriveEnabled,
     handlePaste,
     handleInputChange,
     handleDelimiterChange,
@@ -29,6 +30,7 @@ export function ImportPageContent() {
     handleImport,
     handleClear,
     setResolution,
+    setDeriveEnabled,
     importFile
   } = useCsvImport({ pageMode: true });
 
@@ -78,7 +80,11 @@ export function ImportPageContent() {
             onCustomDelimiterChange={handleCustomDelimiterChange}
           />
 
-          <ParseResultSections parseResult={parseResult} />
+          <ParseResultSections
+            parseResult={parseResult}
+            deriveEnabled={deriveEnabled}
+            onDeriveToggle={setDeriveEnabled}
+          />
 
           {/* Duplicate Detection - shows immediately when duplicates are found */}
           {duplicateResult && duplicateResult.duplicates.length > 0 && (

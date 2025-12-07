@@ -9,7 +9,7 @@ import type { ImportFormatSettings } from '@/shared/locale/types';
 import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
 import { determineRunType } from '../filtering/run-type-filter';
 import {
-  parseBattleDate,
+  validateBattleDate,
   constructDate,
   formatIsoDate,
   formatIsoTime
@@ -179,22 +179,29 @@ export function parseGameRun(
     // Determine timestamp using hierarchy: battle_date > customTimestamp > current time
     let timestamp: Date;
     let hasBattleDate = false;
+    let dateValidationError: ParsedGameRun['dateValidationError'];
 
     // Check for battle_date field (new game export format)
     if (fields.battleDate) {
-      const battleDate = parseBattleDate(fields.battleDate.rawValue, dateFormat);
-      if (battleDate) {
-        timestamp = battleDate;
+      const validationResult = validateBattleDate(fields.battleDate.rawValue, {
+        format: dateFormat,
+        // Don't fail on future/old dates - just parse
+        warnFutureDates: false,
+      });
+
+      if (validationResult.success) {
+        timestamp = validationResult.date;
         hasBattleDate = true;
 
         // Derive _date and _time from battle_date
-        const derived = deriveDateTimeFromBattleDate(battleDate);
+        const derived = deriveDateTimeFromBattleDate(validationResult.date);
 
         // Add derived internal fields (these won't be in the original game export)
         fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
         fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
       } else {
-        // battle_date parsing failed, fall back to customTimestamp or current time
+        // battle_date parsing failed - capture error and fall back to customTimestamp or current time
+        dateValidationError = validationResult.error;
         timestamp = customTimestamp || new Date();
       }
     } else {
@@ -230,6 +237,7 @@ export function parseGameRun(
       timestamp,
       fields,
       ...fieldKeyStats,
+      ...(dateValidationError && { dateValidationError }),
     };
   } catch (error) {
     console.error('Error parsing game run:', error);

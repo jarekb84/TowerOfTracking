@@ -1,3 +1,5 @@
+import type { BattleDateValidationError } from '@/shared/formatting/date-validation.types';
+
 // Run type enumeration for type safety
 enum RunType {
   FARM = 'farm',
@@ -13,10 +15,10 @@ export type RunTypeValue = `${RunType}`;
 export interface ParsedGameRun {
   id: string;
   timestamp: Date;
-  
+
   // Single data source with rich field objects
   fields: Record<string, GameRunField>;
-  
+
   // Cached computed properties for performance
   readonly tier: number;
   readonly wave: number;
@@ -24,6 +26,9 @@ export interface ParsedGameRun {
   readonly cellsEarned: number;
   readonly realTime: number;
   readonly runType: RunTypeValue;
+
+  // Optional validation error when battleDate parsing fails
+  dateValidationError?: BattleDateValidationError;
 }
 
 // Type for raw clipboard input

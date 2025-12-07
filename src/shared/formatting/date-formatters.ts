@@ -10,6 +10,7 @@
 
 import type { DateFormat } from '@/shared/locale/types';
 import { MONTH_MAPPINGS } from '@/shared/locale/locale-config';
+export { validateBattleDate } from './date-validation';
 import {
   getImportFormat,
   getDateFormatter,

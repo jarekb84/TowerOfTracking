@@ -137,5 +137,125 @@ describe('csv-import-parsing', () => {
         expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('22:28:00');
       });
     });
+
+    describe('date validation warnings', () => {
+      it('should collect warning for empty battleDate', () => {
+        const data = 'Battle Date\tTier\tWave\tReal Time\n\t12\t7639\t2h 30m';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        expect(result.dateWarnings).toBeDefined();
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].error.code).toBe('empty');
+        expect(result.dateWarnings?.[0].rowNumber).toBe(1);
+        expect(result.dateWarnings?.[0].context.tier).toBe(12);
+        expect(result.dateWarnings?.[0].context.wave).toBe(7639);
+      });
+
+      it('should collect warning for invalid battleDate format', () => {
+        const data = 'Battle Date\tTier\tWave\n14.10.2025\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].error.code).toBe('invalid-format');
+        expect(result.dateWarnings?.[0].rawValue).toBe('14.10.2025');
+      });
+
+      it('should collect warning for invalid hour in battleDate', () => {
+        const data = 'Battle Date\tTier\tWave\nOct 14, 2025 25:14\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].error.code).toBe('invalid-hour');
+      });
+
+      it('should collect warning for invalid minute in battleDate', () => {
+        const data = 'Battle Date\tTier\tWave\nOct 14, 2025 13:65\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].error.code).toBe('invalid-minute');
+      });
+
+      it('should collect multiple warnings for mixed valid/invalid dates', () => {
+        const data = [
+          'Battle Date\tTier\tWave',
+          'Oct 14, 2025 13:14\t12\t7639',    // valid
+          '\t11\t5000',                        // empty - warning
+          'Oct 15, 2025 25:00\t10\t3000',    // invalid hour - warning
+          'Oct 16, 2025 10:30\t9\t2000'      // valid
+        ].join('\n');
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(4);
+        expect(result.dateWarnings?.length).toBe(2);
+
+        // Check first warning (empty)
+        expect(result.dateWarnings?.[0].rowNumber).toBe(2);
+        expect(result.dateWarnings?.[0].error.code).toBe('empty');
+        expect(result.dateWarnings?.[0].context.tier).toBe(11);
+
+        // Check second warning (invalid hour)
+        expect(result.dateWarnings?.[1].rowNumber).toBe(3);
+        expect(result.dateWarnings?.[1].error.code).toBe('invalid-hour');
+        expect(result.dateWarnings?.[1].context.tier).toBe(10);
+      });
+
+      it('should not have warnings when all dates are valid', () => {
+        const data = 'Battle Date\tTier\tWave\nOct 14, 2025 13:14\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        expect(result.dateWarnings).toBeUndefined();
+      });
+
+      it('should not have warnings when no battleDate column exists', () => {
+        const data = 'Tier\tWave\n12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        expect(result.dateWarnings).toBeUndefined();
+      });
+
+      it('should include duration in warning context when available', () => {
+        const data = 'Battle Date\tTier\tWave\tReal Time\n\t12\t7639\t4h 32m 15s';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].context.duration).toBe('4h 32m 15s');
+      });
+
+      it('should still warn about invalid battleDate when _Date and _Time columns exist', () => {
+        // User-reported bug: when _Date/_Time exist, battleDate validation was being skipped
+        const data = 'Battle Date\t_Date\t_Time\tTier\tWave\n\t2025-01-01\t00:00:00\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        // Should preserve existing _date/_time
+        const run = result.success[0];
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-01-01');
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('00:00:00');
+        // Should still generate warning for empty battleDate
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].error.code).toBe('empty');
+      });
+
+      it('should warn about invalid battleDate format even when _Date/_Time exist', () => {
+        const data = 'Battle Date\t_Date\t_Time\tTier\tWave\n14.10.2025\t2025-01-01\t00:00:00\t12\t7639';
+        const result = parseCsvSafe(data, '\t');
+
+        expect(result.success.length).toBe(1);
+        // Should preserve existing _date/_time
+        const run = result.success[0];
+        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-01-01');
+        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('00:00:00');
+        // Should still generate warning for invalid format
+        expect(result.dateWarnings?.length).toBe(1);
+        expect(result.dateWarnings?.[0].error.code).toBe('invalid-format');
+      });
+    });
   });
 });
