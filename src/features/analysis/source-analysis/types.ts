@@ -86,6 +86,10 @@ export interface SourceValue {
   color: string;
   value: number; // Absolute value
   percentage: number; // Percentage of total (0-100)
+  /** True if this is a discrepancy entry (Unknown/Overage) */
+  isDiscrepancy?: boolean;
+  /** Type of discrepancy if isDiscrepancy is true */
+  discrepancyType?: 'unknown' | 'overage';
 }
 
 /**
@@ -116,6 +120,10 @@ export interface SourceSummaryValue {
   color: string;
   totalValue: number; // Sum across all periods
   percentage: number; // Percentage of grand total (0-100)
+  /** True if this is a discrepancy entry (Unknown/Overage) */
+  isDiscrepancy?: boolean;
+  /** Type of discrepancy if isDiscrepancy is true */
+  discrepancyType?: 'unknown' | 'overage';
 }
 
 /**

@@ -7,6 +7,12 @@
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import {
+  calculateDiscrepancy,
+  DISCREPANCY_COLORS,
+  DISCREPANCY_FIELD_NAMES,
+  DISCREPANCY_DISPLAY_NAMES,
+} from '@/shared/domain/fields/breakdown-sources';
+import {
   SourceDuration,
   type CategoryDefinition,
   type PeriodSourceBreakdown,
@@ -71,35 +77,60 @@ interface PeriodBreakdownOptions {
   isPerRunPeriod?: boolean;
 }
 
-/**
- * Calculate source breakdown for a group of runs in one period
- */
-export function calculatePeriodBreakdown(options: PeriodBreakdownOptions): PeriodSourceBreakdown {
-  const {
-    runs,
-    category,
-    periodKey,
-    periodLabel,
-    isPerRunPeriod = false,
-  } = options;
+/** Aggregated totals from runs */
+interface AggregatedTotals {
+  sourceTotals: Map<string, number>;
+  sourceSum: number;
+  aggregatedTotal: number;
+}
 
-  // Sum all sources across runs in this period
+/** Aggregate source values across runs */
+function aggregateRunSources(runs: ParsedGameRun[], category: CategoryDefinition): AggregatedTotals {
   const sourceTotals = new Map<string, number>();
-  let periodTotal = 0;
+  let sourceSum = 0;
+  let aggregatedTotal = 0;
 
   for (const source of category.sources) {
     sourceTotals.set(source.fieldName, 0);
   }
 
   for (const run of runs) {
+    aggregatedTotal += extractFieldValue(run, category.totalField);
     for (const source of category.sources) {
       const value = extractFieldValue(run, source.fieldName);
       sourceTotals.set(source.fieldName, (sourceTotals.get(source.fieldName) || 0) + value);
-      periodTotal += value;
+      sourceSum += value;
     }
   }
 
-  // Convert to SourceValue array with percentages
+  return { sourceTotals, sourceSum, aggregatedTotal };
+}
+
+/** Build discrepancy source entry if needed */
+function buildDiscrepancySource(aggregatedTotal: number, sourceSum: number): SourceValue | null {
+  if (aggregatedTotal <= 0) return null;
+  const discrepancy = calculateDiscrepancy(aggregatedTotal, sourceSum);
+  if (!discrepancy) return null;
+  return {
+    fieldName: DISCREPANCY_FIELD_NAMES[discrepancy.type],
+    displayName: DISCREPANCY_DISPLAY_NAMES[discrepancy.type],
+    color: DISCREPANCY_COLORS[discrepancy.type],
+    value: discrepancy.value,
+    percentage: discrepancy.percentage,
+    isDiscrepancy: true,
+    discrepancyType: discrepancy.type,
+  };
+}
+
+/**
+ * Calculate source breakdown for a group of runs in one period.
+ * Includes discrepancy detection when sources don't sum to the totalField.
+ */
+export function calculatePeriodBreakdown(options: PeriodBreakdownOptions): PeriodSourceBreakdown {
+  const { runs, category, periodKey, periodLabel, isPerRunPeriod = false } = options;
+  const { sourceTotals, sourceSum, aggregatedTotal } = aggregateRunSources(runs, category);
+  const periodTotal = aggregatedTotal > 0 ? aggregatedTotal : sourceSum;
+
   const sources: SourceValue[] = category.sources.map(source => ({
     fieldName: source.fieldName,
     displayName: source.displayName,
@@ -108,10 +139,8 @@ export function calculatePeriodBreakdown(options: PeriodBreakdownOptions): Perio
     percentage: calculatePercentage(sourceTotals.get(source.fieldName) || 0, periodTotal)
   }));
 
-  // Include run info only for per-run periods with a single run
-  const runInfo = isPerRunPeriod && runs.length === 1
-    ? extractRunInfo(runs[0])
-    : undefined;
+  const discrepancySource = buildDiscrepancySource(aggregatedTotal, sourceSum);
+  if (discrepancySource) sources.push(discrepancySource);
 
   return {
     periodLabel,
@@ -119,34 +148,64 @@ export function calculatePeriodBreakdown(options: PeriodBreakdownOptions): Perio
     total: periodTotal,
     runCount: runs.length,
     sources,
-    runInfo,
+    runInfo: isPerRunPeriod && runs.length === 1 ? extractRunInfo(runs[0]) : undefined,
+  };
+}
+
+/** Aggregated summary totals */
+interface SummaryTotals {
+  sourceTotals: Map<string, number>;
+  grandTotal: number;
+  unknownTotal: number;
+  overageTotal: number;
+}
+
+/** Aggregate totals across all periods */
+function aggregatePeriodTotals(periods: PeriodSourceBreakdown[], category: CategoryDefinition): SummaryTotals {
+  const sourceTotals = new Map<string, number>();
+  let grandTotal = 0, unknownTotal = 0, overageTotal = 0;
+
+  for (const source of category.sources) sourceTotals.set(source.fieldName, 0);
+
+  for (const period of periods) {
+    grandTotal += period.total;
+    for (const source of period.sources) {
+      if (source.isDiscrepancy) {
+        if (source.discrepancyType === 'unknown') unknownTotal += source.value;
+        else if (source.discrepancyType === 'overage') overageTotal += source.value;
+      } else {
+        sourceTotals.set(source.fieldName, (sourceTotals.get(source.fieldName) || 0) + source.value);
+      }
+    }
+  }
+  return { sourceTotals, grandTotal, unknownTotal, overageTotal };
+}
+
+/** Build discrepancy summary entry */
+function buildDiscrepancySummary(
+  type: 'unknown' | 'overage',
+  value: number,
+  grandTotal: number
+): SourceSummaryValue | null {
+  if (value <= 0 || grandTotal <= 0) return null;
+  return {
+    fieldName: DISCREPANCY_FIELD_NAMES[type],
+    displayName: DISCREPANCY_DISPLAY_NAMES[type],
+    color: DISCREPANCY_COLORS[type],
+    totalValue: value,
+    percentage: calculatePercentage(value, grandTotal),
+    isDiscrepancy: true,
+    discrepancyType: type,
   };
 }
 
 /**
- * Calculate summary across all periods
+ * Calculate summary across all periods.
+ * Includes aggregated discrepancy entries when sources don't sum to totals.
  */
-export function calculateSummary(
-  periods: PeriodSourceBreakdown[],
-  category: CategoryDefinition
-): SourceSummary {
-  const sourceTotals = new Map<string, number>();
-  let grandTotal = 0;
+export function calculateSummary(periods: PeriodSourceBreakdown[], category: CategoryDefinition): SourceSummary {
+  const { sourceTotals, grandTotal, unknownTotal, overageTotal } = aggregatePeriodTotals(periods, category);
 
-  // Initialize source totals
-  for (const source of category.sources) {
-    sourceTotals.set(source.fieldName, 0);
-  }
-
-  // Sum across all periods
-  for (const period of periods) {
-    grandTotal += period.total;
-    for (const source of period.sources) {
-      sourceTotals.set(source.fieldName, (sourceTotals.get(source.fieldName) || 0) + source.value);
-    }
-  }
-
-  // Build summary values
   const sources: SourceSummaryValue[] = category.sources.map(source => ({
     fieldName: source.fieldName,
     displayName: source.displayName,
@@ -155,15 +214,15 @@ export function calculateSummary(
     percentage: calculatePercentage(sourceTotals.get(source.fieldName) || 0, grandTotal)
   }));
 
-  // Sort by percentage descending (with totalValue tiebreaker) and filter non-zero
-  const sortedSources = sortSourceSummaryByPercentage(
-    sources.filter(s => s.totalValue > 0)
-  );
+  const unknownSummary = buildDiscrepancySummary('unknown', unknownTotal, grandTotal);
+  const overageSummary = buildDiscrepancySummary('overage', overageTotal, grandTotal);
+  if (unknownSummary) sources.push(unknownSummary);
+  if (overageSummary) sources.push(overageSummary);
 
   return {
     totalValue: grandTotal,
     periodCount: periods.length,
-    sources: sortedSources
+    sources: sortSourceSummaryByPercentage(sources.filter(s => s.totalValue > 0))
   };
 }
 
