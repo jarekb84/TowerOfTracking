@@ -30,6 +30,7 @@ export class AppPage {
   readonly tierStatsLink: Locator;
   readonly tierTrendsLink: Locator;
   readonly sourceAnalysisLink: Locator;
+  readonly coverageReportLink: Locator;
 
   // Sidebar navigation - Settings section (deep links to settings page)
   readonly regionalFormatLink: Locator;
@@ -60,6 +61,7 @@ export class AppPage {
     this.tierStatsLink = page.locator('a:has-text("Tier Stats")');
     this.tierTrendsLink = page.locator('a:has-text("Tier Trends")');
     this.sourceAnalysisLink = page.locator('a:has-text("Source Analysis")');
+    this.coverageReportLink = page.locator('a:has-text("Coverage Report")');
 
     // Settings section (deep links to settings page)
     this.regionalFormatLink = page.locator('a:has-text("Regional Format")');
