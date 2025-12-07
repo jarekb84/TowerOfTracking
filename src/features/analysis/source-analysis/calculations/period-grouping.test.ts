@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /**
  * Tests for Period Grouping Logic
  */
@@ -316,5 +317,181 @@ describe('calculateSourceAnalysis', () => {
     expect(analysis.periods.length).toBe(0);
     expect(analysis.summary.totalValue).toBe(0);
     expect(analysis.summary.periodCount).toBe(0);
+  });
+});
+
+// ===========================================================================
+// Discrepancy Detection Tests
+// ===========================================================================
+
+describe('discrepancy detection in period breakdown', () => {
+  it('adds Unknown entry when sources sum to less than totalField by more than 1%', () => {
+    // Sources: 800, Total: 1000 → 20% unknown
+    const runs = [
+      createMockRun('1', new Date(), {
+        damageDealt: 1000,  // totalField
+        orbDamage: 500,
+        thornDamage: 300,
+        // Missing 200 (20% unknown)
+      }),
+    ];
+
+    const breakdown = calculatePeriodBreakdown({
+      runs,
+      category: mockCategory,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    });
+
+    expect(breakdown.total).toBe(1000); // Uses totalField
+    expect(breakdown.sources.length).toBe(3); // 2 regular + 1 unknown
+
+    const unknownSource = breakdown.sources.find(s => s.isDiscrepancy);
+    expect(unknownSource).toBeDefined();
+    expect(unknownSource!.discrepancyType).toBe('unknown');
+    expect(unknownSource!.displayName).toBe('Unknown');
+    expect(unknownSource!.value).toBe(200);
+    expect(unknownSource!.percentage).toBe(20);
+    expect(unknownSource!.color).toBe('#6b7280'); // gray-600
+  });
+
+  it('adds Overage entry when sources sum to more than totalField by more than 1%', () => {
+    // Sources: 1200, Total: 1000 → 20% overage
+    const runs = [
+      createMockRun('1', new Date(), {
+        damageDealt: 1000,  // totalField
+        orbDamage: 700,
+        thornDamage: 500,
+        // Sum = 1200, 200 overage
+      }),
+    ];
+
+    const breakdown = calculatePeriodBreakdown({
+      runs,
+      category: mockCategory,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    });
+
+    expect(breakdown.total).toBe(1000);
+    expect(breakdown.sources.length).toBe(3); // 2 regular + 1 overage
+
+    const overageSource = breakdown.sources.find(s => s.isDiscrepancy);
+    expect(overageSource).toBeDefined();
+    expect(overageSource!.discrepancyType).toBe('overage');
+    expect(overageSource!.displayName).toBe('Overage');
+    expect(overageSource!.value).toBe(200);
+    expect(overageSource!.percentage).toBe(20);
+    expect(overageSource!.color).toBe('#fbbf24'); // amber-400
+  });
+
+  it('does not add discrepancy when within threshold (1%)', () => {
+    // Sources: 995, Total: 1000 → 0.5% unknown (below 1%)
+    const runs = [
+      createMockRun('1', new Date(), {
+        damageDealt: 1000,
+        orbDamage: 600,
+        thornDamage: 395,
+      }),
+    ];
+
+    const breakdown = calculatePeriodBreakdown({
+      runs,
+      category: mockCategory,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    });
+
+    expect(breakdown.sources.length).toBe(2); // No discrepancy
+    expect(breakdown.sources.every(s => !s.isDiscrepancy)).toBe(true);
+  });
+
+  it('aggregates discrepancies across multiple runs in a period', () => {
+    // Run 1: sources=800, total=1000 → 200 unknown
+    // Run 2: sources=900, total=1000 → 100 unknown
+    // Aggregated: sources=1700, total=2000 → 300 unknown (15%)
+    const runs = [
+      createMockRun('1', new Date(), {
+        damageDealt: 1000,
+        orbDamage: 500,
+        thornDamage: 300,
+      }),
+      createMockRun('2', new Date(), {
+        damageDealt: 1000,
+        orbDamage: 600,
+        thornDamage: 300,
+      }),
+    ];
+
+    const breakdown = calculatePeriodBreakdown({
+      runs,
+      category: mockCategory,
+      periodKey: '2024-03-15',
+      periodLabel: 'Mar 15',
+    });
+
+    expect(breakdown.total).toBe(2000);
+    const unknownSource = breakdown.sources.find(s => s.isDiscrepancy);
+    expect(unknownSource).toBeDefined();
+    expect(unknownSource!.value).toBe(300); // 1700 from sources, 2000 total
+    expect(unknownSource!.percentage).toBe(15);
+  });
+});
+
+describe('discrepancy in summary calculation', () => {
+  it('aggregates unknown values across periods', () => {
+    const periods = [
+      {
+        periodLabel: 'Period 1',
+        periodKey: '1',
+        total: 1000,
+        runCount: 1,
+        sources: [
+          { fieldName: 'orbDamage', displayName: 'Orb', color: '#f97316', value: 600, percentage: 60 },
+          { fieldName: 'thornDamage', displayName: 'Thorn', color: '#84cc16', value: 200, percentage: 20 },
+          { fieldName: '_unknown', displayName: 'Unknown', color: '#6b7280', value: 200, percentage: 20, isDiscrepancy: true, discrepancyType: 'unknown' as const },
+        ]
+      },
+      {
+        periodLabel: 'Period 2',
+        periodKey: '2',
+        total: 1000,
+        runCount: 1,
+        sources: [
+          { fieldName: 'orbDamage', displayName: 'Orb', color: '#f97316', value: 700, percentage: 70 },
+          { fieldName: 'thornDamage', displayName: 'Thorn', color: '#84cc16', value: 200, percentage: 20 },
+          { fieldName: '_unknown', displayName: 'Unknown', color: '#6b7280', value: 100, percentage: 10, isDiscrepancy: true, discrepancyType: 'unknown' as const },
+        ]
+      }
+    ];
+
+    const summary = calculateSummary(periods, mockCategory);
+
+    // Total: 2000, Unknown: 300 (15%)
+    const unknownSummary = summary.sources.find(s => s.isDiscrepancy && s.discrepancyType === 'unknown');
+    expect(unknownSummary).toBeDefined();
+    expect(unknownSummary!.totalValue).toBe(300);
+    expect(unknownSummary!.percentage).toBe(15);
+  });
+
+  it('excludes discrepancy from regular source totals', () => {
+    const periods = [
+      {
+        periodLabel: 'Period 1',
+        periodKey: '1',
+        total: 1000,
+        runCount: 1,
+        sources: [
+          { fieldName: 'orbDamage', displayName: 'Orb', color: '#f97316', value: 800, percentage: 80 },
+          { fieldName: '_unknown', displayName: 'Unknown', color: '#6b7280', value: 200, percentage: 20, isDiscrepancy: true, discrepancyType: 'unknown' as const },
+        ]
+      }
+    ];
+
+    const summary = calculateSummary(periods, mockCategory);
+
+    // orbDamage should have 800, not 1000 (unknown excluded from regular totals)
+    const orbSummary = summary.sources.find(s => s.fieldName === 'orbDamage');
+    expect(orbSummary!.totalValue).toBe(800);
   });
 });

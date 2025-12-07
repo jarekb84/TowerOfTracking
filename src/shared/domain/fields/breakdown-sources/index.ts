@@ -62,6 +62,19 @@ export const COINS_EARNED_CATEGORY: FieldCategory = {
   fields: COIN_FIELDS,
 };
 
+// Discrepancy detection
+export {
+  
+  DISCREPANCY_COLORS,
+  DISCREPANCY_FIELD_NAMES,
+  DISCREPANCY_DISPLAY_NAMES,
+  type DiscrepancyType,
+} from './discrepancy-config';
+export {
+  calculateDiscrepancy,
+  
+} from './discrepancy-calculation';
+
 // Future categories will follow the same pattern:
 // export const ENEMIES_DESTROYED_CATEGORY: FieldCategory = { ... };
 // export const ENEMIES_AFFECTED_BY_CATEGORY: FieldCategory = { ... };

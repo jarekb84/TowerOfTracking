@@ -30,6 +30,12 @@ export interface BreakdownConfig {
   perHourField?: string
   /** Source fields that break down the total */
   sources: BreakdownSourceConfig[]
+  /**
+   * Skip discrepancy detection for this group.
+   * Use when sources are supplementary data that don't sum to the total.
+   * Example: "Enemies Affected By" - the sources aren't meant to add up to totalEnemies.
+   */
+  skipDiscrepancy?: boolean
 }
 
 /**
@@ -68,6 +74,10 @@ export interface BreakdownItem {
   percentage: number
   /** Formatted display value (e.g., "1.5B") */
   displayValue: string
+  /** True if this is a discrepancy entry (Unknown/Overage) */
+  isDiscrepancy?: boolean
+  /** Type of discrepancy if isDiscrepancy is true */
+  discrepancyType?: 'unknown' | 'overage'
 }
 
 /**

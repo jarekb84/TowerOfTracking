@@ -97,6 +97,7 @@ export const ENEMIES_DESTROYED_CONFIG: BreakdownConfig = {
 export const DESTROYED_BY_CONFIG: BreakdownConfig = {
   totalField: 'totalEnemies',
   label: 'ENEMIES KILLED (OR HIT) BY',
+  skipDiscrepancy: true, // Sources are supplementary hit counts, not a breakdown of totalEnemies
   sources: [
     { fieldName: 'enemiesHitByOrbs', displayName: 'Orb Hits', color: '#f87171' },
     { fieldName: 'destroyedByOrbs', displayName: 'Orbs', color: '#f87171' },
@@ -109,6 +110,7 @@ export const DESTROYED_BY_CONFIG: BreakdownConfig = {
 export const ENEMIES_AFFECTED_BY_CONFIG: BreakdownConfig = {
   totalField: 'totalEnemies',
   label: 'ENEMIES AFFECTED BY',
+  skipDiscrepancy: true, // Sources are supplementary effects, not a breakdown of totalEnemies
   sources: [
     { fieldName: 'destroyedInSpotlight', displayName: 'Spotlight', color: '#e2e8f0' },
     { fieldName: 'taggedByDeathwave', displayName: 'Deathwave', color: '#ef4444' },

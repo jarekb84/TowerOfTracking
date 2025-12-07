@@ -7,6 +7,12 @@
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
+import {
+  calculateDiscrepancy,
+  DISCREPANCY_COLORS,
+  DISCREPANCY_FIELD_NAMES,
+  DISCREPANCY_DISPLAY_NAMES,
+} from '@/shared/domain/fields/breakdown-sources'
 import type {
   BreakdownConfig,
   BreakdownGroupData,
@@ -119,49 +125,80 @@ function buildBreakdownItem(
 }
 
 /**
+ * Build a discrepancy breakdown item (Unknown or Overage).
+ */
+function buildDiscrepancyItem(
+  type: 'unknown' | 'overage',
+  value: number,
+  percentage: number
+): BreakdownItem {
+  return {
+    fieldName: DISCREPANCY_FIELD_NAMES[type],
+    displayName: DISCREPANCY_DISPLAY_NAMES[type],
+    color: DISCREPANCY_COLORS[type],
+    value,
+    percentage,
+    displayValue: formatLargeNumber(value),
+    isDiscrepancy: true,
+    discrepancyType: type,
+  }
+}
+
+/** Options for discrepancy check */
+interface DiscrepancyCheckOptions {
+  items: BreakdownItem[]
+  existingItems: BreakdownItem[]
+  total: number
+  config: BreakdownConfig
+}
+
+/**
+ * Check for discrepancy and append to items if found.
+ * Only checks when there's an explicit totalField and skipDiscrepancy is false.
+ */
+function appendDiscrepancyIfNeeded(options: DiscrepancyCheckOptions): void {
+  const { items, existingItems, total, config } = options
+  if (config.totalField === null || config.skipDiscrepancy) return
+
+  const sourceSum = existingItems.reduce((sum, item) => sum + item.value, 0)
+  const discrepancy = calculateDiscrepancy(total, sourceSum)
+  if (discrepancy) {
+    items.push(buildDiscrepancyItem(discrepancy.type, discrepancy.value, discrepancy.percentage))
+  }
+}
+
+/**
+ * Extract per-hour display value if configured.
+ */
+function extractPerHourDisplay(run: ParsedGameRun, perHourField?: string): string | undefined {
+  if (!perHourField) return undefined
+  const value = extractFieldValue(run, perHourField)
+  return value > 0 ? formatLargeNumber(value) : undefined
+}
+
+/**
  * Calculate complete breakdown data for a group.
  * Returns null if the total is 0 (nothing to show).
+ *
+ * When a totalField is configured and sources don't sum to the total,
+ * a discrepancy entry (Unknown or Overage) is appended to explain the gap.
  */
 export function calculateBreakdownGroup(
   run: ParsedGameRun,
   config: BreakdownConfig
 ): BreakdownGroupData | null {
-  // Calculate total
-  let total: number
-  if (config.totalField) {
-    total = extractFieldValue(run, config.totalField)
-  } else {
-    // Computed sum from source fields
-    const sourceFieldNames = config.sources.map(s => s.fieldName)
-    total = calculateSumTotal(run, sourceFieldNames)
-  }
+  const hasTotalField = config.totalField !== null
+  const total = hasTotalField
+    ? extractFieldValue(run, config.totalField!)
+    : calculateSumTotal(run, config.sources.map(s => s.fieldName))
 
-  // Build breakdown items for all sources
-  const allItems = config.sources.map(source =>
-    buildBreakdownItem(run, source, total)
-  )
-
-  // Filter to only show fields that exist in the run
+  const allItems = config.sources.map(source => buildBreakdownItem(run, source, total))
   const existingItems = filterBreakdownItems(allItems, run)
+  if (existingItems.length === 0) return null
 
-  // If no items exist, return null
-  if (existingItems.length === 0) {
-    return null
-  }
-
-  // Sort by percentage descending
   const sortedItems = sortBreakdownItems(existingItems)
+  appendDiscrepancyIfNeeded({ items: sortedItems, existingItems, total, config })
 
-  // Build per-hour value if configured
-  let perHourDisplayValue: string | undefined
-  if (config.perHourField) {
-    const perHourValue = extractFieldValue(run, config.perHourField)
-    if (perHourValue > 0) {
-      perHourDisplayValue = formatLargeNumber(perHourValue)
-    }
-  }
-
-  // Get total display value
   const totalDisplayValue = config.totalField
     ? (run.fields[config.totalField]?.displayValue ?? formatLargeNumber(total))
     : formatLargeNumber(total)
@@ -170,7 +207,7 @@ export function calculateBreakdownGroup(
     label: config.label,
     total,
     totalDisplayValue,
-    perHourDisplayValue,
+    perHourDisplayValue: extractPerHourDisplay(run, config.perHourField),
     items: sortedItems,
   }
 }
