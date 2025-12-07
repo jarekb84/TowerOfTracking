@@ -7,59 +7,83 @@
 - **TanStack Table**: Headless table component for data display
 - **Tailwind CSS v4**: Styling with `@theme` directive (no config file)
 - **shadcn/ui**: Component library built on Radix UI primitives
-- **Radix UI**: Headless UI primitives (via shadcn/ui)
+- **Recharts**: Chart library for data visualization
 - **TypeScript**: Full type safety throughout
-- **Vitest + React Testing Library**: Comprehensive testing infrastructure with hooks testing support
+- **Vitest + React Testing Library**: Testing infrastructure
 
 ## Data Flow Architecture
 
 **Context-Based State Management:**
 - `DataProvider` (`src/contexts/data-context.tsx`): Manages game run data with localStorage persistence
-- `ThemeProvider` (`src/contexts/theme-context.tsx`): Handles UI theming and configurable spacing system
 
 **Data Processing Pipeline:**
-- Raw clipboard data → `parseTabDelimitedData()` → `extractKeyStats()` → `ParsedGameRun` interface
-- Handles shorthand number formats (100K, 15.2M, 1.5B) and duration strings (7H 45M 35S)
-- Uses `human-format` library for number parsing and display
+- Raw clipboard data → parsing → normalization → `ParsedGameRun` interface
+- Handles shorthand number formats (100K, 15.2M, 1.5B, up to 1e63) and duration strings (7H 45M 35S)
+- See `src/shared/formatting/number-scale.ts` for number parsing/formatting
 
-## Key Components Structure
+## Localization (CRITICAL)
 
-**Data Input Flow:**
-- `DataInput` component → Modal dialog → Live preview → Save to context
-- Clipboard integration with paste button functionality
-- Real-time data validation and preview
+**The app supports multiple locales.** All date and number handling MUST use the shared utilities:
 
-**Table Display System:**
-- `RunsTable` component with TanStack Table integration
-- Expandable rows showing all 80+ raw data fields
-- Sorting, filtering, and search capabilities
-- Custom cell renderers for formatted numbers and durations
+**Dates** (`src/shared/formatting/date-formatters.ts`):
+- `parseBattleDate()` - Parse dates from game export (handles multiple locale formats)
+- `formatDisplayDate()`, `formatDisplayDateTime()` - Locale-aware display
+- `formatIsoDate()`, `formatCanonicalBattleDate()` - Storage format (US-centric)
 
-**Analytics & Visualization System:**
-- `TimeSeriesChart` component: Configurable chart supporting multiple time periods (run, daily, weekly, monthly, yearly)
-- `TierStatsTable` component: Interactive table showing max performance metrics per tier with column sorting
-- `DeathsRadarChart` component: Radar chart analyzing death causes by tier with dynamic scaling and tier toggles
-- Color-coded visualization system with consistent theming across chart types
+**Numbers** (`src/shared/formatting/number-scale.ts`):
+- `parseShorthandNumber()` - Parse "100K", "1.5M" with locale-aware separators
+- `formatLargeNumber()` - Format numbers with scale suffixes
+
+**Canonical Data Format:**
+- **Storage/Memory**: US-centric format (e.g., "Oct 14, 2025 13:14")
+- **User Input**: Parsed according to user's locale settings
+- **Display Output**: Formatted according to user's locale settings
+
+**NEVER construct dates or format numbers directly.** Always use the shared utilities.
+
+## Analytics Features
+
+The app includes multiple analysis views in `src/features/analysis/`:
+- **Time Series**: Configurable charts (run, daily, weekly, monthly, yearly periods)
+- **Tier Stats**: Performance metrics per tier with sorting
+- **Tier Trends**: Trend analysis across periods with aggregation options
+- **Deaths Radar**: Radar chart analyzing death causes by tier
+- **Source Analysis**: Breakdown of coin/damage sources
+- **Field Analytics**: Per-field analysis with field selection
+- **Coverage Report**: Data coverage and completeness analysis
+
+## Reusing Existing Utilities
+
+**CRITICAL**: Before implementing any data transformation, check if it already exists:
+
+**Data Grouping/Aggregation** (`src/features/analysis/`):
+- Period grouping (daily, weekly, monthly, yearly)
+- Tier-based grouping and filtering
+- Field aggregation strategies (sum, avg, max, min)
+
+**Field Configuration** (`src/shared/domain/fields/`):
+- Field metadata and display config
+- Field formatters and extractors
+- Numeric field detection
+
+**Filters** (`src/shared/domain/filters/`):
+- Tier filtering
+- Duration filtering
+- Period count options
+
+**Colors**: Check if field/metric colors are already defined before creating new ones. Consistent colors improve UX.
 
 ## SSR Considerations
 
-**Critical**: All localStorage and DOM access must be wrapped in `typeof window !== 'undefined'` checks to prevent SSR errors. Both contexts handle this pattern for:
-- Initial state loading from localStorage
-- Theme application to document element
-- Data persistence operations
+All localStorage and DOM access must be wrapped in `typeof window !== 'undefined'` checks.
 
 ## Testing Infrastructure
 
-**React Hook Testing Requirements:**
-- Hook tests MUST use `.tsx` extension (not `.ts`) for React Testing Library's `renderHook()`
-- Use `renderHook()` from `@testing-library/react` for hook testing
-- Use `act()` for state updates, `vi.useFakeTimers()`/`vi.advanceTimersByTime()` for debounced functionality
-- Test consumer-focused behavior, not implementation details
+- Hook tests MUST use `.tsx` extension for `renderHook()`
+- Use `act()` for state updates
+- Use `vi.useFakeTimers()` for debounced functionality
 
 ## Styling System
 
-**Tailwind v4 Configuration:**
-- Uses `@theme` directive in CSS instead of config file
-- Custom spacing system with normal/condensed modes
-- CSS custom properties for dynamic theming
-- Dark tower defense theme with orange (#f97316) accent colors
+- Tailwind v4 with `@theme` directive in CSS
+- Dark tower defense theme with orange (#f97316) accent

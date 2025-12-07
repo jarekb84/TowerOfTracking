@@ -12,11 +12,19 @@ The application focuses on:
 
 ## Development Commands
 
-- **Development server**: `npm run dev`
-- **Build for production**: `npm run build`
-- **Run tests**: `npm run test` (uses Vitest with React Testing Library)
-- **Production server**: `npm run start` (serves built files)
-- **Preview production build**: `npm run serve`
+**Primary validation command:**
+```bash
+npm run integration-precheck
+```
+This runs linting, type checking, unit tests, and E2E tests in sequence. **Use this for a complete gut-check before committing.**
+
+**Individual commands** (when you need to run just one):
+- `npm run dev` - Development server
+- `npm run build` - Build for production
+- `npm run test` - Unit tests (Vitest)
+- `npm run e2e` - E2E tests (Playwright)
+- `npm run lint` - ESLint
+- `npm run type-check` - TypeScript compilation check
 
 ## Game Context
 
