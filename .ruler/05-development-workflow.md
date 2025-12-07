@@ -1,6 +1,16 @@
-# Claude Code Development Workflow
+# Development Workflow
 
-**Core Principles:**
+## Scenario-Specific Instructions
+
+**Load additional instructions when working on specific scenarios:**
+
+| Scenario | Instruction File |
+|----------|-----------------|
+| Bug fixes | `.ai-instructions/bug-fix-workflow.md` |
+| E2E tests | `.ai-instructions/e2e-testing.md` |
+
+## Core Principles
+
 - Fight entropy: Each change should make the system more organized, not less
 - Maintain consistency with existing patterns while improving them
 - Consider the developer experience for future maintainers
@@ -15,257 +25,97 @@ When presenting your analysis and implementation, clearly articulate:
 
 You are not just implementing features—you are stewarding the evolution of a complex system toward greater clarity, maintainability, and extensibility.
 
-## Bug Fix Detection
+## Phase 1: Requirements Analysis (CRITICAL)
 
-**Determining Change Intent:**
-Analyze the request holistically to understand whether this is a bug fix or feature work:
+**Every change requires deep understanding before implementation.** Avoid "AI slop"—changes that look like 15 different developers with 15 different patterns. Each change must fit the system cohesively.
 
-**Ask yourself:**
-1. Is this **restoring expected behavior** that previously worked, or **adding new capability**?
-2. Does the change **correct a defect** (something that shouldn't happen) or **extend functionality**?
-3. Would users describe this as "it's broken" vs "I wish it could do X"?
+### Deep System Analysis
 
-**Bug Fix Indicators:**
-- Restoring functionality that was working before
-- Correcting behavior that doesn't match documented/expected behavior
-- Fixing crashes, errors, or data corruption
-- Addressing user-reported problems with existing features
-
-**Feature Indicators:**
-- Adding functionality that never existed
-- Enhancing existing features with new capabilities
-- Improving UX/design without fixing incorrect behavior
-- Refactoring or reorganizing code structure
-
-**When Unclear**: Ask the user to clarify: "Is this fixing something that's broken, or adding/enhancing functionality?"
-
-## Mandatory Red-Green-Refactor Process
-
-**CRITICAL**: EVERY SINGLE CHANGE, regardless of perceived complexity or size, MUST follow this complete systematic approach to prevent architectural debt accumulation.
-
-**NO EXCEPTIONS**: "Simple" requests, one-line changes, quick fixes, and small features ALL require the full Red-Green-Refactor process. Every prompt is an opportunity for architectural improvement.
-
-**ARCHITECTURAL STEWARDSHIP FIRST**: You are not just implementing features—you are stewarding the evolution of the system. Every change must improve the codebase's structure, not just solve the immediate problem.
-
-### Phase 1: Requirement Analysis (Red)
-
-**Phase 1.1: Deep System Analysis**
-- Start by examining the specific area where the task appears to target
-- Expand your investigation outward to understand related components, dependencies, and call sites
-- Map the data flow and control flow through the relevant parts of the system
-- Identify all stakeholders and components that could be affected by your changes
-- Understand the existing patterns, conventions, and architectural decisions
+- Start by examining the specific area where the task targets
+- **Peel back the onion**: Don't stop at the files you'll modify—look 2-3 layers up
+  - Find files that call the code you're changing
+  - Find files that call *those* files
+  - Understand how your change will ripple through the system
+- Map the data flow and control flow through the relevant parts
 - Look for similar implementations already in the codebase to maintain consistency
 
-**Phase 1.2: Impact Assessment**
+### Impact Assessment
+
 - Analyze the full scope of changes required across the codebase
-- Identify potential breaking changes and their ripple effects
-- Consider performance implications and scalability concerns
+- Identify potential breaking changes and their ripple effects to consumers
 - Evaluate how your changes will affect testing, debugging, and future maintenance
 - Assess whether existing abstractions are sufficient or need enhancement
+- **Ask**: Will this change make future modifications easier or harder?
 
-**Phase 1.3: Strategic Implementation Planning**
-- Design solutions that not only solve the immediate problem but improve the system's extensibility
+### Strategic Implementation Planning
+
+- Design solutions that not only solve the immediate problem but improve extensibility
 - Choose approaches that reduce complexity rather than add to it
+- Consider trade-offs between possible approaches—pick the one that improves the system long-term
 - Plan changes that make future similar tasks easier to implement
-- Consider how to maintain or improve separation of concerns
-- Design with the principle that each change should leave the codebase in a better state
+- **Goal**: Each change should leave the codebase in a better state, not create one-off patterns
 
-**Phase 1.4: Architecture-First Implementation**
-
-- Implement changes that align with existing patterns while improving them
-- Create abstractions that reduce duplication and increase reusability
-- Write code that is self-documenting and follows established conventions
-- Ensure your changes integrate seamlessly with the existing system
-- Build in extensibility points for anticipated future needs
-- **MANDATORY**: Evaluate file organization and apply progressive directory creation triggers
-
-### Phase 2: Implementation (Green)
+## Phase 2: Implementation
 
 Implement the minimal solution that satisfies requirements:
 - Focus on making it work first
 - Follow existing patterns and conventions
-- **MANDATORY**: Apply React separation doctrine—ZERO logic in `.tsx` files
-- **MANDATORY**: Generate unit tests for ALL new logic (`.ts`) and hook orchestration (`use*.ts`)
-- **MANDATORY**: Extract logic from components into hooks or pure functions, even for "simple" changes
+- **MANDATORY**: Apply React separation—ZERO business logic in `.tsx` files
+- **MANDATORY**: Generate unit tests for ALL new logic
 - Use TodoWrite to track implementation steps
-- Maintain test coverage
-- **BOY-SCOUT RULE**: When touching any file, extract at least one logic chunk with tests
-- **FILE ORGANIZATION BOY-SCOUT RULE**: When touching files, apply incremental reorganization:
 
-  - Move related hook + logic + types together with the component
-  - Update imports in the same PR
-  - Create subdirectories for sub-features when 3+ related files exist
-  - DON'T reorganize unrelated files
+**Boy-Scout Rule**: When touching any file, extract at least one logic chunk with tests (suspended for bug fixes—see bug fix workflow).
 
-**BUG FIX SPECIFIC RULES**:
-- **SUSPEND** Boy-Scout Rule for bug fixes - only change code directly related to the fix
-- **LIMIT SCOPE**: Changes should be minimal and focused on fixing the specific issue
-- **NO UNRELATED IMPROVEMENTS**: Defer general improvements, file reorganization, and pattern updates
-- **ISOLATE FIX**: Extract bug fix logic into separate function/hook/component if it helps clarity
+## Phase 3: Review Agents
 
-### Phase 3: Architecture Review & Refactor (Refactor)
+After implementation, the main agent orchestrates review agents. See Mandatory Orchestration Protocol below.
 
-**MANDATORY** after every implementation - analyze for:
-
-**Duplication Detection:**
-- If implementing something for the 2nd time → note the pattern
-- If implementing something for the 3rd time → MUST refactor to abstraction
-- Look for similar logic, components, or data structures
-
-**Performance Anti-patterns:**
-- Hash map iterations instead of direct lookups
-- Nested loops where single pass would suffice  
-- Redundant data transformations
-- Unnecessary re-renders or recalculations
-
-**Data Structure Issues:**
-- Multiple representations of same data (like current rawData/camelCaseData/processedData)
-- Complex lookup patterns that defeat data structure benefits
-- Missing normalization opportunities
-
-**React Separation Violations:**
-- Business logic mixed with presentation logic in `.tsx` files
-- Components over 200 lines without extraction
-- Missing abstraction layers (hooks, pure functions)
-- Logic directly in event handlers instead of hook callbacks
-- Pure functions importing React or testing libraries
-- Cross-feature imports bypassing public APIs
-
+---
 
 ## Mandatory Orchestration Protocol
 
-**CRITICAL**: The Main Agent acts as the **orchestrator** for all review agents. Specialized agents do NOT call other agents - they complete their work and return control to the Main Agent orchestrator.
+**CRITICAL**: The Main Agent acts as the **orchestrator** for all review agents. This protocol exists because each agent enforces specific architectural patterns and practices that keep the codebase extensible over time.
+
+### Why This Matters
+
+Each review agent has hundreds of lines of specialized instructions about patterns the architect cares deeply about. Their purpose is to take what the main agent built and apply these design standards to the git diff. This is what prevents "AI slop" and maintains a cohesive, extensible codebase.
+
+**Specialized agents do NOT call other agents**—they complete their work and return control to the Main Agent orchestrator.
 
 ### Main Agent Orchestration Flow
 
 **Step 1: Implementation**
 - Main Agent implements the user's requested changes
 - Applies all implementation standards (React separation, testing, etc.)
-- Prepares context for review agents
 
-**Step 2: Frontend Design Review** (for non-bug-fix changes)
-- Main Agent invokes Frontend Design Review Agent
-- Frontend Design Review Agent completes and returns results
-- Main Agent receives design improvements
+**Step 2: Frontend Design Review** (features only, skipped for bug fixes)
+- Invokes Frontend Design Review Agent
+- Agent reviews and implements CSS, visual consistency, layout, and responsive design improvements
 
-**Step 3: E2E Test Review** (conditional)
-- Main Agent checks git diff for E2E file changes:
-  ```bash
-  git diff --name-only | grep -E 'e2e/.*\.(test|spec)\.ts$|e2e/page-objects/.*\.ts$'
-  ```
-- **IF E2E files were modified**: Main Agent invokes E2E Test Architect Agent
-- E2E Test Architect Agent completes and returns results
-- Main Agent receives E2E test improvements
+**Step 3: E2E Test Review** (conditional—only if E2E files modified)
+- Invokes E2E Test Architect Agent
+- Agent reviews Page Object Model patterns, test organization, and E2E best practices
 
-**Step 4: Architecture Review** (always)
-- Main Agent invokes Architecture Review Agent (with bug fix context if applicable)
-- Architecture Review Agent completes and returns results
-- Main Agent receives architectural improvements
+**Step 4: Architecture Review** (ALWAYS required)
+- Invokes Architecture Review Agent
+- Agent reviews component decomposition, abstraction design, performance patterns, and extensibility
 
-**Step 5: Code Organization & Naming Review** (always)
-- Main Agent invokes Code Organization & Naming Agent (with bug fix context if applicable)
-- Code Organization & Naming Agent completes and returns results
-- Main Agent receives organization and naming improvements
+**Step 5: Code Organization & Naming Review** (ALWAYS required)
+- Invokes Code Organization & Naming Agent
+- Agent reviews file organization, naming clarity, and feature-based structure
 
 **Step 6: Final Summary**
-- Main Agent provides comprehensive summary to user
-- Includes improvements from all invoked agents
+- Main Agent provides comprehensive summary to user including improvements from all agents
 
-### Orchestration Templates
+### Orchestration Rules
 
-**FOR BUG FIXES:**
-```
-[Main Agent implements bug fix]
+**ALL agents must run** unless explicitly excepted:
+- Bug fixes skip Frontend Design Review (see bug fix workflow)
+- E2E Test Architect only runs when E2E files are modified
 
-"I have completed the bug fix implementation. Skipping Frontend Design Review Agent per bug fix protocol. Now invoking the Architecture Review Agent with bug fix context for focused architectural review."
-
-[Architecture Review Agent returns]
-
-"Architecture review complete. Now invoking the Code Organization & Naming Agent with bug fix context for limited scope organizational review."
-
-[Code Organization & Naming Agent returns]
-
-"All reviews complete. Here's the summary of improvements..."
-```
-
-**FOR FEATURES (without E2E changes):**
-```
-[Main Agent implements feature]
-
-"I have completed the initial implementation. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
-
-[Frontend Design Review Agent returns]
-
-"Design review complete. No E2E test files detected. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
-
-[Architecture Review Agent returns]
-
-"Architecture review complete. Now invoking the Code Organization & Naming Agent for final organizational polish."
-
-[Code Organization & Naming Agent returns]
-
-"All reviews complete. Here's the summary of improvements..."
-```
-
-**FOR FEATURES (with E2E changes):**
-```
-[Main Agent implements feature]
-
-"I have completed the initial implementation. Now invoking the Frontend Design Review Agent for mandatory visual and CSS review."
-
-[Frontend Design Review Agent returns]
-
-"Design review complete. E2E test files detected in git diff. Now invoking the E2E Test Architect Agent for mandatory E2E test review."
-
-[E2E Test Architect Agent returns]
-
-"E2E test review complete. Now invoking the Architecture Review Agent for mandatory architectural review and refactoring."
-
-[Architecture Review Agent returns]
-
-"Architecture review complete. Now invoking the Code Organization & Naming Agent for final organizational polish."
-
-[Code Organization & Naming Agent returns]
-
-"All reviews complete. Here's the summary of improvements..."
-```
-
-### Agent Completion Protocol
-
-**Specialized agents MUST:**
-- Complete their specific domain review
-- Return a summary of improvements made
-- **NOT** invoke other agents
-- **NOT** reference what happens next in the workflow
-
-**Main Agent orchestrator MUST:**
-- Decide which agents to invoke based on change type and modified files
-- Provide context to each agent about the changes
-- Collect results from each agent
-- Provide final comprehensive summary to user
-
-## Size-Agnostic Enforcement Rules
-
-**EVERY CHANGE MUST:**
-
-1. **Follow complete 3-agent process** - no shortcuts for "simple" requests
-2. **Complete each stage fully** - no skipping or combining agents
-3. **Generate proper handoff summaries** - context for next agent
-4. **Apply all quality standards** - every stage has mandatory requirements
-
-**FORBIDDEN SHORTCUTS:**
-
-- ❌ "This is simple, skip architecture review"
-- ❌ "No visual changes, skip design review"
-- ❌ "Quick fix doesn't need full workflow"
-- ❌ "Urgent request, streamline process"
-
-**NO EXCEPTIONS POLICY:**
-
-- Size doesn't matter
-- Complexity doesn't matter
-- User urgency doesn't matter
-- "Just this once" is never acceptable
+**NO SHORTCUTS**:
+- Size doesn't matter—small changes still run all agents
+- Complexity doesn't matter—"simple" changes still run all agents
+- Urgency doesn't matter—the process is non-negotiable
 
 Every change improves the codebase through systematic, specialized review.
