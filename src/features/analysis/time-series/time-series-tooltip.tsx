@@ -7,7 +7,7 @@
  * Also exports a Recharts-compatible wrapper for easy integration with chart components.
  */
 
-import type { RunInfo, ChartDataPoint } from './chart-types'
+import type { RunInfo, ChartDataPoint, PeriodInfo } from './chart-types'
 import { RunInfoHeader } from '@/features/analysis/shared/tooltips/run-info-header'
 
 interface TimeSeriesTooltipProps {
@@ -21,6 +21,10 @@ interface TimeSeriesTooltipProps {
   metricLabel: string
   /** Optional run info for per-run data points */
   runInfo?: RunInfo
+  /** Optional period info for weekly/monthly daily averages */
+  periodInfo?: PeriodInfo
+  /** Formatter function for daily average */
+  formatter?: (value: number) => string
   /** Accent color for styling */
   accentColor?: string
 }
@@ -31,6 +35,8 @@ function TimeSeriesTooltip({
   formattedValue,
   metricLabel,
   runInfo,
+  periodInfo,
+  formatter,
   accentColor,
 }: TimeSeriesTooltipProps) {
   return (
@@ -63,6 +69,17 @@ function TimeSeriesTooltip({
           {formattedValue}
         </span>
       </div>
+
+      {/* Daily Average row - only for weekly/monthly */}
+      {periodInfo && formatter && (
+        <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
+          <span className="text-slate-500 text-xs">Daily Avg</span>
+          <span className="text-slate-400 text-xs tabular-nums">
+            {formatter(periodInfo.dailyAverage)}
+            <span className="text-slate-500 ml-0.5">/day</span>
+          </span>
+        </div>
+      )}
     </div>
   )
 }
@@ -111,6 +128,8 @@ export function TimeSeriesChartTooltip({
       formattedValue={formattedValue}
       metricLabel={metricLabel}
       runInfo={dataPoint.runInfo}
+      periodInfo={dataPoint.periodInfo}
+      formatter={formatter}
       accentColor={accentColor}
     />
   )
