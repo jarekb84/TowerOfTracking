@@ -129,9 +129,6 @@
     }
   },
   "src/features/data-import/csv-import/csv-parser.ts": {
-    "complexity": {
-      "count": 1
-    },
     "max-statements": {
       "count": 1
     }

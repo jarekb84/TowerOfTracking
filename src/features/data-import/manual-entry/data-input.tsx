@@ -8,6 +8,7 @@ import { DuplicateInfo } from '@/shared/domain/duplicate-detection/duplicate-inf
 import { DataInputPreview } from './data-input-preview';
 import { DataInputActionsSection } from './data-input-actions-section';
 import { DataInputDateTimeSection } from './data-input-datetime-section';
+import { SingleEntryDateWarning } from './single-entry-date-warning';
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector';
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter';
 import { RunType } from '@/shared/domain/run-types/types';
@@ -78,6 +79,16 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
                 parsedRuns={[form.previewData]}
                 className="mb-5"
                 onSettingsClick={closeModal}
+              />
+            )}
+
+            {/* Date Validation Warning - shows when battleDate is missing or invalid */}
+            {form.dateIssueInfo?.hasIssue && (
+              <SingleEntryDateWarning
+                dateIssueInfo={form.dateIssueInfo}
+                autoFixEnabled={form.autoFixDateEnabled}
+                onAutoFixToggle={form.setAutoFixDateEnabled}
+                className="mb-5"
               />
             )}
 

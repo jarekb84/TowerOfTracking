@@ -10,6 +10,7 @@
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
+import type { BattleDateValidationError } from '@/shared/formatting/date-validation.types';
 
 /**
  * CSV delimiter options for parsing and exporting
@@ -27,6 +28,43 @@ export interface CsvParseConfig {
 }
 
 /**
+ * Context information for a row with date validation warning
+ * Helps users identify which run has the issue in bulk imports
+ */
+interface DateWarningContext {
+  tier?: number;
+  wave?: number;
+  duration?: string;
+}
+
+/**
+ * Warning for a row with invalid battleDate
+ * The row still imports successfully but uses a fallback timestamp
+ */
+export interface DateValidationWarning {
+  /** 1-indexed row number in the CSV (excluding header) */
+  rowNumber: number;
+  /** The original invalid value */
+  rawValue: string;
+  /** Detailed error information */
+  error: BattleDateValidationError;
+  /** Context to help identify the run */
+  context: DateWarningContext;
+  /** What fallback was used for the timestamp */
+  fallbackUsed: 'import-time' | 'custom-timestamp';
+
+  // Fixability detection for deriving battleDate from _date/_time
+  /** Whether this row can be auto-fixed using _date/_time fields */
+  isFixable: boolean;
+  /** Raw _date field value if present (ISO format: yyyy-MM-dd) */
+  dateFieldValue?: string;
+  /** Raw _time field value if present (ISO format: HH:mm:ss) */
+  timeFieldValue?: string;
+  /** Derived battleDate computed from _date/_time (only set if isFixable) */
+  derivedBattleDate?: Date;
+}
+
+/**
  * Result of CSV parsing operation
  */
 export interface CsvParseResult {
@@ -34,6 +72,10 @@ export interface CsvParseResult {
   failed: number;
   errors: string[];
   fieldMappingReport: FieldMappingReport;
+  /** Rows that imported with date validation warnings */
+  dateWarnings?: DateValidationWarning[];
+  /** True if the CSV is missing a battleDate column entirely */
+  missingBattleDateColumn?: boolean;
 }
 
 /**

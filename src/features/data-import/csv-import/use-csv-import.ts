@@ -3,6 +3,7 @@ import { useData } from '@/shared/domain/use-data';
 import { useFileImport } from './input/csv-file-upload';
 import { resolveDelimiter, parseCsvSafe } from './csv-import-parsing';
 import { executeImport } from './csv-import-executor';
+import { applyDateDerivationFixes } from './date-warning/date-derivation-fixer';
 import type { CsvDelimiter, CsvParseResult } from './types';
 import type { DuplicateResolution } from '@/shared/domain/duplicate-detection/duplicate-info';
 import type { BatchDuplicateDetectionResult } from '@/shared/domain/duplicate-detection/duplicate-detection';
@@ -24,6 +25,8 @@ interface UseCsvImportReturn {
   resolution: DuplicateResolution;
   /** Only available in pageMode - indicates successful import */
   importSuccess: boolean;
+  /** Whether to derive battleDate from _date/_time fields for fixable rows */
+  deriveEnabled: boolean;
 
   // Actions
   setIsDialogOpen: (open: boolean) => void;
@@ -36,6 +39,7 @@ interface UseCsvImportReturn {
   /** Clear form without closing dialog (useful in page mode) */
   handleClear: () => void;
   setResolution: (resolution: DuplicateResolution) => void;
+  setDeriveEnabled: (enabled: boolean) => void;
   importFile: () => void;
 }
 
@@ -48,6 +52,7 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
   const [duplicateResult, setDuplicateResult] = useState<BatchDuplicateDetectionResult | null>(null);
   const [resolution, setResolution] = useState<DuplicateResolution>('new-only');
   const [importSuccess, setImportSuccess] = useState(false);
+  const [deriveEnabled, setDeriveEnabled] = useState(false);
   const { addRuns, detectBatchDuplicates, overwriteRun } = useData();
   const { importFormat } = useLocaleStore();
 
@@ -132,6 +137,7 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
     setDuplicateResult(null);
     setResolution('new-only');
     setImportSuccess(false);
+    setDeriveEnabled(false);
   }, []);
 
   // Reset form helper (closes dialog in modal mode)
@@ -144,8 +150,20 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
 
   // Import runs
   const handleImport = useCallback((): void => {
+    if (!parseResult?.success) return;
+
+    // Apply date derivation fixes if enabled and there are warnings
+    let runsToImport = parseResult.success;
+    if (deriveEnabled && parseResult.dateWarnings?.length) {
+      const { fixedRuns } = applyDateDerivationFixes(
+        parseResult.success,
+        parseResult.dateWarnings
+      );
+      runsToImport = fixedRuns;
+    }
+
     const imported = executeImport({
-      parseResult,
+      parseResult: { ...parseResult, success: runsToImport },
       duplicateResult,
       resolution,
       addRuns,
@@ -163,7 +181,7 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
         resetForm();
       }
     }
-  }, [parseResult, duplicateResult, resolution, addRuns, overwriteRun, resetForm, pageMode, clearFormState]);
+  }, [parseResult, deriveEnabled, duplicateResult, resolution, addRuns, overwriteRun, resetForm, pageMode, clearFormState]);
 
   return {
     inputData,
@@ -174,6 +192,7 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
     duplicateResult,
     resolution,
     importSuccess,
+    deriveEnabled,
     setIsDialogOpen,
     handlePaste,
     handleInputChange,
@@ -183,6 +202,7 @@ export function useCsvImport({ pageMode = false }: UseCsvImportOptions = {}): Us
     handleCancel: resetForm,
     handleClear: clearFormState,
     setResolution,
+    setDeriveEnabled,
     importFile
   };
 }

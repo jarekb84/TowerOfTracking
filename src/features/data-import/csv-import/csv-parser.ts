@@ -5,19 +5,16 @@ import type {
 import type {
   CsvParseConfig,
   CsvParseResult,
-  FieldMappingReport,
-  CsvDelimiter
+  CsvDelimiter,
+  DateValidationWarning,
 } from './types';
 import { createGameRunField, createInternalField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 import { deriveDateTimeFromBattleDate } from '@/features/analysis/shared/parsing/data-parser';
-import { INTERNAL_FIELD_NAMES } from '@/shared/domain/fields/internal-field-config';
-import { parseBattleDate } from '@/shared/formatting/date-formatters';
-import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
-import { parseTimestampFromFields } from '../../../shared/formatting/date-formatters';
-import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
+import { INTERNAL_FIELD_NAMES, isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
+import { validateBattleDate, parseTimestampFromFields } from '@/shared/formatting/date-formatters';
+import { tryDeriveFromInternalFields } from '@/shared/formatting/date-issue-detection';
 import { detectDelimiter } from './csv-helpers';
-import { extractFieldNamesFromStorage } from '@/shared/domain/fields/field-discovery';
-import { classifyFields } from '@/shared/domain/fields/field-similarity';
+import { createFieldMappingReport, extractKeyStatsFromFields } from './csv-field-mapping';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
 // Load supported fields from JSON
@@ -31,63 +28,37 @@ const DELIMITER_MAP: Record<CsvDelimiter, string> = {
   custom: ','  // Default fallback, will be overridden
 };
 
-/**
- * Generic CSV parser that works with any column headers by mapping them to supported fields
- */
-export function parseGenericCsv(
-  rawInput: string, 
-  config: Partial<CsvParseConfig> = {}
-): CsvParseResult {
-  const fullConfig: CsvParseConfig = {
-    delimiter: undefined, // Auto-detect if not provided
-    supportedFields: SUPPORTED_FIELDS,
-    ...config
+/** Empty result for when no data is provided */
+function createEmptyResult(): CsvParseResult {
+  return {
+    success: [],
+    failed: 0,
+    errors: ['No data provided'],
+    fieldMappingReport: {
+      mappedFields: [],
+      newFields: [],
+      similarFields: [],
+      unsupportedFields: [],
+      skippedFields: []
+    }
   };
+}
 
-  const lines = rawInput.trim().split('\n');
-  if (lines.length === 0) {
-    return {
-      success: [],
-      failed: 0,
-      errors: ['No data provided'],
-      fieldMappingReport: {
-        mappedFields: [],
-        newFields: [],
-        similarFields: [],
-        unsupportedFields: [],
-        skippedFields: []
-      }
-    };
-  }
-
-  const success: ParsedGameRun[] = [];
-  const errors: string[] = [];
-  let failed = 0;
-
-  // Parse header and determine delimiter
-  const firstLine = lines[0];
-  const delimiter = config.delimiter || detectDelimiter(firstLine);
-  
-  // Parse headers and create field mapping
-  const headers = firstLine.split(delimiter).map(h => h.trim().replace(/["']/g, ''));
-  const fieldMappingReport = createFieldMappingReport(headers, fullConfig.supportedFields);
-
-  // Build mapping from CSV column index to camelCase field name (INCLUDE ALL FIELDS)
-  // Note: We no longer filter by supportedFields to ensure all game fields persist
+/** Build mapping from CSV column index to camelCase field name */
+function buildColumnToFieldMap(headers: string[]): Map<number, string> {
   const columnToFieldMap = new Map<number, string>();
+
   headers.forEach((header, index) => {
     let camelCase: string;
 
     // Handle underscore-prefixed headers (new format): "_Date" → "_date"
-    // These are already in the correct format, just need camelCase conversion
     if (header.startsWith('_')) {
-      // Keep the underscore and camelCase the rest
       const withoutUnderscore = header.substring(1);
       camelCase = '_' + toCamelCase(withoutUnderscore);
     } else {
       camelCase = toCamelCase(header);
 
-      // Apply legacy field migration for old headers (e.g., "Date" → "_date", "Notes" → "_notes")
+      // Apply legacy field migration for old headers
       if (isLegacyField(camelCase)) {
         const migratedName = getMigratedFieldName(camelCase);
         if (migratedName) {
@@ -96,199 +67,236 @@ export function parseGenericCsv(
       }
     }
 
-    // Always include the field, regardless of whether it's in supportedFields
     columnToFieldMap.set(index, camelCase);
   });
 
-  // Process data rows
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
+  return columnToFieldMap;
+}
+
+/** Find the column index for battleDate field */
+function findBattleDateColumnIndex(columnToFieldMap: Map<number, string>): number | undefined {
+  for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
+    if (fieldName === 'battleDate') {
+      return columnIndex;
+    }
+  }
+  return undefined;
+}
+
+/** Context for processing a single CSV row */
+interface RowParseContext {
+  values: string[];
+  headers: string[];
+  columnToFieldMap: Map<number, string>;
+  battleDateColumnIndex: number | undefined;
+  importFormat: CsvParseConfig['importFormat'];
+  rowNumber: number;
+}
+
+/** Extract numeric field value safely */
+function extractNumericFieldValue(field: GameRunField | undefined): number | undefined {
+  if (!field) return undefined;
+  const num = Number(field.value);
+  return isNaN(num) ? undefined : num;
+}
+
+/** Create warning context from fields */
+function createWarningContext(fields: Record<string, GameRunField>): DateValidationWarning['context'] {
+  return {
+    tier: extractNumericFieldValue(fields.tier),
+    wave: extractNumericFieldValue(fields.wave),
+    duration: fields.realTime?.rawValue,
+  };
+}
+
+/** Check if we should derive _date/_time from battleDate */
+function shouldDeriveDateTimeFields(
+  fields: Record<string, GameRunField>
+): boolean {
+  const hasExistingDateFields = !!(fields[INTERNAL_FIELD_NAMES.DATE] && fields[INTERNAL_FIELD_NAMES.TIME]);
+  return !hasExistingDateFields;
+}
+
+/** Check if row can be fixed by deriving battleDate from _date/_time fields */
+function detectFixability(
+  fields: Record<string, GameRunField>
+): { isFixable: boolean; dateFieldValue?: string; timeFieldValue?: string; derivedBattleDate?: Date } {
+  // Use the shared derivation logic
+  const result = tryDeriveFromInternalFields(fields);
+
+  return {
+    isFixable: result.success,
+    dateFieldValue: result.dateValue,
+    timeFieldValue: result.timeValue,
+    derivedBattleDate: result.date ?? undefined,
+  };
+}
+
+/** Process battleDate field: validate and derive _date/_time if needed */
+function processBattleDateField(
+  fields: Record<string, GameRunField>,
+  context: RowParseContext
+): DateValidationWarning | null {
+  const { values, battleDateColumnIndex, importFormat, rowNumber } = context;
+
+  // No battleDate column - nothing to validate
+  if (battleDateColumnIndex === undefined) {
+    return null;
+  }
+
+  const battleDateValue = values[battleDateColumnIndex] || '';
+  const validationResult = validateBattleDate(battleDateValue, {
+    format: importFormat?.dateFormat,
+    warnFutureDates: false,
+  });
+
+  if (validationResult.success) {
+    // Only derive _date/_time if they don't already exist in the data
+    if (shouldDeriveDateTimeFields(fields)) {
+      const derived = deriveDateTimeFromBattleDate(validationResult.date);
+      fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
+      fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
+    }
+    return null;
+  }
+
+  // BattleDate validation failed - check if we can derive from _date/_time
+  const fixability = detectFixability(fields);
+
+  return {
+    rowNumber,
+    rawValue: battleDateValue,
+    error: validationResult.error,
+    context: createWarningContext(fields),
+    fallbackUsed: 'import-time',
+    isFixable: fixability.isFixable,
+    dateFieldValue: fixability.dateFieldValue,
+    timeFieldValue: fixability.timeFieldValue,
+    derivedBattleDate: fixability.derivedBattleDate,
+  };
+}
+
+/** Parse a single CSV row into a ParsedGameRun */
+function parseRow(context: RowParseContext): { run: ParsedGameRun; warning: DateValidationWarning | null } {
+  const { values, headers, columnToFieldMap, importFormat } = context;
+  const fields: Record<string, GameRunField> = {};
+
+  // Process each column value
+  for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
+    const rawValue = values[columnIndex] || '';
+    if (!rawValue) continue;
+
+    const originalHeader = headers[columnIndex];
+    fields[fieldName] = createGameRunField(originalHeader, rawValue, importFormat);
+  }
+
+  // Process battleDate and derive _date/_time
+  const warning = processBattleDateField(fields, context);
+
+  const parsedRun: ParsedGameRun = {
+    id: crypto.randomUUID(),
+    timestamp: parseTimestampFromFields(fields),
+    fields,
+    ...extractKeyStatsFromFields(fields),
+  };
+
+  return { run: parsedRun, warning };
+}
+
+/** Context for CSV parsing operation */
+interface CsvParseContext {
+  lines: string[];
+  delimiter: string;
+  headers: string[];
+  columnToFieldMap: Map<number, string>;
+  battleDateColumnIndex: number | undefined;
+  importFormat: CsvParseConfig['importFormat'];
+}
+
+/** Initialize parse context from raw input */
+function initializeParseContext(rawInput: string, config: Partial<CsvParseConfig>): CsvParseContext | null {
+  const lines = rawInput.trim().split('\n');
+  if (lines.length === 0) return null;
+
+  const firstLine = lines[0];
+  const delimiter = config.delimiter || detectDelimiter(firstLine);
+  const headers = firstLine.split(delimiter).map(h => h.trim().replace(/["']/g, ''));
+  const columnToFieldMap = buildColumnToFieldMap(headers);
+
+  return {
+    lines,
+    delimiter,
+    headers,
+    columnToFieldMap,
+    battleDateColumnIndex: findBattleDateColumnIndex(columnToFieldMap),
+    importFormat: config.importFormat,
+  };
+}
+
+/** Parse CSV values from a line */
+function parseLineValues(line: string, delimiter: string): string[] {
+  return line.split(delimiter).map(v => v.trim().replace(/["']/g, ''));
+}
+
+/**
+ * Generic CSV parser that works with any column headers by mapping them to supported fields
+ */
+export function parseGenericCsv(
+  rawInput: string,
+  config: Partial<CsvParseConfig> = {}
+): CsvParseResult {
+  const fullConfig: CsvParseConfig = {
+    delimiter: undefined,
+    supportedFields: SUPPORTED_FIELDS,
+    ...config
+  };
+
+  const ctx = initializeParseContext(rawInput, config);
+  if (!ctx) return createEmptyResult();
+
+  const fieldMappingReport = createFieldMappingReport(ctx.headers, fullConfig.supportedFields);
+  const success: ParsedGameRun[] = [];
+  const errors: string[] = [];
+  const dateWarnings: DateValidationWarning[] = [];
+  let failed = 0;
+
+  for (let i = 1; i < ctx.lines.length; i++) {
+    const line = ctx.lines[i].trimEnd();
+    if (!line.trim()) continue;
 
     try {
-      const values = line.split(delimiter).map(v => v.trim().replace(/["']/g, ''));
-      
-      // Allow for fewer columns than headers (missing trailing columns are OK)
-      if (values.length > headers.length) {
-        errors.push(`Row ${i + 1}: Too many columns (expected max ${headers.length}, got ${values.length})`);
+      const values = parseLineValues(line, ctx.delimiter);
+
+      if (values.length > ctx.headers.length) {
+        errors.push(`Row ${i + 1}: Too many columns (expected max ${ctx.headers.length}, got ${values.length})`);
         failed++;
         continue;
       }
 
-      // Build field structure using only supported fields
-      const fields: Record<string, GameRunField> = {};
+      const { run, warning } = parseRow({
+        values,
+        headers: ctx.headers,
+        columnToFieldMap: ctx.columnToFieldMap,
+        battleDateColumnIndex: ctx.battleDateColumnIndex,
+        importFormat: ctx.importFormat,
+        rowNumber: i,
+      });
 
-      // Process each column that maps to a supported field
-      const importFormat = fullConfig.importFormat;
-      for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
-        const rawValue = values[columnIndex] || '';
-        if (!rawValue) continue; // Skip empty values
-
-        const originalHeader = headers[columnIndex];
-        const field = createGameRunField(originalHeader, rawValue, importFormat);
-
-        fields[fieldName] = field;
-      }
-
-      // Derive _date/_time from battleDate if not already present
-      if (fields.battleDate && !fields[INTERNAL_FIELD_NAMES.DATE] && !fields[INTERNAL_FIELD_NAMES.TIME]) {
-        const battleDate = parseBattleDate(fields.battleDate.rawValue, importFormat?.dateFormat);
-        if (battleDate) {
-          const derived = deriveDateTimeFromBattleDate(battleDate);
-          fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
-          fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
-        }
-      }
-
-      // Parse timestamp using unified parsing logic
-      const timestamp = parseTimestampFromFields(fields);
-
-      // Extract key stats from field structure
-      const keyStats = extractKeyStatsFromFields(fields);
-
-      const parsedRun: ParsedGameRun = {
-        id: crypto.randomUUID(),
-        timestamp,
-        fields,
-        ...keyStats,
-      };
-
-      success.push(parsedRun);
+      success.push(run);
+      if (warning) dateWarnings.push(warning);
     } catch (error) {
       errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       failed++;
     }
   }
 
-  return { 
-    success, 
-    failed, 
-    errors, 
-    fieldMappingReport 
-  };
-}
-
-/**
- * Create enhanced field mapping report with similarity detection
- *
- * CRITICAL LOGIC:
- * 1. Check if field is "supported" (in supportedFields.json) for UI indicators
- * 2. Check if field exists in localStorage for "new field" detection
- * 3. Compare display names for similarity warnings
- *
- * A field is NOT new if:
- * - It's in supportedFields.json (recognized by system)
- * - It's in localStorage (previously imported)
- * - It's similar to something in localStorage (user warning, but not "new")
- */
-function createFieldMappingReport(
-  headers: string[],
-  supportedFields: string[]
-): FieldMappingReport {
-  // Get all known DISPLAY NAMES from localStorage CSV headers
-  const knownDisplayNames = extractFieldNamesFromStorage();
-  const knownDisplayNamesArray: string[] = Array.from(knownDisplayNames);
-
-  // Convert headers to camelCase for supportedFields.json lookups
-  const camelCaseHeaders = headers.map(header => {
-    // Handle underscore-prefixed headers (v2 internal fields)
-    if (header.startsWith('_')) {
-      const withoutUnderscore = header.substring(1);
-      return '_' + toCamelCase(withoutUnderscore);
-    } else {
-      let camelCase = toCamelCase(header);
-
-      // Apply legacy field migration
-      if (isLegacyField(camelCase)) {
-        const migratedName = getMigratedFieldName(camelCase);
-        if (migratedName) {
-          camelCase = migratedName;
-        }
-      }
-
-      return camelCase;
-    }
-  });
-
-  // Classify each field using DISPLAY NAMES for similarity detection against localStorage
-  const classifications = classifyFields(headers, knownDisplayNamesArray);
-
-  // Build enhanced mapped fields
-  const mappedFields = headers.map((header, index) => {
-    const camelCase = camelCaseHeaders[index];
-    const classification = classifications[index];
-    const supported = supportedFields.includes(camelCase);
-
-    // Determine final status: supported fields are always "exact-match" even if not in localStorage
-    let finalStatus = classification.status;
-    if (supported && classification.status === 'new-field') {
-      finalStatus = 'exact-match'; // It's in supportedFields.json, so it's recognized
-    }
-
-    return {
-      csvHeader: header,
-      camelCase: header, // Show display name to user, not camelCase
-      supported,
-      status: finalStatus,
-      similarTo: classification.similarTo,
-      similarityType: classification.similarityType
-    };
-  });
-
-  // Collect TRULY new fields (not in localStorage AND not in supportedFields.json)
-  const newFields = mappedFields
-    .filter(f => f.status === 'new-field')
-    .map(f => f.csvHeader);
-
-  // Collect similar fields with their suggestions (only from localStorage comparison)
-  const similarFields = classifications
-    .filter(c => c.status === 'similar-field')
-    .map(c => ({
-      importedField: c.fieldName,
-      existingField: c.similarTo!,
-      similarityType: c.similarityType! as 'normalized' | 'levenshtein' | 'case-variation'
-    }));
-
-  // "Unsupported" fields = not in supportedFields.json (but will still be imported!)
-  const unsupportedFields = mappedFields
-    .filter(field => !field.supported)
-    .map(field => field.csvHeader);
-
   return {
-    mappedFields,
-    newFields,
-    similarFields,
-    unsupportedFields,
-    skippedFields: [] // No fields are skipped anymore
-  };
-}
-
-
-/**
- * Extract key statistics from fields for cached properties
- */
-function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number;
-  runType: 'farm' | 'tournament' | 'milestone';
-} {
-  const numericStats = extractNumericStats(fields);
-
-  // Check if _runType field exists (from CSV), otherwise detect from tier
-  let runType: 'farm' | 'tournament' | 'milestone';
-  const runTypeField = fields._runType;
-  if (runTypeField && runTypeField.rawValue) {
-    runType = runTypeField.rawValue as 'farm' | 'tournament' | 'milestone';
-  } else {
-    runType = detectRunTypeFromFields(fields);
-  }
-
-  return {
-    ...numericStats,
-    runType,
+    success,
+    failed,
+    errors,
+    fieldMappingReport,
+    dateWarnings: dateWarnings.length > 0 ? dateWarnings : undefined,
+    missingBattleDateColumn: ctx.battleDateColumnIndex === undefined,
   };
 }
 
