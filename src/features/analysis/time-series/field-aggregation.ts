@@ -7,6 +7,10 @@ import {
   formatDisplayMonthDay,
   formatDisplayMonth,
 } from '@/shared/formatting/date-formatters'
+import {
+  calculateWeeklyDailyAverage,
+  calculateMonthlyDailyAverage,
+} from './daily-average'
 
 /**
  * Field aggregation functions
@@ -93,6 +97,7 @@ export function prepareFieldPerDayData(
 
 /**
  * Function to prepare weekly aggregated data for any field
+ * Includes daily average calculation for tooltip display
  */
 export function prepareFieldPerWeekData(
   runs: ParsedGameRun[],
@@ -111,11 +116,13 @@ export function prepareFieldPerWeekData(
       return sum + (value ?? 0)
     }, 0)
     const timestamp = startOfWeek(weekRuns[0].timestamp, { weekStartsOn: 0 })
+    const periodInfo = calculateWeeklyDailyAverage(total, timestamp)
 
     weeklyData.push({
       date: formatDisplayMonthDay(timestamp),
       value: total,
       timestamp,
+      periodInfo,
     })
   })
 
@@ -124,6 +131,7 @@ export function prepareFieldPerWeekData(
 
 /**
  * Function to prepare monthly aggregated data for any field
+ * Includes daily average calculation for tooltip display
  */
 export function prepareFieldPerMonthData(
   runs: ParsedGameRun[],
@@ -142,11 +150,13 @@ export function prepareFieldPerMonthData(
       return sum + (value ?? 0)
     }, 0)
     const timestamp = startOfMonth(monthRuns[0].timestamp)
+    const periodInfo = calculateMonthlyDailyAverage(total, timestamp)
 
     monthlyData.push({
       date: `${formatDisplayMonth(timestamp)} ${timestamp.getFullYear()}`,
       value: total,
       timestamp,
+      periodInfo,
     })
   })
 

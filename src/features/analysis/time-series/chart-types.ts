@@ -4,12 +4,21 @@
 export type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
 import type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
 
+export interface PeriodInfo {
+  /** Daily average for this period */
+  dailyAverage: number
+  /** Number of days used in calculation */
+  daysInPeriod: number
+}
+
 export interface ChartDataPoint {
   date: string
   value: number
   timestamp: Date
   /** Optional run info for per-run data points */
   runInfo?: RunInfo
+  /** Optional period info for weekly/monthly daily averages */
+  periodInfo?: PeriodInfo
 }
 
 
