@@ -1,0 +1,100 @@
+_Date
+_Time
+_Notes
+_Run Type
+_Rank
+Battle Date
+Armor Shards
+Basic
+Black Hole Damage
+Boss
+Cannon Shards
+Cash earned
+Cash From Golden Tower
+Cells Earned
+Chain Lightning Damage
+Coins earned
+Coins Fetched
+Coins From Black Hole
+Coins from Blackhole
+Coins from Coin Bonuses
+Coins from Coin Upgrade
+Coins From Death Wave
+Coins From Golden Tower
+Coins From Orb
+Coins from Orbs
+Coins From Spotlight
+Coins per hour
+Coins Stolen
+Commander
+Commanders
+Common Modules
+Core Shards
+Damage
+Damage dealt
+Damage Gain From Berserk
+Damage Taken
+Damage Taken Wall
+Damage Taken While Berserked
+Death Defy
+Death Ray Damage
+Death Wave Damage
+Destroyed by Death Ray
+Destroyed by Land Mine
+Destroyed By Orbs
+Destroyed by Thorns
+Destroyed in Golden Bot
+Destroyed in Spotlight
+Electrons Damage
+Enemies Hit by Orbs
+Fast
+Flame Bot Damage
+Free Attack Upgrade
+Free Defense Upgrade
+Free Utility Upgrade
+Game Time
+Gem Blocks Tapped
+Gems
+Generator Shards
+Golden Bot Coins Earned
+Guardian catches
+Guardian coins stolen
+HP From Death Wave
+Inner Land Mine Damage
+Interest earned
+Killed By
+Land Mine Damage
+Land Mines Spawned
+Lifesteal
+Medals
+Orb Damage
+Orb Hits
+Overcharge
+Overcharges
+Projectiles Count
+Projectiles Damage
+Protector
+Ranged
+Rare Modules
+Rays
+Real Time
+Recovery Packages
+Rend Armor Damage
+Reroll Shards
+Reroll Shards Earned
+Saboteur
+Saboteurs
+Scatters
+Smart Missile Damage
+Summoned enemies
+Swamp Damage
+Tagged by Deathwave
+Tank
+Thorn damage
+Thunder Bot Stuns
+Tier
+Total Elites
+Total Enemies
+Vampires
+Wave
+Waves Skipped
