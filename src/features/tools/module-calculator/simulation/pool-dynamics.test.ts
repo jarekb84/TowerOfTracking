@@ -8,7 +8,6 @@ import {
   calculateNormalizedProbabilities,
   getPoolEntryKey,
   parsePoolEntryKey,
-  simulateRoll,
   preparePool,
   simulateRollFast,
   removeFromPreparedPool,
@@ -130,30 +129,6 @@ describe('pool-dynamics', () => {
       const parsed = parsePoolEntryKey(key);
       expect(parsed.effectId).toBe('attackSpeed');
       expect(parsed.rarity).toBe('legendary');
-    });
-  });
-
-  describe('simulateRoll', () => {
-    it('returns an entry from the pool', () => {
-      const pool = buildInitialPool('cannon', 'ancestral', []);
-      const result = simulateRoll(pool, 0.5);
-
-      expect(pool).toContainEqual(result);
-    });
-
-    it('returns first entry with random = 0', () => {
-      const pool = buildInitialPool('cannon', 'ancestral', []);
-      const result = simulateRoll(pool, 0);
-
-      // With 0, we should get an entry in the first probability bucket
-      expect(pool).toContainEqual(result);
-    });
-
-    it('returns last entry with random close to 1', () => {
-      const pool = buildInitialPool('cannon', 'ancestral', []);
-      const result = simulateRoll(pool, 0.9999);
-
-      expect(pool).toContainEqual(result);
     });
   });
 
@@ -329,19 +304,6 @@ describe('pool-dynamics', () => {
       const result = simulateRollFast(prepared, 0.9999999);
 
       expect(result).toEqual(pool[pool.length - 1]);
-    });
-
-    it('produces same distribution as simulateRoll', () => {
-      const pool = buildInitialPool('cannon', 'ancestral', []);
-      const prepared = preparePool(pool);
-
-      // Test at various random values
-      const testValues = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99];
-      for (const random of testValues) {
-        const slowResult = simulateRoll(pool, random);
-        const fastResult = simulateRollFast(prepared, random);
-        expect(fastResult).toEqual(slowResult);
-      }
     });
 
     it('throws error for empty pool', () => {

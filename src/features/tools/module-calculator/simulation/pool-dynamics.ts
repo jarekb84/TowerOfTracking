@@ -133,36 +133,6 @@ export function parsePoolEntryKey(key: string): { effectId: string; rarity: Rari
 }
 
 /**
- * Simulate a single roll from the pool
- *
- * @param pool - Current roll pool
- * @param random - Random number between 0 and 1
- * @returns The pool entry that was rolled
- *
- * @deprecated Use preparePool + simulateRollFast for better performance
- */
-export function simulateRoll(
-  pool: PoolEntry[],
-  random: number
-): PoolEntry {
-  const probabilities = calculateNormalizedProbabilities(pool);
-  let cumulative = 0;
-
-  for (const entry of pool) {
-    const key = getPoolEntryKey(entry.effect.id, entry.rarity);
-    const probability = probabilities.get(key) ?? 0;
-    cumulative += probability;
-
-    if (random < cumulative) {
-      return entry;
-    }
-  }
-
-  // Fallback to last entry (shouldn't happen with proper probabilities)
-  return pool[pool.length - 1];
-}
-
-/**
  * Prepare a pool for fast rolling by pre-computing cumulative probabilities.
  * Call this once when the pool is created or modified, then use simulateRollFast.
  */
