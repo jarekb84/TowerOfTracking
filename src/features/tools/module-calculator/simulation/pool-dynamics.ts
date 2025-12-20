@@ -5,13 +5,14 @@
  * probability recalculation as the pool changes.
  */
 
-import type { ModuleType, Rarity } from '@/shared/domain/module-data';
+// Note: Using relative import for Web Worker compatibility (path aliases don't resolve in worker bundles)
+import type { ModuleType, Rarity } from '../../../../shared/domain/module-data';
 import {
   getSubEffectsForModule,
   getRarityProbability,
   getAvailableRarities,
   RARITY_ORDER,
-} from '@/shared/domain/module-data';
+} from '../../../../shared/domain/module-data';
 import type { PoolEntry, SlotTarget } from '../types';
 
 /**

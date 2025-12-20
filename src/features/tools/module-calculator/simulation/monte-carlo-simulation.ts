@@ -5,7 +5,8 @@
  * Runs multiple iterations to generate cost distributions.
  */
 
-import { getLockCost, RARITY_ORDER } from '@/shared/domain/module-data';
+// Note: Using relative import for Web Worker compatibility (path aliases don't resolve in worker bundles)
+import { getLockCost, RARITY_ORDER } from '../../../../shared/domain/module-data';
 import type {
   CalculatorConfig,
   SimulationConfig,
@@ -121,7 +122,7 @@ function rollUntilTargetHitFast(
     const target = checkTargetMatch(
       entry,
       targets,
-      minRarityForEffect as Map<string, import('@/shared/domain/module-data').Rarity>
+      minRarityForEffect as Map<string, import('../../../../shared/domain/module-data').Rarity>
     );
 
     if (target) {
@@ -146,7 +147,7 @@ function buildMinRarityMap(targets: SlotTarget[]): Map<string, string> {
       } else {
         // Keep the lower minimum (more permissive)
         const existingIndex = RARITY_ORDER.indexOf(
-          existing as import('@/shared/domain/module-data').Rarity
+          existing as import('../../../../shared/domain/module-data').Rarity
         );
         const newIndex = RARITY_ORDER.indexOf(target.minRarity);
         if (newIndex < existingIndex) {
@@ -175,7 +176,7 @@ function updateMinRarityMap(
         map.set(effectId, target.minRarity);
       } else {
         const existingIndex = RARITY_ORDER.indexOf(
-          existing as import('@/shared/domain/module-data').Rarity
+          existing as import('../../../../shared/domain/module-data').Rarity
         );
         const newIndex = RARITY_ORDER.indexOf(target.minRarity);
         if (newIndex < existingIndex) {
