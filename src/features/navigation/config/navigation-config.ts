@@ -80,6 +80,18 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
     ]
   },
   {
+    id: 'tools',
+    label: 'Tools',
+    items: [
+      {
+        id: 'module-calculator',
+        label: 'Module Calculator',
+        href: '/tools/module-calculator',
+        icon: 'calculator'
+      }
+    ]
+  },
+  {
     id: 'settings',
     label: 'Settings',
     items: [

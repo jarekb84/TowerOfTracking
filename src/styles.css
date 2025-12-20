@@ -41,6 +41,10 @@
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
   --breakpoint-2xl: 1536px;
+
+  /* Extended max-width scale (beyond Tailwind's 7xl) */
+  --max-width-8xl: 88rem;
+  --max-width-9xl: 96rem;
 }
 
 @layer components {

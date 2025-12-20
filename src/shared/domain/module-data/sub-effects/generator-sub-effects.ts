@@ -1,0 +1,191 @@
+/**
+ * Generator Sub-Effects (Utility)
+ *
+ * 13 sub-effects for the Generator module, focused on economy and upgrades.
+ * Data sourced from docs/subeffects.md.
+ */
+
+import type { SubEffectConfig } from '../types';
+
+export const GENERATOR_SUB_EFFECTS: SubEffectConfig[] = [
+  {
+    id: 'cashBonus',
+    displayName: 'Cash Bonus',
+    moduleType: 'generator',
+    unit: 'x',
+    values: {
+      common: 0.1,
+      rare: 0.2,
+      epic: 0.3,
+      legendary: 0.5,
+      mythic: 1.2,
+      ancestral: 2.5,
+    },
+  },
+  {
+    id: 'cashPerWave',
+    displayName: 'Cash / Wave',
+    moduleType: 'generator',
+    values: {
+      common: 30,
+      rare: 50,
+      epic: 100,
+      legendary: 200,
+      mythic: 500,
+      ancestral: 1000,
+    },
+  },
+  {
+    id: 'coinsPerKillBonus',
+    displayName: 'Coins / Kill Bonus',
+    moduleType: 'generator',
+    unit: 'x',
+    values: {
+      common: 0.1,
+      rare: 0.2,
+      epic: 0.3,
+      legendary: 0.4,
+      mythic: 0.5,
+      ancestral: 0.6,
+    },
+  },
+  {
+    id: 'coinsPerWave',
+    displayName: 'Coins / Wave',
+    moduleType: 'generator',
+    values: {
+      common: 20,
+      rare: 35,
+      epic: 60,
+      legendary: 120,
+      mythic: 200,
+      ancestral: 350,
+    },
+  },
+  {
+    id: 'freeAttackUpgrade',
+    displayName: 'Free Attack Upgrade',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: 2,
+      rare: 4,
+      epic: 6,
+      legendary: 8,
+      mythic: 10,
+      ancestral: 12,
+    },
+  },
+  {
+    id: 'freeDefenseUpgrade',
+    displayName: 'Free Defense Upgrade',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: 2,
+      rare: 4,
+      epic: 6,
+      legendary: 8,
+      mythic: 10,
+      ancestral: 12,
+    },
+  },
+  {
+    id: 'freeUtilityUpgrade',
+    displayName: 'Free Utility Upgrade',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: 2,
+      rare: 4,
+      epic: 6,
+      legendary: 8,
+      mythic: 10,
+      ancestral: 12,
+    },
+  },
+  {
+    id: 'interestPerWave',
+    displayName: 'Interest / Wave',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: null,
+      rare: null,
+      epic: 2,
+      legendary: 4,
+      mythic: 6,
+      ancestral: 8,
+    },
+  },
+  {
+    id: 'recoveryAmount',
+    displayName: 'Recovery Amount',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: null,
+      rare: null,
+      epic: 3,
+      legendary: 5,
+      mythic: 7,
+      ancestral: 10,
+    },
+  },
+  {
+    id: 'maxRecovery',
+    displayName: 'Max Recovery',
+    moduleType: 'generator',
+    unit: 'x',
+    values: {
+      common: null,
+      rare: null,
+      epic: 0.4,
+      legendary: 0.7,
+      mythic: 1.0,
+      ancestral: 1.5,
+    },
+  },
+  {
+    id: 'packageChance',
+    displayName: 'Package Chance',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: null,
+      rare: null,
+      epic: 5,
+      legendary: 8,
+      mythic: 11,
+      ancestral: 15,
+    },
+  },
+  {
+    id: 'enemyAttackLevelSkip',
+    displayName: 'Enemy Attack Level Skip',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: null,
+      rare: null,
+      epic: 2,
+      legendary: 4,
+      mythic: 6,
+      ancestral: 8,
+    },
+  },
+  {
+    id: 'enemyHealthLevelSkip',
+    displayName: 'Enemy Health Level Skip',
+    moduleType: 'generator',
+    unit: '%',
+    values: {
+      common: null,
+      rare: null,
+      epic: 2,
+      legendary: 4,
+      mythic: 6,
+      ancestral: 8,
+    },
+  },
+];
