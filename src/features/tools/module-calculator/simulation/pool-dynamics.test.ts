@@ -9,6 +9,9 @@ import {
   getPoolEntryKey,
   parsePoolEntryKey,
   simulateRoll,
+  preparePool,
+  simulateRollFast,
+  removeFromPreparedPool,
   checkTargetMatch,
   calculateTargetHitProbability,
   getPoolSize,
@@ -273,6 +276,100 @@ describe('pool-dynamics', () => {
           expect(entry.effect.id).toBe(effectId);
         });
       });
+    });
+  });
+
+  describe('preparePool', () => {
+    it('creates cumulative probabilities that sum to 1.0', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+
+      expect(prepared.entries).toEqual(pool);
+      expect(prepared.cumulativeProbs.length).toBe(pool.length);
+      expect(prepared.cumulativeProbs[prepared.cumulativeProbs.length - 1]).toBe(1.0);
+    });
+
+    it('cumulative probabilities are monotonically increasing', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+
+      for (let i = 1; i < prepared.cumulativeProbs.length; i++) {
+        expect(prepared.cumulativeProbs[i]).toBeGreaterThan(prepared.cumulativeProbs[i - 1]);
+      }
+    });
+
+    it('handles empty pool', () => {
+      const prepared = preparePool([]);
+
+      expect(prepared.entries).toEqual([]);
+      expect(prepared.cumulativeProbs).toEqual([]);
+    });
+  });
+
+  describe('simulateRollFast', () => {
+    it('returns an entry from the pool', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+      const result = simulateRollFast(prepared, 0.5);
+
+      expect(pool).toContainEqual(result);
+    });
+
+    it('returns first entry with random = 0', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+      const result = simulateRollFast(prepared, 0);
+
+      expect(result).toEqual(pool[0]);
+    });
+
+    it('returns last entry with random close to 1', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+      const result = simulateRollFast(prepared, 0.9999999);
+
+      expect(result).toEqual(pool[pool.length - 1]);
+    });
+
+    it('produces same distribution as simulateRoll', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+
+      // Test at various random values
+      const testValues = [0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99];
+      for (const random of testValues) {
+        const slowResult = simulateRoll(pool, random);
+        const fastResult = simulateRollFast(prepared, random);
+        expect(fastResult).toEqual(slowResult);
+      }
+    });
+
+    it('throws error for empty pool', () => {
+      const prepared = preparePool([]);
+
+      expect(() => simulateRollFast(prepared, 0.5)).toThrow('Cannot roll from empty pool');
+    });
+  });
+
+  describe('removeFromPreparedPool', () => {
+    it('removes specific effect-rarity and returns new prepared pool', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+      const initialSize = prepared.entries.length;
+
+      const newPrepared = removeFromPreparedPool(prepared, 'attackSpeed', 'legendary');
+
+      expect(newPrepared.entries.length).toBe(initialSize - 1);
+      expect(newPrepared.cumulativeProbs.length).toBe(initialSize - 1);
+
+      // Should not contain removed entry
+      const hasRemovedEntry = newPrepared.entries.some(
+        (e) => e.effect.id === 'attackSpeed' && e.rarity === 'legendary'
+      );
+      expect(hasRemovedEntry).toBe(false);
+
+      // New cumulative probs should sum to 1.0
+      expect(newPrepared.cumulativeProbs[newPrepared.cumulativeProbs.length - 1]).toBe(1.0);
     });
   });
 });

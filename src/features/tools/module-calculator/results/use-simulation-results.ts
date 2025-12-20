@@ -47,6 +47,9 @@ interface UseSimulationResultsReturn {
 
   /** Error message if simulation failed */
   error: string | null;
+
+  /** Actual elapsed time of last simulation in milliseconds */
+  elapsedTimeMs: number | null;
 }
 
 const DEFAULT_SHARD_COST = 100;
@@ -68,8 +71,22 @@ export function useSimulationResults(): UseSimulationResultsReturn {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null);
+  const [elapsedTimeMs, setElapsedTimeMs] = useState<number | null>(null);
   const [cancelFn, setCancelFn] = useState<(() => void) | null>(null);
   const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>(DEFAULT_CONFIDENCE_LEVEL);
+
+  const resetForNewRun = useCallback(() => {
+    setError(null);
+    setIsRunning(true);
+    setProgress(0);
+    setResults(null);
+    setElapsedTimeMs(null);
+  }, []);
+
+  const handleSimulationComplete = useCallback((simulationResults: SimulationResults, elapsed: number) => {
+    setResults(simulationResults);
+    setElapsedTimeMs(elapsed);
+  }, []);
 
   const runSimulation = useCallback(async (config: CalculatorConfig) => {
     if (config.slotTargets.length === 0) {
@@ -77,10 +94,7 @@ export function useSimulationResults(): UseSimulationResultsReturn {
       return;
     }
 
-    setError(null);
-    setIsRunning(true);
-    setProgress(0);
-    setResults(null);
+    resetForNewRun();
 
     const { estimatedMs, run, cancel } = buildSimulationSetup(config, confidenceLevel);
     setEstimatedTime(estimatedMs);
@@ -89,13 +103,15 @@ export function useSimulationResults(): UseSimulationResultsReturn {
     // Yield to allow React to render the "running" state before starting simulation
     await new Promise((resolve) => setTimeout(resolve, 0));
 
+    const startTime = performance.now();
+
     try {
       const simulationResults = await run((progressUpdate: SimulationProgress) => {
         setProgress(progressUpdate.percentage);
       });
 
       if (simulationResults) {
-        setResults(simulationResults);
+        handleSimulationComplete(simulationResults, performance.now() - startTime);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Simulation failed');
@@ -104,7 +120,7 @@ export function useSimulationResults(): UseSimulationResultsReturn {
       setProgress(100);
       setCancelFn(null);
     }
-  }, [confidenceLevel]);
+  }, [confidenceLevel, resetForNewRun, handleSimulationComplete]);
 
   const cancelSimulation = useCallback(() => {
     if (cancelFn) {
@@ -132,5 +148,6 @@ export function useSimulationResults(): UseSimulationResultsReturn {
     clearResults,
     estimatedTime,
     error,
+    elapsedTimeMs,
   };
 }

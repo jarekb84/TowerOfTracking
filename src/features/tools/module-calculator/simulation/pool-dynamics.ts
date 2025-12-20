@@ -15,6 +15,18 @@ import {
 import type { PoolEntry, SlotTarget } from '../types';
 
 /**
+ * A prepared pool with pre-computed cumulative probabilities for fast rolling.
+ * Computing probabilities once and using binary search gives O(log n) per roll
+ * instead of O(n) with the naive approach.
+ */
+export interface PreparedPool {
+  /** The pool entries */
+  entries: PoolEntry[];
+  /** Cumulative probability thresholds for binary search (length = entries.length) */
+  cumulativeProbs: number[];
+}
+
+/**
  * Build the initial roll pool for a module configuration
  *
  * @param moduleType - The type of module
@@ -126,6 +138,8 @@ export function parsePoolEntryKey(key: string): { effectId: string; rarity: Rari
  * @param pool - Current roll pool
  * @param random - Random number between 0 and 1
  * @returns The pool entry that was rolled
+ *
+ * @deprecated Use preparePool + simulateRollFast for better performance
  */
 export function simulateRoll(
   pool: PoolEntry[],
@@ -146,6 +160,79 @@ export function simulateRoll(
 
   // Fallback to last entry (shouldn't happen with proper probabilities)
   return pool[pool.length - 1];
+}
+
+/**
+ * Prepare a pool for fast rolling by pre-computing cumulative probabilities.
+ * Call this once when the pool is created or modified, then use simulateRollFast.
+ */
+export function preparePool(pool: PoolEntry[]): PreparedPool {
+  if (pool.length === 0) {
+    return { entries: [], cumulativeProbs: [] };
+  }
+
+  const totalProbability = pool.reduce(
+    (sum, entry) => sum + entry.baseProbability,
+    0
+  );
+
+  const cumulativeProbs: number[] = [];
+  let cumulative = 0;
+
+  for (const entry of pool) {
+    cumulative += entry.baseProbability / totalProbability;
+    cumulativeProbs.push(cumulative);
+  }
+
+  // Ensure last value is exactly 1.0 to handle floating point errors
+  cumulativeProbs[cumulativeProbs.length - 1] = 1.0;
+
+  return { entries: pool, cumulativeProbs };
+}
+
+/**
+ * Fast roll using binary search on pre-computed cumulative probabilities.
+ * O(log n) instead of O(n) per roll.
+ */
+export function simulateRollFast(
+  preparedPool: PreparedPool,
+  random: number
+): PoolEntry {
+  const { entries, cumulativeProbs } = preparedPool;
+
+  if (entries.length === 0) {
+    throw new Error('Cannot roll from empty pool');
+  }
+
+  // Binary search for the first cumulative probability >= random
+  let left = 0;
+  let right = cumulativeProbs.length - 1;
+
+  while (left < right) {
+    const mid = (left + right) >>> 1; // Unsigned right shift for fast floor division
+    if (cumulativeProbs[mid] < random) {
+      left = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+
+  return entries[left];
+}
+
+/**
+ * Remove an entry from a prepared pool and return a new prepared pool.
+ * More efficient than rebuilding from scratch.
+ */
+export function removeFromPreparedPool(
+  preparedPool: PreparedPool,
+  effectId: string,
+  rarity: Rarity
+): PreparedPool {
+  const newEntries = preparedPool.entries.filter(
+    (entry) => !(entry.effect.id === effectId && entry.rarity === rarity)
+  );
+  return preparePool(newEntries);
 }
 
 /**

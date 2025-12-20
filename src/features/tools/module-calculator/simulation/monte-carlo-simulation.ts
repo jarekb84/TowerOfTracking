@@ -19,9 +19,11 @@ import type {
 } from '../types';
 import {
   buildInitialPool,
-  removeFromPool,
-  simulateRoll,
+  preparePool,
+  simulateRollFast,
+  removeFromPreparedPool,
   checkTargetMatch,
+  type PreparedPool,
 } from './pool-dynamics';
 
 /** Number of histogram buckets for distribution chart */
@@ -59,10 +61,12 @@ export function runSimulation(config: SimulationConfig): SimulationResults {
 export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
   // Start with pre-locked effects removed from pool
   const preLockedEffectIds = config.preLockedEffects.map((e) => e.effectId);
-  let pool = buildInitialPool(config.moduleType, config.moduleRarity, [
+  const initialPool = buildInitialPool(config.moduleType, config.moduleRarity, [
     ...config.bannedEffects,
     ...preLockedEffectIds,
   ]);
+  // Prepare pool once - cumulative probabilities are pre-computed
+  let preparedPool = preparePool(initialPool);
   const minRarityForEffect = buildMinRarityMap(config.slotTargets);
   let remainingTargets = [...config.slotTargets];
 
@@ -70,8 +74,8 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
   const preLockedCount = config.preLockedEffects.length;
   const state = { lockOrder: [] as LockedEffect[], totalRolls: 0, totalShardCost: 0 };
 
-  while (remainingTargets.length > 0 && pool.length > 0) {
-    const rollsForThisTarget = rollUntilTargetHit(pool, remainingTargets, minRarityForEffect);
+  while (remainingTargets.length > 0 && preparedPool.entries.length > 0) {
+    const rollsForThisTarget = rollUntilTargetHitFast(preparedPool, remainingTargets, minRarityForEffect);
     if (!rollsForThisTarget) break;
 
     const { entry, target, rolls } = rollsForThisTarget;
@@ -89,7 +93,8 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
       shardCostPerRoll,
     });
 
-    pool = removeFromPool(pool, entry.effect.id, entry.rarity);
+    // Re-prepare pool only when it changes (after locking an effect)
+    preparedPool = removeFromPreparedPool(preparedPool, entry.effect.id, entry.rarity);
     remainingTargets = remainingTargets.filter((t) => t.slotNumber !== target.slotNumber);
     updateMinRarityMap(minRarityForEffect, remainingTargets);
   }
@@ -98,10 +103,10 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
 }
 
 /**
- * Roll until we hit a target
+ * Roll until we hit a target using optimized binary search
  */
-function rollUntilTargetHit(
-  pool: PoolEntry[],
+function rollUntilTargetHitFast(
+  preparedPool: PreparedPool,
   targets: SlotTarget[],
   minRarityForEffect: Map<string, string>
 ): { entry: PoolEntry; target: SlotTarget; rolls: number } | null {
@@ -111,7 +116,7 @@ function rollUntilTargetHit(
   while (rolls < maxRolls) {
     rolls++;
     const random = Math.random();
-    const entry = simulateRoll(pool, random);
+    const entry = simulateRollFast(preparedPool, random);
 
     const target = checkTargetMatch(
       entry,

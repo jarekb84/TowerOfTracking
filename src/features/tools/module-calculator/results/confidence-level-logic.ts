@@ -13,20 +13,20 @@ export const CONFIDENCE_LEVELS: ConfidenceLevelOption[] = [
   {
     value: 'low',
     label: 'Quick',
-    iterations: 100,
-    description: '100 simulations',
-  },
-  {
-    value: 'medium',
-    label: 'Balanced',
     iterations: 1000,
     description: '1,000 simulations',
   },
   {
-    value: 'high',
-    label: 'Precise',
+    value: 'medium',
+    label: 'Balanced',
     iterations: 10000,
     description: '10,000 simulations',
+  },
+  {
+    value: 'high',
+    label: 'Precise',
+    iterations: 100000,
+    description: '100,000 simulations',
   },
 ];
 
@@ -40,6 +40,6 @@ export const DEFAULT_CONFIDENCE_LEVEL: ConfidenceLevel = 'medium';
  */
 export function getIterationsForLevel(level: ConfidenceLevel): number {
   const option = CONFIDENCE_LEVELS.find((l) => l.value === level);
-  return option?.iterations ?? 1000;
+  return option?.iterations ?? 10000;
 }
 
