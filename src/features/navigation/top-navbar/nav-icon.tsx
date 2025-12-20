@@ -1,5 +1,5 @@
 interface NavIconProps {
-  type: 'runs' | 'farming' | 'tournament' | 'milestone' | 'coins' | 'cells' | 'deaths' | 'tier-stats' | 'tier-trends' | 'field-analytics' | 'settings' | 'data-management' | 'locale' | 'discord' | 'github'
+  type: 'runs' | 'farming' | 'tournament' | 'milestone' | 'coins' | 'cells' | 'deaths' | 'tier-stats' | 'tier-trends' | 'field-analytics' | 'settings' | 'data-management' | 'locale' | 'discord' | 'github' | 'calculator'
   className?: string
 }
 
@@ -94,6 +94,12 @@ export function NavIcon({ type, className = "w-4 h-4" }: NavIconProps) {
       return (
         <svg className={className} fill="currentColor" viewBox="0 0 24 24">
           <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 10.956.6-.056 1.104-.666 1.104-1.142v-.252c-.397.085-.497-.197-.497-.197-.6-1.29-1.45-1.63-1.45-1.63-1.193-.815.088-.815.088-.815 1.303.088 2.05 1.341 2.05 1.341 1.193 2.007 3.07 1.426 3.816 1.086.12-.815.453-1.426.826-1.756-2.926-.34-6.018-1.341-6.018-6.102 0-1.341.453-2.433 1.193-3.29-.12-.34-.518-1.715.114-3.58 0 0 .963-.34 3.158 1.341.938-.283 1.926-.425 2.926-.425 1-.057 1.988.142 2.926.425 2.194-1.681 3.158-1.341 3.158-1.341.631 1.865.234 3.24.114 3.58.74.857 1.193 1.949 1.193 3.29 0 4.761-3.092 5.762-6.018 6.102.453.397.826 1.142.826 2.312v3.433c0 .34.283.737.6.596 4.776-1.596 8.217-6.074 8.217-11.394C24.005 5.367 18.638.001 12.017.001Z"/>
+        </svg>
+      )
+    case 'calculator':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
       )
     default:

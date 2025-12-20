@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as ChartsRouteImport } from './routes/charts'
@@ -16,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as RunsIndexRouteImport } from './routes/runs/index'
 import { Route as ChartsIndexRouteImport } from './routes/charts/index'
+import { Route as ToolsModuleCalculatorRouteImport } from './routes/tools/module-calculator'
 import { Route as SettingsLocaleRouteImport } from './routes/settings/locale'
 import { Route as SettingsImportRouteImport } from './routes/settings/import'
 import { Route as SettingsExportRouteImport } from './routes/settings/export'
@@ -32,6 +34,11 @@ import { Route as ChartsCoverageRouteImport } from './routes/charts/coverage'
 import { Route as ChartsCoinsRouteImport } from './routes/charts/coins'
 import { Route as ChartsCellsRouteImport } from './routes/charts/cells'
 
+const ToolsRoute = ToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -66,6 +73,11 @@ const ChartsIndexRoute = ChartsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ChartsRoute,
+} as any)
+const ToolsModuleCalculatorRoute = ToolsModuleCalculatorRouteImport.update({
+  id: '/module-calculator',
+  path: '/module-calculator',
+  getParentRoute: () => ToolsRoute,
 } as any)
 const SettingsLocaleRoute = SettingsLocaleRouteImport.update({
   id: '/locale',
@@ -148,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/charts': typeof ChartsRouteWithChildren
   '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/tools': typeof ToolsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -163,12 +176,14 @@ export interface FileRoutesByFullPath {
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
+  '/tools/module-calculator': typeof ToolsModuleCalculatorRoute
   '/charts/': typeof ChartsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/tools': typeof ToolsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -184,6 +199,7 @@ export interface FileRoutesByTo {
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
+  '/tools/module-calculator': typeof ToolsModuleCalculatorRoute
   '/charts': typeof ChartsIndexRoute
   '/runs': typeof RunsIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -194,6 +210,7 @@ export interface FileRoutesById {
   '/charts': typeof ChartsRouteWithChildren
   '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/tools': typeof ToolsRouteWithChildren
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -209,6 +226,7 @@ export interface FileRoutesById {
   '/settings/export': typeof SettingsExportRoute
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
+  '/tools/module-calculator': typeof ToolsModuleCalculatorRoute
   '/charts/': typeof ChartsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -220,6 +238,7 @@ export interface FileRouteTypes {
     | '/charts'
     | '/runs'
     | '/settings'
+    | '/tools'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -235,12 +254,14 @@ export interface FileRouteTypes {
     | '/settings/export'
     | '/settings/import'
     | '/settings/locale'
+    | '/tools/module-calculator'
     | '/charts/'
     | '/runs/'
     | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/tools'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -256,6 +277,7 @@ export interface FileRouteTypes {
     | '/settings/export'
     | '/settings/import'
     | '/settings/locale'
+    | '/tools/module-calculator'
     | '/charts'
     | '/runs'
     | '/settings'
@@ -265,6 +287,7 @@ export interface FileRouteTypes {
     | '/charts'
     | '/runs'
     | '/settings'
+    | '/tools'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -280,6 +303,7 @@ export interface FileRouteTypes {
     | '/settings/export'
     | '/settings/import'
     | '/settings/locale'
+    | '/tools/module-calculator'
     | '/charts/'
     | '/runs/'
     | '/settings/'
@@ -290,10 +314,18 @@ export interface RootRouteChildren {
   ChartsRoute: typeof ChartsRouteWithChildren
   RunsRoute: typeof RunsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
+  ToolsRoute: typeof ToolsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tools': {
+      id: '/tools'
+      path: '/tools'
+      fullPath: '/tools'
+      preLoaderRoute: typeof ToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -342,6 +374,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/charts/'
       preLoaderRoute: typeof ChartsIndexRouteImport
       parentRoute: typeof ChartsRoute
+    }
+    '/tools/module-calculator': {
+      id: '/tools/module-calculator'
+      path: '/module-calculator'
+      fullPath: '/tools/module-calculator'
+      preLoaderRoute: typeof ToolsModuleCalculatorRouteImport
+      parentRoute: typeof ToolsRoute
     }
     '/settings/locale': {
       id: '/settings/locale'
@@ -514,11 +553,22 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
 )
 
+interface ToolsRouteChildren {
+  ToolsModuleCalculatorRoute: typeof ToolsModuleCalculatorRoute
+}
+
+const ToolsRouteChildren: ToolsRouteChildren = {
+  ToolsModuleCalculatorRoute: ToolsModuleCalculatorRoute,
+}
+
+const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChartsRoute: ChartsRouteWithChildren,
   RunsRoute: RunsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
+  ToolsRoute: ToolsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
