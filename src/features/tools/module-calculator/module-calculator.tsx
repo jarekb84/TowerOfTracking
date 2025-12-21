@@ -5,17 +5,23 @@
  * Monte Carlo-based cost estimation for module sub-effect rolls.
  */
 
+import { useState } from 'react';
 import { useModuleCalculator } from './use-module-calculator';
 import { ModuleConfigPanel } from './configuration/module-config-panel';
 import { SubEffectTable } from './sub-effect-table/sub-effect-table';
 import { TargetSummaryPanel } from './target-summary/target-summary-panel';
 import { ResultsPanel } from './results/results-panel';
+import { ManualModePanel } from './manual-mode';
+import { ModeToggle, type CalculatorMode } from './mode-toggle';
 
 export function ModuleCalculator() {
+  const [mode, setMode] = useState<CalculatorMode>('monteCarlo');
+
   const {
     config,
     table,
     simulation,
+    manualMode,
     calculatorConfig,
     runSimulation,
   } = useModuleCalculator('cannon');
@@ -73,18 +79,33 @@ export function ModuleCalculator() {
             moduleRarity={config.config.moduleRarity}
           />
 
-          {/* Results Panel */}
-          <ResultsPanel
-            results={simulation.results}
-            isRunning={simulation.isRunning}
-            progress={simulation.progress}
-            error={simulation.error}
-            config={calculatorConfig}
-            confidenceLevel={simulation.confidenceLevel}
-            onConfidenceLevelChange={simulation.setConfidenceLevel}
-            onRunSimulation={runSimulation}
-            onCancel={simulation.cancelSimulation}
-          />
+          {/* Mode Toggle */}
+          <ModeToggle mode={mode} onModeChange={setMode} />
+
+          {/* Mode-specific Panel */}
+          {mode === 'monteCarlo' && (
+            <ResultsPanel
+              results={simulation.results}
+              isRunning={simulation.isRunning}
+              progress={simulation.progress}
+              error={simulation.error}
+              config={calculatorConfig}
+              confidenceLevel={simulation.confidenceLevel}
+              onConfidenceLevelChange={simulation.setConfidenceLevel}
+              onRunSimulation={runSimulation}
+              onCancel={simulation.cancelSimulation}
+            />
+          )}
+
+          {mode === 'manual' && (
+            <ManualModePanel
+              moduleRarity={config.config.moduleRarity}
+              moduleLevel={config.config.moduleLevel}
+              slotCount={config.config.slotCount}
+              bannedEffects={calculatorConfig.bannedEffects}
+              manualMode={manualMode}
+            />
+          )}
         </div>
       </div>
     </div>

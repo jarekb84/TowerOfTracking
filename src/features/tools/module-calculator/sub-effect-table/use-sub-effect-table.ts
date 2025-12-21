@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /**
  * Sub-Effect Table Hook
  *
@@ -39,6 +40,10 @@ export interface UseSubEffectTableResult {
   lockedCount: number;
   maxLocks: number;
   clearAllSelections: () => void;
+  /** Lock an effect programmatically (for bidirectional sync with manual mode) */
+  programmaticLock: (effectId: string, rarity: Rarity) => void;
+  /** Unlock an effect programmatically (for bidirectional sync with manual mode) */
+  programmaticUnlock: (effectId: string) => void;
 }
 
 /**
@@ -132,6 +137,45 @@ export function useSubEffectTable(
 
   const clearAllSelections = useCallback(() => setSelections(new Map()), []);
 
+  // Programmatic lock - bypasses UI toggle logic, directly sets locked state
+  const programmaticLock = useCallback(
+    (effectId: string, rarity: Rarity) => {
+      setSelections((prev) => {
+        const current = prev.get(effectId) ?? createEmptySelection(effectId);
+        const next = new Map(prev);
+        next.set(effectId, {
+          ...current,
+          isLocked: true,
+          lockedRarity: rarity,
+          // Clear targeting since effect is now locked
+          minRarity: null,
+          targetSlots: [],
+        });
+        return next;
+      });
+    },
+    []
+  );
+
+  // Programmatic unlock - bypasses UI toggle logic, directly clears locked state
+  const programmaticUnlock = useCallback(
+    (effectId: string) => {
+      setSelections((prev) => {
+        const current = prev.get(effectId);
+        if (!current) return prev;
+
+        const next = new Map(prev);
+        next.set(effectId, {
+          ...current,
+          isLocked: false,
+          lockedRarity: null,
+        });
+        return next;
+      });
+    },
+    []
+  );
+
   const selectionsArray = useMemo(() => Array.from(selections.values()), [selections]);
   const derived = useDerivedSelectionValues(selectionsArray, slotCount);
 
@@ -147,5 +191,7 @@ export function useSubEffectTable(
     ...derived,
     maxLocks,
     clearAllSelections,
+    programmaticLock,
+    programmaticUnlock,
   };
 }
