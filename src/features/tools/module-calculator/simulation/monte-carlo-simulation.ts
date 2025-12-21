@@ -12,7 +12,6 @@ import type {
   SimulationConfig,
   SimulationResults,
   SimulationRun,
-  LockedEffect,
   SlotTarget,
   CostStatistics,
   HistogramBucket,
@@ -22,7 +21,7 @@ import {
   buildInitialPool,
   preparePool,
   simulateRollFast,
-  removeFromPreparedPool,
+  removeEffectFromPreparedPool,
   checkTargetMatch,
   type PreparedPool,
 } from './pool-dynamics';
@@ -46,61 +45,80 @@ export function runSimulation(config: SimulationConfig): SimulationResults {
 }
 
 /**
- * Simulate a single complete reroll session
- *
- * Game mechanic: each roll costs shards based on current lock count.
- * - 0 locks: 10 shards/roll
- * - 1 lock: 40 shards/roll
- * - 2 locks: 160 shards/roll
- * - etc.
- *
- * Locking an effect is free - it just makes subsequent rolls more expensive.
- *
- * If preLockedEffects are provided, the simulation starts with those effects
- * already locked, affecting both the pool and the initial shard cost per roll.
+ * Build the initial prepared pool for simulation, excluding banned and pre-locked effects
  */
-export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
-  // Start with pre-locked effects removed from pool
+function buildSimulationPool(config: CalculatorConfig): PreparedPool {
   const preLockedEffectIds = config.preLockedEffects.map((e) => e.effectId);
   const initialPool = buildInitialPool(config.moduleType, config.moduleRarity, [
     ...config.bannedEffects,
     ...preLockedEffectIds,
   ]);
-  // Prepare pool once - cumulative probabilities are pre-computed
-  let preparedPool = preparePool(initialPool);
-  let remainingTargets = [...config.slotTargets];
+  return preparePool(initialPool);
+}
 
-  // Start with pre-locked effects count (affects shard cost per roll)
+interface LockResult {
+  entry: PoolEntry;
+  target: SlotTarget;
+  rounds: number;
+  shardCostPerRound: number;
+}
+
+/**
+ * Record a locked effect in the simulation state
+ */
+function recordLockedEffect(state: SimulationRun, result: LockResult): void {
+  const { entry, target, rounds, shardCostPerRound } = result;
+  state.totalRolls += rounds;
+  state.totalShardCost += rounds * shardCostPerRound;
+  state.lockOrder.push({
+    effectId: entry.effect.id,
+    rarity: entry.rarity,
+    slotNumber: target.slotNumber,
+    rollsToAcquire: rounds,
+    shardCostPerRoll: shardCostPerRound,
+  });
+}
+
+/**
+ * Simulate a single complete reroll session
+ *
+ * Game mechanic: clicking "Roll" fills ALL open slots simultaneously and costs
+ * shards based on current lock count:
+ * - 0 locks: 10 shards/round
+ * - 1 lock: 40 shards/round
+ * - 2 locks: 160 shards/round
+ * - etc.
+ *
+ * Each round, ALL open slots get random effects. If any effect matches a target,
+ * the player locks it (locking is free, but makes subsequent rounds more expensive).
+ *
+ * When an effect is locked, ALL rarities of that effect are removed from the pool
+ * (you can only have one of each effect type on a module).
+ */
+export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
+  let preparedPool = buildSimulationPool(config);
+  let remainingTargets = [...config.slotTargets];
   const preLockedCount = config.preLockedEffects.length;
-  const state = { lockOrder: [] as LockedEffect[], totalRolls: 0, totalShardCost: 0 };
+  const state: SimulationRun = { lockOrder: [], totalRolls: 0, totalShardCost: 0 };
 
   while (remainingTargets.length > 0 && preparedPool.entries.length > 0) {
-    // Only roll for the current priority group (targets with minimum slot number)
-    // This ensures sequential priorities are respected: we complete priority 1 before moving to priority 2
     const currentPriorityTargets = getCurrentPriorityTargets(remainingTargets);
     const currentPriorityMinRarity = buildMinRarityMap(currentPriorityTargets);
+    const lockedCount = preLockedCount + state.lockOrder.length;
+    const openSlots = config.slotCount - lockedCount;
 
-    const rollsForThisTarget = rollUntilTargetHitFast(preparedPool, currentPriorityTargets, currentPriorityMinRarity);
-    if (!rollsForThisTarget) break;
+    const roundResult = rollRoundsUntilTargetHit(
+      preparedPool,
+      currentPriorityTargets,
+      currentPriorityMinRarity,
+      openSlots
+    );
+    if (!roundResult) break;
 
-    const { entry, target, rolls } = rollsForThisTarget;
-    // Lock count includes pre-locked effects
-    const currentLockCount = preLockedCount + state.lockOrder.length;
-    const shardCostPerRoll = getLockCost(currentLockCount);
+    const { entry, target, rounds } = roundResult;
+    recordLockedEffect(state, { entry, target, rounds, shardCostPerRound: getLockCost(lockedCount) });
 
-    state.totalRolls += rolls;
-    state.totalShardCost += rolls * shardCostPerRoll;
-    state.lockOrder.push({
-      effectId: entry.effect.id,
-      rarity: entry.rarity,
-      slotNumber: target.slotNumber,
-      rollsToAcquire: rolls,
-      shardCostPerRoll,
-    });
-
-    // Re-prepare pool only when it changes (after locking an effect)
-    preparedPool = removeFromPreparedPool(preparedPool, entry.effect.id, entry.rarity);
-    // Remove the filled slot target, then remove the locked effect from all remaining targets
+    preparedPool = removeEffectFromPreparedPool(preparedPool, entry.effect.id);
     remainingTargets = removeLockedEffectFromTargets(
       remainingTargets.filter((t) => t.slotNumber !== target.slotNumber),
       entry.effect.id
@@ -111,29 +129,48 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
 }
 
 /**
- * Roll until we hit a target using optimized binary search
+ * Roll rounds until we hit a target, simulating multiple open slots per round.
+ *
+ * Each round, ALL open slots are filled with random effects from the pool.
+ * If ANY of these effects matches a target, we return it.
+ *
+ * This accurately models the game where clicking "Roll" fills all open slots
+ * simultaneously for a single shard cost.
+ *
+ * @param preparedPool - The pool to roll from
+ * @param targets - Target effects we're looking for
+ * @param minRarityForEffect - Minimum rarity requirements per effect
+ * @param openSlots - Number of open slots that get filled each round
+ * @returns The first matching effect found and number of rounds taken
  */
-function rollUntilTargetHitFast(
+function rollRoundsUntilTargetHit(
   preparedPool: PreparedPool,
   targets: SlotTarget[],
-  minRarityForEffect: Map<string, string>
-): { entry: PoolEntry; target: SlotTarget; rolls: number } | null {
-  let rolls = 0;
-  const maxRolls = 1000000; // Safety limit
+  minRarityForEffect: Map<string, string>,
+  openSlots: number
+): { entry: PoolEntry; target: SlotTarget; rounds: number } | null {
+  let rounds = 0;
+  const maxRounds = 1000000; // Safety limit
+  const effectiveSlots = Math.max(1, openSlots); // At least 1 slot
 
-  while (rolls < maxRolls) {
-    rolls++;
-    const random = Math.random();
-    const entry = simulateRollFast(preparedPool, random);
+  while (rounds < maxRounds) {
+    rounds++;
 
-    const target = checkTargetMatch(
-      entry,
-      targets,
-      minRarityForEffect as Map<string, import('../../../../shared/domain/module-data').Rarity>
-    );
+    // Roll ALL open slots in this round
+    for (let slot = 0; slot < effectiveSlots; slot++) {
+      const random = Math.random();
+      const entry = simulateRollFast(preparedPool, random);
 
-    if (target) {
-      return { entry, target, rolls };
+      const target = checkTargetMatch(
+        entry,
+        targets,
+        minRarityForEffect as Map<string, import('../../../../shared/domain/module-data').Rarity>
+      );
+
+      // If any slot hits a target, we lock it and this round is done
+      if (target) {
+        return { entry, target, rounds };
+      }
     }
   }
 
