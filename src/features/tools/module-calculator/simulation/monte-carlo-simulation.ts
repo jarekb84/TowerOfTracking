@@ -68,7 +68,6 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
   ]);
   // Prepare pool once - cumulative probabilities are pre-computed
   let preparedPool = preparePool(initialPool);
-  const minRarityForEffect = buildMinRarityMap(config.slotTargets);
   let remainingTargets = [...config.slotTargets];
 
   // Start with pre-locked effects count (affects shard cost per roll)
@@ -76,7 +75,12 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
   const state = { lockOrder: [] as LockedEffect[], totalRolls: 0, totalShardCost: 0 };
 
   while (remainingTargets.length > 0 && preparedPool.entries.length > 0) {
-    const rollsForThisTarget = rollUntilTargetHitFast(preparedPool, remainingTargets, minRarityForEffect);
+    // Only roll for the current priority group (targets with minimum slot number)
+    // This ensures sequential priorities are respected: we complete priority 1 before moving to priority 2
+    const currentPriorityTargets = getCurrentPriorityTargets(remainingTargets);
+    const currentPriorityMinRarity = buildMinRarityMap(currentPriorityTargets);
+
+    const rollsForThisTarget = rollUntilTargetHitFast(preparedPool, currentPriorityTargets, currentPriorityMinRarity);
     if (!rollsForThisTarget) break;
 
     const { entry, target, rolls } = rollsForThisTarget;
@@ -96,8 +100,11 @@ export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
 
     // Re-prepare pool only when it changes (after locking an effect)
     preparedPool = removeFromPreparedPool(preparedPool, entry.effect.id, entry.rarity);
-    remainingTargets = remainingTargets.filter((t) => t.slotNumber !== target.slotNumber);
-    updateMinRarityMap(minRarityForEffect, remainingTargets);
+    // Remove the filled slot target, then remove the locked effect from all remaining targets
+    remainingTargets = removeLockedEffectFromTargets(
+      remainingTargets.filter((t) => t.slotNumber !== target.slotNumber),
+      entry.effect.id
+    );
   }
 
   return state;
@@ -161,30 +168,69 @@ function buildMinRarityMap(targets: SlotTarget[]): Map<string, string> {
 }
 
 /**
- * Update min rarity map based on remaining targets
+ * Remove a locked effect from all remaining targets' acceptable effects.
+ *
+ * When an effect is locked, it should no longer be considered for other slots.
+ * This is critical for same-priority groups where multiple slots initially share
+ * the same acceptable effects pool.
+ *
+ * Also removes any targets that now have empty acceptable effects (shouldn't happen
+ * with proper target construction, but included for safety).
  */
-function updateMinRarityMap(
-  map: Map<string, string>,
-  remainingTargets: SlotTarget[]
-): void {
-  // Clear and rebuild from remaining targets
-  map.clear();
-  for (const target of remainingTargets) {
-    for (const effectId of target.acceptableEffects) {
-      const existing = map.get(effectId);
-      if (!existing) {
-        map.set(effectId, target.minRarity);
-      } else {
-        const existingIndex = RARITY_ORDER.indexOf(
-          existing as import('../../../../shared/domain/module-data').Rarity
-        );
-        const newIndex = RARITY_ORDER.indexOf(target.minRarity);
-        if (newIndex < existingIndex) {
-          map.set(effectId, target.minRarity);
-        }
-      }
-    }
-  }
+function removeLockedEffectFromTargets(
+  targets: SlotTarget[],
+  lockedEffectId: string
+): SlotTarget[] {
+  return targets
+    .map((target) => ({
+      ...target,
+      acceptableEffects: target.acceptableEffects.filter((id) => id !== lockedEffectId),
+    }))
+    .filter((target) => target.acceptableEffects.length > 0);
+}
+
+/**
+ * Get targets belonging to the current priority group.
+ *
+ * Priority groups are identified by slot number ranges created during target expansion.
+ * Same-priority effects share consecutive slot numbers and the same acceptable effects pool.
+ *
+ * This function returns all targets that share the minimum slot number's acceptable effects,
+ * which represents the current priority group we should be rolling for.
+ *
+ * Example:
+ * - Slots 1,2 accept [A,B] (priority group 1)
+ * - Slot 3 accepts [C] (priority group 2)
+ *
+ * When slot 1 is filled with A, remaining targets are:
+ * - Slot 2 accepts [B]
+ * - Slot 3 accepts [C]
+ *
+ * Now slot 2 is the minimum, and we only roll for [B] until it's filled,
+ * then move to slot 3 for [C].
+ */
+function getCurrentPriorityTargets(targets: SlotTarget[]): SlotTarget[] {
+  if (targets.length === 0) return [];
+
+  const minSlotNumber = Math.min(...targets.map((t) => t.slotNumber));
+
+  // Find all targets that are part of the same priority group as the minimum slot.
+  // Same-priority targets have consecutive slot numbers AND share acceptable effects.
+  // After effects are removed from the pool, they may have fewer effects but still
+  // represent the same priority group.
+  const minSlotTarget = targets.find((t) => t.slotNumber === minSlotNumber)!;
+  const minSlotEffects = new Set(minSlotTarget.acceptableEffects);
+
+  // A target is in the same priority group if it has overlapping acceptable effects
+  // with the minimum slot target (they came from the same priority group originally)
+  return targets.filter((t) => {
+    // Always include the minimum slot
+    if (t.slotNumber === minSlotNumber) return true;
+
+    // Check if this target shares any acceptable effects with the min slot target
+    // (indicating they were originally in the same priority group)
+    return t.acceptableEffects.some((effect) => minSlotEffects.has(effect));
+  });
 }
 
 /**

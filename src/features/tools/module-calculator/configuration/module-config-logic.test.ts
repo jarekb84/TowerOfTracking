@@ -189,7 +189,7 @@ describe('module-config-logic', () => {
       expect(targets[1].slotNumber).toBe(2);
     });
 
-    it('groups multiple effects for same slot', () => {
+    it('creates one slot per effect when same priority, with shared acceptable effects', () => {
       const selections: EffectSelection[] = [
         { effectId: 'attackSpeed', minRarity: 'legendary', targetSlots: [1], isBanned: false, isLocked: false, lockedRarity: null },
         { effectId: 'critChance', minRarity: 'epic', targetSlots: [1], isBanned: false, isLocked: false, lockedRarity: null },
@@ -197,11 +197,40 @@ describe('module-config-logic', () => {
 
       const targets = selectionsToSlotTargets(selections);
 
-      expect(targets).toHaveLength(1);
+      // Two effects = two slots, both accepting either effect
+      expect(targets).toHaveLength(2);
+      expect(targets[0].slotNumber).toBe(1);
+      expect(targets[1].slotNumber).toBe(2);
+      // Both slots share the same acceptable effects pool
       expect(targets[0].acceptableEffects).toContain('attackSpeed');
       expect(targets[0].acceptableEffects).toContain('critChance');
-      // Should use the lower min rarity
+      expect(targets[1].acceptableEffects).toContain('attackSpeed');
+      expect(targets[1].acceptableEffects).toContain('critChance');
+      // Should use the lowest min rarity
       expect(targets[0].minRarity).toBe('epic');
+      expect(targets[1].minRarity).toBe('epic');
+    });
+
+    it('creates sequential slots across priority groups', () => {
+      const selections: EffectSelection[] = [
+        { effectId: 'attackSpeed', minRarity: 'legendary', targetSlots: [1], isBanned: false, isLocked: false, lockedRarity: null },
+        { effectId: 'critChance', minRarity: 'legendary', targetSlots: [1], isBanned: false, isLocked: false, lockedRarity: null },
+        { effectId: 'critFactor', minRarity: 'ancestral', targetSlots: [2], isBanned: false, isLocked: false, lockedRarity: null },
+      ];
+
+      const targets = selectionsToSlotTargets(selections);
+
+      // Priority 1 has 2 effects, priority 2 has 1 = 3 total slots
+      expect(targets).toHaveLength(3);
+      expect(targets[0].slotNumber).toBe(1);
+      expect(targets[1].slotNumber).toBe(2);
+      expect(targets[2].slotNumber).toBe(3);
+
+      // Slots 1-2 share priority group effects
+      expect(targets[0].acceptableEffects).toEqual(['attackSpeed', 'critChance']);
+      expect(targets[1].acceptableEffects).toEqual(['attackSpeed', 'critChance']);
+      // Slot 3 only has the priority 2 effect
+      expect(targets[2].acceptableEffects).toEqual(['critFactor']);
     });
 
     it('ignores banned selections', () => {

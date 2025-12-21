@@ -27,21 +27,23 @@ describe('results-formatters', () => {
       expect(formatCost(999999)).toBe('1000.0K');
     });
 
-    it('formats millions with M suffix', () => {
-      expect(formatCost(1000000)).toBe('1.0M');
-      expect(formatCost(2500000)).toBe('2.5M');
+    it('formats millions with M suffix and 2 decimals', () => {
+      expect(formatCost(1000000)).toBe('1.00M');
+      expect(formatCost(2500000)).toBe('2.50M');
+      expect(formatCost(1580000)).toBe('1.58M');
+      expect(formatCost(1660000)).toBe('1.66M');
     });
 
-    it('formats billions with B suffix', () => {
-      expect(formatCost(1000000000)).toBe('1.0B');
-      expect(formatCost(3700000000)).toBe('3.7B');
+    it('formats billions with B suffix and 2 decimals', () => {
+      expect(formatCost(1000000000)).toBe('1.00B');
+      expect(formatCost(3700000000)).toBe('3.70B');
     });
   });
 
   describe('formatCostRange', () => {
     it('formats range with appropriate suffixes', () => {
       expect(formatCostRange(1000, 5000)).toBe('1.0K - 5.0K');
-      expect(formatCostRange(500000, 2000000)).toBe('500.0K - 2.0M');
+      expect(formatCostRange(500000, 2000000)).toBe('500.0K - 2.00M');
     });
   });
 
@@ -128,14 +130,14 @@ describe('results-formatters', () => {
   describe('formatRunCount', () => {
     it('formats with appropriate suffix', () => {
       expect(formatRunCount(10000)).toBe('Based on 10.0K simulations');
-      expect(formatRunCount(1000000)).toBe('Based on 1.0M simulations');
+      expect(formatRunCount(1000000)).toBe('Based on 1.00M simulations');
     });
   });
 
   describe('formatConfidenceMessage', () => {
     it('formats confidence message', () => {
       expect(formatConfidenceMessage(5000000)).toBe(
-        '95% of runs cost less than 5.0M shards'
+        '95% of runs cost less than 5.00M shards'
       );
     });
   });
