@@ -97,6 +97,78 @@ describe('monte-carlo-simulation', () => {
       const lockedRarity = result.lockOrder[0].rarity;
       expect(['legendary', 'mythic', 'ancestral']).toContain(lockedRarity);
     });
+
+    it('benefits from more open slots (fewer rounds needed on average)', () => {
+      // With more open slots, each round has more chances to hit a target
+      // This tests that the simulation correctly models this advantage
+      const manySlots: CalculatorConfig = {
+        ...createBasicConfig(),
+        slotCount: 5, // 5 open slots
+        slotTargets: [
+          { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'rare' },
+        ],
+        preLockedEffects: [],
+      };
+
+      const fewSlots: CalculatorConfig = {
+        ...manySlots,
+        slotCount: 2, // Only 2 open slots
+      };
+
+      // Run multiple iterations to get stable averages
+      const iterations = 500;
+      let totalRoundsManySlots = 0;
+      let totalRoundsFewSlots = 0;
+
+      for (let i = 0; i < iterations; i++) {
+        totalRoundsManySlots += simulateSingleRun(manySlots).totalRolls;
+        totalRoundsFewSlots += simulateSingleRun(fewSlots).totalRolls;
+      }
+
+      const avgRoundsManySlots = totalRoundsManySlots / iterations;
+      const avgRoundsFewSlots = totalRoundsFewSlots / iterations;
+
+      // More open slots should require fewer rounds on average
+      // With 5 slots vs 2 slots, the difference should be significant
+      expect(avgRoundsManySlots).toBeLessThan(avgRoundsFewSlots);
+    });
+
+    it('charges per round, not per individual slot roll', () => {
+      // With 5 open slots and 0 locks, each round costs 10 shards
+      // The cost should be: rounds × 10, not (rounds × slots) × 10
+      const config: CalculatorConfig = {
+        ...createBasicConfig(),
+        slotCount: 5,
+        slotTargets: [
+          { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'rare' },
+        ],
+        preLockedEffects: [],
+      };
+
+      const result = simulateSingleRun(config);
+
+      // With 0 locks, cost per round is 10 shards
+      // Total cost should be rounds × 10
+      expect(result.totalShardCost).toBe(result.totalRolls * 10);
+    });
+
+    it('increases cost correctly when pre-locked effects are present', () => {
+      const config: CalculatorConfig = {
+        ...createBasicConfig(),
+        slotCount: 5,
+        slotTargets: [
+          { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'rare' },
+        ],
+        preLockedEffects: [
+          { effectId: 'critChance', rarity: 'epic' }, // 1 pre-locked = 40 shards/round
+        ],
+      };
+
+      const result = simulateSingleRun(config);
+
+      // With 1 lock, cost per round is 40 shards
+      expect(result.totalShardCost).toBe(result.totalRolls * 40);
+    });
   });
 
   describe('runSimulation', () => {

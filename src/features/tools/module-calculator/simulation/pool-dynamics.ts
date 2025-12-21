@@ -207,6 +207,22 @@ export function removeFromPreparedPool(
 }
 
 /**
+ * Remove ALL rarities of an effect from a prepared pool.
+ *
+ * When an effect is locked, ALL rarity variants of that effect are removed
+ * from the pool (you can only have one of each effect on a module).
+ */
+export function removeEffectFromPreparedPool(
+  preparedPool: PreparedPool,
+  effectId: string
+): PreparedPool {
+  const newEntries = preparedPool.entries.filter(
+    (entry) => entry.effect.id !== effectId
+  );
+  return preparePool(newEntries);
+}
+
+/**
  * Check if a rolled entry satisfies any of the remaining targets
  */
 export function checkTargetMatch(

@@ -129,7 +129,7 @@ export interface SimulationRun {
 /**
  * Record of a locked effect during simulation
  */
-export interface LockedEffect {
+interface LockedEffect {
   /** Effect ID that was locked */
   effectId: string;
 

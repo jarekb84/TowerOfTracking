@@ -11,6 +11,7 @@ import {
   preparePool,
   simulateRollFast,
   removeFromPreparedPool,
+  removeEffectFromPreparedPool,
   checkTargetMatch,
   calculateTargetHitProbability,
   getPoolSize,
@@ -332,6 +333,46 @@ describe('pool-dynamics', () => {
 
       // New cumulative probs should sum to 1.0
       expect(newPrepared.cumulativeProbs[newPrepared.cumulativeProbs.length - 1]).toBe(1.0);
+    });
+  });
+
+  describe('removeEffectFromPreparedPool', () => {
+    it('removes ALL rarities of an effect from prepared pool', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+
+      // Count how many attack speed entries exist before removal
+      const attackSpeedCount = prepared.entries.filter(
+        (e) => e.effect.id === 'attackSpeed'
+      ).length;
+      expect(attackSpeedCount).toBeGreaterThan(1); // Should have multiple rarities
+
+      const newPrepared = removeEffectFromPreparedPool(prepared, 'attackSpeed');
+
+      // Should have removed all attack speed entries
+      expect(newPrepared.entries.length).toBe(prepared.entries.length - attackSpeedCount);
+
+      // Should not contain any attack speed entries
+      const hasAttackSpeed = newPrepared.entries.some(
+        (e) => e.effect.id === 'attackSpeed'
+      );
+      expect(hasAttackSpeed).toBe(false);
+
+      // New cumulative probs should sum to 1.0
+      expect(newPrepared.cumulativeProbs[newPrepared.cumulativeProbs.length - 1]).toBe(1.0);
+    });
+
+    it('removes more entries than removeFromPreparedPool', () => {
+      const pool = buildInitialPool('cannon', 'ancestral', []);
+      const prepared = preparePool(pool);
+
+      // removeFromPreparedPool removes only one entry
+      const afterSingleRemove = removeFromPreparedPool(prepared, 'attackSpeed', 'legendary');
+      // removeEffectFromPreparedPool removes all rarities
+      const afterFullRemove = removeEffectFromPreparedPool(prepared, 'attackSpeed');
+
+      // Full removal should remove more entries than single rarity removal
+      expect(afterFullRemove.entries.length).toBeLessThan(afterSingleRemove.entries.length);
     });
   });
 });
