@@ -2,7 +2,7 @@
  * Module Calculator Hook
  *
  * Main orchestration hook that combines configuration, table state,
- * and simulation results.
+ * simulation results, and manual mode.
  */
 
 import { useCallback, useMemo, useEffect } from 'react';
@@ -11,6 +11,7 @@ import type { CalculatorConfig } from './types';
 import { useModuleConfig } from './configuration/use-module-config';
 import { useSubEffectTable } from './sub-effect-table/use-sub-effect-table';
 import { useSimulationResults } from './results/use-simulation-results';
+import { useManualMode } from './manual-mode';
 
 interface UseModuleCalculatorResult {
   /** Module configuration state and handlers */
@@ -21,6 +22,9 @@ interface UseModuleCalculatorResult {
 
   /** Simulation results state and handlers */
   simulation: ReturnType<typeof useSimulationResults>;
+
+  /** Manual practice mode state and handlers */
+  manualMode: ReturnType<typeof useManualMode>;
 
   /** Combined calculator configuration for simulation */
   calculatorConfig: CalculatorConfig;
@@ -62,6 +66,24 @@ export function useModuleCalculator(
     table.preLockedEffects,
   ]);
 
+  // Bidirectional sync callbacks for manual mode
+  const onLockEffect = useCallback(
+    (effectId: string, rarity: import('@/shared/domain/module-data').Rarity) => {
+      table.programmaticLock(effectId, rarity);
+    },
+    [table.programmaticLock]
+  );
+
+  const onUnlockEffect = useCallback(
+    (effectId: string) => {
+      table.programmaticUnlock(effectId);
+    },
+    [table.programmaticUnlock]
+  );
+
+  // Manual mode hook with bidirectional sync
+  const manualMode = useManualMode(calculatorConfig, onLockEffect, onUnlockEffect);
+
   // Sync banned effects and slot targets to config
   useEffect(() => {
     config.setBannedEffects(table.bannedEffects);
@@ -80,7 +102,8 @@ export function useModuleCalculator(
   const reset = useCallback(() => {
     table.clearAllSelections();
     simulation.clearResults();
-  }, [table, simulation]);
+    manualMode.deactivate();
+  }, [table, simulation, manualMode]);
 
   // Clear selections when module type changes
   useEffect(() => {
@@ -92,6 +115,7 @@ export function useModuleCalculator(
     config,
     table,
     simulation,
+    manualMode,
     calculatorConfig,
     runSimulation,
     reset,
