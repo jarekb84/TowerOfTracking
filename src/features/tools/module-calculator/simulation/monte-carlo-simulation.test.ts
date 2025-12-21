@@ -53,6 +53,36 @@ describe('monte-carlo-simulation', () => {
       expect(filledSlots.size).toBe(2);
     });
 
+    it('acquires all effects when same priority group has multiple effects', () => {
+      // This tests the fix for the bug where same-priority effects were treated as "either/or"
+      // instead of "all, in any order"
+      const config: CalculatorConfig = {
+        ...createBasicConfig(),
+        slotTargets: [
+          // Two effects sharing priority - both slots accept either effect initially
+          { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+          { slotNumber: 2, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+          // Third effect with different priority
+          { slotNumber: 3, acceptableEffects: ['critFactor'], minRarity: 'rare' },
+        ],
+      };
+
+      const result = simulateSingleRun(config);
+
+      // Should lock exactly 3 effects (all targeted effects, not just "one from each priority")
+      expect(result.lockOrder).toHaveLength(3);
+
+      // Should have acquired both attackSpeed AND critChance (not just one of them)
+      const lockedEffectIds = result.lockOrder.map((l) => l.effectId);
+      expect(lockedEffectIds).toContain('attackSpeed');
+      expect(lockedEffectIds).toContain('critChance');
+      expect(lockedEffectIds).toContain('critFactor');
+
+      // All three slots should be filled
+      const filledSlots = result.lockOrder.map((l) => l.slotNumber).sort();
+      expect(filledSlots).toEqual([1, 2, 3]);
+    });
+
     it('respects minimum rarity requirements', () => {
       const config: CalculatorConfig = {
         ...createBasicConfig(),

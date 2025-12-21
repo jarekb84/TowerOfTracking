@@ -155,20 +155,32 @@ export function updateModuleRarity(
 
 /**
  * Convert effect selections to slot targets
+ *
+ * When multiple effects share the same priority (slot number), each effect gets its
+ * own target slot, but all slots in that priority group accept any effect from the group.
+ * This allows the simulation to acquire ALL targeted effects, not just one per priority.
+ *
+ * Example: A→priority 1, B→priority 1, C→priority 2 produces:
+ * - Slot 1: accepts [A, B]
+ * - Slot 2: accepts [A, B]
+ * - Slot 3: accepts [C]
+ *
+ * When A is hit for slot 1, the simulation removes A from remaining slots,
+ * so slot 2 then only accepts B.
  */
 export function selectionsToSlotTargets(
   selections: EffectSelection[]
 ): SlotTarget[] {
-  // Group selections by slot number
-  const slotMap = new Map<number, { effects: string[]; minRarity: Rarity }>();
+  // Group selections by their assigned priority (slot number from UI)
+  const priorityGroups = new Map<number, { effects: string[]; minRarity: Rarity }>();
 
   for (const selection of selections) {
     if (selection.isBanned || !selection.minRarity) {
       continue;
     }
 
-    for (const slotNumber of selection.targetSlots) {
-      const existing = slotMap.get(slotNumber);
+    for (const priority of selection.targetSlots) {
+      const existing = priorityGroups.get(priority);
       if (existing) {
         existing.effects.push(selection.effectId);
         // Keep the lowest (most permissive) min rarity
@@ -179,7 +191,7 @@ export function selectionsToSlotTargets(
           existing.minRarity = selection.minRarity;
         }
       } else {
-        slotMap.set(slotNumber, {
+        priorityGroups.set(priority, {
           effects: [selection.effectId],
           minRarity: selection.minRarity,
         });
@@ -187,17 +199,26 @@ export function selectionsToSlotTargets(
     }
   }
 
-  // Convert to SlotTarget array
+  // Sort priorities and expand each group into sequential slots
+  const sortedPriorities = Array.from(priorityGroups.keys()).sort((a, b) => a - b);
   const targets: SlotTarget[] = [];
-  slotMap.forEach((value, slotNumber) => {
-    targets.push({
-      slotNumber,
-      acceptableEffects: value.effects,
-      minRarity: value.minRarity,
-    });
-  });
+  let currentSlot = 1;
 
-  return targets.sort((a, b) => a.slotNumber - b.slotNumber);
+  for (const priority of sortedPriorities) {
+    const group = priorityGroups.get(priority)!;
+    // Create one slot target for each effect in this priority group
+    // All slots in the group share the same acceptable effects (the full group)
+    for (let i = 0; i < group.effects.length; i++) {
+      targets.push({
+        slotNumber: currentSlot,
+        acceptableEffects: [...group.effects], // Copy so each target can be modified independently
+        minRarity: group.minRarity,
+      });
+      currentSlot++;
+    }
+  }
+
+  return targets;
 }
 
 /**

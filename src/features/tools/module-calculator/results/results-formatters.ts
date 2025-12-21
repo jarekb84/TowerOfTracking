@@ -6,13 +6,15 @@
 
 /**
  * Format a large number with appropriate suffix (K, M, B)
+ *
+ * Uses 2 decimal places for better precision when comparing similar values.
  */
 export function formatCost(value: number): string {
   if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}B`;
+    return `${(value / 1_000_000_000).toFixed(2)}B`;
   }
   if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
+    return `${(value / 1_000_000).toFixed(2)}M`;
   }
   if (value >= 1_000) {
     return `${(value / 1_000).toFixed(1)}K`;
