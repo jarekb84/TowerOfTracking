@@ -140,3 +140,31 @@ export function processRollForLogging(params: ProcessRollForLoggingParams): Roll
   const entry = createLogEntry(rollNumber, totalSpent, rollCost, qualifyingEffects);
   return addLogEntry(logEntries, entry);
 }
+
+/**
+ * Generate collapsed header summary for Roll Log panel
+ * Format: "12 entries | Latest: Legendary Critical" or "Empty"
+ */
+export function generateRollLogSummary(entries: RollLogEntry[]): string {
+  if (entries.length === 0) {
+    return 'Empty';
+  }
+
+  const entryCount = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
+
+  // Get the latest entry's highest rarity effect
+  const latestEntry = entries[0];
+  if (latestEntry.effects.length === 0) {
+    return entryCount;
+  }
+
+  // Find the highest rarity effect in the latest entry
+  const highestRarityEffect = latestEntry.effects.reduce((highest, current) => {
+    const currentConfig = RARITY_CONFIG_MAP[current.rarity];
+    const highestConfig = RARITY_CONFIG_MAP[highest.rarity];
+    return currentConfig.sortOrder > highestConfig.sortOrder ? current : highest;
+  });
+
+  const rarityName = RARITY_CONFIG_MAP[highestRarityEffect.rarity].displayName;
+  return `${entryCount} | Latest: ${rarityName}`;
+}

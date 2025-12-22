@@ -132,3 +132,36 @@ export function validateTargets(
     warnings,
   };
 }
+
+/**
+ * Generate collapsed header summary for Target Summary panel
+ * Format: "2 locked | 1 target | 3 banned | Pool: 101" or "No targets"
+ */
+export function generateCollapsedSummary(
+  lockedCount: number,
+  targetCount: number,
+  bannedCount: number,
+  poolSize: number
+): string {
+  if (lockedCount === 0 && targetCount === 0) {
+    return 'No targets';
+  }
+
+  const parts: string[] = [];
+
+  if (lockedCount > 0) {
+    parts.push(`${lockedCount} locked`);
+  }
+
+  if (targetCount > 0) {
+    parts.push(`${targetCount} target${targetCount !== 1 ? 's' : ''}`);
+  }
+
+  if (bannedCount > 0) {
+    parts.push(`${bannedCount} banned`);
+  }
+
+  parts.push(`Pool: ${poolSize.toLocaleString()}`);
+
+  return parts.join(' | ');
+}

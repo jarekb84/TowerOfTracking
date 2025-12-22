@@ -2,133 +2,101 @@
  * Roll Log Component
  *
  * Displays a log of notable rolls in manual practice mode.
- * Users can filter by minimum rarity and enable/disable logging.
+ * Wrapped in a CollapsibleCard for the right panel layout.
  */
 
 import type { Rarity } from '@/shared/domain/module-data';
 import { RARITY_ORDER, RARITY_CONFIG_MAP, getRarityColor } from '@/shared/domain/module-data';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
-import { ToggleSwitch } from '@/components/ui/toggle-switch';
-import { Select, Button } from '@/components/ui';
+import { Select, Button, CollapsibleCard } from '@/components/ui';
 import type { RollLogEntry } from '../types';
+import { generateRollLogSummary } from './roll-log-logic';
 
 interface RollLogProps {
-  logEnabled: boolean;
   minimumLogRarity: Rarity;
   logEntries: RollLogEntry[];
-  onLogEnabledChange: (enabled: boolean) => void;
   onMinimumRarityChange: (rarity: Rarity) => void;
   onClearLog: () => void;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 export function RollLog({
-  logEnabled,
   minimumLogRarity,
   logEntries,
-  onLogEnabledChange,
   onMinimumRarityChange,
   onClearLog,
+  isExpanded,
+  onToggle,
 }: RollLogProps) {
-  return (
-    <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 space-y-3">
-      <RollLogHeader />
-      <RollLogControls
-        logEnabled={logEnabled}
-        minimumLogRarity={minimumLogRarity}
-        hasEntries={logEntries.length > 0}
-        onLogEnabledChange={onLogEnabledChange}
-        onMinimumRarityChange={onMinimumRarityChange}
-        onClearLog={onClearLog}
-      />
-      {logEnabled && <RollLogTable entries={logEntries} />}
-    </div>
-  );
-}
+  const summary = generateRollLogSummary(logEntries);
 
-function RollLogHeader() {
   return (
-    <div className="flex items-center gap-2">
-      <LogIcon />
-      <h4 className="text-sm font-medium text-slate-300">Roll Log</h4>
-    </div>
-  );
-}
-
-function LogIcon() {
-  return (
-    <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-      <polyline points="10 9 9 9 8 9" />
-    </svg>
+    <CollapsibleCard
+      title="Roll Log"
+      summary={summary}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+    >
+      <div className="space-y-3">
+        <RollLogControls
+          minimumLogRarity={minimumLogRarity}
+          hasEntries={logEntries.length > 0}
+          onMinimumRarityChange={onMinimumRarityChange}
+          onClearLog={onClearLog}
+        />
+        <RollLogTable entries={logEntries} />
+      </div>
+    </CollapsibleCard>
   );
 }
 
 interface RollLogControlsProps {
-  logEnabled: boolean;
   minimumLogRarity: Rarity;
   hasEntries: boolean;
-  onLogEnabledChange: (enabled: boolean) => void;
   onMinimumRarityChange: (rarity: Rarity) => void;
   onClearLog: () => void;
 }
 
 function RollLogControls({
-  logEnabled,
   minimumLogRarity,
   hasEntries,
-  onLogEnabledChange,
   onMinimumRarityChange,
   onClearLog,
 }: RollLogControlsProps) {
   return (
     <div className="flex items-center gap-4 flex-wrap">
-      <div className="flex items-center gap-2 text-sm text-slate-300">
-        <ToggleSwitch
-          checked={logEnabled}
-          onCheckedChange={onLogEnabledChange}
-          aria-label="Enable roll logging"
-        />
-        <span>Enable Log</span>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-slate-400">Min Rarity:</span>
+        <Select
+          value={minimumLogRarity}
+          onChange={(e) => onMinimumRarityChange(e.target.value as Rarity)}
+          size="compact"
+          className="w-28"
+          style={{ color: getRarityColor(minimumLogRarity) }}
+        >
+          {RARITY_ORDER.map((rarity) => (
+            <option
+              key={rarity}
+              value={rarity}
+              style={{ color: getRarityColor(rarity) }}
+            >
+              {RARITY_CONFIG_MAP[rarity].displayName}
+            </option>
+          ))}
+        </Select>
       </div>
 
-      {logEnabled && (
-        <>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400">Min Rarity:</span>
-            <Select
-              value={minimumLogRarity}
-              onChange={(e) => onMinimumRarityChange(e.target.value as Rarity)}
-              size="compact"
-              className="w-28"
-              style={{ color: getRarityColor(minimumLogRarity) }}
-            >
-              {RARITY_ORDER.map((rarity) => (
-                <option
-                  key={rarity}
-                  value={rarity}
-                  style={{ color: getRarityColor(rarity) }}
-                >
-                  {RARITY_CONFIG_MAP[rarity].displayName}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          {hasEntries && (
-            <Button
-              variant="ghost"
-              size="compact"
-              onClick={onClearLog}
-              className="text-slate-500 hover:text-slate-300"
-            >
-              <ClearIcon />
-              Clear
-            </Button>
-          )}
-        </>
+      {hasEntries && (
+        <Button
+          variant="ghost"
+          size="compact"
+          onClick={onClearLog}
+          className="text-slate-500 hover:text-slate-300"
+        >
+          <ClearIcon />
+          Clear
+        </Button>
       )}
     </div>
   );

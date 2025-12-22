@@ -39,7 +39,7 @@ export function ShardCounter({
   onStopAutoRoll,
 }: ShardCounterProps) {
   return (
-    <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 space-y-4">
+    <div className="space-y-4">
       {/* Shard Display */}
       <div className="flex items-center justify-between">
         <ShardDisplay

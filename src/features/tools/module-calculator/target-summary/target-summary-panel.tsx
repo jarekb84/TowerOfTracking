@@ -5,9 +5,8 @@
  */
 
 import type { SlotTarget, PreLockedEffect } from '../types';
-import {
-  formatBannedEffects,
-} from './target-summary-logic';
+import { generateCollapsedSummary } from './target-summary-logic';
+import { BannedEffectsDisplay } from '../banned-effects-display';
 import {
   countPoolCombinations,
   getSubEffectsForModule,
@@ -16,6 +15,7 @@ import {
   getSubEffectById,
 } from '@/shared/domain/module-data';
 import type { ModuleType, Rarity } from '@/shared/domain/module-data';
+import { CollapsibleCard } from '@/components/ui';
 
 interface TargetSummaryPanelProps {
   targets: SlotTarget[];
@@ -24,6 +24,8 @@ interface TargetSummaryPanelProps {
   totalSlots: number;
   moduleType: ModuleType;
   moduleRarity: Rarity;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 export function TargetSummaryPanel({
@@ -32,6 +34,8 @@ export function TargetSummaryPanel({
   preLockedEffects,
   moduleType,
   moduleRarity,
+  isExpanded,
+  onToggle,
 }: TargetSummaryPanelProps) {
   // Calculate pool size (exclude locked effects from pool)
   const allEffects = getSubEffectsForModule(moduleType);
@@ -42,9 +46,21 @@ export function TargetSummaryPanel({
   );
   const poolSize = countPoolCombinations(availableEffects, moduleRarity);
 
+  const summary = generateCollapsedSummary(
+    preLockedEffects.length,
+    targets.length,
+    bannedEffects.length,
+    poolSize
+  );
+
   return (
-    <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 space-y-4">
-      <h4 className="text-sm font-semibold text-slate-200">Target Summary</h4>
+    <CollapsibleCard
+      title="Target Summary"
+      summary={summary}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+    >
+      <div className="space-y-4">
 
       {/* Pre-Locked Effects */}
       {preLockedEffects.length > 0 && (
@@ -90,14 +106,9 @@ export function TargetSummaryPanel({
       ) : null}
 
       {/* Footer Info */}
-      <div className="pt-3 border-t border-slate-700/30 space-y-1.5">
+      <div className="pt-3 border-t border-slate-700/30 space-y-3">
         {/* Banned Effects */}
-        <div className="flex items-start gap-2">
-          <span className="text-xs text-slate-500 shrink-0">Banned:</span>
-          <span className="text-xs text-slate-400">
-            {formatBannedEffects(bannedEffects)}
-          </span>
-        </div>
+        <BannedEffectsDisplay bannedEffectIds={bannedEffects} />
 
         {/* Pool Size */}
         <div className="flex items-center gap-2">
@@ -107,7 +118,8 @@ export function TargetSummaryPanel({
           </span>
         </div>
       </div>
-    </div>
+      </div>
+    </CollapsibleCard>
   );
 }
 

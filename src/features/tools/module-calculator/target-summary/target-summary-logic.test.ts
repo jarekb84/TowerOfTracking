@@ -9,6 +9,7 @@ import {
   getUnfilledSlots,
   isConfigurationComplete,
   validateTargets,
+  generateCollapsedSummary,
 } from './target-summary-logic';
 
 describe('target-summary-logic', () => {
@@ -169,6 +170,42 @@ describe('target-summary-logic', () => {
 
       expect(result.isValid).toBe(true);
       expect(result.warnings).toHaveLength(0);
+    });
+  });
+
+  describe('generateCollapsedSummary', () => {
+    it('returns "No targets" when no locked or target effects', () => {
+      expect(generateCollapsedSummary(0, 0, 0, 100)).toBe('No targets');
+    });
+
+    it('shows locked count when present', () => {
+      const summary = generateCollapsedSummary(2, 0, 0, 100);
+      expect(summary).toBe('2 locked | Pool: 100');
+    });
+
+    it('shows target count with plural', () => {
+      const summary = generateCollapsedSummary(0, 3, 0, 100);
+      expect(summary).toBe('3 targets | Pool: 100');
+    });
+
+    it('shows target count singular', () => {
+      const summary = generateCollapsedSummary(0, 1, 0, 100);
+      expect(summary).toBe('1 target | Pool: 100');
+    });
+
+    it('shows banned count when present', () => {
+      const summary = generateCollapsedSummary(0, 1, 4, 100);
+      expect(summary).toBe('1 target | 4 banned | Pool: 100');
+    });
+
+    it('shows all parts when present', () => {
+      const summary = generateCollapsedSummary(2, 1, 3, 70);
+      expect(summary).toBe('2 locked | 1 target | 3 banned | Pool: 70');
+    });
+
+    it('formats large pool sizes with locale string', () => {
+      const summary = generateCollapsedSummary(1, 1, 0, 1234567);
+      expect(summary).toContain('1,234,567');
     });
   });
 });
