@@ -1,9 +1,13 @@
 import * as React from "react"
 import { cn } from "../../shared/lib/utils"
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   /** Width constraint for the select */
   width?: 'auto' | 'full' | 'sm' | 'md' | 'lg'
+  /** Size variant matching Button component sizes */
+  size?: 'default' | 'sm' | 'compact'
+  /** Native HTML size attribute for multi-select */
+  htmlSize?: number
 }
 
 const widthClasses = {
@@ -14,6 +18,12 @@ const widthClasses = {
   lg: 'w-40'
 } as const
 
+const sizeClasses = {
+  default: 'h-9 min-h-[44px] px-3 py-1.5 text-sm',
+  sm: 'h-9 min-h-[44px] px-3 py-1.5 text-sm',
+  compact: 'h-8 min-h-0 px-2.5 py-1 text-sm [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:min-h-[44px]',
+} as const
+
 /**
  * Styled select component with consistent dark theme styling.
  *
@@ -21,15 +31,18 @@ const widthClasses = {
  * HTML select elements with proper focus states and dark theme support.
  */
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, width = 'auto', children, ...props }, ref) => {
+  ({ className, width = 'auto', size = 'default', htmlSize, children, ...props }, ref) => {
     return (
       <select
         ref={ref}
+        size={htmlSize}
         className={cn(
-          // Base styles - min-h-[44px] matches Button component for consistent vertical alignment
-          "flex h-9 min-h-[44px] rounded-md border border-input bg-background px-3 py-1.5",
+          // Base styles
+          "flex rounded-md border border-input bg-background",
+          // Size variant
+          sizeClasses[size],
           // Typography
-          "text-sm text-foreground",
+          "text-foreground",
           // Focus and interaction states
           "transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
           // Hover state

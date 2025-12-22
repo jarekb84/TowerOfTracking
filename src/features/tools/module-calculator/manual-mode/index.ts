@@ -5,4 +5,5 @@
  */
 
 export { ManualModePanel } from './manual-mode-panel';
-export { useManualMode } from './use-manual-mode';;;
+export { useManualMode } from './use-manual-mode';
+

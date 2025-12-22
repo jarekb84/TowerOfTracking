@@ -62,6 +62,9 @@ export interface ManualModeState {
 
   /** Whether auto-rolling is currently active */
   isAutoRolling: boolean;
+
+  /** Log of notable rolls (filtered by minimum rarity) */
+  logEntries: RollLogEntry[];
 }
 
 /**
@@ -101,4 +104,31 @@ export interface ManualModeConfig {
 
   /** Minimum rarity required for each effect (effectId -> Rarity) */
   minRarityMap: Map<string, Rarity>;
+}
+
+/**
+ * An effect in a roll log entry
+ */
+export interface RollLogEffect {
+  effectId: string;
+  name: string;
+  rarity: Rarity;
+  shortName: string;
+}
+
+/**
+ * A single entry in the roll log
+ */
+export interface RollLogEntry {
+  /** Roll number when this entry was logged */
+  rollNumber: number;
+
+  /** Total shards spent at time of roll */
+  totalShards: number;
+
+  /** Cost of this specific roll */
+  rollCost: number;
+
+  /** Effects that qualified for logging (met minimum rarity) */
+  effects: RollLogEffect[];
 }

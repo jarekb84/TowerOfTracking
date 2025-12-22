@@ -9,8 +9,9 @@ import { getSubEffectById } from '@/shared/domain/module-data';
 import type { UseManualModeResult } from './use-manual-mode';
 import type { ShardMode } from './types';
 import { ModuleHeader } from './module-header';
-import { EffectSlotsTable } from './effect-slots-table';
+import { EffectSlotsTable } from './effect-slots';
 import { ShardCounter } from './shard-counter';
+import { RollLog } from './roll-log';
 import { Button } from '@/components/ui';
 
 interface ManualModePanelProps {
@@ -44,32 +45,7 @@ export function ManualModePanel({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-200">
-          Manual Practice Mode
-        </h3>
-        <div className="flex items-center gap-1.5">
-          <Button
-            variant="ghost"
-            size="compact"
-            onClick={manualMode.reset}
-            className="text-slate-400 hover:text-slate-200"
-          >
-            <ResetIcon />
-            Reset
-          </Button>
-          <Button
-            variant="ghost"
-            size="compact"
-            onClick={manualMode.deactivate}
-            className="text-slate-400 hover:text-red-400"
-          >
-            <ExitIcon />
-            Exit
-          </Button>
-        </div>
-      </div>
+      <PanelHeader onReset={manualMode.reset} onExit={manualMode.deactivate} />
 
       {/* Module Info */}
       <ModuleHeader
@@ -120,12 +96,47 @@ export function ManualModePanel({
         onStartAutoRoll={manualMode.startAutoRoll}
         onStopAutoRoll={manualMode.stopAutoRoll}
       />
+
+      {/* Roll Log */}
+      <RollLog
+        logEnabled={manualMode.logEnabled}
+        minimumLogRarity={manualMode.minimumLogRarity}
+        logEntries={manualMode.logEntries}
+        onLogEnabledChange={manualMode.setLogEnabled}
+        onMinimumRarityChange={manualMode.setMinimumLogRarity}
+        onClearLog={manualMode.clearLog}
+      />
     </div>
   );
 }
 
 interface InactiveStateProps {
   onActivate: (shardMode: ShardMode, startingBalance?: number) => void;
+}
+
+interface PanelHeaderProps {
+  onReset: () => void;
+  onExit: () => void;
+}
+
+function PanelHeader({ onReset, onExit }: PanelHeaderProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <h3 className="text-lg font-semibold text-slate-200">
+        Manual Practice Mode
+      </h3>
+      <div className="flex items-center gap-1.5">
+        <Button variant="ghost" size="compact" onClick={onReset} className="text-slate-400 hover:text-slate-200">
+          <ResetIcon />
+          Reset
+        </Button>
+        <Button variant="ghost" size="compact" onClick={onExit} className="text-slate-400 hover:text-red-400">
+          <ExitIcon />
+          Exit
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function InactiveState({ onActivate }: InactiveStateProps) {

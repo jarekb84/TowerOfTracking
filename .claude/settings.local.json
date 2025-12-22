@@ -34,7 +34,9 @@
       "Edit(/C:\\Source\\TowerOfTracking/**)",
       "NotebookEdit(/C:\\Source\\TowerOfTracking/**)",
       "Bash(timeout 15 npm run dev)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Skill(commit)",
+      "Skill(commit:*)"
     ],
     "defaultMode": "acceptEdits"
   },

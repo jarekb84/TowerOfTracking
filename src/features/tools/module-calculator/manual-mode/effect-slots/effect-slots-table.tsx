@@ -4,7 +4,7 @@
  * Container for all 8 effect slot rows in manual mode.
  */
 
-import type { ManualSlot } from './types';
+import type { ManualSlot } from '../types';
 import { EffectSlotRow } from './effect-slot-row';
 
 interface EffectSlotsTableProps {
