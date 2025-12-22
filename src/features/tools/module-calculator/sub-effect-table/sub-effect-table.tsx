@@ -12,10 +12,10 @@ import { SlotHeader } from './slot-selector';
 import type { UseSubEffectTableResult } from './use-sub-effect-table';
 
 /**
- * Props for SubEffectTable - excludes programmatic lock/unlock functions
- * which are for internal bidirectional sync with manual mode.
+ * Props for SubEffectTable - excludes internal functions used for
+ * bidirectional sync with manual mode and persistence loading.
  */
-interface SubEffectTableProps extends Omit<UseSubEffectTableResult, 'programmaticLock' | 'programmaticUnlock'> {
+interface SubEffectTableProps extends Omit<UseSubEffectTableResult, 'programmaticLock' | 'programmaticUnlock' | 'setSelections'> {
   moduleRarity: Rarity;
   availableSlots: number[];
 }

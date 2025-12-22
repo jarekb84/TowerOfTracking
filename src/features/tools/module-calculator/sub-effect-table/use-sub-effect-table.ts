@@ -5,7 +5,7 @@
  * Manages the selection state for the sub-effect table.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import type { ModuleType, Rarity, SubEffectConfig } from '@/shared/domain/module-data';
 import { getSubEffectsForModule, filterByModuleRarity } from '@/shared/domain/module-data';
 import type { EffectSelection, SlotTarget, PreLockedEffect } from '../types';
@@ -44,6 +44,8 @@ export interface UseSubEffectTableResult {
   programmaticLock: (effectId: string, rarity: Rarity) => void;
   /** Unlock an effect programmatically (for bidirectional sync with manual mode) */
   programmaticUnlock: (effectId: string) => void;
+  /** Set selections directly (for loading from persistence) */
+  setSelections: React.Dispatch<React.SetStateAction<Map<string, EffectSelection>>>;
 }
 
 /**
@@ -81,9 +83,12 @@ function useDerivedSelectionValues(selectionsArray: EffectSelection[], slotCount
 export function useSubEffectTable(
   moduleType: ModuleType,
   moduleRarity: Rarity,
-  slotCount: number
+  slotCount: number,
+  initialSelections?: Map<string, EffectSelection>
 ): UseSubEffectTableResult {
-  const [selections, setSelections] = useState<Map<string, EffectSelection>>(() => new Map());
+  const [selections, setSelections] = useState<Map<string, EffectSelection>>(
+    () => initialSelections ?? new Map()
+  );
 
   const effects = useMemo(() => getSubEffectsForModule(moduleType), [moduleType]);
   const availableEffects = useMemo(() => filterByModuleRarity(effects, moduleRarity), [effects, moduleRarity]);
@@ -193,5 +198,7 @@ export function useSubEffectTable(
     clearAllSelections,
     programmaticLock,
     programmaticUnlock,
+    /** Set selections directly (for loading from persistence) */
+    setSelections,
   };
 }

@@ -24,6 +24,7 @@ export function ModuleCalculator() {
     manualMode,
     calculatorConfig,
     runSimulation,
+    reset,
   } = useModuleCalculator('cannon');
 
   return (
@@ -40,6 +41,7 @@ export function ModuleCalculator() {
         onModuleTypeChange={config.setModuleType}
         onModuleLevelChange={config.setModuleLevel}
         onModuleRarityChange={config.setModuleRarity}
+        onReset={reset}
       />
 
       {/* Main Content Grid */}
