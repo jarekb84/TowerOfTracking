@@ -36,7 +36,9 @@
       "Bash(timeout 15 npm run dev)",
       "Bash(grep:*)",
       "Skill(commit)",
-      "Skill(commit:*)"
+      "Skill(commit:*)",
+      "Bash(tree:*)",
+      "Bash(findstr:*)"
     ],
     "defaultMode": "acceptEdits"
   },

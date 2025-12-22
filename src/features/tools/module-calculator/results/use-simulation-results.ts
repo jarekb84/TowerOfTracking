@@ -65,7 +65,9 @@ function buildSimulationSetup(config: CalculatorConfig, confidenceLevel: Confide
   return { simConfig, estimatedMs, run, cancel };
 }
 
-export function useSimulationResults(): UseSimulationResultsReturn {
+export function useSimulationResults(
+  initialConfidenceLevel?: ConfidenceLevel
+): UseSimulationResultsReturn {
   const [results, setResults] = useState<SimulationResults | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -73,7 +75,9 @@ export function useSimulationResults(): UseSimulationResultsReturn {
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null);
   const [elapsedTimeMs, setElapsedTimeMs] = useState<number | null>(null);
   const [cancelFn, setCancelFn] = useState<(() => void) | null>(null);
-  const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>(DEFAULT_CONFIDENCE_LEVEL);
+  const [confidenceLevel, setConfidenceLevel] = useState<ConfidenceLevel>(
+    initialConfidenceLevel ?? DEFAULT_CONFIDENCE_LEVEL
+  );
 
   const resetForNewRun = useCallback(() => {
     setError(null);

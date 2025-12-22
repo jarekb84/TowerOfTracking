@@ -8,6 +8,7 @@ import {
   createLogEntry,
   addLogEntry,
   processRollForLogging,
+  generateRollLogSummary,
 } from './roll-log-logic';
 
 describe('roll-log-logic', () => {
@@ -407,6 +408,68 @@ describe('roll-log-logic', () => {
       expect(result[0].effects).toHaveLength(2);
       expect(result[0].effects[0].effectId).toBe('effect2');
       expect(result[0].effects[1].effectId).toBe('effect3');
+    });
+  });
+
+  describe('generateRollLogSummary', () => {
+    const createMockEntry = (
+      rollNumber: number,
+      effects: RollLogEffect[]
+    ): RollLogEntry => ({
+      rollNumber,
+      totalShards: rollNumber * 100,
+      rollCost: 100,
+      effects,
+    });
+
+    it('returns "Empty" when no entries', () => {
+      expect(generateRollLogSummary([])).toBe('Empty');
+    });
+
+    it('returns singular "entry" for one entry', () => {
+      const entries = [
+        createMockEntry(1, [
+          { effectId: 'e1', name: 'Effect 1', rarity: 'legendary', shortName: 'L' },
+        ]),
+      ];
+      expect(generateRollLogSummary(entries)).toBe('1 entry | Latest: Legendary');
+    });
+
+    it('returns plural "entries" for multiple entries', () => {
+      const entries = [
+        createMockEntry(2, [
+          { effectId: 'e1', name: 'Effect 1', rarity: 'mythic', shortName: 'M' },
+        ]),
+        createMockEntry(1, [
+          { effectId: 'e2', name: 'Effect 2', rarity: 'epic', shortName: 'E' },
+        ]),
+      ];
+      expect(generateRollLogSummary(entries)).toBe('2 entries | Latest: Mythic');
+    });
+
+    it('shows highest rarity from latest entry', () => {
+      const entries = [
+        createMockEntry(1, [
+          { effectId: 'e1', name: 'Effect 1', rarity: 'rare', shortName: 'R' },
+          { effectId: 'e2', name: 'Effect 2', rarity: 'ancestral', shortName: 'A' },
+          { effectId: 'e3', name: 'Effect 3', rarity: 'epic', shortName: 'E' },
+        ]),
+      ];
+      expect(generateRollLogSummary(entries)).toBe('1 entry | Latest: Ancestral');
+    });
+
+    it('returns just count when latest entry has no effects', () => {
+      const entries = [createMockEntry(1, [])];
+      expect(generateRollLogSummary(entries)).toBe('1 entry');
+    });
+
+    it('handles large entry counts', () => {
+      const entries = Array.from({ length: 100 }, (_, i) =>
+        createMockEntry(i + 1, [
+          { effectId: 'e1', name: 'Effect 1', rarity: 'common', shortName: 'C' },
+        ])
+      );
+      expect(generateRollLogSummary(entries)).toBe('100 entries | Latest: Common');
     });
   });
 });

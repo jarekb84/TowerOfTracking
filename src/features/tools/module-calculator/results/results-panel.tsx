@@ -6,9 +6,9 @@
 
 import type { SimulationResults, CalculatorConfig, ConfidenceLevel } from '../types';
 import { CostDistributionChart } from './cost-distribution-chart';
-import { formatRunCount } from './results-formatters';
+import { formatRunCount, generateSimulationSummary } from './results-formatters';
 import { CONFIDENCE_LEVELS } from './confidence-level-logic';
-import { Button } from '@/components/ui';
+import { Button, CollapsibleCard } from '@/components/ui';
 
 interface ResultsPanelProps {
   results: SimulationResults | null;
@@ -20,6 +20,8 @@ interface ResultsPanelProps {
   onConfidenceLevelChange: (level: ConfidenceLevel) => void;
   onRunSimulation: () => void;
   onCancel: () => void;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 export function ResultsPanel({
@@ -32,15 +34,26 @@ export function ResultsPanel({
   onConfidenceLevelChange,
   onRunSimulation,
   onCancel,
+  isExpanded,
+  onToggle,
 }: ResultsPanelProps) {
   const hasTargets = config.slotTargets.length > 0;
 
+  const summary = generateSimulationSummary(
+    results ? results.shardCost : null,
+    isRunning,
+    progress,
+    hasTargets
+  );
+
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <h3 className="text-lg font-semibold text-slate-200">
-        Estimated Shard Cost
-      </h3>
+    <CollapsibleCard
+      title="Monte Carlo Simulation"
+      summary={summary}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+    >
+      <div className="space-y-4">
 
       {/* Confidence Selector and Run Button */}
       <div className="flex items-center gap-2">
@@ -65,7 +78,7 @@ export function ResultsPanel({
 
       {/* Results Content */}
       {results && !isRunning && (
-        <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
+        <>
           <CostDistributionChart
             statistics={results.shardCost}
             histogram={results.shardCostHistogram}
@@ -73,14 +86,15 @@ export function ResultsPanel({
           <div className="mt-4 text-sm text-slate-400 text-center">
             {formatRunCount(results.runCount)}
           </div>
-        </div>
+        </>
       )}
 
       {/* Empty State */}
       {!results && !isRunning && !error && (
         <EmptyState hasTargets={hasTargets} />
       )}
-    </div>
+      </div>
+    </CollapsibleCard>
   );
 }
 

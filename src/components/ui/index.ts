@@ -5,6 +5,7 @@ export * from "./button-group";
 export * from "./calendar";
 export * from "./card";
 export * from "./chart";
+export * from "./collapsible-card";
 export * from "./dialog";
 export * from "./empty-state";
 export * from "./form-field";

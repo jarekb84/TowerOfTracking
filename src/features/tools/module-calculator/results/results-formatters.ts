@@ -109,3 +109,28 @@ export function formatRunCount(count: number): string {
 export function formatConfidenceMessage(percentile95: number): string {
   return `95% of runs cost less than ${formatCost(percentile95)} shards`;
 }
+
+/**
+ * Generate collapsed header summary for Monte Carlo Simulation panel
+ * Format: "Best: 450 | Typ: 1.2K | Worst: 3.8K" or "Simulating... 45%" or "No results yet"
+ */
+export function generateSimulationSummary(
+  results: { percentile10: number; median: number; percentile90: number } | null,
+  isRunning: boolean,
+  progress: number,
+  hasTargets: boolean
+): string {
+  if (isRunning) {
+    return `Simulating... ${progress.toFixed(0)}%`;
+  }
+
+  if (results) {
+    return `Best: ${formatCost(results.percentile10)} | Typ: ${formatCost(results.median)} | Worst: ${formatCost(results.percentile90)}`;
+  }
+
+  if (!hasTargets) {
+    return 'No targets selected';
+  }
+
+  return 'Ready to simulate';
+}

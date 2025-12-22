@@ -2,17 +2,18 @@
  * Manual Mode Panel
  *
  * Main container for the manual practice mode.
+ * Note: RollLog is rendered separately as its own collapsible card.
  */
 
 import type { Rarity } from '@/shared/domain/module-data';
-import { getSubEffectById } from '@/shared/domain/module-data';
 import type { UseManualModeResult } from './use-manual-mode';
 import type { ShardMode } from './types';
+import { generatePracticeModeSummary } from './manual-mode-summary';
+import { BannedEffectsDisplay } from '../banned-effects-display';
 import { ModuleHeader } from './module-header';
 import { EffectSlotsTable } from './effect-slots';
 import { ShardCounter } from './shard-counter';
-import { RollLog } from './roll-log';
-import { Button } from '@/components/ui';
+import { Button, CollapsibleCard } from '@/components/ui';
 
 interface ManualModePanelProps {
   moduleRarity: Rarity;
@@ -20,6 +21,8 @@ interface ManualModePanelProps {
   slotCount: number;
   bannedEffects: string[];
   manualMode: UseManualModeResult;
+  isExpanded: boolean;
+  onToggle: () => void;
 }
 
 export function ManualModePanel({
@@ -28,12 +31,27 @@ export function ManualModePanel({
   slotCount,
   bannedEffects,
   manualMode,
+  isExpanded,
+  onToggle,
 }: ManualModePanelProps) {
   const maxLocks = Math.max(0, slotCount - 1);
 
+  const summary = generatePracticeModeSummary(
+    manualMode.isActive,
+    manualMode.state?.rollCount ?? 0,
+    manualMode.state?.totalSpent ?? 0
+  );
+
   if (!manualMode.isActive) {
     return (
-      <InactiveState onActivate={manualMode.activate} />
+      <CollapsibleCard
+        title="Manual Practice Mode"
+        summary={summary}
+        isExpanded={isExpanded}
+        onToggle={onToggle}
+      >
+        <InactiveContent onActivate={manualMode.activate} />
+      </CollapsibleCard>
     );
   }
 
@@ -44,140 +62,123 @@ export function ManualModePanel({
   const lockedCount = manualMode.state.slots.filter((s) => s.isLocked).length;
 
   return (
-    <div className="space-y-4">
-      <PanelHeader onReset={manualMode.reset} onExit={manualMode.deactivate} />
+    <CollapsibleCard
+      title="Manual Practice Mode"
+      summary={summary}
+      isExpanded={isExpanded}
+      onToggle={onToggle}
+    >
+      <div className="space-y-4">
+        <ActiveHeader onReset={manualMode.reset} onExit={manualMode.deactivate} />
 
-      {/* Module Info */}
-      <ModuleHeader
-        moduleRarity={moduleRarity}
-        moduleLevel={moduleLevel}
-      />
+        {/* Module Info Section */}
+        <div className="border-t border-slate-700/30 pt-3">
+          <ModuleHeader
+            moduleRarity={moduleRarity}
+            moduleLevel={moduleLevel}
+          />
+        </div>
 
-      {/* Completion State */}
-      {manualMode.state.isComplete && (
-        <CompletionBanner
-          totalSpent={manualMode.state.totalSpent}
-          rollCount={manualMode.state.rollCount}
-        />
-      )}
+        {/* Completion State */}
+        {manualMode.state.isComplete && (
+          <CompletionBanner
+            totalSpent={manualMode.state.totalSpent}
+            rollCount={manualMode.state.rollCount}
+          />
+        )}
 
-      {/* Effect Slots */}
-      <EffectSlotsTable
-        slots={manualMode.state.slots}
-        onLockSlot={manualMode.lockSlot}
-        onUnlockSlot={manualMode.unlockSlot}
-        maxLocks={maxLocks}
-        lockedCount={lockedCount}
-      />
+        {/* Effect Slots Section */}
+        <div className="border-t border-slate-700/30 pt-3">
+          <EffectSlotsTable
+            slots={manualMode.state.slots}
+            onLockSlot={manualMode.lockSlot}
+            onUnlockSlot={manualMode.unlockSlot}
+            maxLocks={maxLocks}
+            lockedCount={lockedCount}
+          />
+        </div>
 
-      {/* Banned Effects */}
-      {bannedEffects.length > 0 && (
-        <BannedEffectsInfo
-          effectNames={bannedEffects.map((id) => {
-            const effect = getSubEffectById(id);
-            return effect?.displayName ?? id;
-          })}
-        />
-      )}
+        {/* Banned Effects */}
+        <BannedEffectsDisplay bannedEffectIds={bannedEffects} />
 
-      {/* Shard Counter and Controls */}
-      <ShardCounter
-        shardMode={manualMode.state.shardMode}
-        balance={manualMode.currentBalance}
-        rollCost={manualMode.currentRollCost}
-        rollCount={manualMode.state.rollCount}
-        balanceStatus={manualMode.balanceStatus}
-        canRoll={manualMode.canRoll}
-        rollDisabledReason={manualMode.rollDisabledReason}
-        canAutoRoll={manualMode.canAutoRollNow}
-        autoRollDisabledReason={manualMode.autoRollDisabledReason}
-        isAutoRolling={manualMode.state.isAutoRolling}
-        onRoll={manualMode.roll}
-        onStartAutoRoll={manualMode.startAutoRoll}
-        onStopAutoRoll={manualMode.stopAutoRoll}
-      />
-
-      {/* Roll Log */}
-      <RollLog
-        logEnabled={manualMode.logEnabled}
-        minimumLogRarity={manualMode.minimumLogRarity}
-        logEntries={manualMode.logEntries}
-        onLogEnabledChange={manualMode.setLogEnabled}
-        onMinimumRarityChange={manualMode.setMinimumLogRarity}
-        onClearLog={manualMode.clearLog}
-      />
-    </div>
+        {/* Actions Section */}
+        <div className="border-t border-slate-700/30 pt-3">
+          <ShardCounter
+            shardMode={manualMode.state.shardMode}
+            balance={manualMode.currentBalance}
+            rollCost={manualMode.currentRollCost}
+            rollCount={manualMode.state.rollCount}
+            balanceStatus={manualMode.balanceStatus}
+            canRoll={manualMode.canRoll}
+            rollDisabledReason={manualMode.rollDisabledReason}
+            canAutoRoll={manualMode.canAutoRollNow}
+            autoRollDisabledReason={manualMode.autoRollDisabledReason}
+            isAutoRolling={manualMode.state.isAutoRolling}
+            onRoll={manualMode.roll}
+            onStartAutoRoll={manualMode.startAutoRoll}
+            onStopAutoRoll={manualMode.stopAutoRoll}
+          />
+        </div>
+      </div>
+    </CollapsibleCard>
   );
 }
 
-interface InactiveStateProps {
+interface InactiveContentProps {
   onActivate: (shardMode: ShardMode, startingBalance?: number) => void;
 }
 
-interface PanelHeaderProps {
+interface ActiveHeaderProps {
   onReset: () => void;
   onExit: () => void;
 }
 
-function PanelHeader({ onReset, onExit }: PanelHeaderProps) {
+function ActiveHeader({ onReset, onExit }: ActiveHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
-      <h3 className="text-lg font-semibold text-slate-200">
-        Manual Practice Mode
-      </h3>
-      <div className="flex items-center gap-1.5">
-        <Button variant="ghost" size="compact" onClick={onReset} className="text-slate-400 hover:text-slate-200">
-          <ResetIcon />
-          Reset
-        </Button>
-        <Button variant="ghost" size="compact" onClick={onExit} className="text-slate-400 hover:text-red-400">
-          <ExitIcon />
-          Exit
-        </Button>
-      </div>
+    <div className="flex items-center justify-end gap-1.5">
+      <Button variant="ghost" size="compact" onClick={onReset} className="text-slate-400 hover:text-slate-200">
+        <ResetIcon />
+        Reset
+      </Button>
+      <Button variant="ghost" size="compact" onClick={onExit} className="text-slate-400 hover:text-red-400">
+        <ExitIcon />
+        Exit
+      </Button>
     </div>
   );
 }
 
-function InactiveState({ onActivate }: InactiveStateProps) {
+function InactiveContent({ onActivate }: InactiveContentProps) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-200">
-        Manual Practice Mode
-      </h3>
-
-      <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
-        <div className="text-center space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-orange-500/10 border border-orange-500/20">
-              <DiceIcon />
-            </div>
-            <p className="text-sm text-slate-400">
-              Practice rolling manually to build intuition for module costs
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2.5 pt-2">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onActivate('accumulator', 0)}
-              className="w-full gap-2"
-            >
-              <CountUpIcon />
-              Start Practicing (Count Up)
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onActivate('budget', 10000)}
-              className="w-full gap-2"
-            >
-              <BudgetIcon />
-              Start with Budget (10,000)
-            </Button>
-          </div>
+    <div className="text-center space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-orange-500/10 border border-orange-500/20">
+          <DiceIcon />
         </div>
+        <p className="text-sm text-slate-400">
+          Practice rolling manually to build intuition for module costs
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2.5 pt-2">
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => onActivate('accumulator', 0)}
+          className="w-full gap-2"
+        >
+          <CountUpIcon />
+          Start Practicing (Count Up)
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onActivate('budget', 10000)}
+          className="w-full gap-2"
+        >
+          <BudgetIcon />
+          Start with Budget (10,000)
+        </Button>
       </div>
     </div>
   );
@@ -260,24 +261,3 @@ function CompletionBanner({ totalSpent, rollCount }: CompletionBannerProps) {
   );
 }
 
-interface BannedEffectsInfoProps {
-  effectNames: string[];
-}
-
-function BannedEffectsInfo({ effectNames }: BannedEffectsInfoProps) {
-  return (
-    <div className="px-3 py-2 rounded-md bg-slate-800/20 border border-slate-700/30 space-y-1">
-      <div className="flex items-center gap-2">
-        <svg className="w-4 h-4 text-red-400/70" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z" />
-        </svg>
-        <span className="text-xs text-slate-400 font-medium">
-          Effects banned from pool:
-        </span>
-      </div>
-      <div className="ml-6 text-xs text-slate-500">
-        {effectNames.join(', ')}
-      </div>
-    </div>
-  );
-}

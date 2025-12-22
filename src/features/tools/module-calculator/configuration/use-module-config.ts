@@ -17,6 +17,15 @@ import {
   ROLLABLE_MODULE_RARITIES,
 } from './module-config-logic';
 
+/**
+ * Initial configuration values for persistence
+ */
+export interface InitialModuleConfigValues {
+  moduleType: ModuleType;
+  moduleLevel: number;
+  moduleRarity: Rarity;
+}
+
 interface UseModuleConfigResult {
   /** Current configuration */
   config: CalculatorConfig;
@@ -50,11 +59,19 @@ interface UseModuleConfigResult {
 }
 
 export function useModuleConfig(
-  initialModuleType: ModuleType = 'cannon'
+  initialModuleType: ModuleType = 'cannon',
+  initialValues?: InitialModuleConfigValues
 ): UseModuleConfigResult {
-  const [config, setConfig] = useState<CalculatorConfig>(() =>
-    createDefaultConfig(initialModuleType)
-  );
+  const [config, setConfig] = useState<CalculatorConfig>(() => {
+    if (initialValues) {
+      const baseConfig = createDefaultConfig(initialValues.moduleType);
+      return updateModuleRarity(
+        updateModuleLevel(baseConfig, initialValues.moduleLevel),
+        initialValues.moduleRarity
+      );
+    }
+    return createDefaultConfig(initialModuleType);
+  });
 
   const setModuleType = useCallback((moduleType: ModuleType) => {
     setConfig((prev) => updateModuleType(prev, moduleType));

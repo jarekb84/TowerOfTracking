@@ -5,13 +5,21 @@
  * simulation results, and manual mode.
  */
 
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import type { ModuleType } from '@/shared/domain/module-data';
 import type { CalculatorConfig } from './types';
 import { useModuleConfig } from './configuration/use-module-config';
 import { useSubEffectTable } from './sub-effect-table/use-sub-effect-table';
 import { useSimulationResults } from './results/use-simulation-results';
 import { useManualMode } from './manual-mode';
+import {
+  loadPersistedState,
+  useModuleCalcPersistenceSave,
+} from './persistence/use-module-calc-persistence';
+import {
+  loadModuleCalcState,
+  deserializeSelections,
+} from './persistence/module-calc-persistence';
 
 interface UseModuleCalculatorResult {
   /** Module configuration state and handlers */
@@ -39,13 +47,27 @@ interface UseModuleCalculatorResult {
 export function useModuleCalculator(
   initialModuleType: ModuleType = 'cannon'
 ): UseModuleCalculatorResult {
-  const config = useModuleConfig(initialModuleType);
+  // Load persisted state once on mount (before initializing sub-hooks)
+  const [initialState] = useState(() => loadPersistedState());
+
+  // Initialize sub-hooks with persisted state
+  const config = useModuleConfig(initialModuleType, initialState.configValues);
   const table = useSubEffectTable(
     config.config.moduleType,
     config.config.moduleRarity,
-    config.config.slotCount
+    config.config.slotCount,
+    initialState.selections
   );
-  const simulation = useSimulationResults();
+  const simulation = useSimulationResults(initialState.confidenceLevel);
+
+  // Save state changes to localStorage with debouncing
+  useModuleCalcPersistenceSave({
+    moduleType: config.config.moduleType,
+    moduleLevel: config.config.moduleLevel,
+    moduleRarity: config.config.moduleRarity,
+    selections: table.selections,
+    confidenceLevel: simulation.confidenceLevel,
+  });
 
   // Build the complete calculator config from current state
   const calculatorConfig = useMemo<CalculatorConfig>(() => ({
@@ -105,9 +127,34 @@ export function useModuleCalculator(
     manualMode.deactivate();
   }, [table, simulation, manualMode]);
 
-  // Clear selections when module type changes
+  // Track the previous module type to detect actual changes (not initial render)
+  const previousModuleTypeRef = useRef(config.config.moduleType);
+
+  // Load persisted selections when module type changes (skip initial render)
   useEffect(() => {
-    table.clearAllSelections();
+    // Skip if this is the initial render (module type hasn't actually changed)
+    if (previousModuleTypeRef.current === config.config.moduleType) {
+      return;
+    }
+
+    // Update the ref and load persisted state for the new module type
+    previousModuleTypeRef.current = config.config.moduleType;
+
+    // Load persisted state for the new module type
+    const persistedState = loadModuleCalcState(config.config.moduleType);
+    const selections = deserializeSelections(persistedState.selections);
+
+    // Apply persisted selections to the table
+    table.setSelections(selections);
+
+    // Update config values from persisted state
+    config.setModuleLevel(persistedState.moduleLevel);
+    config.setModuleRarity(persistedState.moduleRarity);
+
+    // Update confidence level from persisted state
+    simulation.setConfidenceLevel(persistedState.confidenceLevel);
+
+    // Clear simulation results since we're switching modules
     simulation.clearResults();
   }, [config.config.moduleType]);
 
