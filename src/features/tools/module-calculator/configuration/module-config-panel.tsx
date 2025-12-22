@@ -5,6 +5,7 @@
  * Displays available slots based on level.
  */
 
+import { RotateCcw } from 'lucide-react';
 import type { ModuleType, Rarity } from '@/shared/domain/module-data';
 import {
   MODULE_TYPE_CONFIGS,
@@ -13,7 +14,7 @@ import {
   RARITY_CONFIG_MAP,
 } from '@/shared/domain/module-data';
 import { ROLLABLE_MODULE_RARITIES } from './module-config-logic';
-import { Input, Select, FormControl } from '@/components/ui';
+import { Input, Select, FormControl, Button } from '@/components/ui';
 
 interface ModuleConfigPanelProps {
   moduleType: ModuleType;
@@ -23,6 +24,7 @@ interface ModuleConfigPanelProps {
   onModuleTypeChange: (type: ModuleType) => void;
   onModuleLevelChange: (level: number) => void;
   onModuleRarityChange: (rarity: Rarity) => void;
+  onReset: () => void;
 }
 
 export function ModuleConfigPanel({
@@ -33,6 +35,7 @@ export function ModuleConfigPanel({
   onModuleTypeChange,
   onModuleLevelChange,
   onModuleRarityChange,
+  onReset,
 }: ModuleConfigPanelProps) {
   return (
     <div className="space-y-4">
@@ -53,6 +56,18 @@ export function ModuleConfigPanel({
           onChange={onModuleRarityChange}
         />
         <SlotDisplay count={slotCount} />
+        <div className="ml-auto">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReset}
+            className="text-slate-400 hover:text-slate-200"
+            title="Reset all selections for this module"
+          >
+            <RotateCcw className="h-4 w-4 mr-1.5" />
+            Reset
+          </Button>
+        </div>
       </div>
     </div>
   );
