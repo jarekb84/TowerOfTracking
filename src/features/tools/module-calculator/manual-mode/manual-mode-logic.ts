@@ -118,6 +118,7 @@ export function initializeManualMode(
     totalSpent: 0,
     isComplete: false,
     isAutoRolling: false,
+    logEntries: [],
   };
 }
 

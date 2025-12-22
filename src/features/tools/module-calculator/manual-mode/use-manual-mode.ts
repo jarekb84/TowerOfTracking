@@ -9,7 +9,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { Rarity } from '@/shared/domain/module-data';
 import type { CalculatorConfig } from '../types';
-import type { ManualModeState, ShardMode, ManualModeConfig } from './types';
+import type { ManualModeState, ShardMode, ManualModeConfig, RollLogEntry } from './types';
 import {
   initializeManualMode,
   executeRoll,
@@ -25,6 +25,7 @@ import {
   getBalanceStatus,
   buildMinRarityMap,
 } from './manual-mode-logic';
+import { processRollForLogging } from './roll-log';
 
 const AUTO_ROLL_DELAY_MS = 100;
 
@@ -81,6 +82,25 @@ export interface UseManualModeResult {
 
   /** Balance status for UI styling */
   balanceStatus: 'normal' | 'warning' | 'critical';
+
+  // Roll Log
+  /** Whether roll logging is enabled */
+  logEnabled: boolean;
+
+  /** Minimum rarity threshold for logging */
+  minimumLogRarity: Rarity;
+
+  /** Current log entries */
+  logEntries: RollLogEntry[];
+
+  /** Toggle log enabled state */
+  setLogEnabled: (enabled: boolean) => void;
+
+  /** Set minimum rarity threshold for logging */
+  setMinimumLogRarity: (rarity: Rarity) => void;
+
+  /** Clear all log entries */
+  clearLog: () => void;
 }
 
 export function useManualMode(
@@ -92,6 +112,28 @@ export function useManualMode(
   const [lastShardMode, setLastShardMode] = useState<ShardMode>('accumulator');
   const [lastStartingBalance, setLastStartingBalance] = useState<number>(0);
   const autoRollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Roll log settings (kept separate from state to avoid re-render on every roll)
+  const [logEnabled, setLogEnabled] = useState(true);
+  const [minimumLogRarity, setMinimumLogRarityInternal] = useState<Rarity>(config.moduleRarity);
+  // Track if user has manually customized the rarity filter
+  const hasCustomizedLogRarity = useRef(false);
+  // Use ref to access current log settings in auto-roll interval
+  const logSettingsRef = useRef({ logEnabled, minimumLogRarity });
+  logSettingsRef.current = { logEnabled, minimumLogRarity };
+
+  // Sync minimumLogRarity with moduleRarity when it changes (unless user customized)
+  useEffect(() => {
+    if (!hasCustomizedLogRarity.current) {
+      setMinimumLogRarityInternal(config.moduleRarity);
+    }
+  }, [config.moduleRarity]);
+
+  // Wrapper to track user customization
+  const setMinimumLogRarity = useCallback((rarity: Rarity) => {
+    hasCustomizedLogRarity.current = true;
+    setMinimumLogRarityInternal(rarity);
+  }, []);
 
   // Build mode config from calculator config
   const modeConfig = useMemo<ManualModeConfig>(
@@ -148,20 +190,33 @@ export function useManualMode(
 
     const { newState, result } = executeRoll(state, modeConfig);
 
+    // Process logging and update state with any new log entries
+    const updatedLogEntries = processRollForLogging({
+      slots: result.slots,
+      filledSlotIndexes: result.filledSlotIndexes,
+      rollNumber: newState.rollCount,
+      totalSpent: newState.totalSpent,
+      rollCost: result.shardCost,
+      logEntries: newState.logEntries,
+      minimumLogRarity,
+      logEnabled,
+    });
+    const stateWithLog = { ...newState, logEntries: updatedLogEntries };
+
     // Check for completion
-    if (checkCompletion(newState, config.slotTargets)) {
-      setState(markComplete(newState));
+    if (checkCompletion(stateWithLog, config.slotTargets)) {
+      setState(markComplete(stateWithLog));
       stopAutoRollInternal();
       return;
     }
 
-    setState(newState);
+    setState(stateWithLog);
 
     // If auto-rolling and we hit a target, stop
     if (state.isAutoRolling && result.hasTargetHit) {
       stopAutoRollInternal();
     }
-  }, [state, modeConfig, config.slotTargets, stopAutoRollInternal]);
+  }, [state, modeConfig, config.slotTargets, stopAutoRollInternal, logEnabled, minimumLogRarity]);
 
   const handleLockSlot = useCallback(
     (slotNumber: number) => {
@@ -236,16 +291,30 @@ export function useManualMode(
 
         const { newState, result } = executeRoll(currentState, modeConfig);
 
+        // Process logging (use ref for current settings to avoid stale closures)
+        const { logEnabled: currentLogEnabled, minimumLogRarity: currentMinRarity } = logSettingsRef.current;
+        const updatedLogEntries = processRollForLogging({
+          slots: result.slots,
+          filledSlotIndexes: result.filledSlotIndexes,
+          rollNumber: newState.rollCount,
+          totalSpent: newState.totalSpent,
+          rollCost: result.shardCost,
+          logEntries: newState.logEntries,
+          minimumLogRarity: currentMinRarity,
+          logEnabled: currentLogEnabled,
+        });
+        const stateWithLog = { ...newState, logEntries: updatedLogEntries };
+
         // Stop on target hit (let user decide to lock)
         if (result.hasTargetHit) {
           if (autoRollIntervalRef.current) {
             clearInterval(autoRollIntervalRef.current);
             autoRollIntervalRef.current = null;
           }
-          return setAutoRolling(newState, false);
+          return setAutoRolling(stateWithLog, false);
         }
 
-        return newState;
+        return stateWithLog;
       });
     }, AUTO_ROLL_DELAY_MS);
   }, [state, modeConfig, config.slotTargets]);
@@ -258,6 +327,9 @@ export function useManualMode(
     stopAutoRollInternal();
     const newState = initializeManualMode(config, lastShardMode, lastStartingBalance);
     setState(newState);
+    // Reset log rarity customization so it syncs with module rarity again
+    hasCustomizedLogRarity.current = false;
+    setMinimumLogRarityInternal(config.moduleRarity);
   }, [config, lastShardMode, lastStartingBalance, stopAutoRollInternal]);
 
   const deactivate = useCallback(() => {
@@ -279,6 +351,14 @@ export function useManualMode(
 
   const balanceStatus = useMemo(() => (state ? getBalanceStatus(state) : 'normal'), [state]);
 
+  // Log entries from state
+  const logEntries = useMemo(() => (state ? state.logEntries : []), [state]);
+
+  // Clear log entries
+  const clearLog = useCallback(() => {
+    setState((prev) => (prev ? { ...prev, logEntries: [] } : null));
+  }, []);
+
   return {
     state,
     isActive: state !== null,
@@ -297,5 +377,12 @@ export function useManualMode(
     currentRollCost,
     currentBalance,
     balanceStatus,
+    // Roll log
+    logEnabled,
+    minimumLogRarity,
+    logEntries,
+    setLogEnabled,
+    setMinimumLogRarity,
+    clearLog,
   };
 }

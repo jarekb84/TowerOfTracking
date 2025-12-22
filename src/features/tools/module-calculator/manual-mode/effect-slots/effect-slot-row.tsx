@@ -4,7 +4,7 @@
  * Single slot row with effect display and lock toggle for manual mode.
  */
 
-import type { ManualSlot } from './types';
+import type { ManualSlot } from '../types';
 import { getRarityColor } from '@/shared/domain/module-data';
 
 interface EffectSlotRowProps {
