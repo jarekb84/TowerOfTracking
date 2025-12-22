@@ -1,20 +1,23 @@
 /**
  * Manual Mode Logic
  *
- * Pure functions for managing manual mode state, rolling, and locking.
- * State query utilities are in state-utils.ts.
+ * Orchestrates manual practice mode, providing state management for
+ * user-controlled rolling sessions.
+ *
+ * All rolling logic is delegated to simulation-engine.ts (single source of truth).
+ * This ensures manual mode behaves identically to Monte Carlo simulation.
  */
 
 import type { Rarity, SubEffectConfig } from '@/shared/domain/module-data';
 import { getLockCost } from '@/shared/domain/module-data/modules/lock-costs';
-import type { CalculatorConfig, SlotTarget, PreLockedEffect } from '../types';
+import type { CalculatorConfig, PreLockedEffect } from '../types';
+import { buildInitialPool, preparePool } from '../simulation/pool-dynamics';
 import {
-  buildInitialPool,
-  preparePool,
-  simulateRollFast,
-  removeEffectFromPreparedPool,
-  checkTargetMatch,
-} from '../simulation/pool-dynamics';
+  rollRound,
+  lockEffect,
+  buildMinRarityMap,
+  removeLockedEffectFromTargets,
+} from '../simulation/simulation-engine';
 import type {
   ManualSlot,
   ManualModeState,
@@ -24,9 +27,11 @@ import type {
   ManualModeConfig,
 } from './types';
 
+// Re-export for external consumers
+export { buildMinRarityMap } from '../simulation/simulation-engine';
+
 /**
  * Create a stub effect for pre-locked effects display.
- * The actual effect config would be resolved from the module data.
  */
 function createStubEffect(effectId: string): SubEffectConfig {
   return {
@@ -51,25 +56,6 @@ function createEmptySlot(slotNumber: number): ManualSlot {
 }
 
 /**
- * Build the minimum rarity map from slot targets
- */
-export function buildMinRarityMap(targets: SlotTarget[]): Map<string, Rarity> {
-  const map = new Map<string, Rarity>();
-
-  for (const target of targets) {
-    for (const effectId of target.acceptableEffects) {
-      // Use the lowest min rarity if effect appears in multiple slots
-      const existing = map.get(effectId);
-      if (!existing || target.minRarity < existing) {
-        map.set(effectId, target.minRarity);
-      }
-    }
-  }
-
-  return map;
-}
-
-/**
  * Initialize manual mode state from calculator configuration
  */
 export function initializeManualMode(
@@ -91,27 +77,26 @@ export function initializeManualMode(
   // Build min rarity map for target matching
   const minRarityMap = buildMinRarityMap(config.slotTargets);
 
-  // Initialize slots - pre-locked effects start as locked
+  // Initialize slots
   const slots: ManualSlot[] = [];
   for (let i = 1; i <= config.slotCount; i++) {
-    const preLocked = config.preLockedEffects.find(
-      (_, idx) => idx + 1 === i && config.preLockedEffects.length > 0
-    );
-
-    if (preLocked) {
-      // This is a simplification - pre-locked effects should fill first slots
-      slots.push(createEmptySlot(i));
-    } else {
-      slots.push(createEmptySlot(i));
-    }
+    slots.push(createEmptySlot(i));
   }
 
   // Apply pre-locked effects to first slots
   const preLockedSlots = applyPreLockedEffects(slots, config.preLockedEffects, minRarityMap);
 
+  // Initialize remaining targets from config
+  // Pre-locked effects are removed from targets (same as simulation engine)
+  let remainingTargets = [...config.slotTargets];
+  for (const preLocked of config.preLockedEffects) {
+    remainingTargets = removeLockedEffectFromTargets(remainingTargets, preLocked.effectId);
+  }
+
   return {
     slots: preLockedSlots,
     pool,
+    remainingTargets,
     rollCount: 0,
     shardMode,
     startingBalance,
@@ -140,7 +125,6 @@ function applyPreLockedEffects(
   for (const preLocked of preLockedEffects) {
     if (slotIndex >= result.length) break;
 
-    // Check if this pre-locked effect matches any target
     const isTargetMatch = minRarityMap.has(preLocked.effectId);
 
     result[slotIndex] = {
@@ -157,14 +141,16 @@ function applyPreLockedEffects(
 }
 
 /**
- * Execute a roll, filling all open (unlocked) slots
+ * Execute a roll, filling all open (unlocked) slots.
+ *
+ * Uses the simulation engine's rollRound - the SAME function Monte Carlo uses.
+ * This ensures identical rolling behavior between manual mode and simulations.
  */
-// eslint-disable-next-line max-statements
 export function executeRoll(
   state: ManualModeState,
   modeConfig: ManualModeConfig
 ): { newState: ManualModeState; result: RollResult } {
-  const { targets, minRarityMap } = modeConfig;
+  const { minRarityMap } = modeConfig;
 
   // Find open (unlocked) slots
   const openSlotIndexes = state.slots
@@ -173,13 +159,13 @@ export function executeRoll(
     .map(({ index }) => index);
 
   if (openSlotIndexes.length === 0) {
-    // All slots locked - no roll needed
     return {
       newState: state,
       result: {
         slots: state.slots,
         shardCost: 0,
         hasTargetHit: false,
+        hasCurrentPriorityHit: false,
         filledSlotIndexes: [],
       },
     };
@@ -189,41 +175,29 @@ export function executeRoll(
   const lockedCount = state.slots.filter((s) => s.isLocked).length;
   const shardCost = getLockCost(lockedCount);
 
-  // Roll for each open slot
+  // Use the simulation engine's rollRound - SAME function as Monte Carlo
+  const rollResult = rollRound(
+    state.pool,
+    openSlotIndexes.length,
+    state.remainingTargets,
+    minRarityMap
+  );
+
+  // Map the engine results to slot state
   const newSlots = [...state.slots];
-  let hasTargetHit = false;
-  const currentPool = state.pool;
+  for (let i = 0; i < openSlotIndexes.length; i++) {
+    const slotIndex = openSlotIndexes[i];
+    const slotResult = rollResult.slotResults[i];
 
-  for (const slotIndex of openSlotIndexes) {
-    if (currentPool.entries.length === 0) {
-      // Pool exhausted - leave slot empty
+    if (slotResult) {
       newSlots[slotIndex] = {
-        ...newSlots[slotIndex],
-        effect: null,
-        rarity: null,
-        isTargetMatch: false,
+        slotNumber: slotIndex + 1,
+        effect: slotResult.entry.effect,
+        rarity: slotResult.entry.rarity,
+        isLocked: false,
+        isTargetMatch: slotResult.isTargetMatch,
       };
-      continue;
     }
-
-    const random = Math.random();
-    const entry = simulateRollFast(currentPool, random);
-
-    // Check if this roll matches a target
-    const matchedTarget = checkTargetMatch(entry, targets, minRarityMap);
-    const isTargetMatch = matchedTarget !== null;
-
-    if (isTargetMatch) {
-      hasTargetHit = true;
-    }
-
-    newSlots[slotIndex] = {
-      slotNumber: slotIndex + 1,
-      effect: entry.effect,
-      rarity: entry.rarity,
-      isLocked: false,
-      isTargetMatch,
-    };
   }
 
   const newState: ManualModeState = {
@@ -238,14 +212,17 @@ export function executeRoll(
     result: {
       slots: newSlots,
       shardCost,
-      hasTargetHit,
+      hasTargetHit: rollResult.hasTargetHit,
+      hasCurrentPriorityHit: rollResult.hasCurrentPriorityHit,
       filledSlotIndexes: openSlotIndexes,
     },
   };
 }
 
 /**
- * Lock a slot, removing the effect from the pool
+ * Lock a slot, removing the effect from the pool and updating remaining targets.
+ *
+ * Uses the simulation engine's lockEffect - the SAME function Monte Carlo uses.
  */
 export function lockSlot(
   state: ManualModeState,
@@ -258,8 +235,19 @@ export function lockSlot(
     return state;
   }
 
-  // Remove ALL rarities of this effect from pool
-  const newPool = removeEffectFromPreparedPool(state.pool, slot.effect.id);
+  // Find the target slot number for this effect (if it's a target)
+  const matchedTarget = state.remainingTargets.find((t) =>
+    t.acceptableEffects.includes(slot.effect!.id)
+  );
+  const targetSlotNumber = matchedTarget?.slotNumber ?? slotNumber;
+
+  // Use the simulation engine's lockEffect - SAME function as Monte Carlo
+  const { newPool, newRemainingTargets } = lockEffect(
+    state.pool,
+    state.remainingTargets,
+    slot.effect.id,
+    targetSlotNumber
+  );
 
   const newSlots = state.slots.map((s, i) =>
     i === slotIndex ? { ...s, isLocked: true } : s
@@ -269,11 +257,12 @@ export function lockSlot(
     ...state,
     slots: newSlots,
     pool: newPool,
+    remainingTargets: newRemainingTargets,
   };
 }
 
 /**
- * Unlock a slot, restoring the effect to the pool
+ * Unlock a slot, restoring the effect to the pool and remaining targets.
  */
 export function unlockSlot(
   state: ManualModeState,
@@ -306,6 +295,19 @@ export function unlockSlot(
   );
   const newPool = preparePool(newPoolEntries);
 
+  // Recalculate remaining targets from original config
+  let newRemainingTargets = [...config.slotTargets];
+
+  // Remove pre-locked effects
+  for (const preLocked of config.preLockedEffects) {
+    newRemainingTargets = removeLockedEffectFromTargets(newRemainingTargets, preLocked.effectId);
+  }
+
+  // Remove currently locked effects (excluding the one being unlocked)
+  for (const effectId of currentlyLockedEffectIds) {
+    newRemainingTargets = removeLockedEffectFromTargets(newRemainingTargets, effectId);
+  }
+
   const newSlots = state.slots.map((s, i) =>
     i === slotIndex ? { ...s, isLocked: false } : s
   );
@@ -314,27 +316,23 @@ export function unlockSlot(
     ...state,
     slots: newSlots,
     pool: newPool,
+    remainingTargets: newRemainingTargets,
   };
 }
 
 /**
  * Check if a manual roll is allowed.
- * Note: Manual rolls are allowed even after session is "complete" (all targets acquired).
- * The completion state is informational only - users can continue rolling.
  */
 export function canRoll(state: ManualModeState): CanRollResult {
-  // Check if all slots are locked
   const openSlots = state.slots.filter((s) => !s.isLocked);
   if (openSlots.length === 0) {
     return { allowed: false, reason: 'All slots are locked' };
   }
 
-  // Check if pool is exhausted
   if (state.pool.entries.length === 0) {
     return { allowed: false, reason: 'Effect pool is exhausted' };
   }
 
-  // Check budget mode balance
   if (state.shardMode === 'budget') {
     const lockedCount = state.slots.filter((s) => s.isLocked).length;
     const rollCost = getLockCost(lockedCount);
@@ -345,30 +343,25 @@ export function canRoll(state: ManualModeState): CanRollResult {
     }
   }
 
-  // Removed isComplete check - allow manual rolls even after targets acquired
   return { allowed: true, reason: null };
 }
 
 /**
  * Check if auto-roll should be allowed.
- * Auto-roll requires active targets that haven't been acquired yet.
  */
 export function canAutoRoll(
   state: ManualModeState,
-  targets: SlotTarget[]
+  targets: import('../types').SlotTarget[]
 ): CanRollResult {
-  // First check if basic rolling is allowed
   const basicCheck = canRoll(state);
   if (!basicCheck.allowed) {
     return basicCheck;
   }
 
-  // Auto-roll requires unfulfilled targets
   if (targets.length === 0) {
     return { allowed: false, reason: 'No targets configured' };
   }
 
-  // Check if all unique target effects have been acquired
   const unfulfilledCount = countUnfulfilledTargetEffects(state, targets);
   if (unfulfilledCount === 0) {
     return { allowed: false, reason: 'All targets acquired' };
@@ -377,7 +370,25 @@ export function canAutoRoll(
   return { allowed: true, reason: null };
 }
 
-// Re-export state queries for convenient access
+/**
+ * Check if all targets have been acquired
+ */
+export function checkCompletion(
+  state: ManualModeState,
+  targets: import('../types').SlotTarget[]
+): boolean {
+  if (targets.length === 0) {
+    return false;
+  }
+
+  if (state.pool.entries.length === 0) {
+    return true;
+  }
+
+  return countUnfulfilledTargetEffects(state, targets) === 0;
+}
+
+// Re-export state queries
 export {
   getCurrentRollCost,
   getCurrentBalance,
@@ -390,25 +401,4 @@ export {
   countUnfulfilledTargetEffects,
 } from './state-queries';
 
-// Import for local use
 import { countUnfulfilledTargetEffects } from './state-queries';
-
-/**
- * Check if all targets have been acquired
- */
-export function checkCompletion(
-  state: ManualModeState,
-  targets: SlotTarget[]
-): boolean {
-  if (targets.length === 0) {
-    return false;
-  }
-
-  // Check if pool is exhausted
-  if (state.pool.entries.length === 0) {
-    return true;
-  }
-
-  // Complete when all unique target effects have been locked
-  return countUnfulfilledTargetEffects(state, targets) === 0;
-}
