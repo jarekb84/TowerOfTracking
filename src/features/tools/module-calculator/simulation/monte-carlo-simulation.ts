@@ -1,30 +1,32 @@
 /**
  * Monte Carlo Simulation
  *
- * Core simulation logic for estimating module reroll costs.
- * Runs multiple iterations to generate cost distributions.
+ * Runs multiple iterations using the simulation engine to generate
+ * cost distributions for module rerolling.
+ *
+ * This file orchestrates simulations but delegates all rolling logic
+ * to simulation-engine.ts (the single source of truth).
  */
 
 // Note: Using relative import for Web Worker compatibility (path aliases don't resolve in worker bundles)
-import { getLockCost, RARITY_ORDER } from '../../../../shared/domain/module-data';
+import { getLockCost } from '../../../../shared/domain/module-data';
 import type {
   CalculatorConfig,
   SimulationConfig,
   SimulationResults,
   SimulationRun,
-  SlotTarget,
   CostStatistics,
   HistogramBucket,
   PoolEntry,
+  SlotTarget,
 } from '../types';
+import { buildInitialPool, preparePool, type PreparedPool } from './pool-dynamics';
 import {
-  buildInitialPool,
-  preparePool,
-  simulateRollFast,
-  removeEffectFromPreparedPool,
-  checkTargetMatch,
-  type PreparedPool,
-} from './pool-dynamics';
+  rollUntilPriorityHit,
+  lockEffect,
+  buildMinRarityMap,
+  isSimulationComplete,
+} from './simulation-engine';
 
 /** Number of histogram buckets for distribution chart */
 const HISTOGRAM_BUCKET_COUNT = 20;
@@ -94,180 +96,49 @@ function recordLockedEffect(state: SimulationRun, result: LockResult): void {
  *
  * When an effect is locked, ALL rarities of that effect are removed from the pool
  * (you can only have one of each effect type on a module).
+ *
+ * Uses the simulation engine for all rolling logic (single source of truth).
  */
 export function simulateSingleRun(config: CalculatorConfig): SimulationRun {
-  let preparedPool = buildSimulationPool(config);
+  let pool = buildSimulationPool(config);
   let remainingTargets = [...config.slotTargets];
   const preLockedCount = config.preLockedEffects.length;
   const state: SimulationRun = { lockOrder: [], totalRolls: 0, totalShardCost: 0 };
 
-  while (remainingTargets.length > 0 && preparedPool.entries.length > 0) {
-    const currentPriorityTargets = getCurrentPriorityTargets(remainingTargets);
-    const currentPriorityMinRarity = buildMinRarityMap(currentPriorityTargets);
+  // Build the min rarity map once for the entire session
+  const minRarityMap = buildMinRarityMap(config.slotTargets);
+
+  while (!isSimulationComplete(remainingTargets, pool)) {
     const lockedCount = preLockedCount + state.lockOrder.length;
     const openSlots = config.slotCount - lockedCount;
 
-    const roundResult = rollRoundsUntilTargetHit(
-      preparedPool,
-      currentPriorityTargets,
-      currentPriorityMinRarity,
-      openSlots
-    );
-    if (!roundResult) break;
+    // Use the simulation engine's rollUntilPriorityHit
+    // This is the SAME function manual mode uses
+    const rollResult = rollUntilPriorityHit({
+      pool,
+      openSlotCount: openSlots,
+      remainingTargets,
+      minRarityMap,
+    });
 
-    const { entry, target, rounds } = roundResult;
-    recordLockedEffect(state, { entry, target, rounds, shardCostPerRound: getLockCost(lockedCount) });
+    if (!rollResult) break;
 
-    preparedPool = removeEffectFromPreparedPool(preparedPool, entry.effect.id);
-    remainingTargets = removeLockedEffectFromTargets(
-      remainingTargets.filter((t) => t.slotNumber !== target.slotNumber),
-      entry.effect.id
-    );
+    const { entry, target, rounds } = rollResult;
+    recordLockedEffect(state, {
+      entry,
+      target,
+      rounds,
+      shardCostPerRound: getLockCost(lockedCount),
+    });
+
+    // Use the simulation engine's lockEffect
+    // This is the SAME function manual mode uses
+    const lockResult = lockEffect(pool, remainingTargets, entry.effect.id, target.slotNumber);
+    pool = lockResult.newPool;
+    remainingTargets = lockResult.newRemainingTargets;
   }
 
   return state;
-}
-
-/**
- * Roll rounds until we hit a target, simulating multiple open slots per round.
- *
- * Each round, ALL open slots are filled with random effects from the pool.
- * If ANY of these effects matches a target, we return it.
- *
- * This accurately models the game where clicking "Roll" fills all open slots
- * simultaneously for a single shard cost.
- *
- * @param preparedPool - The pool to roll from
- * @param targets - Target effects we're looking for
- * @param minRarityForEffect - Minimum rarity requirements per effect
- * @param openSlots - Number of open slots that get filled each round
- * @returns The first matching effect found and number of rounds taken
- */
-function rollRoundsUntilTargetHit(
-  preparedPool: PreparedPool,
-  targets: SlotTarget[],
-  minRarityForEffect: Map<string, string>,
-  openSlots: number
-): { entry: PoolEntry; target: SlotTarget; rounds: number } | null {
-  let rounds = 0;
-  const maxRounds = 1000000; // Safety limit
-  const effectiveSlots = Math.max(1, openSlots); // At least 1 slot
-
-  while (rounds < maxRounds) {
-    rounds++;
-
-    // Roll ALL open slots in this round
-    for (let slot = 0; slot < effectiveSlots; slot++) {
-      const random = Math.random();
-      const entry = simulateRollFast(preparedPool, random);
-
-      const target = checkTargetMatch(
-        entry,
-        targets,
-        minRarityForEffect as Map<string, import('../../../../shared/domain/module-data').Rarity>
-      );
-
-      // If any slot hits a target, we lock it and this round is done
-      if (target) {
-        return { entry, target, rounds };
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Build a map of effect ID to minimum required rarity across all targets
- */
-function buildMinRarityMap(targets: SlotTarget[]): Map<string, string> {
-  const map = new Map<string, string>();
-
-  for (const target of targets) {
-    for (const effectId of target.acceptableEffects) {
-      const existing = map.get(effectId);
-      if (!existing) {
-        map.set(effectId, target.minRarity);
-      } else {
-        // Keep the lower minimum (more permissive)
-        const existingIndex = RARITY_ORDER.indexOf(
-          existing as import('../../../../shared/domain/module-data').Rarity
-        );
-        const newIndex = RARITY_ORDER.indexOf(target.minRarity);
-        if (newIndex < existingIndex) {
-          map.set(effectId, target.minRarity);
-        }
-      }
-    }
-  }
-
-  return map;
-}
-
-/**
- * Remove a locked effect from all remaining targets' acceptable effects.
- *
- * When an effect is locked, it should no longer be considered for other slots.
- * This is critical for same-priority groups where multiple slots initially share
- * the same acceptable effects pool.
- *
- * Also removes any targets that now have empty acceptable effects (shouldn't happen
- * with proper target construction, but included for safety).
- */
-function removeLockedEffectFromTargets(
-  targets: SlotTarget[],
-  lockedEffectId: string
-): SlotTarget[] {
-  return targets
-    .map((target) => ({
-      ...target,
-      acceptableEffects: target.acceptableEffects.filter((id) => id !== lockedEffectId),
-    }))
-    .filter((target) => target.acceptableEffects.length > 0);
-}
-
-/**
- * Get targets belonging to the current priority group.
- *
- * Priority groups are identified by slot number ranges created during target expansion.
- * Same-priority effects share consecutive slot numbers and the same acceptable effects pool.
- *
- * This function returns all targets that share the minimum slot number's acceptable effects,
- * which represents the current priority group we should be rolling for.
- *
- * Example:
- * - Slots 1,2 accept [A,B] (priority group 1)
- * - Slot 3 accepts [C] (priority group 2)
- *
- * When slot 1 is filled with A, remaining targets are:
- * - Slot 2 accepts [B]
- * - Slot 3 accepts [C]
- *
- * Now slot 2 is the minimum, and we only roll for [B] until it's filled,
- * then move to slot 3 for [C].
- */
-function getCurrentPriorityTargets(targets: SlotTarget[]): SlotTarget[] {
-  if (targets.length === 0) return [];
-
-  const minSlotNumber = Math.min(...targets.map((t) => t.slotNumber));
-
-  // Find all targets that are part of the same priority group as the minimum slot.
-  // Same-priority targets have consecutive slot numbers AND share acceptable effects.
-  // After effects are removed from the pool, they may have fewer effects but still
-  // represent the same priority group.
-  const minSlotTarget = targets.find((t) => t.slotNumber === minSlotNumber)!;
-  const minSlotEffects = new Set(minSlotTarget.acceptableEffects);
-
-  // A target is in the same priority group if it has overlapping acceptable effects
-  // with the minimum slot target (they came from the same priority group originally)
-  return targets.filter((t) => {
-    // Always include the minimum slot
-    if (t.slotNumber === minSlotNumber) return true;
-
-    // Check if this target shares any acceptable effects with the min slot target
-    // (indicating they were originally in the same priority group)
-    return t.acceptableEffects.some((effect) => minSlotEffects.has(effect));
-  });
 }
 
 /**

@@ -45,6 +45,13 @@ export interface ManualModeState {
   /** Current roll pool (effects remaining after locks) */
   pool: PreparedPool;
 
+  /**
+   * Remaining targets that haven't been fulfilled yet.
+   * Updated when effects are locked - locked effects are removed from
+   * each target's acceptableEffects array, matching Monte Carlo behavior.
+   */
+  remainingTargets: SlotTarget[];
+
   /** Number of rolls performed */
   rollCount: number;
 
@@ -79,6 +86,13 @@ export interface RollResult {
 
   /** Whether any slot hit a target */
   hasTargetHit: boolean;
+
+  /**
+   * Whether any slot hit a target in the CURRENT priority group.
+   * This is what should stop auto-rolling - we only stop when we hit
+   * a target we're currently rolling for, not a future priority target.
+   */
+  hasCurrentPriorityHit: boolean;
 
   /** Indexes of slots that were filled */
   filledSlotIndexes: number[];

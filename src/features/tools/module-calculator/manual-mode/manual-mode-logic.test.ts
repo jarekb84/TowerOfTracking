@@ -198,10 +198,11 @@ describe('manual-mode-logic', () => {
     });
 
     it('detects target matches', () => {
-      const config = createTestConfig({ slotCount: 4 });
       const targets: SlotTarget[] = [
         { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'common' },
       ];
+      // Must include slotTargets in config so remainingTargets is initialized
+      const config = createTestConfig({ slotCount: 4, slotTargets: targets });
       const state = initializeManualMode(config, 'accumulator', 0);
       const modeConfig = createModeConfig(targets);
 
@@ -819,6 +820,136 @@ describe('manual-mode-logic', () => {
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toBe('Effect pool is exhausted');
+    });
+  });
+
+  describe('remainingTargets state tracking', () => {
+    it('initializes remainingTargets from slotTargets', () => {
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'rare' },
+        { slotNumber: 2, acceptableEffects: ['critChance'], minRarity: 'rare' },
+      ];
+      const config = createTestConfig({ slotTargets: targets });
+      const state = initializeManualMode(config, 'accumulator', 0);
+
+      expect(state.remainingTargets).toHaveLength(2);
+      expect(state.remainingTargets[0].slotNumber).toBe(1);
+      expect(state.remainingTargets[1].slotNumber).toBe(2);
+    });
+
+    it('removes pre-locked effects from remainingTargets', () => {
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+        { slotNumber: 2, acceptableEffects: ['critFactor'], minRarity: 'rare' },
+      ];
+      const config = createTestConfig({
+        slotTargets: targets,
+        preLockedEffects: [{ effectId: 'attackSpeed', rarity: 'legendary' }],
+      });
+      const state = initializeManualMode(config, 'accumulator', 0);
+
+      // attackSpeed should be removed from slot 1's acceptable effects
+      expect(state.remainingTargets[0].acceptableEffects).toEqual(['critChance']);
+      // slot 2 should be unchanged
+      expect(state.remainingTargets[1].acceptableEffects).toEqual(['critFactor']);
+    });
+
+    it('lockSlot updates remainingTargets by removing the locked effect', () => {
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+        { slotNumber: 2, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+      ];
+      const config = createTestConfig({ slotCount: 4, slotTargets: targets });
+      const state = initializeManualMode(config, 'accumulator', 0);
+      const modeConfig = createModeConfig(targets);
+
+      // Roll to get effects in slots
+      const { newState } = executeRoll(state, modeConfig);
+
+      // Find a slot with attackSpeed and lock it
+      const attackSpeedSlot = newState.slots.findIndex(
+        (s) => s.effect?.id === 'attackSpeed'
+      );
+
+      if (attackSpeedSlot >= 0) {
+        const lockedState = lockSlot(newState, attackSpeedSlot + 1);
+
+        // attackSpeed should be removed from all remaining targets
+        for (const target of lockedState.remainingTargets) {
+          expect(target.acceptableEffects).not.toContain('attackSpeed');
+        }
+      }
+    });
+
+    it('unlockSlot restores remainingTargets correctly', () => {
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+        { slotNumber: 2, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'rare' },
+      ];
+      const config = createTestConfig({ slotCount: 4, slotTargets: targets });
+      const state = initializeManualMode(config, 'accumulator', 0);
+      const modeConfig = createModeConfig(targets);
+
+      // Roll to get effects
+      const { newState } = executeRoll(state, modeConfig);
+
+      // Find a slot and lock it
+      const slotIndex = newState.slots.findIndex((s) => s.effect !== null);
+      if (slotIndex >= 0) {
+        const lockedState = lockSlot(newState, slotIndex + 1);
+        const unlockedState = unlockSlot(lockedState, slotIndex + 1, config);
+
+        // Remaining targets should be restored to original (minus any still-locked effects)
+        expect(unlockedState.remainingTargets).toHaveLength(2);
+      }
+    });
+  });
+
+  describe('hasCurrentPriorityHit tracking', () => {
+    it('distinguishes between current priority and future priority hits', () => {
+      // This test verifies that executeRoll correctly identifies priority hits
+      const targets: SlotTarget[] = [
+        // Priority 1
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'common' },
+        // Priority 2 (different effect, so different priority)
+        { slotNumber: 2, acceptableEffects: ['critFactor'], minRarity: 'common' },
+      ];
+      const config = createTestConfig({ slotCount: 4, slotTargets: targets });
+      const state = initializeManualMode(config, 'accumulator', 0);
+      const modeConfig = createModeConfig(targets);
+
+      // Run rolls until we get some target hits
+      let currentState = state;
+      let hasSeenPriorityHit = false;
+
+      for (let i = 0; i < 100; i++) {
+        const { newState, result } = executeRoll(currentState, modeConfig);
+
+        if (result.hasTargetHit && result.hasCurrentPriorityHit) {
+          hasSeenPriorityHit = true;
+        }
+
+        currentState = newState;
+      }
+
+      // We should see at least priority hits (attackSpeed is priority 1)
+      expect(hasSeenPriorityHit).toBe(true);
+    });
+
+    it('returns both flags as false when no target is hit', () => {
+      // Use a target that's very rare to reduce chance of hitting
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['nonexistentEffect'], minRarity: 'ancestral' },
+      ];
+      const config = createTestConfig({ slotCount: 4, slotTargets: targets });
+      const state = initializeManualMode(config, 'accumulator', 0);
+      const modeConfig = createModeConfig(targets);
+
+      const { result } = executeRoll(state, modeConfig);
+
+      // With a nonexistent effect, we shouldn't hit any target
+      expect(result.hasTargetHit).toBe(false);
+      expect(result.hasCurrentPriorityHit).toBe(false);
     });
   });
 });

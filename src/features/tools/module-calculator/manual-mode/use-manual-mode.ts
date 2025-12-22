@@ -212,8 +212,9 @@ export function useManualMode(
 
     setState(stateWithLog);
 
-    // If auto-rolling and we hit a target, stop
-    if (state.isAutoRolling && result.hasTargetHit) {
+    // If auto-rolling and we hit a CURRENT PRIORITY target, stop
+    // (Only stop for targets we're actively rolling for, not future priority targets)
+    if (state.isAutoRolling && result.hasCurrentPriorityHit) {
       stopAutoRollInternal();
     }
   }, [state, modeConfig, config.slotTargets, stopAutoRollInternal, logEnabled, minimumLogRarity]);
@@ -305,8 +306,9 @@ export function useManualMode(
         });
         const stateWithLog = { ...newState, logEntries: updatedLogEntries };
 
-        // Stop on target hit (let user decide to lock)
-        if (result.hasTargetHit) {
+        // Stop on CURRENT PRIORITY target hit (let user decide to lock)
+        // Only stop for targets in the current priority group, not future priorities
+        if (result.hasCurrentPriorityHit) {
           if (autoRollIntervalRef.current) {
             clearInterval(autoRollIntervalRef.current);
             autoRollIntervalRef.current = null;
