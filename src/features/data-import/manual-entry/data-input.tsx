@@ -48,14 +48,14 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
   };
 
   const handleSave = (): void => {
-    if (!form.duplicateResult?.isDuplicate) {
+    if (!form.duplicateResult?.isDuplicate || form.resolution === 'overwrite') {
       form.handleSave();
     }
     closeModal();
   };
 
   const handleSaveAndContinue = (): void => {
-    if (!form.duplicateResult?.isDuplicate) {
+    if (!form.duplicateResult?.isDuplicate || form.resolution === 'overwrite') {
       form.handleSave();
     }
     form.resetForm();
