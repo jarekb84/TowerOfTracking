@@ -48,8 +48,17 @@ const DataInputComponent = function DataInput({ className }: DataInputProps) {
   };
 
   const handleSave = (): void => {
-    form.handleSave();
+    if (!form.duplicateResult?.isDuplicate) {
+      form.handleSave();
+    }
     closeModal();
+  };
+
+  const handleSaveAndContinue = (): void => {
+    if (!form.duplicateResult?.isDuplicate) {
+      form.handleSave();
+    }
+    form.resetForm();
   };
 
   const handleDateSelect = (date: Date | undefined): void => {
@@ -177,7 +186,7 @@ Coins per hour	860.06B"
             )}
           </ResponsiveDialogBody>
 
-          <ResponsiveDialogFooter mobileLayout="1-2">
+          <ResponsiveDialogFooter mobileLayout="equal">
             <Button 
               variant="outline" 
               onClick={closeModal}
@@ -185,6 +194,17 @@ Coins per hour	860.06B"
             >
               Cancel
             </Button>
+            <Button 
+              onClick={handleSaveAndContinue} 
+              disabled={!form.previewData}
+              className="h-10 shadow-sm hover:shadow-md transition-all duration-200 disabled:shadow-none"
+            >
+              {form.duplicateResult?.isDuplicate 
+                ? (form.resolution === 'overwrite' ? 'Overwrite and Continue' : 'Skip Dup and Continue')
+                : 'Save and Continue'
+              }
+            </Button>
+
             <Button 
               onClick={handleSave} 
               disabled={!form.previewData}
