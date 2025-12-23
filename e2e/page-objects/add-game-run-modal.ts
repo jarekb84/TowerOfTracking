@@ -56,7 +56,7 @@ export class AddGameRunModal {
     this.milestoneRunTypeButton = this.modal.locator('button:has-text("Milestone")');
 
     // Save and Cancel buttons
-    this.saveButton = this.modal.locator('button:has-text("Save")');
+    this.saveButton = this.modal.locator('button:has-text("Save"):not(:has-text("Continue"))');
     this.cancelButton = this.modal.locator('button:has-text("Cancel")');
   }
 
