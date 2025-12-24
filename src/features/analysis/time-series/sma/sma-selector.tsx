@@ -29,7 +29,7 @@ export function SmaSelector({ value, onChange }: SmaSelectorProps) {
         data-testid="sma-selector"
         className={cn(
           "transition-colors duration-200",
-          isActive && "border-orange-500/50 bg-orange-500/5 text-orange-100"
+          isActive && "border-orange-500/50 text-orange-100"
         )}
       >
         {SMA_DROPDOWN_OPTIONS.map((opt) => (
