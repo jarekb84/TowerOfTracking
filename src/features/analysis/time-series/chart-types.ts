@@ -19,8 +19,8 @@ export interface ChartDataPoint {
   runInfo?: RunInfo
   /** Optional period info for weekly/monthly daily averages */
   periodInfo?: PeriodInfo
-  /** SMA value at this point, null if insufficient preceding data */
-  sma?: number | null
+  /** Moving average value at this point, null if insufficient preceding data */
+  movingAverage?: number | null
 }
 
 

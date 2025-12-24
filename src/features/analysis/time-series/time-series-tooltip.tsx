@@ -27,8 +27,8 @@ interface TimeSeriesTooltipProps {
   formatter?: (value: number) => string
   /** Accent color for styling */
   accentColor?: string
-  /** SMA value at this data point (null if insufficient data) */
-  smaValue?: number | null
+  /** Moving average value at this data point (null if insufficient data) */
+  trendValue?: number | null
 }
 
 function TimeSeriesTooltip({
@@ -40,7 +40,7 @@ function TimeSeriesTooltip({
   periodInfo,
   formatter,
   accentColor,
-  smaValue,
+  trendValue,
 }: TimeSeriesTooltipProps) {
   return (
     <div
@@ -73,15 +73,15 @@ function TimeSeriesTooltip({
         </span>
       </div>
 
-      {/* SMA row - only when SMA is enabled and value exists */}
-      {smaValue !== undefined && smaValue !== null && formatter && (
+      {/* Moving average row - only when enabled and value exists */}
+      {trendValue !== undefined && trendValue !== null && formatter && (
         <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
           <span className="text-xs flex items-center gap-1.5">
             <span className="inline-block w-3 h-0.5 bg-orange-500/70 rounded-full" style={{ borderStyle: 'dashed' }} />
-            <span className="text-slate-400">SMA Trend</span>
+            <span className="text-slate-400">Trend Avg</span>
           </span>
           <span className="text-orange-400/80 text-xs tabular-nums font-medium">
-            {formatter(smaValue)}
+            {formatter(trendValue)}
           </span>
         </div>
       )}
@@ -115,8 +115,8 @@ interface TimeSeriesChartTooltipProps {
   formatter: (value: number) => string
   isHourlyPeriod: boolean
   accentColor: string
-  /** Whether to show SMA value in tooltip */
-  showSma?: boolean
+  /** Whether to show moving average value in tooltip */
+  showTrendLine?: boolean
 }
 
 /**
@@ -132,7 +132,7 @@ export function TimeSeriesChartTooltip({
   formatter,
   isHourlyPeriod,
   accentColor,
-  showSma = false,
+  showTrendLine = false,
 }: TimeSeriesChartTooltipProps) {
   if (!active || !payload || !payload.length) return null
 
@@ -150,7 +150,7 @@ export function TimeSeriesChartTooltip({
       periodInfo={dataPoint.periodInfo}
       formatter={formatter}
       accentColor={accentColor}
-      smaValue={showSma ? dataPoint.sma : undefined}
+      trendValue={showTrendLine ? dataPoint.movingAverage : undefined}
     />
   )
 }

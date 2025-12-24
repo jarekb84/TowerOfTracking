@@ -12,10 +12,10 @@ import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
 import { DataPointsCount } from './data-points-count'
 import { TimeSeriesChartTooltip } from './time-series-tooltip'
-import { SmaSelector } from './sma/sma-selector'
-import { calculateSma } from './sma/sma'
-import type { SmaOption } from './sma/sma-types'
-import { loadSmaOption, saveSmaOption } from './sma/sma-persistence'
+import { MovingAverageSelector } from './moving-average/moving-average-selector'
+import { calculateMovingAverage } from './moving-average/moving-average-calculation'
+import type { MovingAveragePeriod } from './moving-average/moving-average-types'
+import { useMovingAverage } from './moving-average/use-moving-average'
 
 interface TimeSeriesChartProps {
   metric: string
@@ -45,8 +45,8 @@ interface FilterControlsProps {
   runTypeFilter: RunTypeFilter
   onRunTypeChange?: (runType: RunTypeFilter) => void
   dataPointCount: number
-  smaOption: SmaOption
-  onSmaChange: (option: SmaOption) => void
+  averagePeriod: MovingAveragePeriod
+  onAveragePeriodChange: (period: MovingAveragePeriod) => void
 }
 
 function FilterControls({
@@ -57,8 +57,8 @@ function FilterControls({
   runTypeFilter,
   onRunTypeChange,
   dataPointCount,
-  smaOption,
-  onSmaChange,
+  averagePeriod,
+  onAveragePeriodChange,
 }: FilterControlsProps) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
@@ -86,8 +86,8 @@ function FilterControls({
           />
         )}
 
-        {/* SMA trend line selector */}
-        <SmaSelector value={smaOption} onChange={onSmaChange} />
+        {/* Moving average trend line selector */}
+        <MovingAverageSelector value={averagePeriod} onChange={onAveragePeriodChange} />
 
         {/* Data points indicator - aligned with controls */}
         <DataPointsCount count={dataPointCount} />
@@ -118,20 +118,8 @@ export function TimeSeriesChart({
   }, [runs, runTypeFilter])
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
 
-  // SMA state with persistence
-  const [smaOption, setSmaOption] = useState<SmaOption>('none')
-
-  // Load persisted SMA option on mount (SSR-safe)
-  useEffect(() => {
-    const savedOption = loadSmaOption(metric)
-    setSmaOption(savedOption)
-  }, [metric])
-
-  // Handle SMA option change with persistence
-  const handleSmaChange = (option: SmaOption) => {
-    setSmaOption(option)
-    saveSmaOption(metric, option)
-  }
+  // Moving average state with localStorage persistence
+  const { averagePeriod, setAveragePeriod, isAverageEnabled } = useMovingAverage(metric)
 
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
@@ -152,13 +140,14 @@ export function TimeSeriesChart({
     return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
   }, [filteredRuns, selectedPeriod, metric])
 
-  // Apply SMA calculation if an SMA option is selected
+  // Apply moving average calculation if a period is selected
   const chartData = useMemo(() => {
-    if (smaOption === 'none') {
+    if (!isAverageEnabled) {
       return baseChartData
     }
-    return calculateSma(baseChartData, smaOption)
-  }, [baseChartData, smaOption])
+    // Type narrowing: isAverageEnabled guarantees averagePeriod is a number (3, 5, or 10)
+    return calculateMovingAverage(baseChartData, averagePeriod as number)
+  }, [baseChartData, averagePeriod, isAverageEnabled])
 
   const yAxisTicks = useMemo(() => {
     if (chartData.length === 0) return []
@@ -197,8 +186,8 @@ export function TimeSeriesChart({
           runTypeFilter={runTypeFilter}
           onRunTypeChange={onRunTypeChange}
           dataPointCount={chartData.length}
-          smaOption={smaOption}
-          onSmaChange={handleSmaChange}
+          averagePeriod={averagePeriod}
+          onAveragePeriodChange={setAveragePeriod}
         />
       </div>
 
@@ -242,7 +231,7 @@ export function TimeSeriesChart({
                 formatter={formatter}
                 isHourlyPeriod={selectedPeriod === 'hourly'}
                 accentColor={currentConfig.color}
-                showSma={smaOption !== 'none'}
+                showTrendLine={isAverageEnabled}
               />
             }
           />
@@ -263,11 +252,11 @@ export function TimeSeriesChart({
             }}
           />
 
-          {/* SMA trend line - only rendered when SMA is enabled */}
-          {smaOption !== 'none' && (
+          {/* Moving average trend line - only rendered when enabled */}
+          {isAverageEnabled && (
             <Line
               type="monotone"
-              dataKey="sma"
+              dataKey="movingAverage"
               stroke="#f97316"
               strokeWidth={2}
               strokeDasharray="6 4"

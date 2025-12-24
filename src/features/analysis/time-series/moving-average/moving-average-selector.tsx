@@ -1,20 +1,20 @@
 import { FormControl, Select } from '@/components/ui'
-import { SmaOption, SMA_DROPDOWN_OPTIONS } from './sma-types'
+import { MovingAveragePeriod, MOVING_AVERAGE_OPTIONS } from './moving-average-types'
 import { cn } from '@/shared/lib/utils'
 
-interface SmaSelectorProps {
-  value: SmaOption
-  onChange: (option: SmaOption) => void
+interface MovingAverageSelectorProps {
+  value: MovingAveragePeriod
+  onChange: (period: MovingAveragePeriod) => void
 }
 
 /**
- * Dropdown selector for SMA (Simple Moving Average) period
+ * Dropdown selector for moving average window size
  * Renders next to the Data Points indicator in time series charts
  *
- * When an SMA option is selected (not 'none'), the selector shows a subtle
+ * When a moving average period is selected (not 'none'), the selector shows a subtle
  * orange accent to indicate the trend line is active on the chart.
  */
-export function SmaSelector({ value, onChange }: SmaSelectorProps) {
+export function MovingAverageSelector({ value, onChange }: MovingAverageSelectorProps) {
   const isActive = value !== 'none'
 
   return (
@@ -26,13 +26,13 @@ export function SmaSelector({ value, onChange }: SmaSelectorProps) {
           onChange(val === 'none' ? 'none' : (Number(val) as 3 | 5 | 10))
         }}
         size="compact"
-        data-testid="sma-selector"
+        data-testid="moving-average-selector"
         className={cn(
           "transition-colors duration-200",
           isActive && "border-orange-500/50 text-orange-100"
         )}
       >
-        {SMA_DROPDOWN_OPTIONS.map((opt) => (
+        {MOVING_AVERAGE_OPTIONS.map((opt) => (
           <option key={String(opt.value)} value={String(opt.value)}>
             {opt.label}
           </option>

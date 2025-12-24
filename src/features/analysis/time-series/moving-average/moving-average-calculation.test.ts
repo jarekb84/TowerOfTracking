@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateSma } from './sma'
+import { calculateMovingAverage } from './moving-average-calculation'
 import type { ChartDataPoint } from '../chart-types'
 
 function createDataPoint(value: number, date: string = '2024-01-01'): ChartDataPoint {
@@ -10,9 +10,9 @@ function createDataPoint(value: number, date: string = '2024-01-01'): ChartDataP
   }
 }
 
-describe('calculateSma', () => {
-  describe('standard SMA calculation', () => {
-    it('calculates SMA correctly for period 3', () => {
+describe('calculateMovingAverage', () => {
+  describe('standard moving average calculation', () => {
+    it('calculates moving average correctly for window size 3', () => {
       const dataPoints = [
         createDataPoint(10),
         createDataPoint(20),
@@ -21,16 +21,16 @@ describe('calculateSma', () => {
         createDataPoint(50),
       ]
 
-      const result = calculateSma(dataPoints, 3)
+      const result = calculateMovingAverage(dataPoints, 3)
 
-      expect(result[0].sma).toBeNull()
-      expect(result[1].sma).toBeNull()
-      expect(result[2].sma).toBe(20) // (10 + 20 + 30) / 3
-      expect(result[3].sma).toBe(30) // (20 + 30 + 40) / 3
-      expect(result[4].sma).toBe(40) // (30 + 40 + 50) / 3
+      expect(result[0].movingAverage).toBeNull()
+      expect(result[1].movingAverage).toBeNull()
+      expect(result[2].movingAverage).toBe(20) // (10 + 20 + 30) / 3
+      expect(result[3].movingAverage).toBe(30) // (20 + 30 + 40) / 3
+      expect(result[4].movingAverage).toBe(40) // (30 + 40 + 50) / 3
     })
 
-    it('calculates SMA correctly for period 5', () => {
+    it('calculates moving average correctly for window size 5', () => {
       const dataPoints = [
         createDataPoint(100),
         createDataPoint(200),
@@ -40,52 +40,52 @@ describe('calculateSma', () => {
         createDataPoint(600),
       ]
 
-      const result = calculateSma(dataPoints, 5)
+      const result = calculateMovingAverage(dataPoints, 5)
 
-      expect(result[0].sma).toBeNull()
-      expect(result[1].sma).toBeNull()
-      expect(result[2].sma).toBeNull()
-      expect(result[3].sma).toBeNull()
-      expect(result[4].sma).toBe(300) // (100 + 200 + 300 + 400 + 500) / 5
-      expect(result[5].sma).toBe(400) // (200 + 300 + 400 + 500 + 600) / 5
+      expect(result[0].movingAverage).toBeNull()
+      expect(result[1].movingAverage).toBeNull()
+      expect(result[2].movingAverage).toBeNull()
+      expect(result[3].movingAverage).toBeNull()
+      expect(result[4].movingAverage).toBe(300) // (100 + 200 + 300 + 400 + 500) / 5
+      expect(result[5].movingAverage).toBe(400) // (200 + 300 + 400 + 500 + 600) / 5
     })
 
-    it('calculates SMA correctly for period 10', () => {
+    it('calculates moving average correctly for window size 10', () => {
       const dataPoints = Array.from({ length: 12 }, (_, i) =>
         createDataPoint((i + 1) * 10)
       )
 
-      const result = calculateSma(dataPoints, 10)
+      const result = calculateMovingAverage(dataPoints, 10)
 
       // First 9 points should be null
       for (let i = 0; i < 9; i++) {
-        expect(result[i].sma).toBeNull()
+        expect(result[i].movingAverage).toBeNull()
       }
 
       // Point 10 (index 9): sum of 10+20+30+40+50+60+70+80+90+100 = 550, avg = 55
-      expect(result[9].sma).toBe(55)
+      expect(result[9].movingAverage).toBe(55)
 
       // Point 11 (index 10): sum of 20+30+40+50+60+70+80+90+100+110 = 650, avg = 65
-      expect(result[10].sma).toBe(65)
+      expect(result[10].movingAverage).toBe(65)
     })
   })
 
   describe('edge cases', () => {
     it('returns empty array for empty input', () => {
-      const result = calculateSma([], 3)
+      const result = calculateMovingAverage([], 3)
       expect(result).toEqual([])
     })
 
-    it('returns all null SMA values when data points fewer than period', () => {
+    it('returns all null moving average values when data points fewer than window size', () => {
       const dataPoints = [
         createDataPoint(10),
         createDataPoint(20),
       ]
 
-      const result = calculateSma(dataPoints, 5)
+      const result = calculateMovingAverage(dataPoints, 5)
 
-      expect(result[0].sma).toBeNull()
-      expect(result[1].sma).toBeNull()
+      expect(result[0].movingAverage).toBeNull()
+      expect(result[1].movingAverage).toBeNull()
     })
 
     it('preserves original data point properties', () => {
@@ -109,7 +109,7 @@ describe('calculateSma', () => {
         },
       ]
 
-      const result = calculateSma(dataPoints, 3)
+      const result = calculateMovingAverage(dataPoints, 3)
 
       expect(result[0].runInfo).toEqual(dataPoints[0].runInfo)
       expect(result[1].runInfo).toBeUndefined()
@@ -118,25 +118,25 @@ describe('calculateSma', () => {
 
     it('handles single data point', () => {
       const dataPoints = [createDataPoint(100)]
-      const result = calculateSma(dataPoints, 3)
+      const result = calculateMovingAverage(dataPoints, 3)
 
       expect(result).toHaveLength(1)
-      expect(result[0].sma).toBeNull()
+      expect(result[0].movingAverage).toBeNull()
       expect(result[0].value).toBe(100)
     })
 
-    it('handles exact number of points as period', () => {
+    it('handles exact number of points as window size', () => {
       const dataPoints = [
         createDataPoint(10),
         createDataPoint(20),
         createDataPoint(30),
       ]
 
-      const result = calculateSma(dataPoints, 3)
+      const result = calculateMovingAverage(dataPoints, 3)
 
-      expect(result[0].sma).toBeNull()
-      expect(result[1].sma).toBeNull()
-      expect(result[2].sma).toBe(20) // Only the last point has SMA
+      expect(result[0].movingAverage).toBeNull()
+      expect(result[1].movingAverage).toBeNull()
+      expect(result[2].movingAverage).toBe(20) // Only the last point has moving average
     })
   })
 
@@ -149,10 +149,10 @@ describe('calculateSma', () => {
       ]
       const originalValues = dataPoints.map(p => ({ ...p }))
 
-      calculateSma(dataPoints, 3)
+      calculateMovingAverage(dataPoints, 3)
 
       expect(dataPoints).toEqual(originalValues)
-      expect(dataPoints[0]).not.toHaveProperty('sma')
+      expect(dataPoints[0]).not.toHaveProperty('movingAverage')
     })
   })
 })
