@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Area, AreaChart, XAxis, YAxis, Tooltip } from 'recharts'
+import { Area, ComposedChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartContainer, FormControl } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
@@ -12,6 +12,10 @@ import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
 import { DataPointsCount } from './data-points-count'
 import { TimeSeriesChartTooltip } from './time-series-tooltip'
+import { SmaSelector } from './sma/sma-selector'
+import { calculateSma } from './sma/sma'
+import type { SmaOption } from './sma/sma-types'
+import { loadSmaOption, saveSmaOption } from './sma/sma-persistence'
 
 interface TimeSeriesChartProps {
   metric: string
@@ -41,6 +45,8 @@ interface FilterControlsProps {
   runTypeFilter: RunTypeFilter
   onRunTypeChange?: (runType: RunTypeFilter) => void
   dataPointCount: number
+  smaOption: SmaOption
+  onSmaChange: (option: SmaOption) => void
 }
 
 function FilterControls({
@@ -51,6 +57,8 @@ function FilterControls({
   runTypeFilter,
   onRunTypeChange,
   dataPointCount,
+  smaOption,
+  onSmaChange,
 }: FilterControlsProps) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
@@ -68,7 +76,7 @@ function FilterControls({
         </div>
       </FormControl>
 
-      {/* Right side: Run type selector + Data points count */}
+      {/* Right side: Run type selector + SMA selector + Data points count */}
       <div className="flex items-end gap-4">
         {showRunTypeSelector && onRunTypeChange && (
           <RunTypeSelector
@@ -77,6 +85,9 @@ function FilterControls({
             layout="vertical"
           />
         )}
+
+        {/* SMA trend line selector */}
+        <SmaSelector value={smaOption} onChange={onSmaChange} />
 
         {/* Data points indicator - aligned with controls */}
         <DataPointsCount count={dataPointCount} />
@@ -107,6 +118,21 @@ export function TimeSeriesChart({
   }, [runs, runTypeFilter])
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
 
+  // SMA state with persistence
+  const [smaOption, setSmaOption] = useState<SmaOption>('none')
+
+  // Load persisted SMA option on mount (SSR-safe)
+  useEffect(() => {
+    const savedOption = loadSmaOption(metric)
+    setSmaOption(savedOption)
+  }, [metric])
+
+  // Handle SMA option change with persistence
+  const handleSmaChange = (option: SmaOption) => {
+    setSmaOption(option)
+    saveSmaOption(metric, option)
+  }
+
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
     return getAvailableTimePeriods(filteredRuns)
@@ -122,9 +148,17 @@ export function TimeSeriesChart({
 
   const currentConfig = availablePeriodConfigs.find(config => config.period === selectedPeriod) || availablePeriodConfigs[0]
 
-  const chartData = useMemo(() => {
+  const baseChartData = useMemo(() => {
     return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
   }, [filteredRuns, selectedPeriod, metric])
+
+  // Apply SMA calculation if an SMA option is selected
+  const chartData = useMemo(() => {
+    if (smaOption === 'none') {
+      return baseChartData
+    }
+    return calculateSma(baseChartData, smaOption)
+  }, [baseChartData, smaOption])
 
   const yAxisTicks = useMemo(() => {
     if (chartData.length === 0) return []
@@ -163,13 +197,15 @@ export function TimeSeriesChart({
           runTypeFilter={runTypeFilter}
           onRunTypeChange={onRunTypeChange}
           dataPointCount={chartData.length}
+          smaOption={smaOption}
+          onSmaChange={handleSmaChange}
         />
       </div>
 
       {/* Chart */}
       <div className="transition-all duration-300 ease-in-out">
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <AreaChart
+          <ComposedChart
             data={chartData}
             margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
           >
@@ -206,6 +242,7 @@ export function TimeSeriesChart({
                 formatter={formatter}
                 isHourlyPeriod={selectedPeriod === 'hourly'}
                 accentColor={currentConfig.color}
+                showSma={smaOption !== 'none'}
               />
             }
           />
@@ -225,7 +262,27 @@ export function TimeSeriesChart({
               filter: `drop-shadow(0 0 6px ${currentConfig.color}50)`
             }}
           />
-          </AreaChart>
+
+          {/* SMA trend line - only rendered when SMA is enabled */}
+          {smaOption !== 'none' && (
+            <Line
+              type="monotone"
+              dataKey="sma"
+              stroke="#f97316"
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              strokeOpacity={0.7}
+              dot={false}
+              activeDot={{
+                r: 4,
+                stroke: '#f97316',
+                strokeWidth: 2,
+                fill: '#1e293b',
+              }}
+              connectNulls={false}
+            />
+          )}
+          </ComposedChart>
         </ChartContainer>
       </div>
     </div>
