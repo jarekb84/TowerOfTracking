@@ -5,7 +5,6 @@
  */
 export type SmaOption = 'none' | 3 | 5 | 10
 
-export const SMA_OPTIONS = ['none', 3, 5, 10] as const
 
 export const SMA_DROPDOWN_OPTIONS = [
   { value: 'none' as const, label: 'No Average' },

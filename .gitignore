@@ -30,3 +30,8 @@ AGENTS.md.bak
 CLAUDE.md
 CLAUDE.md.bak
 # END Ruler Generated Files
+
+# speckit files
+.claude/commands/speckit*
+.specify/
+specs/
