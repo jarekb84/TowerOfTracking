@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npx tsc:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm run knip:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm test:*)",
+      "Bash(npm lint:*)",
+      "Bash(npm run lint)",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run integration-precheck:*)",
+      "Bash(npm run dev:build:*)",
+      "Bash(node -e:*)",
+      "Bash(npm run e2e:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(git mv:*)",
+      "Bash(git add:*)",
+      "Bash(npx eslint:*)",
+      "Bash(done)",
+      "Bash(cat:*)",
+      "Bash(git diff:*)",
+      "Bash(git rm:*)",
+      "Bash(xargs:*)",
+      "Bash(tree -L 3:*)",
+      "Read(/C:\\Source\\TowerOfTracking/**)",
+      "Write(/C:\\Source\\TowerOfTracking/**)",
+      "Edit(/C:\\Source\\TowerOfTracking/**)",
+      "NotebookEdit(/C:\\Source\\TowerOfTracking/**)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(grep:*)",
+      "Skill(commit)",
+      "Skill(commit:*)",
+      "Bash(tree:*)",
+      "Bash(findstr:*)"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "disabledMcpjsonServers": [
+    "example"
+  ]
+}
