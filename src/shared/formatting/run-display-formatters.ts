@@ -64,3 +64,15 @@ export function formatDurationHoursMinutes(durationSeconds: number): string {
 export function formatTimestampDisplay(timestamp: Date): string {
   return formatDisplayShortDateTime(timestamp)
 }
+
+// ============================================================================
+// Game Speed Formatting
+// ============================================================================
+
+/**
+ * Format game speed as "Y.YYYx" (3 decimal places + 'x').
+ * Game speed is the ratio of gameTime to realTime.
+ */
+export function formatGameSpeed(value: number): string {
+  return value.toFixed(3) + 'x'
+}

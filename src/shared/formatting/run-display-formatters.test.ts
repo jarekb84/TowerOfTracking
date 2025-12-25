@@ -4,6 +4,7 @@ import {
   formatWaveNumber,
   formatTierWaveHeader,
   formatTimestampDisplay,
+  formatGameSpeed,
 } from './run-display-formatters'
 
 describe('run-display-formatters', () => {
@@ -71,6 +72,27 @@ describe('run-display-formatters', () => {
     it('should handle edge cases', () => {
       expect(formatTierWaveHeader(0, 0)).toBe('T0 0')
       expect(formatTierWaveHeader(1, 1000)).toBe('T1 1,000')
+    })
+  })
+
+  describe('formatGameSpeed', () => {
+    it('should format with 3 decimal places and x suffix', () => {
+      expect(formatGameSpeed(1.5)).toBe('1.500x')
+    })
+
+    it('should format whole numbers with 3 decimal places', () => {
+      expect(formatGameSpeed(2)).toBe('2.000x')
+      expect(formatGameSpeed(1)).toBe('1.000x')
+    })
+
+    it('should round to 3 decimal places', () => {
+      expect(formatGameSpeed(2.12345)).toBe('2.123x')
+      expect(formatGameSpeed(1.9999)).toBe('2.000x')
+    })
+
+    it('should handle values less than 1', () => {
+      expect(formatGameSpeed(0.5)).toBe('0.500x')
+      expect(formatGameSpeed(0.125)).toBe('0.125x')
     })
   })
 })

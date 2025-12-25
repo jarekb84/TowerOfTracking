@@ -13,7 +13,10 @@ import {
   extractPlainFields,
   findUncategorizedFields,
   calculatePerHourRate,
+  extractFieldValue,
+  calculateGameSpeed,
 } from './breakdown/breakdown-calculations'
+import { formatGameSpeed } from '@/shared/formatting/run-display-formatters'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import {
   BATTLE_REPORT_ESSENTIAL,
@@ -43,6 +46,17 @@ export function useRunDetailsData(run: ParsedGameRun): RunDetailsData {
     const battleReport = {
       essential: extractPlainFields(run, BATTLE_REPORT_ESSENTIAL),
       miscellaneous: extractPlainFields(run, BATTLE_REPORT_MISCELLANEOUS),
+    }
+
+    // Add game speed as a computed field (gameTime / realTime)
+    const gameTimeSeconds = extractFieldValue(run, 'gameTime')
+    const gameSpeed = calculateGameSpeed(gameTimeSeconds, run.realTime)
+    if (gameSpeed !== null) {
+      battleReport.essential.items.push({
+        fieldName: 'gameSpeed',
+        displayName: 'Game Speed',
+        displayValue: formatGameSpeed(gameSpeed),
+      })
     }
 
     // Combat section

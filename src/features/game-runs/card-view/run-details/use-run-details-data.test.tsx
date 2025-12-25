@@ -35,7 +35,8 @@ describe('useRunDetailsData', () => {
 
       const { result } = renderHook(() => useRunDetailsData(run))
 
-      expect(result.current.battleReport.essential.items).toHaveLength(5)
+      // 5 essential fields + 1 computed gameSpeed
+      expect(result.current.battleReport.essential.items).toHaveLength(6)
       expect(result.current.battleReport.essential.items.some(i => i.fieldName === 'tier')).toBe(true)
     })
 
@@ -69,8 +70,38 @@ describe('useRunDetailsData', () => {
       const { result } = renderHook(() => useRunDetailsData(run))
       const essential = result.current.battleReport.essential
 
-      expect(essential.items).toHaveLength(5)
+      // 5 essential fields + 1 computed gameSpeed
+      expect(essential.items).toHaveLength(6)
       expect(essential.items.find(i => i.fieldName === 'tier')?.displayValue).toBe('11')
+    })
+
+    it('calculates game speed from gameTime and realTime', () => {
+      const run = createMockRun({
+        gameTime: 7200, // 2 hours in seconds
+        realTime: 3600, // 1 hour in seconds
+      })
+
+      const { result } = renderHook(() => useRunDetailsData(run))
+      const essential = result.current.battleReport.essential
+
+      const gameSpeed = essential.items.find(i => i.fieldName === 'gameSpeed')
+      expect(gameSpeed).toBeDefined()
+      expect(gameSpeed!.displayName).toBe('Game Speed')
+      expect(gameSpeed!.displayValue).toBe('2.000x')
+    })
+
+    it('omits game speed when realTime is 0', () => {
+      const run = createMockRun({
+        gameTime: 7200,
+      }, {
+        realTime: 0, // Override the cached property
+      })
+
+      const { result } = renderHook(() => useRunDetailsData(run))
+      const essential = result.current.battleReport.essential
+
+      const gameSpeed = essential.items.find(i => i.fieldName === 'gameSpeed')
+      expect(gameSpeed).toBeUndefined()
     })
 
     it('extracts miscellaneous fields when present', () => {

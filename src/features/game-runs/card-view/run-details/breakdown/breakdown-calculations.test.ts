@@ -15,6 +15,7 @@ import {
   calculateBreakdownGroup,
   extractPlainFields,
   findUncategorizedFields,
+  calculateGameSpeed,
 } from './breakdown-calculations'
 
 // =============================================================================
@@ -501,3 +502,33 @@ describe('findUncategorizedFields', () => {
     expect(result.items.some(i => i.fieldName === 'newGameFeatureField')).toBe(true)
   })
 })
+
+// =============================================================================
+// calculateGameSpeed
+// =============================================================================
+
+describe('calculateGameSpeed', () => {
+  it('returns ratio of gameTime to realTime', () => {
+    expect(calculateGameSpeed(7200, 3600)).toBe(2)
+  })
+
+  it('returns null when realTime is 0', () => {
+    expect(calculateGameSpeed(7200, 0)).toBeNull()
+  })
+
+  it('handles fractional results', () => {
+    expect(calculateGameSpeed(5400, 3600)).toBe(1.5)
+  })
+
+  it('returns 0 when gameTime is 0', () => {
+    expect(calculateGameSpeed(0, 3600)).toBe(0)
+  })
+
+  it('handles typical 2x speed scenario', () => {
+    // 2 hours game time, 1 hour real time = 2x multiplier
+    const gameTime = 2 * 60 * 60 // 2 hours in seconds
+    const realTime = 1 * 60 * 60 // 1 hour in seconds
+    expect(calculateGameSpeed(gameTime, realTime)).toBe(2)
+  })
+})
+
