@@ -8,9 +8,9 @@ export type MovingAveragePeriod = 'none' | 3 | 5 | 10
 
 export const MOVING_AVERAGE_OPTIONS = [
   { value: 'none' as const, label: 'No Average' },
-  { value: 3 as const, label: 'Avg(3)' },
-  { value: 5 as const, label: 'Avg(5)' },
-  { value: 10 as const, label: 'Avg(10)' },
+  { value: 3 as const, label: 'Average (3)' },
+  { value: 5 as const, label: 'Average (5)' },
+  { value: 10 as const, label: 'Average (10)' },
 ]
 
 /**
