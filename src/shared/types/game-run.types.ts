@@ -25,6 +25,7 @@ export interface ParsedGameRun {
   readonly coinsEarned: number;
   readonly cellsEarned: number;
   readonly realTime: number;
+  readonly gameSpeed: number | null;  // gameTime / realTime, null when realTime is 0
   readonly runType: RunTypeValue;
 
   // Optional validation error when battleDate parsing fails
