@@ -87,7 +87,7 @@ describe('useRunDetailsData', () => {
       const gameSpeed = essential.items.find(i => i.fieldName === 'gameSpeed')
       expect(gameSpeed).toBeDefined()
       expect(gameSpeed!.displayName).toBe('Game Speed')
-      expect(gameSpeed!.displayValue).toBe('2.000x')
+      expect(gameSpeed!.displayValue).toBe('2x')
     })
 
     it('omits game speed when realTime is 0', () => {

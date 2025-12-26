@@ -70,9 +70,13 @@ export function formatTimestampDisplay(timestamp: Date): string {
 // ============================================================================
 
 /**
- * Format game speed as "Y.YYYx" (3 decimal places + 'x').
+ * Format game speed with 'x' suffix.
+ * Removes unnecessary trailing zeros for cleaner display.
+ * Examples: 2.0 -> "2x", 2.5 -> "2.5x", 2.123 -> "2.123x"
  * Game speed is the ratio of gameTime to realTime.
  */
 export function formatGameSpeed(value: number): string {
-  return value.toFixed(3) + 'x'
+  // Use up to 3 decimal places, trimming trailing zeros and decimal point
+  const formatted = value.toFixed(3).replace(/\.?0+$/, '')
+  return formatted + 'x'
 }
