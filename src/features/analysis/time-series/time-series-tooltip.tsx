@@ -27,6 +27,8 @@ interface TimeSeriesTooltipProps {
   formatter?: (value: number) => string
   /** Accent color for styling */
   accentColor?: string
+  /** Moving average value at this data point (null if insufficient data) */
+  trendValue?: number | null
 }
 
 function TimeSeriesTooltip({
@@ -38,6 +40,7 @@ function TimeSeriesTooltip({
   periodInfo,
   formatter,
   accentColor,
+  trendValue,
 }: TimeSeriesTooltipProps) {
   return (
     <div
@@ -70,6 +73,19 @@ function TimeSeriesTooltip({
         </span>
       </div>
 
+      {/* Moving average row - only when enabled and value exists */}
+      {trendValue !== undefined && trendValue !== null && formatter && (
+        <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
+          <span className="text-xs flex items-center gap-1.5">
+            <span className="inline-block w-3 h-0.5 bg-orange-500/70 rounded-full" style={{ borderStyle: 'dashed' }} />
+            <span className="text-slate-400">Moving Avg</span>
+          </span>
+          <span className="text-orange-400/80 text-xs tabular-nums font-medium">
+            {formatter(trendValue)}
+          </span>
+        </div>
+      )}
+
       {/* Daily Average row - only for weekly/monthly */}
       {periodInfo && formatter && (
         <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
@@ -99,6 +115,8 @@ interface TimeSeriesChartTooltipProps {
   formatter: (value: number) => string
   isHourlyPeriod: boolean
   accentColor: string
+  /** Whether to show moving average value in tooltip */
+  showTrendLine?: boolean
 }
 
 /**
@@ -114,6 +132,7 @@ export function TimeSeriesChartTooltip({
   formatter,
   isHourlyPeriod,
   accentColor,
+  showTrendLine = false,
 }: TimeSeriesChartTooltipProps) {
   if (!active || !payload || !payload.length) return null
 
@@ -131,6 +150,7 @@ export function TimeSeriesChartTooltip({
       periodInfo={dataPoint.periodInfo}
       formatter={formatter}
       accentColor={accentColor}
+      trendValue={showTrendLine ? dataPoint.movingAverage : undefined}
     />
   )
 }

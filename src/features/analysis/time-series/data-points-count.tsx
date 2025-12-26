@@ -12,7 +12,7 @@ interface DataPointsCountProps {
 export function DataPointsCount({ count, className = '' }: DataPointsCountProps) {
   return (
     <FormControl label="Data" layout="vertical" className={className}>
-      <span className="h-9 inline-flex items-center text-xs text-slate-400 px-3 bg-slate-700/40 border border-slate-600/30 rounded-md tabular-nums whitespace-nowrap">
+      <span className="h-8 [@media(pointer:coarse)]:h-10 inline-flex items-center text-xs text-slate-400 px-2.5 bg-slate-700/40 border border-slate-600/30 rounded-md tabular-nums whitespace-nowrap">
         {count} points
       </span>
     </FormControl>
