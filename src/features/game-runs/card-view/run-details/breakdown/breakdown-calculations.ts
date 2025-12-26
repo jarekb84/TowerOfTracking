@@ -77,20 +77,6 @@ export function calculatePerHourRate(value: number, durationSeconds: number): nu
 }
 
 /**
- * Calculate game speed multiplier (gameTime / realTime).
- * Returns null if realTime is 0 (cannot calculate).
- */
-export function calculateGameSpeed(
-  gameTimeSeconds: number,
-  realTimeSeconds: number
-): number | null {
-  if (realTimeSeconds === 0) {
-    return null
-  }
-  return gameTimeSeconds / realTimeSeconds
-}
-
-/**
  * Sort breakdown items by percentage descending.
  * Uses value as tiebreaker for equal percentages.
  */

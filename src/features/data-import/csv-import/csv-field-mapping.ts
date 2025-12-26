@@ -109,6 +109,17 @@ export function createFieldMappingReport(
 }
 
 /**
+ * Calculate game speed (gameTime / realTime) rounded to 3 decimal places.
+ * Returns null if realTime is 0 (cannot calculate).
+ */
+function calculateGameSpeed(gameTime: number, realTime: number): number | null {
+  if (realTime === 0) {
+    return null;
+  }
+  return Math.round((gameTime / realTime) * 1000) / 1000;
+}
+
+/**
  * Extract key statistics from fields for cached properties
  */
 export function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
@@ -117,9 +128,14 @@ export function extractKeyStatsFromFields(fields: Record<string, GameRunField>):
   coinsEarned: number;
   cellsEarned: number;
   realTime: number;
+  gameSpeed: number | null;
   runType: 'farm' | 'tournament' | 'milestone';
 } {
   const numericStats = extractNumericStats(fields);
+
+  // Calculate gameSpeed from gameTime and realTime
+  const gameTime = (fields.gameTime?.value as number) || 0;
+  const gameSpeed = calculateGameSpeed(gameTime, numericStats.realTime);
 
   // Check if _runType field exists (from CSV), otherwise detect from tier
   let runType: 'farm' | 'tournament' | 'milestone';
@@ -132,6 +148,7 @@ export function extractKeyStatsFromFields(fields: Record<string, GameRunField>):
 
   return {
     ...numericStats,
+    gameSpeed,
     runType,
   };
 }
