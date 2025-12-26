@@ -14,10 +14,11 @@ const mockRuns: ParsedGameRun[] = [
     coinsEarned: 1000000,
     cellsEarned: 500,
     realTime: 3600,
+    gameSpeed: 2.0,
     runType: RunType.FARM
   },
   {
-    id: '2', 
+    id: '2',
     timestamp: new Date('2023-01-02'),
     fields: {},
     tier: 10,
@@ -25,6 +26,7 @@ const mockRuns: ParsedGameRun[] = [
     coinsEarned: 5000000,
     cellsEarned: 1000,
     realTime: 5400,
+    gameSpeed: 2.0,
     runType: RunType.TOURNAMENT
   },
   {
@@ -36,6 +38,7 @@ const mockRuns: ParsedGameRun[] = [
     coinsEarned: 1500000,
     cellsEarned: 600,
     realTime: 4200,
+    gameSpeed: 2.0,
     runType: RunType.FARM
   },
   {
@@ -47,6 +50,7 @@ const mockRuns: ParsedGameRun[] = [
     coinsEarned: 2000000,
     cellsEarned: 800,
     realTime: 7200,
+    gameSpeed: 2.0,
     runType: RunType.MILESTONE
   }
 ]

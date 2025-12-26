@@ -35,6 +35,7 @@ describe('tier-stats-calculator', () => {
     coinsEarned: coins,
     cellsEarned: cells,
     realTime: duration,
+    gameSpeed: duration === 0 ? null : 2.0,
     runType: 'farm'
   })
 

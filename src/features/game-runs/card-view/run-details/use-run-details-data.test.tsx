@@ -95,6 +95,7 @@ describe('useRunDetailsData', () => {
         gameTime: 7200,
       }, {
         realTime: 0, // Override the cached property
+        gameSpeed: null, // gameSpeed is null when realTime is 0
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))

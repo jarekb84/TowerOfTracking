@@ -298,6 +298,7 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
         coinsEarned: 1500000000000,
         cellsEarned: 45200,
         realTime: 27966,
+        gameSpeed: 2.0,
         runType: 'farm',
         fields: {
           date: { value: '2024-01-15', rawValue: '2024-01-15', displayValue: '2024-01-15', originalKey: 'Date', dataType: 'string' },
@@ -334,6 +335,7 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
         coinsEarned: 1500000000000,
         cellsEarned: 45200,
         realTime: 27966,
+        gameSpeed: 2.0,
         runType: 'farm',
         fields: {
           tier: { value: 10, rawValue: '10', displayValue: '10', originalKey: 'Tier', dataType: 'number' },
@@ -363,6 +365,7 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
         coinsEarned: 1500000000000,
         cellsEarned: 45200,
         realTime: 27966,
+        gameSpeed: 2.0,
         runType: 'farm',
         fields: {
           date: { value: '2024-01-15', rawValue: '2024-01-15', displayValue: '2024-01-15', originalKey: 'Date', dataType: 'string' }

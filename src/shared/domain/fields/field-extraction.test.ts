@@ -110,6 +110,7 @@ describe('extractFieldNamesFromRuns', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -153,6 +154,7 @@ describe('extractFieldNamesFromRuns', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -180,6 +182,7 @@ describe('extractFieldNamesFromRuns', () => {
       coinsEarned: 60000,
       cellsEarned: 1100,
       realTime: 3700,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {

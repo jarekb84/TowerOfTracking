@@ -43,6 +43,7 @@ export function createMockRun(
     coinsEarned: 1000,
     cellsEarned: 500,
     realTime: 1800,
+    gameSpeed: 2.0,
     runType: 'farm',
     ...overrides,
   };

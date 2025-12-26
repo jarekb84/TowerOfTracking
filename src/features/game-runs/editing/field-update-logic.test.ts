@@ -197,7 +197,7 @@ describe('field-update-logic', () => {
 
   describe('extractRunTypeValue', () => {
     it('should extract run type from fields when available', () => {
-      const run = {
+      const run: ParsedGameRun = {
         id: '1',
         timestamp: new Date(),
         fields: {
@@ -214,8 +214,9 @@ describe('field-update-logic', () => {
         coinsEarned: 1000,
         cellsEarned: 100,
         realTime: 3600,
+        gameSpeed: 2.0,
         runType: 'farm' as const,
-      } as ParsedGameRun;
+      };
 
       const result = extractRunTypeValue(run);
 
@@ -223,7 +224,7 @@ describe('field-update-logic', () => {
     });
 
     it('should fallback to runType property when field not available', () => {
-      const run = {
+      const run: ParsedGameRun = {
         id: '1',
         timestamp: new Date(),
         fields: {},
@@ -232,8 +233,9 @@ describe('field-update-logic', () => {
         coinsEarned: 1000,
         cellsEarned: 100,
         realTime: 3600,
+        gameSpeed: 2.0,
         runType: 'farm' as const,
-      } as ParsedGameRun;
+      };
 
       const result = extractRunTypeValue(run);
 
@@ -250,15 +252,16 @@ describe('field-update-logic', () => {
         coinsEarned: 1000,
         cellsEarned: 100,
         realTime: 3600,
+        gameSpeed: 2.0,
       };
 
-      const farmRun = { ...baseRun, runType: 'farm' as const } as ParsedGameRun;
+      const farmRun: ParsedGameRun = { ...baseRun, runType: 'farm' as const };
       expect(extractRunTypeValue(farmRun)).toBe('farm');
 
-      const tournamentRun = { ...baseRun, runType: 'tournament' as const } as ParsedGameRun;
+      const tournamentRun: ParsedGameRun = { ...baseRun, runType: 'tournament' as const };
       expect(extractRunTypeValue(tournamentRun)).toBe('tournament');
 
-      const milestoneRun = { ...baseRun, runType: 'milestone' as const } as ParsedGameRun;
+      const milestoneRun: ParsedGameRun = { ...baseRun, runType: 'milestone' as const };
       expect(extractRunTypeValue(milestoneRun)).toBe('milestone');
     });
   });
