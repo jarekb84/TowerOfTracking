@@ -94,12 +94,12 @@ export interface SlotUnlockThreshold {
 }
 
 /**
- * Dice cost for locking effects
+ * Shard cost for locking effects
  */
 export interface LockCost {
   /** Number of already-locked effects (0-7) */
   lockCount: number;
 
-  /** Dice required for the next lock */
-  diceCost: number;
+  /** Shards required for the next lock */
+  shardCost: number;
 }

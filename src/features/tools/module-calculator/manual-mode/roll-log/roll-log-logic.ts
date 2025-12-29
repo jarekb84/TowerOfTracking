@@ -36,6 +36,7 @@ export function filterQualifyingEffects(
         name: slot.effect.displayName,
         rarity: slot.rarity,
         shortName: RARITY_CONFIG_MAP[slot.rarity].shortName,
+        isTargetMatch: slot.isTargetMatch,
       });
     }
   }

@@ -4,7 +4,7 @@ import {
   formatCostRange,
   formatPercentage,
   formatProbability,
-  formatDiceCost,
+  formatShardCost,
   formatRollCount,
   formatExpectedRolls,
   getPercentileColor,
@@ -70,10 +70,10 @@ describe('results-formatters', () => {
     });
   });
 
-  describe('formatDiceCost', () => {
-    it('formats dice cost with unit', () => {
-      expect(formatDiceCost(10)).toBe('10 dice');
-      expect(formatDiceCost(1600)).toBe('1.6K dice');
+  describe('formatShardCost', () => {
+    it('formats shard cost with unit', () => {
+      expect(formatShardCost(10)).toBe('10 shards');
+      expect(formatShardCost(1600)).toBe('1.6K shards');
     });
   });
 
@@ -128,9 +128,20 @@ describe('results-formatters', () => {
   });
 
   describe('formatRunCount', () => {
-    it('formats with appropriate suffix', () => {
-      expect(formatRunCount(10000)).toBe('Based on 10.0K simulations');
-      expect(formatRunCount(1000000)).toBe('Based on 1.00M simulations');
+    it('formats round numbers without decimals', () => {
+      expect(formatRunCount(10000)).toBe('Based on 10K simulations');
+      expect(formatRunCount(100000)).toBe('Based on 100K simulations');
+      expect(formatRunCount(1000000)).toBe('Based on 1M simulations');
+    });
+
+    it('formats non-round numbers with one decimal', () => {
+      expect(formatRunCount(15000)).toBe('Based on 15K simulations');
+      expect(formatRunCount(12500)).toBe('Based on 12.5K simulations');
+      expect(formatRunCount(1500000)).toBe('Based on 1.5M simulations');
+    });
+
+    it('formats small numbers without suffix', () => {
+      expect(formatRunCount(500)).toBe('Based on 500 simulations');
     });
   });
 

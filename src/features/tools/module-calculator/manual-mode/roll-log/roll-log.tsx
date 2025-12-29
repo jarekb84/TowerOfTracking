@@ -15,7 +15,9 @@ import { generateRollLogSummary } from './roll-log-logic';
 interface RollLogProps {
   minimumLogRarity: Rarity;
   logEntries: RollLogEntry[];
+  showTargetMatches: boolean;
   onMinimumRarityChange: (rarity: Rarity) => void;
+  onShowTargetMatchesChange: (show: boolean) => void;
   onClearLog: () => void;
   isExpanded: boolean;
   onToggle: () => void;
@@ -24,7 +26,9 @@ interface RollLogProps {
 export function RollLog({
   minimumLogRarity,
   logEntries,
+  showTargetMatches,
   onMinimumRarityChange,
+  onShowTargetMatchesChange,
   onClearLog,
   isExpanded,
   onToggle,
@@ -41,11 +45,13 @@ export function RollLog({
       <div className="space-y-3">
         <RollLogControls
           minimumLogRarity={minimumLogRarity}
+          showTargetMatches={showTargetMatches}
           hasEntries={logEntries.length > 0}
           onMinimumRarityChange={onMinimumRarityChange}
+          onShowTargetMatchesChange={onShowTargetMatchesChange}
           onClearLog={onClearLog}
         />
-        <RollLogTable entries={logEntries} />
+        <RollLogTable entries={logEntries} showTargetMatches={showTargetMatches} />
       </div>
     </CollapsibleCard>
   );
@@ -53,15 +59,19 @@ export function RollLog({
 
 interface RollLogControlsProps {
   minimumLogRarity: Rarity;
+  showTargetMatches: boolean;
   hasEntries: boolean;
   onMinimumRarityChange: (rarity: Rarity) => void;
+  onShowTargetMatchesChange: (show: boolean) => void;
   onClearLog: () => void;
 }
 
 function RollLogControls({
   minimumLogRarity,
+  showTargetMatches,
   hasEntries,
   onMinimumRarityChange,
+  onShowTargetMatchesChange,
   onClearLog,
 }: RollLogControlsProps) {
   return (
@@ -87,6 +97,11 @@ function RollLogControls({
         </Select>
       </div>
 
+      <TargetMatchToggle
+        checked={showTargetMatches}
+        onChange={onShowTargetMatchesChange}
+      />
+
       {hasEntries && (
         <Button
           variant="ghost"
@@ -110,20 +125,55 @@ function ClearIcon() {
   );
 }
 
-interface RollLogTableProps {
-  entries: RollLogEntry[];
+interface TargetMatchToggleProps {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
 }
 
-function RollLogTable({ entries }: RollLogTableProps) {
+function TargetMatchToggle({ checked, onChange }: TargetMatchToggleProps) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer select-none">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only peer"
+      />
+      <div
+        className={`
+          relative w-8 h-4 rounded-full transition-colors
+          ${checked ? 'bg-orange-500/50' : 'bg-slate-700'}
+        `}
+      >
+        <div
+          className={`
+            absolute top-0.5 left-0.5 w-3 h-3 rounded-full transition-transform bg-white
+            ${checked ? 'translate-x-4' : 'translate-x-0'}
+          `}
+        />
+      </div>
+      <span className="text-xs text-slate-400" title="Show when rolled effects matched your target criteria">
+        Show Hits
+      </span>
+    </label>
+  );
+}
+
+interface RollLogTableProps {
+  entries: RollLogEntry[];
+  showTargetMatches: boolean;
+}
+
+function RollLogTable({ entries, showTargetMatches }: RollLogTableProps) {
   return (
     <div className="rounded-lg border border-slate-700/30 bg-slate-900/30 overflow-hidden">
       <div className="overflow-y-auto max-h-[200px]">
         <table className="w-full text-sm">
           <thead className="bg-slate-800/60 sticky top-0">
             <tr className="text-left text-slate-400 text-xs">
-              <th className="px-3 py-2 font-medium w-16">Roll #</th>
-              <th className="px-3 py-2 font-medium w-24 text-right">Total</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Cost</th>
+              <th className="px-3 py-2 font-medium w-14">Roll #</th>
+              <th className="px-3 py-2 font-medium w-14 text-right">Total</th>
+              <th className="px-3 py-2 font-medium w-14 text-right">Cost</th>
               <th className="px-3 py-2 font-medium">Effects</th>
             </tr>
           </thead>
@@ -136,7 +186,7 @@ function RollLogTable({ entries }: RollLogTableProps) {
               </tr>
             ) : (
               entries.map((entry, index) => (
-                <RollLogRow key={`${entry.rollNumber}-${index}`} entry={entry} />
+                <RollLogRow key={`${entry.rollNumber}-${index}`} entry={entry} showTargetMatches={showTargetMatches} />
               ))
             )}
           </tbody>
@@ -148,9 +198,10 @@ function RollLogTable({ entries }: RollLogTableProps) {
 
 interface RollLogRowProps {
   entry: RollLogEntry;
+  showTargetMatches: boolean;
 }
 
-function RollLogRow({ entry }: RollLogRowProps) {
+function RollLogRow({ entry, showTargetMatches }: RollLogRowProps) {
   return (
     <tr className="border-t border-slate-700/30 hover:bg-slate-700/20 transition-colors">
       <td className="px-3 py-2 tabular-nums text-slate-400 text-xs">{entry.rollNumber}</td>
@@ -161,7 +212,7 @@ function RollLogRow({ entry }: RollLogRowProps) {
         +{formatLargeNumber(entry.rollCost)}
       </td>
       <td className="px-3 py-2">
-        <EffectsList effects={entry.effects} />
+        <EffectsList effects={entry.effects} showTargetMatches={showTargetMatches} />
       </td>
     </tr>
   );
@@ -169,9 +220,10 @@ function RollLogRow({ entry }: RollLogRowProps) {
 
 interface EffectsListProps {
   effects: RollLogEntry['effects'];
+  showTargetMatches: boolean;
 }
 
-function EffectsList({ effects }: EffectsListProps) {
+function EffectsList({ effects, showTargetMatches }: EffectsListProps) {
   return (
     <span className="text-slate-300 text-xs">
       {effects.map((effect, index) => (
@@ -184,6 +236,11 @@ function EffectsList({ effects }: EffectsListProps) {
           >
             ({effect.shortName})
           </span>
+          {showTargetMatches && effect.isTargetMatch && (
+            <span className="ml-1 text-green-400" title="This effect matched your target criteria">
+              *
+            </span>
+          )}
         </span>
       ))}
     </span>

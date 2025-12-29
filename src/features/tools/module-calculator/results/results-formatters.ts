@@ -4,6 +4,8 @@
  * Pure functions for formatting simulation results for display.
  */
 
+import { formatLargeNumber } from '@/shared/formatting/number-scale';
+
 /**
  * Format a large number with appropriate suffix (K, M, B)
  *
@@ -51,10 +53,10 @@ export function formatProbability(probability: number): string {
 }
 
 /**
- * Format dice cost with unit
+ * Format shard cost with unit
  */
-export function formatDiceCost(dice: number): string {
-  return `${formatCost(dice)} dice`;
+export function formatShardCost(shards: number): string {
+  return `${formatCost(shards)} shards`;
 }
 
 /**
@@ -97,10 +99,10 @@ export function formatPercentileLabel(percentile: number): string {
 }
 
 /**
- * Format simulation run count
+ * Format simulation run count using locale-aware number formatting
  */
 export function formatRunCount(count: number): string {
-  return `Based on ${formatCost(count)} simulations`;
+  return `Based on ${formatLargeNumber(count)} simulations`;
 }
 
 /**

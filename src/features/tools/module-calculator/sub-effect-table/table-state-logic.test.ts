@@ -36,11 +36,12 @@ describe('table-state-logic', () => {
   });
 
   describe('toggleMinRarity', () => {
-    it('sets rarity when not selected', () => {
+    it('sets rarity and auto-assigns slot 1 when no slots assigned', () => {
       const selection = createEmptySelection('attackSpeed');
       const updated = toggleMinRarity(selection, 'legendary');
 
       expect(updated.minRarity).toBe('legendary');
+      expect(updated.targetSlots).toEqual([1]);
     });
 
     it('clears rarity when clicking same rarity', () => {
@@ -53,14 +54,35 @@ describe('table-state-logic', () => {
       expect(updated.minRarity).toBeNull();
     });
 
-    it('changes to different rarity', () => {
+    it('changes to different rarity without modifying existing slots', () => {
       const selection: EffectSelection = {
         ...createEmptySelection('attackSpeed'),
         minRarity: 'legendary',
+        targetSlots: [2, 3],
       };
       const updated = toggleMinRarity(selection, 'mythic');
 
       expect(updated.minRarity).toBe('mythic');
+      expect(updated.targetSlots).toEqual([2, 3]);
+    });
+
+    it('uses custom default slot when provided', () => {
+      const selection = createEmptySelection('attackSpeed');
+      const updated = toggleMinRarity(selection, 'epic', 3);
+
+      expect(updated.minRarity).toBe('epic');
+      expect(updated.targetSlots).toEqual([3]);
+    });
+
+    it('does not add slot when targetSlots already has values', () => {
+      const selection: EffectSelection = {
+        ...createEmptySelection('attackSpeed'),
+        targetSlots: [2],
+      };
+      const updated = toggleMinRarity(selection, 'legendary');
+
+      expect(updated.minRarity).toBe('legendary');
+      expect(updated.targetSlots).toEqual([2]);
     });
   });
 
