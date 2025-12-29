@@ -24,6 +24,9 @@ import {
   setAutoRolling,
   getBalanceStatus,
   buildMinRarityMap,
+  getLockedEffectIds,
+  areTargetsEqual,
+  syncRemainingTargetsWithConfig,
 } from './manual-mode-logic';
 import { processRollForLogging } from './roll-log';
 import {
@@ -172,6 +175,26 @@ export function useManualMode(
       stopAutoRollInternal();
     }
   }, [config.moduleType, config.moduleRarity, config.slotCount]);
+
+  // Sync remainingTargets when slotTargets config changes mid-session
+  // This handles the case where user changes target rarity or adds/removes targets
+  // while manual mode is active
+  useEffect(() => {
+    if (!state) return;
+
+    const lockedEffectIds = getLockedEffectIds(state);
+    const preLockedEffectIds = config.preLockedEffects.map((e) => e.effectId);
+    const syncedTargets = syncRemainingTargetsWithConfig(
+      config.slotTargets,
+      lockedEffectIds,
+      preLockedEffectIds
+    );
+
+    // Only update if there's an actual difference (prevent infinite loops)
+    if (!areTargetsEqual(state.remainingTargets, syncedTargets)) {
+      setState((prev) => (prev ? { ...prev, remainingTargets: syncedTargets } : null));
+    }
+  }, [config.slotTargets, config.preLockedEffects, state]);
 
   const stopAutoRollInternal = useCallback(() => {
     if (autoRollIntervalRef.current) {

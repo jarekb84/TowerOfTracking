@@ -83,9 +83,14 @@ interface SlotRollContext {
 }
 
 /**
- * Process a single slot roll and update the accumulator
+ * Process a single slot roll and update the accumulator.
+ * Returns the updated pool with the rolled effect removed.
+ *
+ * CRITICAL: Each slot roll must remove the effect from the pool so that
+ * subsequent slots in the same round cannot roll the same effect.
+ * (A module cannot have duplicate effects)
  */
-function processSlotRoll(ctx: SlotRollContext, acc: RollAccumulator): void {
+function processSlotRoll(ctx: SlotRollContext, acc: RollAccumulator): PreparedPool {
   const entry = simulateRollFast(ctx.pool, Math.random());
   const matchedTarget = checkTargetMatch(entry, ctx.remainingTargets, ctx.minRarityMap);
   const isTargetMatch = matchedTarget !== null;
@@ -104,6 +109,9 @@ function processSlotRoll(ctx: SlotRollContext, acc: RollAccumulator): void {
   }
 
   acc.slotResults.push({ entry, isTargetMatch, matchedTarget });
+
+  // Remove ALL rarities of the rolled effect from pool for subsequent slots
+  return removeEffectFromPreparedPool(ctx.pool, entry.effect.id);
 }
 
 /**
@@ -135,20 +143,25 @@ export function rollRound(
   }
 
   const currentPriorityTargets = getCurrentPriorityTargets(remainingTargets);
-  const slotRollCtx: SlotRollContext = {
-    pool,
-    remainingTargets,
-    minRarityMap,
-    priorityContext: {
-      targets: currentPriorityTargets,
-      minRarityMap: buildMinRarityMap(currentPriorityTargets),
-    },
+  const priorityContext: PriorityContext = {
+    targets: currentPriorityTargets,
+    minRarityMap: buildMinRarityMap(currentPriorityTargets),
   };
 
   const acc: RollAccumulator = { ...emptyResult, slotResults: [] };
 
+  // Track the current pool - it gets updated after each slot roll
+  // to prevent duplicate effects within the same round
+  let currentPool = pool;
+
   for (let i = 0; i < openSlotCount; i++) {
-    processSlotRoll(slotRollCtx, acc);
+    const slotRollCtx: SlotRollContext = {
+      pool: currentPool,
+      remainingTargets,
+      minRarityMap,
+      priorityContext,
+    };
+    currentPool = processSlotRoll(slotRollCtx, acc);
   }
 
   return acc;

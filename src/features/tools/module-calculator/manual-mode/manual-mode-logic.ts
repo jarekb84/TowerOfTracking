@@ -404,4 +404,11 @@ export {
   countUnfulfilledTargetEffects,
 } from './state-queries';
 
+// Re-export target sync functions
+export {
+  getLockedEffectIds,
+  areTargetsEqual,
+  syncRemainingTargetsWithConfig,
+} from './target-sync';
+
 import { countUnfulfilledTargetEffects } from './state-queries';
