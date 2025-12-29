@@ -9,6 +9,7 @@
  */
 
 import type { Rarity, SubEffectConfig } from '@/shared/domain/module-data';
+import { getSubEffectById } from '@/shared/domain/module-data';
 import { getLockCost } from '@/shared/domain/module-data/modules/lock-costs';
 import type { CalculatorConfig, PreLockedEffect } from '../types';
 import { buildInitialPool, preparePool } from '../simulation/pool-dynamics';
@@ -32,13 +33,15 @@ export { buildMinRarityMap } from '../simulation/simulation-engine';
 
 /**
  * Create a stub effect for pre-locked effects display.
+ * Looks up the actual effect to get proper displayName.
  */
 function createStubEffect(effectId: string): SubEffectConfig {
+  const actualEffect = getSubEffectById(effectId);
   return {
     id: effectId,
-    displayName: effectId,
-    moduleType: 'cannon',
-    values: {},
+    displayName: actualEffect?.displayName ?? effectId,
+    moduleType: actualEffect?.moduleType ?? 'cannon',
+    values: actualEffect?.values ?? {},
   } as SubEffectConfig;
 }
 

@@ -6,32 +6,33 @@
  * Uses flat styling (no card wrapper) per PRD constraints.
  */
 
-import { getSubEffectById } from '@/shared/domain/module-data';
+import { useMemo } from 'react';
+import { getBannedEffectsInfo, type BannedEffectsInfo } from './banned-effects-logic';
 
 interface BannedEffectsDisplayProps {
   bannedEffectIds: string[];
 }
 
 export function BannedEffectsDisplay({ bannedEffectIds }: BannedEffectsDisplayProps) {
+  const info: BannedEffectsInfo = useMemo(
+    () => getBannedEffectsInfo(bannedEffectIds),
+    [bannedEffectIds]
+  );
+
   if (bannedEffectIds.length === 0) {
     return null;
   }
-
-  const effectNames = bannedEffectIds.map((id) => {
-    const effect = getSubEffectById(id);
-    return effect?.displayName ?? id;
-  });
 
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
         <BanIcon />
         <span className="text-xs text-slate-400 font-medium">
-          Effects banned from pool ({bannedEffectIds.length}):
+          Effects banned from pool: {info.effectCount} ({info.combinationsRemoved} combinations)
         </span>
       </div>
       <div className="ml-6 text-xs text-slate-500">
-        {effectNames.join(', ')}
+        {info.effectNames.join(', ')}
       </div>
     </div>
   );

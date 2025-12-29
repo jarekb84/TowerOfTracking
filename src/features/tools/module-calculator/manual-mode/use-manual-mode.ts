@@ -26,6 +26,10 @@ import {
   buildMinRarityMap,
 } from './manual-mode-logic';
 import { processRollForLogging } from './roll-log';
+import {
+  loadRollLogSettings,
+  saveRollLogSettings,
+} from './roll-log/roll-log-settings-persistence';
 
 const AUTO_ROLL_DELAY_MS = 100;
 
@@ -93,11 +97,17 @@ export interface UseManualModeResult {
   /** Current log entries */
   logEntries: RollLogEntry[];
 
+  /** Whether to show target match indicators ("what may have been") */
+  showTargetMatches: boolean;
+
   /** Toggle log enabled state */
   setLogEnabled: (enabled: boolean) => void;
 
   /** Set minimum rarity threshold for logging */
   setMinimumLogRarity: (rarity: Rarity) => void;
+
+  /** Toggle showing target match indicators */
+  setShowTargetMatches: (show: boolean) => void;
 
   /** Clear all log entries */
   clearLog: () => void;
@@ -116,6 +126,10 @@ export function useManualMode(
   // Roll log settings (kept separate from state to avoid re-render on every roll)
   const [logEnabled, setLogEnabled] = useState(true);
   const [minimumLogRarity, setMinimumLogRarityInternal] = useState<Rarity>(config.moduleRarity);
+  // Show target match indicators ("what may have been") - persisted in localStorage
+  const [showTargetMatches, setShowTargetMatchesInternal] = useState(() => {
+    return loadRollLogSettings().showTargetMatches;
+  });
   // Track if user has manually customized the rarity filter
   const hasCustomizedLogRarity = useRef(false);
   // Use ref to access current log settings in auto-roll interval
@@ -133,6 +147,12 @@ export function useManualMode(
   const setMinimumLogRarity = useCallback((rarity: Rarity) => {
     hasCustomizedLogRarity.current = true;
     setMinimumLogRarityInternal(rarity);
+  }, []);
+
+  // Wrapper that persists to localStorage
+  const setShowTargetMatches = useCallback((show: boolean) => {
+    setShowTargetMatchesInternal(show);
+    saveRollLogSettings({ showTargetMatches: show });
   }, []);
 
   // Build mode config from calculator config
@@ -383,8 +403,10 @@ export function useManualMode(
     logEnabled,
     minimumLogRarity,
     logEntries,
+    showTargetMatches,
     setLogEnabled,
     setMinimumLogRarity,
+    setShowTargetMatches,
     clearLog,
   };
 }

@@ -5,35 +5,41 @@
  * Note: RollLog is rendered separately as its own collapsible card.
  */
 
-import type { Rarity } from '@/shared/domain/module-data';
+import type { ModuleType, Rarity } from '@/shared/domain/module-data';
 import type { UseManualModeResult } from './use-manual-mode';
 import type { ShardMode } from './types';
+import type { PreLockedEffect } from '../types';
 import { generatePracticeModeSummary } from './manual-mode-summary';
-import { BannedEffectsDisplay } from '../banned-effects-display';
+import { BannedEffectsDisplay, PoolInfoDisplay } from '../pool-status';
 import { ModuleHeader } from './module-header';
 import { EffectSlotsTable } from './effect-slots';
 import { ShardCounter } from './shard-counter';
 import { Button, CollapsibleCard } from '@/components/ui';
 
 interface ManualModePanelProps {
+  moduleType: ModuleType;
   moduleRarity: Rarity;
   moduleLevel: number;
   slotCount: number;
   bannedEffects: string[];
+  preLockedEffects: PreLockedEffect[];
   manualMode: UseManualModeResult;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
 export function ManualModePanel({
+  moduleType,
   moduleRarity,
   moduleLevel,
   slotCount,
   bannedEffects,
+  preLockedEffects,
   manualMode,
   isExpanded,
   onToggle,
 }: ManualModePanelProps) {
+  const lockedEffectIds = preLockedEffects.map((e) => e.effectId);
   const maxLocks = Math.max(0, slotCount - 1);
 
   const summary = generatePracticeModeSummary(
@@ -98,8 +104,16 @@ export function ManualModePanel({
           />
         </div>
 
-        {/* Banned Effects */}
-        <BannedEffectsDisplay bannedEffectIds={bannedEffects} />
+        {/* Banned Effects & Pool Info */}
+        <div className="pt-3 border-t border-slate-700/30 space-y-3">
+          <BannedEffectsDisplay bannedEffectIds={bannedEffects} />
+          <PoolInfoDisplay
+            moduleType={moduleType}
+            moduleRarity={moduleRarity}
+            bannedEffectIds={bannedEffects}
+            lockedEffectIds={lockedEffectIds}
+          />
+        </div>
 
         {/* Actions Section */}
         <div className="border-t border-slate-700/30 pt-3">
@@ -153,7 +167,7 @@ function InactiveContent({ onActivate }: InactiveContentProps) {
     <div className="text-center space-y-4">
       <div className="space-y-2">
         <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-orange-500/10 border border-orange-500/20">
-          <DiceIcon />
+          <RollIcon />
         </div>
         <p className="text-sm text-slate-400">
           Practice rolling manually to build intuition for module costs
@@ -184,7 +198,7 @@ function InactiveContent({ onActivate }: InactiveContentProps) {
   );
 }
 
-function DiceIcon() {
+function RollIcon() {
   return (
     <svg className="w-6 h-6 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="3" y="3" width="18" height="18" rx="2" />

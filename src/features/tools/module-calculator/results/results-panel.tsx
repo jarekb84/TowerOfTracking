@@ -143,7 +143,7 @@ function ProgressBar({ progress }: ProgressBarProps) {
       </div>
       <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
         <div
-          className="h-full bg-orange-500 transition-all duration-300"
+          className="h-full bg-orange-500"
           style={{ width: `${progress}%` }}
         />
       </div>

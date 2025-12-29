@@ -128,6 +128,8 @@ export interface RollLogEffect {
   name: string;
   rarity: Rarity;
   shortName: string;
+  /** Whether this effect matched a target criteria when rolled */
+  isTargetMatch: boolean;
 }
 
 /**

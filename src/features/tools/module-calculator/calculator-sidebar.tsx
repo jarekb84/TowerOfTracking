@@ -65,10 +65,12 @@ export function CalculatorSidebar({
 
       {/* Manual Practice Mode */}
       <ManualModePanel
+        moduleType={config.config.moduleType}
         moduleRarity={config.config.moduleRarity}
         moduleLevel={config.config.moduleLevel}
         slotCount={config.config.slotCount}
         bannedEffects={calculatorConfig.bannedEffects}
+        preLockedEffects={calculatorConfig.preLockedEffects}
         manualMode={manualMode}
         isExpanded={isExpanded.practiceMode}
         onToggle={toggle.practiceMode}
@@ -79,7 +81,9 @@ export function CalculatorSidebar({
         <RollLog
           minimumLogRarity={manualMode.minimumLogRarity}
           logEntries={manualMode.logEntries}
+          showTargetMatches={manualMode.showTargetMatches}
           onMinimumRarityChange={manualMode.setMinimumLogRarity}
+          onShowTargetMatchesChange={manualMode.setShowTargetMatches}
           onClearLog={manualMode.clearLog}
           isExpanded={isExpanded.rollLog}
           onToggle={toggle.rollLog}

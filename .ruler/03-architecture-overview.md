@@ -21,9 +21,9 @@
 - Handles shorthand number formats (100K, 15.2M, 1.5B, up to 1e63) and duration strings (7H 45M 35S)
 - See `src/shared/formatting/number-scale.ts` for number parsing/formatting
 
-## Localization (CRITICAL)
+## Number & Date Formatting (CRITICAL)
 
-**The app supports multiple locales.** All date and number handling MUST use the shared utilities:
+**NEVER format numbers or dates manually.** All formatting MUST use shared utilities - this ensures locale support and consistency. Before writing any number/date formatting code, use these:
 
 **Dates** (`src/shared/formatting/date-formatters.ts`):
 - `parseBattleDate()` - Parse dates from game export (handles multiple locale formats)
@@ -55,6 +55,12 @@ The app includes multiple analysis views in `src/features/analysis/`:
 ## Reusing Existing Utilities
 
 **CRITICAL**: Before implementing any data transformation, check if it already exists:
+
+**Number/Date Formatting** (`src/shared/formatting/`):
+- `formatLargeNumber()` - Display any number with K/M/B/T suffixes
+- `parseShorthandNumber()` - Parse user input like "100K", "1.5M"
+- `formatDisplayDate()` - Display dates to users
+- Never write custom number formatting - use these utilities
 
 **Data Grouping/Aggregation** (`src/features/analysis/`):
 - Period grouping (daily, weekly, monthly, yearly)

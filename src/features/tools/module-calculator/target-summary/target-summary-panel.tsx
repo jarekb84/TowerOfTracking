@@ -4,16 +4,11 @@
  * Displays a summary of configured targets, locked effects, and banned effects.
  */
 
+import { useMemo } from 'react';
 import type { SlotTarget, PreLockedEffect } from '../types';
 import { generateCollapsedSummary } from './target-summary-logic';
-import { BannedEffectsDisplay } from '../banned-effects-display';
-import {
-  countPoolCombinations,
-  getSubEffectsForModule,
-  filterByModuleRarity,
-  getRarityColor,
-  getSubEffectById,
-} from '@/shared/domain/module-data';
+import { BannedEffectsDisplay, PoolInfoDisplay, getPoolInfo } from '../pool-status';
+import { getRarityColor, getSubEffectById } from '@/shared/domain/module-data';
 import type { ModuleType, Rarity } from '@/shared/domain/module-data';
 import { CollapsibleCard } from '@/components/ui';
 
@@ -37,20 +32,27 @@ export function TargetSummaryPanel({
   isExpanded,
   onToggle,
 }: TargetSummaryPanelProps) {
-  // Calculate pool size (exclude locked effects from pool)
-  const allEffects = getSubEffectsForModule(moduleType);
-  const lockedEffectIds = preLockedEffects.map((e) => e.effectId);
-  const availableEffects = filterByModuleRarity(
-    allEffects.filter((e) => !bannedEffects.includes(e.id) && !lockedEffectIds.includes(e.id)),
-    moduleRarity
+  const lockedEffectIds = useMemo(
+    () => preLockedEffects.map((e) => e.effectId),
+    [preLockedEffects]
   );
-  const poolSize = countPoolCombinations(availableEffects, moduleRarity);
+
+  const poolInfo = useMemo(
+    () =>
+      getPoolInfo({
+        moduleType,
+        moduleRarity,
+        bannedEffectIds: bannedEffects,
+        lockedEffectIds,
+      }),
+    [moduleType, moduleRarity, bannedEffects, lockedEffectIds]
+  );
 
   const summary = generateCollapsedSummary(
     preLockedEffects.length,
     targets.length,
     bannedEffects.length,
-    poolSize
+    poolInfo.combinationCount
   );
 
   return (
@@ -111,12 +113,13 @@ export function TargetSummaryPanel({
         <BannedEffectsDisplay bannedEffectIds={bannedEffects} />
 
         {/* Pool Size */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 shrink-0">Pool Size:</span>
-          <span className="text-xs text-slate-400 tabular-nums">
-            {poolSize.toLocaleString()} combinations
-          </span>
-        </div>
+        <PoolInfoDisplay
+          moduleType={moduleType}
+          moduleRarity={moduleRarity}
+          bannedEffectIds={bannedEffects}
+          lockedEffectIds={lockedEffectIds}
+          poolInfo={poolInfo}
+        />
       </div>
       </div>
     </CollapsibleCard>
