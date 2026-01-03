@@ -115,11 +115,6 @@
       "count": 1
     }
   },
-  "src/features/analysis/time-series/time-series-chart.tsx": {
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "src/features/data-export/csv-export/csv-exporter.ts": {
     "complexity": {
       "count": 3
