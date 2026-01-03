@@ -1,21 +1,18 @@
-import { useState, useMemo, useEffect } from 'react'
-import { Area, ComposedChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
-import { ChartContainer, FormControl } from '@/components/ui'
+import { useMemo } from 'react'
+import { FormControl } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
-import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import type { TimePeriod, TimePeriodConfig } from './chart-types'
-import { formatLargeNumber, generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters'
+import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 import { filterRunsByType, type RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { RunType } from '@/shared/domain/run-types/types'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
 import { DataPointsCount } from './data-points-count'
-import { TimeSeriesChartTooltip } from './time-series-tooltip'
-import { MovingAverageSelector } from './moving-average/moving-average-selector'
-import { calculateMovingAverage } from './moving-average/moving-average-calculation'
-import type { MovingAveragePeriod } from './moving-average/moving-average-types'
-import { useMovingAverage } from './moving-average/use-moving-average'
+import { MovingAverageSelector, type MovingAveragePeriod } from './moving-average'
+import { PercentChangeToggle } from './percent-change'
+import { useTimeSeriesChartData } from './use-time-series-chart-data'
+import { TimeSeriesChartBody } from './time-series-chart-body'
 
 interface TimeSeriesChartProps {
   metric: string
@@ -31,11 +28,6 @@ interface TimeSeriesChartProps {
   valueFormatter?: (value: number) => string
 }
 
-const chartConfig = {
-  value: {
-    label: 'Value',
-  },
-}
 
 interface FilterControlsProps {
   availablePeriodConfigs: TimePeriodConfig[]
@@ -47,6 +39,8 @@ interface FilterControlsProps {
   dataPointCount: number
   averagePeriod: MovingAveragePeriod
   onAveragePeriodChange: (period: MovingAveragePeriod) => void
+  percentChangeEnabled: boolean
+  onPercentChangeToggle: (enabled: boolean) => void
 }
 
 function FilterControls({
@@ -59,6 +53,8 @@ function FilterControls({
   dataPointCount,
   averagePeriod,
   onAveragePeriodChange,
+  percentChangeEnabled,
+  onPercentChangeToggle,
 }: FilterControlsProps) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
@@ -76,7 +72,7 @@ function FilterControls({
         </div>
       </FormControl>
 
-      {/* Right side: Run type selector + SMA selector + Data points count */}
+      {/* Right side: Run type selector + SMA selector + % Change toggle + Data points count */}
       <div className="flex items-end gap-4">
         {showRunTypeSelector && onRunTypeChange && (
           <RunTypeSelector
@@ -88,6 +84,12 @@ function FilterControls({
 
         {/* Moving average trend line selector */}
         <MovingAverageSelector value={averagePeriod} onChange={onAveragePeriodChange} />
+
+        {/* Percentage change overlay toggle */}
+        <PercentChangeToggle
+          enabled={percentChangeEnabled}
+          onToggle={onPercentChangeToggle}
+        />
 
         {/* Data points indicator - aligned with controls */}
         <DataPointsCount count={dataPointCount} />
@@ -116,44 +118,21 @@ export function TimeSeriesChart({
   const filteredRuns = useMemo(() => {
     return filterRunsByType(runs, runTypeFilter)
   }, [runs, runTypeFilter])
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
 
-  // Moving average state with localStorage persistence
-  const { averagePeriod, setAveragePeriod, isAverageEnabled } = useMovingAverage(metric)
-
-  // Get available periods based on data span
-  const availablePeriodConfigs = useMemo(() => {
-    return getAvailableTimePeriods(filteredRuns)
-  }, [filteredRuns])
-
-  // Reset period if current selection is not available
-  useEffect(() => {
-    const isCurrentPeriodAvailable = availablePeriodConfigs.some(config => config.period === selectedPeriod)
-    if (!isCurrentPeriodAvailable && availablePeriodConfigs.length > 0) {
-      setSelectedPeriod(availablePeriodConfigs[0].period)
-    }
-  }, [availablePeriodConfigs, selectedPeriod])
-
-  const currentConfig = availablePeriodConfigs.find(config => config.period === selectedPeriod) || availablePeriodConfigs[0]
-
-  const baseChartData = useMemo(() => {
-    return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
-  }, [filteredRuns, selectedPeriod, metric])
-
-  // Apply moving average calculation if a period is selected
-  const chartData = useMemo(() => {
-    if (!isAverageEnabled) {
-      return baseChartData
-    }
-    // Type narrowing: isAverageEnabled guarantees averagePeriod is a number (3, 5, or 10)
-    return calculateMovingAverage(baseChartData, averagePeriod as number)
-  }, [baseChartData, averagePeriod, isAverageEnabled])
-
-  const yAxisTicks = useMemo(() => {
-    if (chartData.length === 0) return []
-    const maxValue = Math.max(...chartData.map(d => d.value))
-    return generateYAxisTicks(maxValue)
-  }, [chartData])
+  // Use custom hook for all chart data preparation
+  const {
+    chartData,
+    availablePeriodConfigs,
+    currentConfig,
+    selectedPeriod,
+    setSelectedPeriod,
+    yAxisTicks,
+    averagePeriod,
+    setAveragePeriod,
+    isAverageEnabled,
+    percentChangeEnabled,
+    setPercentChangeEnabled,
+  } = useTimeSeriesChartData(filteredRuns, metric, defaultPeriod)
 
   if (chartData.length === 0) {
     return (
@@ -188,92 +167,22 @@ export function TimeSeriesChart({
           dataPointCount={chartData.length}
           averagePeriod={averagePeriod}
           onAveragePeriodChange={setAveragePeriod}
+          percentChangeEnabled={percentChangeEnabled}
+          onPercentChangeToggle={setPercentChangeEnabled}
         />
       </div>
 
-      {/* Chart */}
-      <div className="transition-all duration-300 ease-in-out">
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <ComposedChart
-            data={chartData}
-            margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-          >
-          <defs>
-            <linearGradient id={`gradient-${metric}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={currentConfig.color} stopOpacity={0.3}/>
-              <stop offset="95%" stopColor={currentConfig.color} stopOpacity={0.05}/>
-            </linearGradient>
-          </defs>
-
-          <XAxis
-            dataKey="date"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 12, fill: '#94a3b8' }}
-            tickMargin={8}
-          />
-
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 12, fill: '#94a3b8' }}
-            tickFormatter={formatter}
-            ticks={yAxisTicks}
-            domain={[0, 'dataMax']}
-            tickMargin={8}
-          />
-
-          <Tooltip
-            content={
-              <TimeSeriesChartTooltip
-                periodLabel={currentConfig.label}
-                metricLabel={tooltipLabel ?? title ?? ''}
-                formatter={formatter}
-                isHourlyPeriod={selectedPeriod === 'hourly'}
-                accentColor={currentConfig.color}
-                showTrendLine={isAverageEnabled}
-              />
-            }
-          />
-
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke={currentConfig.color}
-            fill={`url(#gradient-${metric})`}
-            strokeWidth={2}
-            dot={{ fill: currentConfig.color, strokeWidth: 0, r: 4 }}
-            activeDot={{
-              r: 6,
-              stroke: currentConfig.color,
-              strokeWidth: 2,
-              fill: '#1e293b',
-              filter: `drop-shadow(0 0 6px ${currentConfig.color}50)`
-            }}
-          />
-
-          {/* Moving average trend line - only rendered when enabled */}
-          {isAverageEnabled && (
-            <Line
-              type="monotone"
-              dataKey="movingAverage"
-              stroke="#f97316"
-              strokeWidth={2}
-              strokeDasharray="6 4"
-              strokeOpacity={0.7}
-              dot={false}
-              activeDot={{
-                r: 4,
-                stroke: '#f97316',
-                strokeWidth: 2,
-                fill: '#1e293b',
-              }}
-              connectNulls={false}
-            />
-          )}
-          </ComposedChart>
-        </ChartContainer>
-      </div>
+      <TimeSeriesChartBody
+        chartData={chartData}
+        metric={metric}
+        currentConfig={currentConfig}
+        yAxisTicks={yAxisTicks}
+        formatter={formatter}
+        selectedPeriod={selectedPeriod}
+        tooltipLabel={tooltipLabel ?? title ?? ''}
+        isAverageEnabled={isAverageEnabled}
+        percentChangeEnabled={percentChangeEnabled}
+      />
     </div>
   )
 }
