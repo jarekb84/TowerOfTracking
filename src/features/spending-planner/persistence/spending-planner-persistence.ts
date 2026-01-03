@@ -5,6 +5,7 @@
  * to/from localStorage.
  */
 
+/* eslint-disable max-statements */
 import type {
   SpendingPlannerState,
   CurrencyIncome,
@@ -12,6 +13,8 @@ import type {
   StoneIncomeBreakdown,
   GemIncomeBreakdown,
   TimelineViewConfig,
+  IncomeDerivedPreferences,
+  IncomeSource,
 } from '../types'
 import { CurrencyId } from '../types'
 import {
@@ -20,9 +23,19 @@ import {
   createDefaultStoneBreakdown,
   createDefaultGemBreakdown,
   isValidCurrencyId,
+  getDefaultIncomeSource,
 } from '../currencies/currency-config'
 
 const STORAGE_KEY = 'tower-tracking-spending-planner'
+
+/**
+ * Create default income derived preferences.
+ */
+function createDefaultIncomeDerivedPreferences(): IncomeDerivedPreferences {
+  return {
+    lookbackPeriod: '3mo',
+  }
+}
 
 /**
  * Create default spending planner state.
@@ -36,6 +49,7 @@ export function getDefaultState(): SpendingPlannerState {
     timelineConfig: { weeks: 12, layoutMode: 'columns' },
     incomePanelCollapsed: false,
     enabledCurrencies: [...CURRENCY_ORDER],
+    incomeDerivedPreferences: createDefaultIncomeDerivedPreferences(),
     lastUpdated: Date.now(),
   }
 }
@@ -148,6 +162,9 @@ function validateStoredState(state: unknown): SpendingPlannerState {
   // Migrate enabledCurrencies: default all to enabled if missing
   const enabledCurrencies = migrateEnabledCurrencies(s.enabledCurrencies)
 
+  // Migrate incomeDerivedPreferences: add default if missing
+  const incomeDerivedPreferences = migrateIncomeDerivedPreferences(s.incomeDerivedPreferences)
+
   return {
     ...s,
     incomes: migratedIncomes,
@@ -155,7 +172,27 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     gemIncomeBreakdown: gemBreakdown,
     timelineConfig,
     enabledCurrencies,
+    incomeDerivedPreferences,
   } as SpendingPlannerState
+}
+
+/**
+ * Migrate incomeDerivedPreferences or create default if missing/invalid.
+ */
+function migrateIncomeDerivedPreferences(value: unknown): IncomeDerivedPreferences {
+  if (!value || typeof value !== 'object') {
+    return createDefaultIncomeDerivedPreferences()
+  }
+
+  const v = value as Partial<IncomeDerivedPreferences>
+
+  // Validate lookbackPeriod
+  const validPeriods = ['3mo', '6mo', 'all'] as const
+  const lookbackPeriod = validPeriods.includes(v.lookbackPeriod as typeof validPeriods[number])
+    ? v.lookbackPeriod!
+    : '3mo'
+
+  return { lookbackPeriod }
 }
 
 /**
@@ -198,17 +235,43 @@ function isValidIncome(value: unknown): value is CurrencyIncome {
 }
 
 /**
+ * Migrate a single income object to include new derived income fields.
+ */
+function migrateIncomeFields(income: Partial<CurrencyIncome>): CurrencyIncome {
+  const currencyId = income.currencyId as CurrencyId
+  const defaultSource = getDefaultIncomeSource(currencyId)
+
+  return {
+    currencyId,
+    currentBalance: income.currentBalance ?? 0,
+    weeklyIncome: income.weeklyIncome ?? 0,
+    growthRatePercent: income.growthRatePercent ?? 0,
+    // New fields - default to derived for derivable currencies, manual for others
+    weeklyIncomeSource: (income.weeklyIncomeSource as IncomeSource) ?? defaultSource,
+    growthRateSource: (income.growthRateSource as IncomeSource) ?? defaultSource,
+    derivedWeeklyIncome: income.derivedWeeklyIncome ?? null,
+    derivedGrowthRate: income.derivedGrowthRate ?? null,
+  }
+}
+
+/**
  * Migrate incomes array to ensure all currencies are present.
- * Adds missing currencies with default values.
+ * Adds missing currencies with default values and migrates existing incomes
+ * to include new derived income fields.
  */
 function migrateIncomes(incomes: CurrencyIncome[]): CurrencyIncome[] {
   const existingCurrencyIds = new Set(incomes.map((i) => i.currencyId))
+
+  // Migrate existing incomes to include new fields
+  const migratedExisting = incomes.map(migrateIncomeFields)
+
+  // Add missing currencies
   const missingIncomes = CURRENCY_ORDER
     .filter((id) => !existingCurrencyIds.has(id))
     .map(createDefaultIncome)
 
   // Return in CURRENCY_ORDER for consistent ordering
-  const allIncomes = [...incomes, ...missingIncomes]
+  const allIncomes = [...migratedExisting, ...missingIncomes]
   return CURRENCY_ORDER.map(
     (id) => allIncomes.find((i) => i.currencyId === id)!
   )

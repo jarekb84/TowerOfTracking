@@ -9,97 +9,76 @@ import {
 import { CurrencyId } from '../types'
 import type { CurrencyIncome, StoneIncomeBreakdown } from '../types'
 
+/** Create a test CurrencyIncome with default derived income fields */
+function createTestIncome(
+  currencyId: CurrencyId,
+  currentBalance: number,
+  weeklyIncome: number,
+  growthRatePercent: number
+): CurrencyIncome {
+  return {
+    currencyId,
+    currentBalance,
+    weeklyIncome,
+    growthRatePercent,
+    weeklyIncomeSource: 'manual',
+    growthRateSource: 'manual',
+    derivedWeeklyIncome: null,
+    derivedGrowthRate: null,
+  }
+}
+
 describe('income-validation', () => {
   describe('validateCurrencyIncome', () => {
     it('should accept valid income', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 1000,
-        weeklyIncome: 500,
-        growthRatePercent: 5,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 1000, 500, 5)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
     it('should accept zero values', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Stones,
-        currentBalance: 0,
-        weeklyIncome: 0,
-        growthRatePercent: 0,
-      }
+      const income = createTestIncome(CurrencyId.Stones, 0, 0, 0)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(true)
     })
 
     it('should reject negative balance', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: -100,
-        weeklyIncome: 500,
-        growthRatePercent: 5,
-      }
+      const income = createTestIncome(CurrencyId.Coins, -100, 500, 5)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Current balance cannot be negative')
     })
 
     it('should reject negative income', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: -500,
-        growthRatePercent: 5,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, -500, 5)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Weekly income cannot be negative')
     })
 
     it('should reject growth rate below -100%', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 500,
-        growthRatePercent: -150,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 500, -150)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Growth rate cannot be less than -100%')
     })
 
     it('should reject growth rate above 1000%', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 500,
-        growthRatePercent: 1500,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 500, 1500)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(false)
       expect(result.errors).toContain('Growth rate cannot exceed 1000%')
     })
 
     it('should accept -100% growth rate', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 500,
-        growthRatePercent: -100,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 500, -100)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(true)
     })
 
     it('should collect multiple errors', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: -100,
-        weeklyIncome: -500,
-        growthRatePercent: 5,
-      }
+      const income = createTestIncome(CurrencyId.Coins, -100, -500, 5)
       const result = validateCurrencyIncome(income)
       expect(result.isValid).toBe(false)
       expect(result.errors).toHaveLength(2)

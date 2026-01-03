@@ -3,6 +3,25 @@ import { calculateTimeline, getWeekNumber, getWeekStartDate } from './timeline-c
 import { CurrencyId } from '../types'
 import type { CurrencyIncome, SpendingEvent } from '../types'
 
+/** Create a test CurrencyIncome with default derived income fields */
+function createTestIncome(
+  currencyId: CurrencyId,
+  currentBalance: number,
+  weeklyIncome: number,
+  growthRatePercent: number
+): CurrencyIncome {
+  return {
+    currencyId,
+    currentBalance,
+    weeklyIncome,
+    growthRatePercent,
+    weeklyIncomeSource: 'manual',
+    growthRateSource: 'manual',
+    derivedWeeklyIncome: null,
+    derivedGrowthRate: null,
+  }
+}
+
 describe('timeline-calculator', () => {
   // Use explicit date parts to avoid UTC parsing issues
   const startDate = new Date(2025, 0, 1) // Jan 1, 2025
@@ -10,7 +29,7 @@ describe('timeline-calculator', () => {
   describe('calculateTimeline', () => {
     it('should schedule event in week 0 if affordable immediately', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
@@ -25,7 +44,7 @@ describe('timeline-calculator', () => {
 
     it('should schedule event in later week if not affordable immediately', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
@@ -39,7 +58,7 @@ describe('timeline-calculator', () => {
 
     it('should process events in priority order', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1 },
@@ -59,7 +78,7 @@ describe('timeline-calculator', () => {
 
     it('should deduct cost from future balances', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 500, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 500, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
@@ -77,8 +96,8 @@ describe('timeline-calculator', () => {
 
     it('should handle multiple currencies independently when sequence allows', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 500, weeklyIncome: 100, growthRatePercent: 0 },
-        { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 50, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 500, 100, 0),
+        createTestIncome(CurrencyId.Stones, 200, 50, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
@@ -97,8 +116,8 @@ describe('timeline-calculator', () => {
 
     it('should enforce queue sequence - later events cannot trigger before earlier ones', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 100, growthRatePercent: 0 },
-        { currencyId: CurrencyId.Stones, currentBalance: 500, weeklyIncome: 50, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
+        createTestIncome(CurrencyId.Stones, 500, 50, 0),
       ]
       // Event 1 (coins) can't afford until week 4
       // Event 2 (stones) COULD afford immediately at week 0
@@ -119,7 +138,7 @@ describe('timeline-calculator', () => {
 
     it('should mark events as unaffordable if cannot be afforded within timeline', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 10, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 10, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Coins, amount: 10000, priority: 0 },
@@ -134,7 +153,7 @@ describe('timeline-calculator', () => {
 
     it('should calculate correct trigger dates', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
@@ -150,7 +169,7 @@ describe('timeline-calculator', () => {
 
     it('should calculate end dates for events with duration', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Lab', currencyId: CurrencyId.Coins, amount: 500, priority: 0, durationDays: 40 },
@@ -168,7 +187,7 @@ describe('timeline-calculator', () => {
 
     it('should include balance projections in result', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 50, 0),
       ]
       const events: SpendingEvent[] = []
 
@@ -181,7 +200,7 @@ describe('timeline-calculator', () => {
 
     it('should include income projections in result', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 50, 0),
       ]
       const events: SpendingEvent[] = []
 
@@ -194,7 +213,7 @@ describe('timeline-calculator', () => {
 
     it('should include expenditure tracking in result with no events', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 50, 0),
       ]
       const events: SpendingEvent[] = []
 
@@ -207,7 +226,7 @@ describe('timeline-calculator', () => {
 
     it('should track expenditure in the correct week', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
@@ -223,7 +242,7 @@ describe('timeline-calculator', () => {
 
     it('should accumulate multiple expenditures in the same week', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 200, priority: 0 },
@@ -240,7 +259,7 @@ describe('timeline-calculator', () => {
 
     it('should track expenditures across different weeks', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 500, weeklyIncome: 200, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 500, 200, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
@@ -258,8 +277,8 @@ describe('timeline-calculator', () => {
 
     it('should track expenditures for multiple currencies', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 500, weeklyIncome: 100, growthRatePercent: 0 },
-        { currencyId: CurrencyId.Stones, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 500, 100, 0),
+        createTestIncome(CurrencyId.Stones, 100, 50, 0),
       ]
       const events: SpendingEvent[] = [
         { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },

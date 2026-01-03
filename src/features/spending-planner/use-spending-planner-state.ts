@@ -5,7 +5,8 @@
  * for the spending planner feature.
  */
 
-import { useState, useCallback, useMemo } from 'react'
+/* eslint-disable max-lines-per-function */
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import type {
   SpendingPlannerState,
   CurrencyIncome,
@@ -14,16 +15,18 @@ import type {
   TimelineViewConfig,
   TimelineData,
   CurrencyId,
+  LookbackPeriod,
 } from './types'
 import {
   loadSpendingPlannerState,
 } from './persistence/spending-planner-persistence'
 import { useSpendingPlannerPersistence } from './persistence/use-spending-planner-persistence'
 import { useIncomeState } from './income/use-income-state'
+import { useDerivedIncome } from './income/use-derived-income'
 import { useEventQueue } from './events/use-event-queue'
 import { useTimelineView } from './timeline/use-timeline-view'
 import { calculateTimeline } from './calculations/timeline-calculator'
-import { toggleCurrencyEnabled } from './currencies/currency-config'
+import { toggleCurrencyEnabled, CURRENCY_CONFIGS } from './currencies/currency-config'
 import type { AddEventData, EditEventData } from './events/event-queue-panel'
 
 interface UseSpendingPlannerStateReturn {
@@ -33,6 +36,8 @@ interface UseSpendingPlannerStateReturn {
   timelineData: TimelineData
   /** Income state handlers */
   income: ReturnType<typeof useIncomeState>
+  /** Derived income state */
+  derivedIncome: ReturnType<typeof useDerivedIncome>
   /** Event queue handlers */
   eventQueue: ReturnType<typeof useEventQueue>
   /** Timeline view handlers */
@@ -51,6 +56,8 @@ interface UseSpendingPlannerStateReturn {
   handleCloneEvent: (eventId: string) => void
   /** Handle drag drop completion */
   handleDrop: () => void
+  /** Update lookback period for derived income calculation */
+  handleLookbackPeriodChange: (period: LookbackPeriod) => void
 }
 
 /**
@@ -80,6 +87,76 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
       setState((prev) => ({ ...prev, gemIncomeBreakdown }))
     }, []),
   })
+
+  // Derived income from run data
+  const derivedIncome = useDerivedIncome(state.incomeDerivedPreferences.lookbackPeriod)
+
+  // Track the last synced values to avoid re-syncing on every render
+  const lastSyncedRef = useRef<{
+    totalRuns: number
+    lookbackPeriod: LookbackPeriod
+  } | null>(null)
+
+  // Sync derived values only when run data or lookback period actually changes
+  // This runs once on mount and when runs are added/removed or lookback changes
+  useEffect(() => {
+    const currentKey = {
+      totalRuns: derivedIncome.totalRuns,
+      lookbackPeriod: state.incomeDerivedPreferences.lookbackPeriod,
+    }
+
+    // Skip if we've already synced for this data
+    if (
+      lastSyncedRef.current &&
+      lastSyncedRef.current.totalRuns === currentKey.totalRuns &&
+      lastSyncedRef.current.lookbackPeriod === currentKey.lookbackPeriod
+    ) {
+      return
+    }
+
+    // Mark as synced before updating to prevent re-entry
+    lastSyncedRef.current = currentKey
+
+    // Batch update all derived values in a single state update
+    setState((prev) => {
+      const updatedIncomes = prev.incomes.map((incomeItem) => {
+        const config = CURRENCY_CONFIGS[incomeItem.currencyId]
+        if (!config.isDerivable) return incomeItem
+
+        const incomeResult = derivedIncome.incomeResults[incomeItem.currencyId]
+        const growthResult = derivedIncome.growthRateResults[incomeItem.currencyId]
+
+        const derivedWeeklyIncome = incomeResult?.weeklyIncome ?? null
+        const derivedGrowthRate = growthResult?.growthRatePercent ?? null
+
+        const newIncome = {
+          ...incomeItem,
+          derivedWeeklyIncome,
+          derivedGrowthRate,
+        }
+
+        // If source is derived, also update the active values
+        if (incomeItem.weeklyIncomeSource === 'derived' && derivedWeeklyIncome !== null) {
+          newIncome.weeklyIncome = derivedWeeklyIncome
+        }
+        if (incomeItem.growthRateSource === 'derived' && derivedGrowthRate !== null) {
+          newIncome.growthRatePercent = derivedGrowthRate
+        }
+
+        return newIncome
+      })
+
+      return { ...prev, incomes: updatedIncomes }
+    })
+  }, [derivedIncome.totalRuns, derivedIncome.incomeResults, derivedIncome.growthRateResults, state.incomeDerivedPreferences.lookbackPeriod])
+
+  // Update lookback period
+  const handleLookbackPeriodChange = useCallback((period: LookbackPeriod) => {
+    setState((prev) => ({
+      ...prev,
+      incomeDerivedPreferences: { ...prev.incomeDerivedPreferences, lookbackPeriod: period },
+    }))
+  }, [])
 
   // Event queue state management
   const eventQueue = useEventQueue()
@@ -166,6 +243,7 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     state,
     timelineData,
     income,
+    derivedIncome,
     eventQueue,
     timeline,
     toggleIncomePanel,
@@ -175,5 +253,6 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     handleEditEvent,
     handleCloneEvent,
     handleDrop,
+    handleLookbackPeriodChange,
   }
 }

@@ -38,11 +38,26 @@ export interface CurrencyConfig {
   color: string
   /** Whether this currency needs a unit selector (K, M, B, T, etc.) */
   hasUnitSelector: boolean
+  /** Whether income can be derived from run data (true for Coins, RerollShards) */
+  isDerivable: boolean
 }
 
 // =============================================================================
 // Income Configuration
 // =============================================================================
+
+/**
+ * Source of income/growth rate value.
+ * - 'derived': Automatically calculated from run data
+ * - 'manual': Manually entered by user
+ */
+export type IncomeSource = 'derived' | 'manual'
+
+/**
+ * Lookback period for derived calculations.
+ * Controls how much historical data is used for growth rate calculation.
+ */
+export type LookbackPeriod = '3mo' | '6mo' | 'all'
 
 /**
  * Income configuration for a single currency.
@@ -53,10 +68,18 @@ export interface CurrencyIncome {
   currencyId: CurrencyId
   /** Current balance of this currency */
   currentBalance: number
-  /** Weekly income (sum of all sources) */
+  /** Weekly income (sum of all sources) - active value used for projections */
   weeklyIncome: number
-  /** Weekly growth rate as a percentage (e.g., 5 for 5%) */
+  /** Weekly growth rate as a percentage (e.g., 5 for 5%) - active value used for projections */
   growthRatePercent: number
+  /** Source of weekly income value ('derived' or 'manual') */
+  weeklyIncomeSource: IncomeSource
+  /** Source of growth rate value ('derived' or 'manual') */
+  growthRateSource: IncomeSource
+  /** Derived weekly income from run data (stored separately from active value) */
+  derivedWeeklyIncome: number | null
+  /** Derived growth rate from run data (stored separately from active value) */
+  derivedGrowthRate: number | null
 }
 
 /**
@@ -193,6 +216,18 @@ export interface TimelineViewConfig {
 }
 
 // =============================================================================
+// Derived Income Preferences
+// =============================================================================
+
+/**
+ * User preferences for derived income calculations.
+ */
+export interface IncomeDerivedPreferences {
+  /** Lookback period for growth rate calculation */
+  lookbackPeriod: LookbackPeriod
+}
+
+// =============================================================================
 // Persisted State
 // =============================================================================
 
@@ -215,6 +250,8 @@ export interface SpendingPlannerState {
   incomePanelCollapsed: boolean
   /** Which currencies are enabled for tracking */
   enabledCurrencies: CurrencyId[]
+  /** Preferences for derived income calculations */
+  incomeDerivedPreferences: IncomeDerivedPreferences
   /** Timestamp of last update */
   lastUpdated: number
 }
