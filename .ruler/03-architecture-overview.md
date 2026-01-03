@@ -21,25 +21,15 @@
 - Handles shorthand number formats (100K, 15.2M, 1.5B, up to 1e63) and duration strings (7H 45M 35S)
 - See `src/shared/formatting/number-scale.ts` for number parsing/formatting
 
-## Number & Date Formatting (CRITICAL)
+## Number & Date Formatting
 
-**NEVER format numbers or dates manually.** All formatting MUST use shared utilities - this ensures locale support and consistency. Before writing any number/date formatting code, use these:
+The codebase supports **locale-aware formatting** for all user-facing numbers and dates. Shared utilities in `src/shared/formatting/` handle parsing and display:
+- `date-formatters.ts` - Date parsing and display
+- `number-scale.ts` - Number formatting with K/M/B/T suffixes
 
-**Dates** (`src/shared/formatting/date-formatters.ts`):
-- `parseBattleDate()` - Parse dates from game export (handles multiple locale formats)
-- `formatDisplayDate()`, `formatDisplayDateTime()` - Locale-aware display
-- `formatIsoDate()`, `formatCanonicalBattleDate()` - Storage format (US-centric)
+**Key principle**: Never format numbers or dates manually—always use the shared utilities.
 
-**Numbers** (`src/shared/formatting/number-scale.ts`):
-- `parseShorthandNumber()` - Parse "100K", "1.5M" with locale-aware separators
-- `formatLargeNumber()` - Format numbers with scale suffixes
-
-**Canonical Data Format:**
-- **Storage/Memory**: US-centric format (e.g., "Oct 14, 2025 13:14")
-- **User Input**: Parsed according to user's locale settings
-- **Display Output**: Formatted according to user's locale settings
-
-**NEVER construct dates or format numbers directly.** Always use the shared utilities.
+The **Localization Enforcer Agent** runs during the mandatory review phase to catch any violations and ensure consistent locale support across the codebase.
 
 ## Analytics Features
 
@@ -55,12 +45,6 @@ The app includes multiple analysis views in `src/features/analysis/`:
 ## Reusing Existing Utilities
 
 **CRITICAL**: Before implementing any data transformation, check if it already exists:
-
-**Number/Date Formatting** (`src/shared/formatting/`):
-- `formatLargeNumber()` - Display any number with K/M/B/T suffixes
-- `parseShorthandNumber()` - Parse user input like "100K", "1.5M"
-- `formatDisplayDate()` - Display dates to users
-- Never write custom number formatting - use these utilities
 
 **Data Grouping/Aggregation** (`src/features/analysis/`):
 - Period grouping (daily, weekly, monthly, yearly)
