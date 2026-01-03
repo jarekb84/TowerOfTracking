@@ -6,7 +6,6 @@ import {
   clearSpendingPlannerState,
 } from './spending-planner-persistence'
 import { CurrencyId } from '../types'
-import type { SpendingPlannerState } from '../types'
 
 describe('spending-planner-persistence', () => {
   beforeEach(() => {
@@ -15,11 +14,13 @@ describe('spending-planner-persistence', () => {
   })
 
   describe('getDefaultState', () => {
-    it('should return state with default incomes for both currencies', () => {
+    it('should return state with default incomes for all currencies', () => {
       const state = getDefaultState()
-      expect(state.incomes).toHaveLength(2)
+      expect(state.incomes).toHaveLength(4)
       expect(state.incomes[0].currencyId).toBe(CurrencyId.Coins)
       expect(state.incomes[1].currencyId).toBe(CurrencyId.Stones)
+      expect(state.incomes[2].currencyId).toBe(CurrencyId.RerollShards)
+      expect(state.incomes[3].currencyId).toBe(CurrencyId.Gems)
     })
 
     it('should return coins with 5% default growth', () => {
@@ -50,19 +51,49 @@ describe('spending-planner-persistence', () => {
         weeklyChallenges: 0,
         eventStore: 0,
         tournamentResults: 0,
+        purchasedWithMoney: 0,
       })
+    })
+
+    it('should return default gem breakdown with all zeros', () => {
+      const state = getDefaultState()
+      expect(state.gemIncomeBreakdown).toEqual({
+        adGems: 0,
+        floatingGems: 0,
+        storeDailyGems: 0,
+        storeWeeklyGems: 0,
+        missionsDailyCompletion: 0,
+        missionsWeeklyChests: 0,
+        tournaments: 0,
+        biweeklyEventShop: 0,
+        guildWeeklyChests: 0,
+        guildSeasonalStore: 0,
+        offerWalls: 0,
+        purchasedWithMoney: 0,
+      })
+    })
+
+    it('should return all currencies enabled by default', () => {
+      const state = getDefaultState()
+      expect(state.enabledCurrencies).toEqual([
+        CurrencyId.Coins,
+        CurrencyId.Stones,
+        CurrencyId.RerollShards,
+        CurrencyId.Gems,
+      ])
     })
   })
 
   describe('loadSpendingPlannerState', () => {
     it('should return default state when nothing stored', () => {
       const state = loadSpendingPlannerState()
-      expect(state.incomes).toHaveLength(2)
+      expect(state.incomes).toHaveLength(4)
       expect(state.events).toEqual([])
     })
 
-    it('should load valid stored state', () => {
-      const validState: SpendingPlannerState = {
+    it('should load valid stored state and migrate old breakdowns', () => {
+      // Simulates old data without purchasedWithMoney or gemIncomeBreakdown
+      const oldState = {
         incomes: [
           { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 500, growthRatePercent: 5 },
           { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 100, growthRatePercent: 0 },
@@ -75,16 +106,24 @@ describe('spending-planner-persistence', () => {
         incomePanelCollapsed: false,
         lastUpdated: Date.now(),
       }
-      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(validState))
+      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(oldState))
 
       const loaded = loadSpendingPlannerState()
       expect(loaded.incomes[0].currentBalance).toBe(1000)
       expect(loaded.events).toHaveLength(1)
       expect(loaded.timelineConfig.weeks).toBe(26)
+      // Verify migration added missing fields
+      expect(loaded.stoneIncomeBreakdown.purchasedWithMoney).toBe(0)
+      expect(loaded.gemIncomeBreakdown).toBeDefined()
+      // Verify migration added missing currencies
+      expect(loaded.incomes).toHaveLength(4)
+      expect(loaded.incomes[2].currencyId).toBe(CurrencyId.RerollShards)
+      expect(loaded.incomes[3].currencyId).toBe(CurrencyId.Gems)
     })
 
     it('should always return incomePanelCollapsed as true', () => {
-      const validState: SpendingPlannerState = {
+      // Simulates old data structure with only 2 currencies
+      const oldState = {
         incomes: [
           { currencyId: CurrencyId.Coins, currentBalance: 0, weeklyIncome: 0, growthRatePercent: 5 },
           { currencyId: CurrencyId.Stones, currentBalance: 0, weeklyIncome: 0, growthRatePercent: 0 },
@@ -95,10 +134,12 @@ describe('spending-planner-persistence', () => {
         incomePanelCollapsed: false,
         lastUpdated: Date.now(),
       }
-      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(validState))
+      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(oldState))
 
       const loaded = loadSpendingPlannerState()
       expect(loaded.incomePanelCollapsed).toBe(true)
+      // Also verify migration added missing currencies
+      expect(loaded.incomes).toHaveLength(4)
     })
 
     it('should return default state for invalid JSON', () => {
@@ -112,7 +153,7 @@ describe('spending-planner-persistence', () => {
       localStorage.setItem('tower-tracking-spending-planner', JSON.stringify({ incomes: [] }))
 
       const state = loadSpendingPlannerState()
-      expect(state.incomes).toHaveLength(2) // Falls back to default
+      expect(state.incomes).toHaveLength(4) // Falls back to default
     })
 
     it('should return default state for invalid currency ID', () => {
@@ -129,7 +170,7 @@ describe('spending-planner-persistence', () => {
       localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(invalidState))
 
       const state = loadSpendingPlannerState()
-      expect(state.incomes).toHaveLength(2) // Falls back to default
+      expect(state.incomes).toHaveLength(4) // Falls back to default
     })
 
     it('should return default state for invalid timeline weeks', () => {
@@ -199,7 +240,8 @@ describe('spending-planner-persistence', () => {
 
   describe('event validation', () => {
     it('should accept events with optional durationDays', () => {
-      const validState: SpendingPlannerState = {
+      // Simulates old data structure
+      const oldState = {
         incomes: [
           { currencyId: CurrencyId.Coins, currentBalance: 0, weeklyIncome: 0, growthRatePercent: 5 },
           { currencyId: CurrencyId.Stones, currentBalance: 0, weeklyIncome: 0, growthRatePercent: 0 },
@@ -212,7 +254,7 @@ describe('spending-planner-persistence', () => {
         incomePanelCollapsed: false,
         lastUpdated: Date.now(),
       }
-      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(validState))
+      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(oldState))
 
       const loaded = loadSpendingPlannerState()
       expect(loaded.events[0].durationDays).toBe(40)
@@ -226,7 +268,7 @@ describe('spending-planner-persistence', () => {
         ],
         stoneIncomeBreakdown: { weeklyChallenges: 0, eventStore: 0, tournamentResults: 0 },
         events: [
-          { id: '1', name: 'Invalid', currencyId: 'gems', amount: 500, priority: 0 },
+          { id: '1', name: 'Invalid', currencyId: 'gold', amount: 500, priority: 0 },
         ],
         timelineConfig: { weeks: 12 },
         incomePanelCollapsed: false,

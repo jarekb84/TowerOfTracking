@@ -10,8 +10,10 @@ import type {
   SpendingPlannerState,
   CurrencyIncome,
   StoneIncomeBreakdown,
+  GemIncomeBreakdown,
   TimelineViewConfig,
   TimelineData,
+  CurrencyId,
 } from './types'
 import {
   loadSpendingPlannerState,
@@ -21,6 +23,7 @@ import { useIncomeState } from './income/use-income-state'
 import { useEventQueue } from './events/use-event-queue'
 import { useTimelineView } from './timeline/use-timeline-view'
 import { calculateTimeline } from './calculations/timeline-calculator'
+import { toggleCurrencyEnabled } from './currencies/currency-config'
 import type { AddEventData, EditEventData } from './events/event-queue-panel'
 
 interface UseSpendingPlannerStateReturn {
@@ -36,6 +39,8 @@ interface UseSpendingPlannerStateReturn {
   timeline: ReturnType<typeof useTimelineView>
   /** Toggle income panel collapse */
   toggleIncomePanel: () => void
+  /** Toggle currency enabled state */
+  handleToggleCurrency: (currencyId: CurrencyId) => void
   /** Add a new event */
   handleAddEvent: (data: AddEventData) => void
   /** Remove an event */
@@ -64,11 +69,15 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
   const income = useIncomeState({
     incomes: state.incomes,
     stoneBreakdown: state.stoneIncomeBreakdown,
+    gemBreakdown: state.gemIncomeBreakdown,
     onIncomesChange: useCallback((incomes: CurrencyIncome[]) => {
       setState((prev) => ({ ...prev, incomes }))
     }, []),
     onStoneBreakdownChange: useCallback((stoneIncomeBreakdown: StoneIncomeBreakdown) => {
       setState((prev) => ({ ...prev, stoneIncomeBreakdown }))
+    }, []),
+    onGemBreakdownChange: useCallback((gemIncomeBreakdown: GemIncomeBreakdown) => {
+      setState((prev) => ({ ...prev, gemIncomeBreakdown }))
     }, []),
   })
 
@@ -88,6 +97,14 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     setState((prev) => ({
       ...prev,
       incomePanelCollapsed: !prev.incomePanelCollapsed,
+    }))
+  }, [])
+
+  // Toggle currency enabled state
+  const handleToggleCurrency = useCallback((currencyId: CurrencyId) => {
+    setState((prev) => ({
+      ...prev,
+      enabledCurrencies: toggleCurrencyEnabled(prev.enabledCurrencies, currencyId),
     }))
   }, [])
 
@@ -152,6 +169,7 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     eventQueue,
     timeline,
     toggleIncomePanel,
+    handleToggleCurrency,
     handleAddEvent,
     handleRemoveEvent,
     handleEditEvent,

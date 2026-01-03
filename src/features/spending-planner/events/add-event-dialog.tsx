@@ -4,7 +4,7 @@
  * Dialog for adding new spending events to the queue.
  */
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -15,24 +15,36 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { CurrencyId } from '../types'
-import { getAllCurrencyConfigs } from '../currencies/currency-config'
+import type { CurrencyConfig } from '../types'
 import { AddEventForm, SCALE_OPTIONS } from './add-event-form'
 
 interface AddEventDialogProps {
   isOpen: boolean
+  currencies: CurrencyConfig[]
   onClose: () => void
   onAdd: (name: string, currencyId: CurrencyId, amount: number, durationDays?: number) => void
 }
 
-export function AddEventDialog({ isOpen, onClose, onAdd }: AddEventDialogProps) {
+export function AddEventDialog({ isOpen, currencies, onClose, onAdd }: AddEventDialogProps) {
   const [name, setName] = useState('')
   const [currencyId, setCurrencyId] = useState<CurrencyId>(CurrencyId.Coins)
   const [amountValue, setAmountValue] = useState('')
   const [amountScale, setAmountScale] = useState('T')
   const [durationDays, setDurationDays] = useState('')
 
-  const currencies = getAllCurrencyConfigs()
-  const selectedCurrency = currencies.find((c) => c.id === currencyId)!
+  // When dialog opens, ensure selected currency is valid (in case it was disabled)
+  useEffect(() => {
+    if (isOpen && currencies.length > 0) {
+      const isCurrentValid = currencies.some((c) => c.id === currencyId)
+      if (!isCurrentValid) {
+        setCurrencyId(currencies[0].id)
+      }
+    }
+  }, [isOpen, currencies, currencyId])
+
+  const selectedCurrency = useMemo(() => {
+    return currencies.find((c) => c.id === currencyId) ?? currencies[0]
+  }, [currencies, currencyId])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

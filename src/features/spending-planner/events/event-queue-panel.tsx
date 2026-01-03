@@ -4,12 +4,14 @@
  * Panel displaying the draggable queue of spending events.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { EventPill } from './event-pill'
 import { AddEventDialog } from './add-event-dialog'
 import { EditEventDialog } from './edit-event-dialog'
 import type { SpendingEvent, CurrencyId } from '../types'
+import { getEnabledCurrenciesInOrder, getCurrencyConfig } from '../currencies/currency-config'
+import type { CurrencyConfig } from '../types'
 
 export interface AddEventData {
   name: string
@@ -24,6 +26,7 @@ export interface EditEventData extends AddEventData {
 
 interface EventQueuePanelProps {
   events: SpendingEvent[]
+  enabledCurrencies: CurrencyId[]
   draggedIndex: number | null
   draggedOverIndex: number | null
   onDragStart: (index: number) => void
@@ -37,6 +40,7 @@ interface EventQueuePanelProps {
 
 export function EventQueuePanel({
   events,
+  enabledCurrencies,
   draggedIndex,
   draggedOverIndex,
   onDragStart,
@@ -49,6 +53,11 @@ export function EventQueuePanel({
 }: EventQueuePanelProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<SpendingEvent | null>(null)
+
+  // Get enabled currency configs in order
+  const enabledCurrencyConfigs = useMemo((): CurrencyConfig[] => {
+    return getEnabledCurrenciesInOrder(enabledCurrencies).map(getCurrencyConfig)
+  }, [enabledCurrencies])
 
   const handleEditClick = (event: SpendingEvent) => {
     setEditingEvent(event)
@@ -115,6 +124,7 @@ export function EventQueuePanel({
       {/* Add Event Dialog */}
       <AddEventDialog
         isOpen={isAddDialogOpen}
+        currencies={enabledCurrencyConfigs}
         onClose={() => setIsAddDialogOpen(false)}
         onAdd={handleAddEvent}
       />
@@ -122,6 +132,7 @@ export function EventQueuePanel({
       {/* Edit Event Dialog */}
       <EditEventDialog
         event={editingEvent}
+        currencies={enabledCurrencyConfigs}
         isOpen={editingEvent !== null}
         onClose={() => setEditingEvent(null)}
         onSave={handleEditSave}

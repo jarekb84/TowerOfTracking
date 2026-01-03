@@ -8,7 +8,7 @@
 import { cn } from '@/shared/lib/utils'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import type { TimelineEvent } from '../types'
-import { getCurrencyConfig } from '../currencies/currency-config'
+import { getCurrencyConfig, getCurrencyVisualStyles } from '../currencies/currency-config'
 import { durationToWeeks } from './timeline-utils'
 
 interface TimelineEventPillProps {
@@ -20,6 +20,7 @@ interface TimelineEventPillProps {
 export function TimelineEventPill({ timelineEvent, weekSpan = 1 }: TimelineEventPillProps) {
   const { event } = timelineEvent
   const config = getCurrencyConfig(event.currencyId)
+  const visualStyles = getCurrencyVisualStyles(event.currencyId)
   const formattedAmount = formatLargeNumber(event.amount)
 
   // Check if this event spans multiple weeks (for styling purposes)
@@ -31,6 +32,7 @@ export function TimelineEventPill({ timelineEvent, weekSpan = 1 }: TimelineEvent
         'flex flex-col p-1.5 rounded border text-xs h-full',
         'bg-slate-700/60 border-slate-600/50',
         'hover:bg-slate-600/60 transition-colors',
+        visualStyles.timelineBorderLeft,
         isSpanning && 'relative overflow-hidden'
       )}
       title={`${event.name}: ${formattedAmount} ${config.abbreviation}${event.durationDays ? ` (${event.durationDays} days)` : ''}`}
