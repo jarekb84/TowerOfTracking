@@ -191,6 +191,89 @@ describe('timeline-calculator', () => {
       expect(coinIncomes).toBeDefined()
       expect(coinIncomes).toEqual([50, 50, 50, 50])
     })
+
+    it('should include expenditure tracking in result with no events', () => {
+      const incomes: CurrencyIncome[] = [
+        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
+      ]
+      const events: SpendingEvent[] = []
+
+      const result = calculateTimeline(incomes, events, 4, startDate)
+
+      const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
+      expect(coinExpenditures).toBeDefined()
+      expect(coinExpenditures).toEqual([0, 0, 0, 0])
+    })
+
+    it('should track expenditure in the correct week', () => {
+      const incomes: CurrencyIncome[] = [
+        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 100, growthRatePercent: 0 },
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, startDate)
+
+      const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
+      expect(coinExpenditures).toBeDefined()
+      // Event triggers at week 2 (100 + 2*100 = 300)
+      expect(coinExpenditures).toEqual([0, 0, 300, 0])
+    })
+
+    it('should accumulate multiple expenditures in the same week', () => {
+      const incomes: CurrencyIncome[] = [
+        { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 100, growthRatePercent: 0 },
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 200, priority: 0 },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1 },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, startDate)
+
+      const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
+      expect(coinExpenditures).toBeDefined()
+      // Both events trigger at week 0 since balance is 1000
+      expect(coinExpenditures).toEqual([500, 0, 0, 0])
+    })
+
+    it('should track expenditures across different weeks', () => {
+      const incomes: CurrencyIncome[] = [
+        { currencyId: CurrencyId.Coins, currentBalance: 500, weeklyIncome: 200, growthRatePercent: 0 },
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 500, priority: 1 },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, startDate)
+
+      const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
+      expect(coinExpenditures).toBeDefined()
+      // Event 1: week 0 (500 >= 400)
+      // Event 2: week 2 (100 + 2*200 = 500)
+      expect(coinExpenditures).toEqual([400, 0, 500, 0])
+    })
+
+    it('should track expenditures for multiple currencies', () => {
+      const incomes: CurrencyIncome[] = [
+        { currencyId: CurrencyId.Coins, currentBalance: 500, weeklyIncome: 100, growthRatePercent: 0 },
+        { currencyId: CurrencyId.Stones, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 75, priority: 1 },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, startDate)
+
+      const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
+      const stoneExpenditures = result.expenditureByWeek.get(CurrencyId.Stones)
+
+      expect(coinExpenditures).toEqual([300, 0, 0, 0])
+      expect(stoneExpenditures).toEqual([75, 0, 0, 0])
+    })
   })
 
   describe('getWeekNumber', () => {

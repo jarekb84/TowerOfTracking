@@ -160,6 +160,8 @@ export interface TimelineData {
   balancesByWeek: Map<CurrencyId, number[]>
   /** Projected income per week for each currency (with growth applied) */
   incomeByWeek: Map<CurrencyId, number[]>
+  /** Total expenditure per week for each currency */
+  expenditureByWeek: Map<CurrencyId, number[]>
   /** Events that cannot be afforded within the timeline */
   unaffordableEvents: SpendingEvent[]
 }
@@ -174,11 +176,20 @@ export interface TimelineData {
 export type TimelineWeeks = 4 | 8 | 12 | 26 | 52
 
 /**
+ * Timeline layout modes for displaying data.
+ * - 'columns': 3 sub-columns per week (Inc, Exp, Balance), currencies as rows
+ * - 'rows': Currencies as headers with sub-rows (Prior Balance, +Income, -Spending, =Balance)
+ */
+export type TimelineLayoutMode = 'columns' | 'rows'
+
+/**
  * Timeline view state configuration.
  */
 export interface TimelineViewConfig {
   /** Number of weeks to display */
   weeks: TimelineWeeks
+  /** Layout mode for displaying timeline data */
+  layoutMode: TimelineLayoutMode
 }
 
 // =============================================================================

@@ -15,6 +15,7 @@ interface TimelineEventsGridProps {
   weeks: number
   labelWidth: number
   columnWidth: number
+  startingColumnWidth: number
 }
 
 export function TimelineEventsGrid({
@@ -22,6 +23,7 @@ export function TimelineEventsGrid({
   weeks,
   labelWidth,
   columnWidth,
+  startingColumnWidth,
 }: TimelineEventsGridProps) {
   const positionedEvents = useMemo(
     () => calculateEventPositions(events, weeks),
@@ -42,6 +44,13 @@ export function TimelineEventsGrid({
         >
           Events
         </div>
+        {/* Starting column spacer - only show if startingColumnWidth > 0 (columns mode) */}
+        {startingColumnWidth > 0 && (
+          <div
+            className="shrink-0 border-r-2 border-slate-600/50 bg-slate-800/30"
+            style={{ width: startingColumnWidth }}
+          />
+        )}
         <div className="flex-1 p-2 text-xs text-slate-500 italic">
           No events scheduled
         </div>
@@ -58,6 +67,14 @@ export function TimelineEventsGrid({
       >
         Events
       </div>
+
+      {/* Starting column spacer - only show if startingColumnWidth > 0 (columns mode) */}
+      {startingColumnWidth > 0 && (
+        <div
+          className="shrink-0 border-r-2 border-slate-600/50 bg-slate-800/30"
+          style={{ width: startingColumnWidth }}
+        />
+      )}
 
       {/* Events grid - uses CSS Grid matching the week columns above */}
       <div
