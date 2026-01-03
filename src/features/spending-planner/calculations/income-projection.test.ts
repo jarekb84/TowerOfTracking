@@ -9,15 +9,29 @@ import {
 import { CurrencyId } from '../types'
 import type { CurrencyIncome } from '../types'
 
+/** Create a test CurrencyIncome with default derived income fields */
+function createTestIncome(
+  currencyId: CurrencyId,
+  currentBalance: number,
+  weeklyIncome: number,
+  growthRatePercent: number
+): CurrencyIncome {
+  return {
+    currencyId,
+    currentBalance,
+    weeklyIncome,
+    growthRatePercent,
+    weeklyIncomeSource: 'manual',
+    growthRateSource: 'manual',
+    derivedWeeklyIncome: null,
+    derivedGrowthRate: null,
+  }
+}
+
 describe('income-projection', () => {
   describe('projectBalances', () => {
     it('should project balances without growth', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 50,
-        growthRatePercent: 0,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 50, 0)
 
       const balances = projectBalances(income, 4)
 
@@ -25,12 +39,7 @@ describe('income-projection', () => {
     })
 
     it('should project balances with growth', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 100,
-        growthRatePercent: 10,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 100, 10)
 
       const balances = projectBalances(income, 3)
 
@@ -45,12 +54,7 @@ describe('income-projection', () => {
     })
 
     it('should handle zero starting balance', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 0,
-        weeklyIncome: 100,
-        growthRatePercent: 0,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 0, 100, 0)
 
       const balances = projectBalances(income, 3)
 
@@ -58,12 +62,7 @@ describe('income-projection', () => {
     })
 
     it('should handle zero income', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 500,
-        weeklyIncome: 0,
-        growthRatePercent: 0,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 500, 0, 0)
 
       const balances = projectBalances(income, 3)
 
@@ -71,12 +70,7 @@ describe('income-projection', () => {
     })
 
     it('should handle negative growth', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 100,
-        growthRatePercent: -50,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 100, -50)
 
       const balances = projectBalances(income, 3)
 
@@ -93,12 +87,7 @@ describe('income-projection', () => {
 
   describe('projectIncomes', () => {
     it('should project incomes without growth', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 50,
-        growthRatePercent: 0,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 50, 0)
 
       const incomes = projectIncomes(income, 4)
 
@@ -106,12 +95,7 @@ describe('income-projection', () => {
     })
 
     it('should project incomes with growth', () => {
-      const income: CurrencyIncome = {
-        currencyId: CurrencyId.Coins,
-        currentBalance: 100,
-        weeklyIncome: 100,
-        growthRatePercent: 10,
-      }
+      const income = createTestIncome(CurrencyId.Coins, 100, 100, 10)
 
       const incomes = projectIncomes(income, 4)
 
@@ -125,8 +109,8 @@ describe('income-projection', () => {
   describe('projectAllBalances', () => {
     it('should project balances for all currencies', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
-        { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 50, 0),
+        createTestIncome(CurrencyId.Stones, 200, 100, 0),
       ]
 
       const result = projectAllBalances(incomes, 2)
@@ -139,8 +123,8 @@ describe('income-projection', () => {
   describe('projectAllIncomes', () => {
     it('should project incomes for all currencies', () => {
       const incomes: CurrencyIncome[] = [
-        { currencyId: CurrencyId.Coins, currentBalance: 100, weeklyIncome: 50, growthRatePercent: 0 },
-        { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 100, growthRatePercent: 0 },
+        createTestIncome(CurrencyId.Coins, 100, 50, 0),
+        createTestIncome(CurrencyId.Stones, 200, 100, 0),
       ]
 
       const result = projectAllIncomes(incomes, 2)

@@ -15,6 +15,7 @@ export function SpendingPlanner() {
     state,
     timelineData,
     income,
+    derivedIncome,
     eventQueue,
     timeline,
     toggleIncomePanel,
@@ -24,6 +25,7 @@ export function SpendingPlanner() {
     handleEditEvent,
     handleCloneEvent,
     handleDrop,
+    handleLookbackPeriodChange,
   } = useSpendingPlannerState()
 
   return (
@@ -43,11 +45,18 @@ export function SpendingPlanner() {
         gemBreakdown={state.gemIncomeBreakdown}
         enabledCurrencies={state.enabledCurrencies}
         isCollapsed={state.incomePanelCollapsed}
+        lookbackPeriod={state.incomeDerivedPreferences.lookbackPeriod}
+        derivedIncomeResults={derivedIncome.incomeResults}
+        derivedGrowthResults={derivedIncome.growthRateResults}
+        hasAnyDerivedData={derivedIncome.hasAnyData}
         onToggleCollapse={toggleIncomePanel}
         onToggleCurrency={handleToggleCurrency}
         onBalanceChange={income.updateBalance}
         onWeeklyIncomeChange={income.updateWeeklyIncome}
         onGrowthRateChange={income.updateGrowthRate}
+        onToggleIncomeSource={income.toggleIncomeSource}
+        onToggleGrowthSource={income.toggleGrowthRateSource}
+        onLookbackPeriodChange={handleLookbackPeriodChange}
         onStoneBreakdownChange={income.updateStoneBreakdown}
         onGemBreakdownChange={income.updateGemBreakdown}
       />

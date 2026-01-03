@@ -12,6 +12,8 @@ interface CollapsibleCardProps {
   title: string;
   /** Summary text shown in collapsed state (optional) */
   summary?: string;
+  /** Additional content to display in the header (optional) */
+  headerContent?: React.ReactNode;
   /** Whether the card is expanded */
   isExpanded: boolean;
   /** Callback when expand/collapse is toggled */
@@ -25,6 +27,7 @@ interface CollapsibleCardProps {
 export function CollapsibleCard({
   title,
   summary,
+  headerContent,
   isExpanded,
   onToggle,
   children,
@@ -38,35 +41,55 @@ export function CollapsibleCard({
         className
       )}
     >
-      {/* Clickable Header */}
-      <button
-        type="button"
-        onClick={onToggle}
+      {/* Header Row */}
+      <div
         className={cn(
-          'w-full flex items-center gap-2 px-4 py-3',
-          'text-left transition-colors duration-200',
-          'hover:bg-slate-700/20',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-inset',
+          'flex items-center gap-2 px-4 py-3',
+          'transition-colors duration-200',
           // Rounded corners based on expand state
           isExpanded ? 'rounded-t-lg' : 'rounded-lg'
         )}
-        aria-expanded={isExpanded}
       >
-        {/* Chevron Icon */}
-        <ChevronIcon isExpanded={isExpanded} />
+        {/* Clickable Title Section */}
+        <button
+          type="button"
+          onClick={onToggle}
+          className={cn(
+            'flex items-center gap-2 min-w-0 flex-1',
+            'text-left transition-colors duration-200',
+            'hover:bg-slate-700/20 -mx-2 px-2 py-1 rounded',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50'
+          )}
+          aria-expanded={isExpanded}
+        >
+          {/* Chevron Icon */}
+          <ChevronIcon isExpanded={isExpanded} />
 
-        {/* Title */}
-        <span className="text-sm font-semibold text-slate-200 shrink-0">
-          {title}
-        </span>
-
-        {/* Summary (shown when collapsed or expanded, right-aligned) */}
-        {summary && (
-          <span className="ml-auto text-xs text-slate-400 truncate">
-            {summary}
+          {/* Title */}
+          <span className="text-sm font-semibold text-slate-200 shrink-0">
+            {title}
           </span>
+
+          {/* Summary (shown when collapsed or expanded, right-aligned) */}
+          {summary && (
+            <span className="ml-auto text-xs text-slate-400 truncate">
+              {summary}
+            </span>
+          )}
+        </button>
+
+        {/* Additional Header Content (doesn't trigger toggle) */}
+        {headerContent && (
+          <div
+            className="shrink-0"
+            role="presentation"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            {headerContent}
+          </div>
         )}
-      </button>
+      </div>
 
       {/* Expandable Content */}
       <div

@@ -4,10 +4,11 @@
  * Manages income configuration state for all currencies.
  */
 
+/* eslint-disable max-lines-per-function */
 import { useCallback } from 'react'
 import { CurrencyId } from '../types'
-import type { CurrencyIncome, StoneIncomeBreakdown, GemIncomeBreakdown } from '../types'
-import { calculateStoneIncome, calculateGemIncome } from '../currencies/currency-config'
+import type { CurrencyIncome, StoneIncomeBreakdown, GemIncomeBreakdown, IncomeSource } from '../types'
+import { calculateStoneIncome, calculateGemIncome, CURRENCY_CONFIGS } from '../currencies/currency-config'
 import { ensureNonNegative, clampGrowthRate } from './income-validation'
 
 interface UseIncomeStateReturn {
@@ -21,6 +22,12 @@ interface UseIncomeStateReturn {
   updateStoneBreakdown: (field: keyof StoneIncomeBreakdown, value: number) => void
   /** Update gem income breakdown field */
   updateGemBreakdown: (field: keyof GemIncomeBreakdown, value: number) => void
+  /** Toggle income source between derived and manual */
+  toggleIncomeSource: (currencyId: CurrencyId) => void
+  /** Toggle growth rate source between derived and manual */
+  toggleGrowthRateSource: (currencyId: CurrencyId) => void
+  /** Update derived values for a currency */
+  updateDerivedValues: (currencyId: CurrencyId, income: number | null, growthRate: number | null) => void
 }
 
 interface UseIncomeStateProps {
@@ -122,11 +129,94 @@ export function useIncomeState({
     [incomes, gemBreakdown, onIncomesChange, onGemBreakdownChange]
   )
 
+  const toggleIncomeSource = useCallback(
+    (currencyId: CurrencyId) => {
+      // Only derivable currencies can toggle to derived
+      const config = CURRENCY_CONFIGS[currencyId]
+      if (!config.isDerivable) return
+
+      const updated = incomes.map((income) => {
+        if (income.currencyId !== currencyId) return income
+
+        const newSource: IncomeSource =
+          income.weeklyIncomeSource === 'derived' ? 'manual' : 'derived'
+
+        // When switching to derived, use the derived value if available
+        const newWeeklyIncome =
+          newSource === 'derived' && income.derivedWeeklyIncome !== null
+            ? income.derivedWeeklyIncome
+            : income.weeklyIncome
+
+        return {
+          ...income,
+          weeklyIncomeSource: newSource,
+          weeklyIncome: newWeeklyIncome,
+        }
+      })
+      onIncomesChange(updated)
+    },
+    [incomes, onIncomesChange]
+  )
+
+  const toggleGrowthRateSource = useCallback(
+    (currencyId: CurrencyId) => {
+      // Only derivable currencies can toggle to derived
+      const config = CURRENCY_CONFIGS[currencyId]
+      if (!config.isDerivable) return
+
+      const updated = incomes.map((income) => {
+        if (income.currencyId !== currencyId) return income
+
+        const newSource: IncomeSource =
+          income.growthRateSource === 'derived' ? 'manual' : 'derived'
+
+        // When switching to derived, use the derived value if available
+        const newGrowthRate =
+          newSource === 'derived' && income.derivedGrowthRate !== null
+            ? income.derivedGrowthRate
+            : income.growthRatePercent
+
+        return {
+          ...income,
+          growthRateSource: newSource,
+          growthRatePercent: newGrowthRate,
+        }
+      })
+      onIncomesChange(updated)
+    },
+    [incomes, onIncomesChange]
+  )
+
+  const updateDerivedValues = useCallback(
+    (currencyId: CurrencyId, derivedIncome: number | null, derivedGrowthRate: number | null) => {
+      const updated = incomes.map((income) => {
+        if (income.currencyId !== currencyId) return income
+
+        const newIncome = { ...income, derivedWeeklyIncome: derivedIncome, derivedGrowthRate }
+
+        // If source is derived, also update the active values
+        if (income.weeklyIncomeSource === 'derived' && derivedIncome !== null) {
+          newIncome.weeklyIncome = derivedIncome
+        }
+        if (income.growthRateSource === 'derived' && derivedGrowthRate !== null) {
+          newIncome.growthRatePercent = derivedGrowthRate
+        }
+
+        return newIncome
+      })
+      onIncomesChange(updated)
+    },
+    [incomes, onIncomesChange]
+  )
+
   return {
     updateBalance,
     updateWeeklyIncome,
     updateGrowthRate,
     updateStoneBreakdown,
     updateGemBreakdown,
+    toggleIncomeSource,
+    toggleGrowthRateSource,
+    updateDerivedValues,
   }
 }

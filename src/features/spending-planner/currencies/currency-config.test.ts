@@ -22,6 +22,7 @@ describe('currency-config', () => {
         abbreviation: 'c',
         color: 'text-yellow-400',
         hasUnitSelector: true,
+        isDerivable: true,
       })
     })
 
@@ -32,6 +33,7 @@ describe('currency-config', () => {
         abbreviation: 'st',
         color: 'text-emerald-400',
         hasUnitSelector: false,
+        isDerivable: false,
       })
     })
 
@@ -43,6 +45,7 @@ describe('currency-config', () => {
         abbreviation: 'rs',
         color: 'text-blue-400',
         hasUnitSelector: true,
+        isDerivable: true,
       })
     })
 
@@ -53,6 +56,7 @@ describe('currency-config', () => {
         abbreviation: 'g',
         color: 'text-purple-400',
         hasUnitSelector: false,
+        isDerivable: false,
       })
     })
   })
@@ -130,43 +134,59 @@ describe('currency-config', () => {
   })
 
   describe('createDefaultIncome', () => {
-    it('should create default coins income with 5% growth', () => {
+    it('should create default coins income with 5% growth and derived source', () => {
       const income = createDefaultIncome(CurrencyId.Coins)
       expect(income).toEqual({
         currencyId: CurrencyId.Coins,
         currentBalance: 0,
         weeklyIncome: 0,
         growthRatePercent: 5,
+        weeklyIncomeSource: 'derived',
+        growthRateSource: 'derived',
+        derivedWeeklyIncome: null,
+        derivedGrowthRate: null,
       })
     })
 
-    it('should create default stones income with 0% growth', () => {
+    it('should create default stones income with 0% growth and manual source', () => {
       const income = createDefaultIncome(CurrencyId.Stones)
       expect(income).toEqual({
         currencyId: CurrencyId.Stones,
         currentBalance: 0,
         weeklyIncome: 0,
         growthRatePercent: 0,
+        weeklyIncomeSource: 'manual',
+        growthRateSource: 'manual',
+        derivedWeeklyIncome: null,
+        derivedGrowthRate: null,
       })
     })
 
-    it('should create default reroll shards income with 0% growth', () => {
+    it('should create default reroll shards income with 0% growth and derived source', () => {
       const income = createDefaultIncome(CurrencyId.RerollShards)
       expect(income).toEqual({
         currencyId: CurrencyId.RerollShards,
         currentBalance: 0,
         weeklyIncome: 0,
         growthRatePercent: 0,
+        weeklyIncomeSource: 'derived',
+        growthRateSource: 'derived',
+        derivedWeeklyIncome: null,
+        derivedGrowthRate: null,
       })
     })
 
-    it('should create default gems income with 0% growth', () => {
+    it('should create default gems income with 0% growth and manual source', () => {
       const income = createDefaultIncome(CurrencyId.Gems)
       expect(income).toEqual({
         currencyId: CurrencyId.Gems,
         currentBalance: 0,
         weeklyIncome: 0,
         growthRatePercent: 0,
+        weeklyIncomeSource: 'manual',
+        growthRateSource: 'manual',
+        derivedWeeklyIncome: null,
+        derivedGrowthRate: null,
       })
     })
   })

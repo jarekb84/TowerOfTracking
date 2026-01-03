@@ -3,14 +3,17 @@
  *
  * Collapsible card for configuring income across all currencies.
  * Uses card-based sections for clear visual grouping of each currency.
+ * Supports derived income values from run data.
  */
 
 import { CollapsibleCard } from '@/components/ui/collapsible-card'
 import { ToggleSwitch } from '@/components/ui/toggle-switch'
 import { CurrencyIncomeRow } from './currency-income-row'
 import { CurrencyId } from '../types'
-import type { CurrencyIncome, StoneIncomeBreakdown, GemIncomeBreakdown } from '../types'
+import type { CurrencyIncome, StoneIncomeBreakdown, GemIncomeBreakdown, LookbackPeriod } from '../types'
 import { CURRENCY_ORDER, getCurrencyConfig, getCurrencyVisualStyles } from '../currencies/currency-config'
+import { LookbackPeriodSelector } from './lookback-period-selector'
+import type { DerivedIncomeResult, DerivedGrowthRateResult } from './derived-income-calculation'
 
 interface IncomePanelProps {
   incomes: CurrencyIncome[]
@@ -18,11 +21,18 @@ interface IncomePanelProps {
   gemBreakdown: GemIncomeBreakdown
   enabledCurrencies: CurrencyId[]
   isCollapsed: boolean
+  lookbackPeriod: LookbackPeriod
+  derivedIncomeResults: Partial<Record<CurrencyId, DerivedIncomeResult | null>>
+  derivedGrowthResults: Partial<Record<CurrencyId, DerivedGrowthRateResult | null>>
+  hasAnyDerivedData: boolean
   onToggleCollapse: () => void
   onToggleCurrency: (currencyId: CurrencyId) => void
   onBalanceChange: (currencyId: CurrencyId, value: number) => void
   onWeeklyIncomeChange: (currencyId: CurrencyId, value: number) => void
   onGrowthRateChange: (currencyId: CurrencyId, value: number) => void
+  onToggleIncomeSource: (currencyId: CurrencyId) => void
+  onToggleGrowthSource: (currencyId: CurrencyId) => void
+  onLookbackPeriodChange: (period: LookbackPeriod) => void
   onStoneBreakdownChange: (field: keyof StoneIncomeBreakdown, value: number) => void
   onGemBreakdownChange: (field: keyof GemIncomeBreakdown, value: number) => void
 }
@@ -33,11 +43,18 @@ export function IncomePanel({
   gemBreakdown,
   enabledCurrencies,
   isCollapsed,
+  lookbackPeriod,
+  derivedIncomeResults,
+  derivedGrowthResults,
+  hasAnyDerivedData,
   onToggleCollapse,
   onToggleCurrency,
   onBalanceChange,
   onWeeklyIncomeChange,
   onGrowthRateChange,
+  onToggleIncomeSource,
+  onToggleGrowthSource,
+  onLookbackPeriodChange,
   onStoneBreakdownChange,
   onGemBreakdownChange,
 }: IncomePanelProps) {
@@ -51,6 +68,17 @@ export function IncomePanel({
       title="Income Configuration"
       isExpanded={!isCollapsed}
       onToggle={onToggleCollapse}
+      headerContent={
+        hasAnyDerivedData ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Growth period:</span>
+            <LookbackPeriodSelector
+              value={lookbackPeriod}
+              onChange={onLookbackPeriodChange}
+            />
+          </div>
+        ) : undefined
+      }
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {sortedIncomes.map((income) => {
@@ -75,9 +103,13 @@ export function IncomePanel({
                   income={income}
                   stoneBreakdown={isStones ? stoneBreakdown : undefined}
                   gemBreakdown={isGems ? gemBreakdown : undefined}
+                  derivedIncomeResult={derivedIncomeResults[income.currencyId]}
+                  derivedGrowthResult={derivedGrowthResults[income.currencyId]}
                   onBalanceChange={(value) => onBalanceChange(income.currencyId, value)}
                   onWeeklyIncomeChange={(value) => onWeeklyIncomeChange(income.currencyId, value)}
                   onGrowthRateChange={(value) => onGrowthRateChange(income.currencyId, value)}
+                  onToggleIncomeSource={() => onToggleIncomeSource(income.currencyId)}
+                  onToggleGrowthSource={() => onToggleGrowthSource(income.currencyId)}
                   onStoneBreakdownChange={isStones ? onStoneBreakdownChange : undefined}
                   onGemBreakdownChange={isGems ? onGemBreakdownChange : undefined}
                 />

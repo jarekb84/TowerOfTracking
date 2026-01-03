@@ -11,6 +11,7 @@ import type {
   CurrencyIncome,
   StoneIncomeBreakdown,
   GemIncomeBreakdown,
+  IncomeSource,
 } from '../types'
 
 /**
@@ -24,6 +25,7 @@ export const CURRENCY_CONFIGS: Record<CurrencyId, CurrencyConfig> = {
     abbreviation: 'c',
     color: 'text-yellow-400',
     hasUnitSelector: true,
+    isDerivable: true,
   },
   [CurrencyId.Stones]: {
     id: CurrencyId.Stones,
@@ -31,6 +33,7 @@ export const CURRENCY_CONFIGS: Record<CurrencyId, CurrencyConfig> = {
     abbreviation: 'st',
     color: 'text-emerald-400',
     hasUnitSelector: false,
+    isDerivable: false,
   },
   [CurrencyId.RerollShards]: {
     id: CurrencyId.RerollShards,
@@ -39,6 +42,7 @@ export const CURRENCY_CONFIGS: Record<CurrencyId, CurrencyConfig> = {
     abbreviation: 'rs',
     color: 'text-blue-400',
     hasUnitSelector: true,
+    isDerivable: true,
   },
   [CurrencyId.Gems]: {
     id: CurrencyId.Gems,
@@ -46,6 +50,7 @@ export const CURRENCY_CONFIGS: Record<CurrencyId, CurrencyConfig> = {
     abbreviation: 'g',
     color: 'text-purple-400',
     hasUnitSelector: false,
+    isDerivable: false,
   },
 }
 
@@ -81,14 +86,27 @@ export function isValidCurrencyId(value: string): value is CurrencyId {
 }
 
 /**
+ * Get the default income source for a currency.
+ * Derivable currencies default to 'derived', others to 'manual'.
+ */
+export function getDefaultIncomeSource(currencyId: CurrencyId): IncomeSource {
+  return CURRENCY_CONFIGS[currencyId].isDerivable ? 'derived' : 'manual'
+}
+
+/**
  * Create default income configuration for a currency.
  */
 export function createDefaultIncome(currencyId: CurrencyId): CurrencyIncome {
+  const defaultSource = getDefaultIncomeSource(currencyId)
   return {
     currencyId,
     currentBalance: 0,
     weeklyIncome: 0,
     growthRatePercent: currencyId === CurrencyId.Coins ? 5 : 0,
+    weeklyIncomeSource: defaultSource,
+    growthRateSource: defaultSource,
+    derivedWeeklyIncome: null,
+    derivedGrowthRate: null,
   }
 }
 
