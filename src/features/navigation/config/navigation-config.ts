@@ -88,6 +88,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         label: 'Module Calculator',
         href: '/tools/module-calculator',
         icon: 'calculator'
+      },
+      {
+        id: 'spending-planner',
+        label: 'Spending Planner',
+        href: '/tools/spending-planner',
+        icon: 'planner'
       }
     ]
   },

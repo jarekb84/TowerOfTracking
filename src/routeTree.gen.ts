@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as RunsIndexRouteImport } from './routes/runs/index'
 import { Route as ChartsIndexRouteImport } from './routes/charts/index'
+import { Route as ToolsSpendingPlannerRouteImport } from './routes/tools/spending-planner'
 import { Route as ToolsModuleCalculatorRouteImport } from './routes/tools/module-calculator'
 import { Route as SettingsLocaleRouteImport } from './routes/settings/locale'
 import { Route as SettingsImportRouteImport } from './routes/settings/import'
@@ -73,6 +74,11 @@ const ChartsIndexRoute = ChartsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ChartsRoute,
+} as any)
+const ToolsSpendingPlannerRoute = ToolsSpendingPlannerRouteImport.update({
+  id: '/spending-planner',
+  path: '/spending-planner',
+  getParentRoute: () => ToolsRoute,
 } as any)
 const ToolsModuleCalculatorRoute = ToolsModuleCalculatorRouteImport.update({
   id: '/module-calculator',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
   '/tools/module-calculator': typeof ToolsModuleCalculatorRoute
+  '/tools/spending-planner': typeof ToolsSpendingPlannerRoute
   '/charts/': typeof ChartsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
   '/tools/module-calculator': typeof ToolsModuleCalculatorRoute
+  '/tools/spending-planner': typeof ToolsSpendingPlannerRoute
   '/charts': typeof ChartsIndexRoute
   '/runs': typeof RunsIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/settings/import': typeof SettingsImportRoute
   '/settings/locale': typeof SettingsLocaleRoute
   '/tools/module-calculator': typeof ToolsModuleCalculatorRoute
+  '/tools/spending-planner': typeof ToolsSpendingPlannerRoute
   '/charts/': typeof ChartsIndexRoute
   '/runs/': typeof RunsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/settings/import'
     | '/settings/locale'
     | '/tools/module-calculator'
+    | '/tools/spending-planner'
     | '/charts/'
     | '/runs/'
     | '/settings/'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/settings/import'
     | '/settings/locale'
     | '/tools/module-calculator'
+    | '/tools/spending-planner'
     | '/charts'
     | '/runs'
     | '/settings'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/settings/import'
     | '/settings/locale'
     | '/tools/module-calculator'
+    | '/tools/spending-planner'
     | '/charts/'
     | '/runs/'
     | '/settings/'
@@ -374,6 +386,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/charts/'
       preLoaderRoute: typeof ChartsIndexRouteImport
       parentRoute: typeof ChartsRoute
+    }
+    '/tools/spending-planner': {
+      id: '/tools/spending-planner'
+      path: '/spending-planner'
+      fullPath: '/tools/spending-planner'
+      preLoaderRoute: typeof ToolsSpendingPlannerRouteImport
+      parentRoute: typeof ToolsRoute
     }
     '/tools/module-calculator': {
       id: '/tools/module-calculator'
@@ -555,10 +574,12 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 
 interface ToolsRouteChildren {
   ToolsModuleCalculatorRoute: typeof ToolsModuleCalculatorRoute
+  ToolsSpendingPlannerRoute: typeof ToolsSpendingPlannerRoute
 }
 
 const ToolsRouteChildren: ToolsRouteChildren = {
   ToolsModuleCalculatorRoute: ToolsModuleCalculatorRoute,
+  ToolsSpendingPlannerRoute: ToolsSpendingPlannerRoute,
 }
 
 const ToolsRouteWithChildren = ToolsRoute._addFileChildren(ToolsRouteChildren)
