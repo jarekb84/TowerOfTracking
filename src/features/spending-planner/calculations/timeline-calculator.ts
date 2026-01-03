@@ -43,29 +43,47 @@ function initializeIncomes(
 }
 
 /**
- * Process a single event and return the timeline event if affordable.
- *
- * @param minTriggerWeek - Earliest week this event can trigger (enforces queue sequence)
+ * Initialize expenditure tracking for all currencies (starts at zero).
  */
-function processEvent(
-  event: SpendingEvent,
-  balances: Map<CurrencyId, number[]>,
-  startDate: Date,
+function initializeExpenditures(
+  incomes: CurrencyIncome[],
+  weeks: number
+): Map<CurrencyId, number[]> {
+  const result = new Map<CurrencyId, number[]>()
+  for (const income of incomes) {
+    result.set(income.currencyId, new Array(weeks).fill(0))
+  }
+  return result
+}
+
+interface ProcessEventContext {
+  balances: Map<CurrencyId, number[]>
+  expenditures: Map<CurrencyId, number[]>
+  startDate: Date
   minTriggerWeek: number
-): TimelineEvent | null {
-  const currencyBalances = balances.get(event.currencyId)
-  if (!currencyBalances) return null
+}
+
+/**
+ * Process a single event and return the timeline event if affordable.
+ */
+function processEvent(event: SpendingEvent, ctx: ProcessEventContext): TimelineEvent | null {
+  const currencyBalances = ctx.balances.get(event.currencyId)
+  const currencyExpenditures = ctx.expenditures.get(event.currencyId)
+  if (!currencyBalances || !currencyExpenditures) return null
 
   // Find trigger week, but no earlier than minTriggerWeek (respects queue order)
-  const triggerWeek = findTriggerWeek(currencyBalances, event.amount, minTriggerWeek)
+  const triggerWeek = findTriggerWeek(currencyBalances, event.amount, ctx.minTriggerWeek)
   if (triggerWeek === -1) return null
 
-  const triggerDate = addWeeks(startDate, triggerWeek)
+  const triggerDate = addWeeks(ctx.startDate, triggerWeek)
   const endDate = event.durationDays && event.durationDays > 0
     ? addDays(triggerDate, event.durationDays)
     : undefined
 
   subtractFromBalances(currencyBalances, triggerWeek, event.amount)
+
+  // Record expenditure for the trigger week
+  currencyExpenditures[triggerWeek] += event.amount
 
   return {
     event,
@@ -88,26 +106,31 @@ export function calculateTimeline(
   const sortedEvents = sortByPriority(events)
   const runningBalances = initializeBalances(incomes, weeks)
   const incomeByWeek = initializeIncomes(incomes, weeks)
+  const expenditureByWeek = initializeExpenditures(incomes, weeks)
 
   const timelineEvents: TimelineEvent[] = []
   const unaffordableEvents: SpendingEvent[] = []
 
-  // Track the latest trigger week to enforce queue sequence
-  // Later events in queue cannot trigger before earlier events
-  let minTriggerWeek = 0
+  // Context for event processing
+  const ctx: ProcessEventContext = {
+    balances: runningBalances,
+    expenditures: expenditureByWeek,
+    startDate,
+    minTriggerWeek: 0,
+  }
 
   for (const event of sortedEvents) {
-    const result = processEvent(event, runningBalances, startDate, minTriggerWeek)
+    const result = processEvent(event, ctx)
     if (result) {
       timelineEvents.push(result)
       // Update minimum trigger week for subsequent events
-      minTriggerWeek = result.triggerWeek
+      ctx.minTriggerWeek = result.triggerWeek
     } else {
       unaffordableEvents.push(event)
     }
   }
 
-  return { events: timelineEvents, balancesByWeek: runningBalances, incomeByWeek, unaffordableEvents }
+  return { events: timelineEvents, balancesByWeek: runningBalances, incomeByWeek, expenditureByWeek, unaffordableEvents }
 }
 
 /**

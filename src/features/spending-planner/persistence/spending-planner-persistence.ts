@@ -33,7 +33,7 @@ export function getDefaultState(): SpendingPlannerState {
     stoneIncomeBreakdown: createDefaultStoneBreakdown(),
     gemIncomeBreakdown: createDefaultGemBreakdown(),
     events: [],
-    timelineConfig: { weeks: 12 },
+    timelineConfig: { weeks: 12, layoutMode: 'columns' },
     incomePanelCollapsed: false,
     enabledCurrencies: [...CURRENCY_ORDER],
     lastUpdated: Date.now(),
@@ -134,8 +134,9 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     return defaultState
   }
 
-  // Validate timeline config
-  if (!isValidTimelineConfig(s.timelineConfig)) {
+  // Migrate timeline config (adds layoutMode if missing)
+  const timelineConfig = migrateTimelineConfig(s.timelineConfig)
+  if (!timelineConfig) {
     return defaultState
   }
 
@@ -152,6 +153,7 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     incomes: migratedIncomes,
     stoneIncomeBreakdown: stoneBreakdown,
     gemIncomeBreakdown: gemBreakdown,
+    timelineConfig,
     enabledCurrencies,
   } as SpendingPlannerState
 }
@@ -291,9 +293,10 @@ function isValidEvent(value: unknown): value is SpendingEvent {
 }
 
 /**
- * Type guard for TimelineViewConfig.
+ * Type guard for TimelineViewConfig base structure (weeks only).
+ * layoutMode is handled by migration.
  */
-function isValidTimelineConfig(value: unknown): value is TimelineViewConfig {
+function isValidTimelineConfigBase(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false
 
   const v = value as Partial<TimelineViewConfig>
@@ -301,4 +304,24 @@ function isValidTimelineConfig(value: unknown): value is TimelineViewConfig {
     typeof v.weeks === 'number' &&
     (v.weeks === 4 || v.weeks === 8 || v.weeks === 12 || v.weeks === 26 || v.weeks === 52)
   )
+}
+
+/**
+ * Migrate TimelineViewConfig to ensure layoutMode is present.
+ * Adds default 'columns' layout if missing.
+ */
+function migrateTimelineConfig(value: unknown): TimelineViewConfig | null {
+  if (!isValidTimelineConfigBase(value)) return null
+
+  const v = value as Partial<TimelineViewConfig>
+
+  // Validate layoutMode if present, default to 'columns' if missing
+  const layoutMode = v.layoutMode === 'columns' || v.layoutMode === 'rows'
+    ? v.layoutMode
+    : 'columns'
+
+  return {
+    weeks: v.weeks!,
+    layoutMode,
+  }
 }

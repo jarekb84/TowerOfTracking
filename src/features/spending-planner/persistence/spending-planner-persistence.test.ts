@@ -45,6 +45,11 @@ describe('spending-planner-persistence', () => {
       expect(state.timelineConfig.weeks).toBe(12)
     })
 
+    it('should return default timeline config with columns layout', () => {
+      const state = getDefaultState()
+      expect(state.timelineConfig.layoutMode).toBe('columns')
+    })
+
     it('should return default stone breakdown with all zeros', () => {
       const state = getDefaultState()
       expect(state.stoneIncomeBreakdown).toEqual({
@@ -189,6 +194,61 @@ describe('spending-planner-persistence', () => {
 
       const state = loadSpendingPlannerState()
       expect(state.timelineConfig.weeks).toBe(12) // Falls back to default
+    })
+
+    it('should migrate old state without layoutMode to columns', () => {
+      const oldState = {
+        incomes: [
+          { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 500, growthRatePercent: 5 },
+          { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 100, growthRatePercent: 0 },
+        ],
+        stoneIncomeBreakdown: { weeklyChallenges: 60, eventStore: 0, tournamentResults: 40 },
+        events: [],
+        timelineConfig: { weeks: 26 }, // No layoutMode property
+        incomePanelCollapsed: false,
+        lastUpdated: Date.now(),
+      }
+      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(oldState))
+
+      const loaded = loadSpendingPlannerState()
+      expect(loaded.timelineConfig.weeks).toBe(26)
+      expect(loaded.timelineConfig.layoutMode).toBe('columns') // Migration adds default
+    })
+
+    it('should preserve existing layoutMode when loading', () => {
+      const stateWithLayoutMode = {
+        incomes: [
+          { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 500, growthRatePercent: 5 },
+          { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 100, growthRatePercent: 0 },
+        ],
+        stoneIncomeBreakdown: { weeklyChallenges: 60, eventStore: 0, tournamentResults: 40 },
+        events: [],
+        timelineConfig: { weeks: 12, layoutMode: 'rows' },
+        incomePanelCollapsed: false,
+        lastUpdated: Date.now(),
+      }
+      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(stateWithLayoutMode))
+
+      const loaded = loadSpendingPlannerState()
+      expect(loaded.timelineConfig.layoutMode).toBe('rows')
+    })
+
+    it('should default to columns for invalid layoutMode', () => {
+      const stateWithInvalidLayoutMode = {
+        incomes: [
+          { currencyId: CurrencyId.Coins, currentBalance: 1000, weeklyIncome: 500, growthRatePercent: 5 },
+          { currencyId: CurrencyId.Stones, currentBalance: 200, weeklyIncome: 100, growthRatePercent: 0 },
+        ],
+        stoneIncomeBreakdown: { weeklyChallenges: 60, eventStore: 0, tournamentResults: 40 },
+        events: [],
+        timelineConfig: { weeks: 12, layoutMode: 'invalid' },
+        incomePanelCollapsed: false,
+        lastUpdated: Date.now(),
+      }
+      localStorage.setItem('tower-tracking-spending-planner', JSON.stringify(stateWithInvalidLayoutMode))
+
+      const loaded = loadSpendingPlannerState()
+      expect(loaded.timelineConfig.layoutMode).toBe('columns')
     })
   })
 

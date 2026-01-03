@@ -5,6 +5,8 @@ import {
   isDateInWeek,
   durationToWeeks,
   getWeekStart,
+  getDaysRemainingInWeek,
+  getCurrentWeekProrationFactor,
   formatDateRange,
 } from './timeline-utils'
 
@@ -104,22 +106,74 @@ describe('timeline-utils', () => {
   })
 
   describe('getWeekStart', () => {
-    it('should return Monday for a Monday', () => {
-      const monday = new Date(2025, 0, 6) // Monday
-      const result = getWeekStart(monday)
-      expect(result.getDate()).toBe(6)
+    it('should return Sunday for a Sunday', () => {
+      const sunday = new Date(2025, 0, 5) // Sunday
+      const result = getWeekStart(sunday)
+      expect(result.getDate()).toBe(5)
     })
 
-    it('should return previous Monday for mid-week date', () => {
+    it('should return previous Sunday for mid-week date', () => {
       const wednesday = new Date(2025, 0, 8) // Wednesday
       const result = getWeekStart(wednesday)
-      expect(result.getDate()).toBe(6) // Previous Monday
+      expect(result.getDate()).toBe(5) // Previous Sunday
     })
 
-    it('should return previous Monday for Sunday', () => {
-      const sunday = new Date(2025, 0, 12) // Sunday
-      const result = getWeekStart(sunday)
-      expect(result.getDate()).toBe(6) // Previous Monday
+    it('should return previous Sunday for Saturday', () => {
+      const saturday = new Date(2025, 0, 11) // Saturday
+      const result = getWeekStart(saturday)
+      expect(result.getDate()).toBe(5) // Previous Sunday
+    })
+
+    it('should set time to midnight', () => {
+      const date = new Date(2025, 0, 8, 15, 30, 45)
+      const result = getWeekStart(date)
+      expect(result.getHours()).toBe(0)
+      expect(result.getMinutes()).toBe(0)
+      expect(result.getSeconds()).toBe(0)
+    })
+  })
+
+  describe('getDaysRemainingInWeek', () => {
+    it('should return 7 for Sunday (full week remaining)', () => {
+      const sunday = new Date(2025, 0, 5) // Sunday
+      expect(getDaysRemainingInWeek(sunday)).toBe(7)
+    })
+
+    it('should return 6 for Monday', () => {
+      const monday = new Date(2025, 0, 6) // Monday
+      expect(getDaysRemainingInWeek(monday)).toBe(6)
+    })
+
+    it('should return 2 for Friday', () => {
+      const friday = new Date(2025, 0, 3) // Friday
+      expect(getDaysRemainingInWeek(friday)).toBe(2)
+    })
+
+    it('should return 1 for Saturday (only Saturday remains)', () => {
+      const saturday = new Date(2025, 0, 4) // Saturday
+      expect(getDaysRemainingInWeek(saturday)).toBe(1)
+    })
+  })
+
+  describe('getCurrentWeekProrationFactor', () => {
+    it('should return 1.0 for Sunday (full week)', () => {
+      const sunday = new Date(2025, 0, 5) // Sunday
+      expect(getCurrentWeekProrationFactor(sunday)).toBe(1)
+    })
+
+    it('should return approximately 0.857 for Monday (6/7)', () => {
+      const monday = new Date(2025, 0, 6) // Monday
+      expect(getCurrentWeekProrationFactor(monday)).toBeCloseTo(6 / 7, 5)
+    })
+
+    it('should return approximately 0.286 for Friday (2/7)', () => {
+      const friday = new Date(2025, 0, 3) // Friday
+      expect(getCurrentWeekProrationFactor(friday)).toBeCloseTo(2 / 7, 5)
+    })
+
+    it('should return approximately 0.143 for Saturday (1/7)', () => {
+      const saturday = new Date(2025, 0, 4) // Saturday
+      expect(getCurrentWeekProrationFactor(saturday)).toBeCloseTo(1 / 7, 5)
     })
   })
 
