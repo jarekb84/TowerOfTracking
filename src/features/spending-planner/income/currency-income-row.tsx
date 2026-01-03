@@ -8,31 +8,38 @@
 import { useEffect, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { CurrencyId } from '../types'
-import type { CurrencyIncome, StoneIncomeBreakdown } from '../types'
+import type { CurrencyIncome, StoneIncomeBreakdown, GemIncomeBreakdown } from '../types'
 import { getCurrencyConfig } from '../currencies/currency-config'
 import { StoneIncomeBreakdown as StoneBreakdownComponent } from './stone-income-breakdown'
+import { GemIncomeBreakdown as GemBreakdownComponent } from './gem-income-breakdown'
 import { CurrencyInputField } from './currency-input-field'
 import { getBestScaleForValue } from './scale-detection'
 
 interface CurrencyIncomeRowProps {
   income: CurrencyIncome
   stoneBreakdown?: StoneIncomeBreakdown
+  gemBreakdown?: GemIncomeBreakdown
   onBalanceChange: (value: number) => void
   onWeeklyIncomeChange: (value: number) => void
   onGrowthRateChange: (value: number) => void
   onStoneBreakdownChange?: (field: keyof StoneIncomeBreakdown, value: number) => void
+  onGemBreakdownChange?: (field: keyof GemIncomeBreakdown, value: number) => void
 }
 
 export function CurrencyIncomeRow({
   income,
   stoneBreakdown,
+  gemBreakdown,
   onBalanceChange,
   onWeeklyIncomeChange,
   onGrowthRateChange,
   onStoneBreakdownChange,
+  onGemBreakdownChange,
 }: CurrencyIncomeRowProps) {
   const config = getCurrencyConfig(income.currencyId)
   const isStones = income.currencyId === CurrencyId.Stones
+  const isGems = income.currencyId === CurrencyId.Gems
+  const hasBreakdown = isStones || isGems
 
   const [balanceScale, setBalanceScale] = useState(() =>
     getBestScaleForValue(income.currentBalance)
@@ -55,9 +62,9 @@ export function CurrencyIncomeRow({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Main income fields in a consistent grid */}
-      <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-3 items-center">
+      <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-2 items-center">
         {/* Balance row */}
         <span className="text-xs text-slate-400">Balance</span>
         <CurrencyInputField
@@ -68,8 +75,8 @@ export function CurrencyIncomeRow({
           onScaleChange={setBalanceScale}
         />
 
-        {/* Weekly Income row - for non-stones currencies */}
-        {!isStones && (
+        {/* Weekly Income row - for currencies without breakdown */}
+        {!hasBreakdown && (
           <>
             <span className="text-xs text-slate-400">Weekly</span>
             <CurrencyInputField
@@ -104,6 +111,15 @@ export function CurrencyIncomeRow({
           breakdown={stoneBreakdown}
           weeklyTotal={income.weeklyIncome}
           onUpdate={onStoneBreakdownChange}
+        />
+      )}
+
+      {/* Gem breakdown - shown only for gems, visually connected to Weekly */}
+      {isGems && gemBreakdown && onGemBreakdownChange && (
+        <GemBreakdownComponent
+          breakdown={gemBreakdown}
+          weeklyTotal={income.weeklyIncome}
+          onUpdate={onGemBreakdownChange}
         />
       )}
     </div>

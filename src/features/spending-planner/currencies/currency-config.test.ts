@@ -2,12 +2,14 @@ import { describe, it, expect } from 'vitest'
 import {
   CURRENCY_CONFIGS,
   CURRENCY_ORDER,
+  CURRENCY_VISUAL_STYLES,
   getCurrencyConfig,
   getAllCurrencyConfigs,
   isValidCurrencyId,
   createDefaultIncome,
   createDefaultStoneBreakdown,
   calculateStoneIncome,
+  getCurrencyVisualStyles,
 } from './currency-config'
 import { CurrencyId } from '../types'
 
@@ -32,11 +34,37 @@ describe('currency-config', () => {
         hasUnitSelector: false,
       })
     })
+
+    it('should define reroll shards currency', () => {
+      expect(CURRENCY_CONFIGS[CurrencyId.RerollShards]).toEqual({
+        id: CurrencyId.RerollShards,
+        displayName: 'Reroll Shards',
+        timelineName: 'Shards',
+        abbreviation: 'rs',
+        color: 'text-blue-400',
+        hasUnitSelector: true,
+      })
+    })
+
+    it('should define gems currency', () => {
+      expect(CURRENCY_CONFIGS[CurrencyId.Gems]).toEqual({
+        id: CurrencyId.Gems,
+        displayName: 'Gems',
+        abbreviation: 'g',
+        color: 'text-purple-400',
+        hasUnitSelector: false,
+      })
+    })
   })
 
   describe('CURRENCY_ORDER', () => {
-    it('should have coins before stones', () => {
-      expect(CURRENCY_ORDER).toEqual([CurrencyId.Coins, CurrencyId.Stones])
+    it('should have all currencies in correct order', () => {
+      expect(CURRENCY_ORDER).toEqual([
+        CurrencyId.Coins,
+        CurrencyId.Stones,
+        CurrencyId.RerollShards,
+        CurrencyId.Gems,
+      ])
     })
   })
 
@@ -52,14 +80,28 @@ describe('currency-config', () => {
       expect(config.id).toBe(CurrencyId.Stones)
       expect(config.hasUnitSelector).toBe(false)
     })
+
+    it('should return reroll shards config', () => {
+      const config = getCurrencyConfig(CurrencyId.RerollShards)
+      expect(config.id).toBe(CurrencyId.RerollShards)
+      expect(config.hasUnitSelector).toBe(true)
+    })
+
+    it('should return gems config', () => {
+      const config = getCurrencyConfig(CurrencyId.Gems)
+      expect(config.id).toBe(CurrencyId.Gems)
+      expect(config.hasUnitSelector).toBe(false)
+    })
   })
 
   describe('getAllCurrencyConfigs', () => {
     it('should return all configs in order', () => {
       const configs = getAllCurrencyConfigs()
-      expect(configs).toHaveLength(2)
+      expect(configs).toHaveLength(4)
       expect(configs[0].id).toBe(CurrencyId.Coins)
       expect(configs[1].id).toBe(CurrencyId.Stones)
+      expect(configs[2].id).toBe(CurrencyId.RerollShards)
+      expect(configs[3].id).toBe(CurrencyId.Gems)
     })
   })
 
@@ -72,8 +114,16 @@ describe('currency-config', () => {
       expect(isValidCurrencyId(CurrencyId.Stones)).toBe(true)
     })
 
+    it('should return true for reroll shards', () => {
+      expect(isValidCurrencyId(CurrencyId.RerollShards)).toBe(true)
+    })
+
+    it('should return true for gems', () => {
+      expect(isValidCurrencyId(CurrencyId.Gems)).toBe(true)
+    })
+
     it('should return false for invalid currency', () => {
-      expect(isValidCurrencyId('gems')).toBe(false)
+      expect(isValidCurrencyId('gold')).toBe(false)
       expect(isValidCurrencyId('')).toBe(false)
       expect(isValidCurrencyId('invalid')).toBe(false)
     })
@@ -99,6 +149,26 @@ describe('currency-config', () => {
         growthRatePercent: 0,
       })
     })
+
+    it('should create default reroll shards income with 0% growth', () => {
+      const income = createDefaultIncome(CurrencyId.RerollShards)
+      expect(income).toEqual({
+        currencyId: CurrencyId.RerollShards,
+        currentBalance: 0,
+        weeklyIncome: 0,
+        growthRatePercent: 0,
+      })
+    })
+
+    it('should create default gems income with 0% growth', () => {
+      const income = createDefaultIncome(CurrencyId.Gems)
+      expect(income).toEqual({
+        currencyId: CurrencyId.Gems,
+        currentBalance: 0,
+        weeklyIncome: 0,
+        growthRatePercent: 0,
+      })
+    })
   })
 
   describe('createDefaultStoneBreakdown', () => {
@@ -108,6 +178,7 @@ describe('currency-config', () => {
         weeklyChallenges: 0,
         eventStore: 0,
         tournamentResults: 0,
+        purchasedWithMoney: 0,
       })
     })
   })
@@ -118,6 +189,7 @@ describe('currency-config', () => {
         weeklyChallenges: 60,
         eventStore: 0,
         tournamentResults: 200,
+        purchasedWithMoney: 0,
       }
       expect(calculateStoneIncome(breakdown)).toBe(260)
     })
@@ -132,8 +204,96 @@ describe('currency-config', () => {
         weeklyChallenges: 100,
         eventStore: 50,
         tournamentResults: 150,
+        purchasedWithMoney: 0,
       }
       expect(calculateStoneIncome(breakdown)).toBe(300)
+    })
+
+    it('should include purchased with money in total', () => {
+      const breakdown = {
+        weeklyChallenges: 100,
+        eventStore: 50,
+        tournamentResults: 100,
+        purchasedWithMoney: 50,
+      }
+      expect(calculateStoneIncome(breakdown)).toBe(300)
+    })
+  })
+
+  describe('CURRENCY_VISUAL_STYLES', () => {
+    it('should define visual styles for all currencies', () => {
+      expect(Object.keys(CURRENCY_VISUAL_STYLES)).toHaveLength(4)
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.Coins]).toBeDefined()
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.Stones]).toBeDefined()
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.RerollShards]).toBeDefined()
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.Gems]).toBeDefined()
+    })
+
+    it('should have all required style properties for each currency', () => {
+      for (const currencyId of CURRENCY_ORDER) {
+        const styles = CURRENCY_VISUAL_STYLES[currencyId]
+        expect(styles.borderLeft).toBeDefined()
+        expect(styles.bgGradient).toBeDefined()
+        expect(styles.timelineBorderLeft).toBeDefined()
+      }
+    })
+
+    it('should define coins visual styles', () => {
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.Coins]).toEqual({
+        borderLeft: 'border-l-yellow-400/40',
+        bgGradient: 'bg-gradient-to-r from-yellow-500/10 to-transparent',
+        timelineBorderLeft: 'border-l-2 border-l-yellow-400/50',
+      })
+    })
+
+    it('should define stones visual styles', () => {
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.Stones]).toEqual({
+        borderLeft: 'border-l-emerald-400/40',
+        bgGradient: 'bg-gradient-to-r from-emerald-500/10 to-transparent',
+        timelineBorderLeft: 'border-l-2 border-l-emerald-400/50',
+      })
+    })
+
+    it('should define reroll shards visual styles', () => {
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.RerollShards]).toEqual({
+        borderLeft: 'border-l-blue-400/40',
+        bgGradient: 'bg-gradient-to-r from-blue-500/10 to-transparent',
+        timelineBorderLeft: 'border-l-2 border-l-blue-400/50',
+      })
+    })
+
+    it('should define gems visual styles', () => {
+      expect(CURRENCY_VISUAL_STYLES[CurrencyId.Gems]).toEqual({
+        borderLeft: 'border-l-purple-400/40',
+        bgGradient: 'bg-gradient-to-r from-purple-500/10 to-transparent',
+        timelineBorderLeft: 'border-l-2 border-l-purple-400/50',
+      })
+    })
+  })
+
+  describe('getCurrencyVisualStyles', () => {
+    it('should return visual styles for coins', () => {
+      const styles = getCurrencyVisualStyles(CurrencyId.Coins)
+      expect(styles.borderLeft).toBe('border-l-yellow-400/40')
+      expect(styles.bgGradient).toContain('yellow')
+    })
+
+    it('should return visual styles for stones', () => {
+      const styles = getCurrencyVisualStyles(CurrencyId.Stones)
+      expect(styles.borderLeft).toBe('border-l-emerald-400/40')
+      expect(styles.bgGradient).toContain('emerald')
+    })
+
+    it('should return visual styles for reroll shards', () => {
+      const styles = getCurrencyVisualStyles(CurrencyId.RerollShards)
+      expect(styles.borderLeft).toBe('border-l-blue-400/40')
+      expect(styles.bgGradient).toContain('blue')
+    })
+
+    it('should return visual styles for gems', () => {
+      const styles = getCurrencyVisualStyles(CurrencyId.Gems)
+      expect(styles.borderLeft).toBe('border-l-purple-400/40')
+      expect(styles.bgGradient).toContain('purple')
     })
   })
 })

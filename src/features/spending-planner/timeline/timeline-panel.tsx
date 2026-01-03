@@ -7,7 +7,7 @@
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import type { TimelineData, TimelineViewConfig, TimelineWeeks, CurrencyId } from '../types'
-import { CURRENCY_ORDER } from '../currencies/currency-config'
+import { getEnabledCurrenciesInOrder } from '../currencies/currency-config'
 import { generateWeekDates } from './timeline-utils'
 import { TimelineWeekColumn } from './timeline-week-column'
 import { TimelineRowLabels } from './timeline-row-labels'
@@ -15,6 +15,7 @@ import { TimelineEventsGrid } from './timeline-events-grid'
 
 interface TimelinePanelProps {
   timelineData: TimelineData
+  enabledCurrencies: CurrencyId[]
   config: TimelineViewConfig
   weekOptions: TimelineWeeks[]
   startDate: Date
@@ -39,6 +40,7 @@ function getDataForWeek(
 
 export function TimelinePanel({
   timelineData,
+  enabledCurrencies,
   config,
   weekOptions,
   startDate,
@@ -47,6 +49,12 @@ export function TimelinePanel({
   const weekDates = useMemo(
     () => generateWeekDates(startDate, config.weeks),
     [startDate, config.weeks]
+  )
+
+  // Get enabled currencies in display order
+  const orderedEnabledCurrencies = useMemo(
+    () => getEnabledCurrenciesInOrder(enabledCurrencies),
+    [enabledCurrencies]
   )
 
   return (
@@ -72,13 +80,14 @@ export function TimelinePanel({
       <div className="overflow-x-auto">
         {/* Income/Balance grid */}
         <div className="flex">
-          <TimelineRowLabels width={LABEL_WIDTH} />
+          <TimelineRowLabels width={LABEL_WIDTH} enabledCurrencies={orderedEnabledCurrencies} />
           {weekDates.map((date, index) => (
             <TimelineWeekColumn
               key={index}
               date={date}
-              incomes={getDataForWeek(index, CURRENCY_ORDER, timelineData.incomeByWeek)}
-              balances={getDataForWeek(index, CURRENCY_ORDER, timelineData.balancesByWeek)}
+              incomes={getDataForWeek(index, orderedEnabledCurrencies, timelineData.incomeByWeek)}
+              balances={getDataForWeek(index, orderedEnabledCurrencies, timelineData.balancesByWeek)}
+              enabledCurrencies={orderedEnabledCurrencies}
               isCurrentWeek={index === 0}
               width={COLUMN_WIDTH}
             />

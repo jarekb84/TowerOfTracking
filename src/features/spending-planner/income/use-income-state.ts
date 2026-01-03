@@ -6,8 +6,8 @@
 
 import { useCallback } from 'react'
 import { CurrencyId } from '../types'
-import type { CurrencyIncome, StoneIncomeBreakdown } from '../types'
-import { calculateStoneIncome } from '../currencies/currency-config'
+import type { CurrencyIncome, StoneIncomeBreakdown, GemIncomeBreakdown } from '../types'
+import { calculateStoneIncome, calculateGemIncome } from '../currencies/currency-config'
 import { ensureNonNegative, clampGrowthRate } from './income-validation'
 
 interface UseIncomeStateReturn {
@@ -19,13 +19,17 @@ interface UseIncomeStateReturn {
   updateGrowthRate: (currencyId: CurrencyId, rate: number) => void
   /** Update stone income breakdown field */
   updateStoneBreakdown: (field: keyof StoneIncomeBreakdown, value: number) => void
+  /** Update gem income breakdown field */
+  updateGemBreakdown: (field: keyof GemIncomeBreakdown, value: number) => void
 }
 
 interface UseIncomeStateProps {
   incomes: CurrencyIncome[]
   stoneBreakdown: StoneIncomeBreakdown
+  gemBreakdown: GemIncomeBreakdown
   onIncomesChange: (incomes: CurrencyIncome[]) => void
   onStoneBreakdownChange: (breakdown: StoneIncomeBreakdown) => void
+  onGemBreakdownChange: (breakdown: GemIncomeBreakdown) => void
 }
 
 /**
@@ -34,8 +38,10 @@ interface UseIncomeStateProps {
 export function useIncomeState({
   incomes,
   stoneBreakdown,
+  gemBreakdown,
   onIncomesChange,
   onStoneBreakdownChange,
+  onGemBreakdownChange,
 }: UseIncomeStateProps): UseIncomeStateReturn {
   const updateBalance = useCallback(
     (currencyId: CurrencyId, balance: number) => {
@@ -95,10 +101,32 @@ export function useIncomeState({
     [incomes, stoneBreakdown, onIncomesChange, onStoneBreakdownChange]
   )
 
+  const updateGemBreakdown = useCallback(
+    (field: keyof GemIncomeBreakdown, value: number) => {
+      const validValue = ensureNonNegative(value)
+      const updatedBreakdown = {
+        ...gemBreakdown,
+        [field]: validValue,
+      }
+      onGemBreakdownChange(updatedBreakdown)
+
+      // Also update the gems weeklyIncome based on breakdown
+      const totalGemIncome = calculateGemIncome(updatedBreakdown)
+      const updated = incomes.map((income) =>
+        income.currencyId === CurrencyId.Gems
+          ? { ...income, weeklyIncome: totalGemIncome }
+          : income
+      )
+      onIncomesChange(updated)
+    },
+    [incomes, gemBreakdown, onIncomesChange, onGemBreakdownChange]
+  )
+
   return {
     updateBalance,
     updateWeeklyIncome,
     updateGrowthRate,
     updateStoneBreakdown,
+    updateGemBreakdown,
   }
 }

@@ -2,7 +2,7 @@
  * Stone Income Breakdown Component
  *
  * Three-field breakdown for stone income sources that computes the weekly total.
- * Displays inputs for daily missions, event store, and tournament results
+ * Displays inputs for missions, event shop, tournaments, and purchased
  * with a clear visual connection showing these sum to the Weekly income.
  */
 
@@ -29,7 +29,7 @@ export function StoneIncomeBreakdown({
     <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/40">
       {/* Header with computed total */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-slate-400">Weekly Income Sources</span>
+        <span className="text-xs font-medium text-slate-300">Weekly Income Sources</span>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">Total:</span>
           <span className="text-sm font-medium text-emerald-300 tabular-nums">
@@ -41,7 +41,7 @@ export function StoneIncomeBreakdown({
 
       {/* Income source inputs in a clean grid */}
       <div className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2 items-center">
-        <span className="text-xs text-slate-400">Weekly challenges</span>
+        <span className="text-xs text-slate-400">Missions Weekly Chests</span>
         <Input
           type="number"
           value={breakdown.weeklyChallenges || ''}
@@ -51,7 +51,7 @@ export function StoneIncomeBreakdown({
           min={0}
         />
 
-        <span className="text-xs text-slate-400">Event store</span>
+        <span className="text-xs text-slate-400">Biweekly Event Shop</span>
         <Input
           type="number"
           value={breakdown.eventStore || ''}
@@ -61,11 +61,21 @@ export function StoneIncomeBreakdown({
           min={0}
         />
 
-        <span className="text-xs text-slate-400">Tournament results</span>
+        <span className="text-xs text-slate-400">Tournaments</span>
         <Input
           type="number"
           value={breakdown.tournamentResults || ''}
           onChange={handleChange('tournamentResults')}
+          className="w-20 h-7 text-right text-sm bg-slate-900/50"
+          placeholder="0"
+          min={0}
+        />
+
+        <span className="text-xs text-slate-400">Purchased (real money)</span>
+        <Input
+          type="number"
+          value={breakdown.purchasedWithMoney || ''}
+          onChange={handleChange('purchasedWithMoney')}
           className="w-20 h-7 text-right text-sm bg-slate-900/50"
           placeholder="0"
           min={0}

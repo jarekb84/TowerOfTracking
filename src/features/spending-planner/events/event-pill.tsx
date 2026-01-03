@@ -7,7 +7,7 @@
 import { cn } from '@/shared/lib/utils'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import type { SpendingEvent } from '../types'
-import { getCurrencyConfig } from '../currencies/currency-config'
+import { getCurrencyConfig, getCurrencyVisualStyles } from '../currencies/currency-config'
 import { EventPillActions } from './event-pill-actions'
 import { createEventDragHandlers, createEventActionHandlers } from './event-pill-handlers'
 
@@ -37,6 +37,7 @@ export function EventPill({
   onClone,
 }: EventPillProps) {
   const config = getCurrencyConfig(event.currencyId)
+  const visualStyles = getCurrencyVisualStyles(event.currencyId)
   const formattedAmount = formatLargeNumber(event.amount)
 
   const dragHandlers = createEventDragHandlers(index, onDragStart, onDragEnter)
@@ -67,8 +68,11 @@ export function EventPill({
         </svg>
       </div>
 
-      {/* Content area */}
-      <div className="flex-1 flex flex-col py-2 px-2 min-w-0">
+      {/* Content area with subtle currency color gradient */}
+      <div className={cn(
+        'flex-1 flex flex-col py-2 px-2 min-w-0 rounded-r-lg',
+        visualStyles.bgGradient
+      )}>
         <span className="text-sm text-slate-200 font-medium truncate">{event.name}</span>
         <span className={cn('text-xs mt-0.5', config.color)}>
           -{formattedAmount} {config.abbreviation}

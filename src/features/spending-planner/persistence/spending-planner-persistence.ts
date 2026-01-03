@@ -10,12 +10,15 @@ import type {
   CurrencyIncome,
   SpendingEvent,
   StoneIncomeBreakdown,
+  GemIncomeBreakdown,
   TimelineViewConfig,
 } from '../types'
+import { CurrencyId } from '../types'
 import {
   CURRENCY_ORDER,
   createDefaultIncome,
   createDefaultStoneBreakdown,
+  createDefaultGemBreakdown,
   isValidCurrencyId,
 } from '../currencies/currency-config'
 
@@ -28,9 +31,11 @@ export function getDefaultState(): SpendingPlannerState {
   return {
     incomes: CURRENCY_ORDER.map(createDefaultIncome),
     stoneIncomeBreakdown: createDefaultStoneBreakdown(),
+    gemIncomeBreakdown: createDefaultGemBreakdown(),
     events: [],
     timelineConfig: { weeks: 12 },
     incomePanelCollapsed: false,
+    enabledCurrencies: [...CURRENCY_ORDER],
     lastUpdated: Date.now(),
   }
 }
@@ -112,10 +117,17 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     return defaultState
   }
 
-  // Validate stone breakdown
-  if (!isValidStoneBreakdown(s.stoneIncomeBreakdown)) {
+  // Migrate incomes to ensure all currencies are present
+  const migratedIncomes = migrateIncomes(s.incomes)
+
+  // Validate stone breakdown (with migration for new purchasedWithMoney field)
+  const stoneBreakdown = migrateStoneBreakdown(s.stoneIncomeBreakdown)
+  if (!stoneBreakdown) {
     return defaultState
   }
+
+  // Validate gem breakdown (with migration for missing field)
+  const gemBreakdown = migrateGemBreakdown(s.gemIncomeBreakdown)
 
   // Validate events array
   if (!Array.isArray(s.events) || !s.events.every(isValidEvent)) {
@@ -132,7 +144,39 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     return defaultState
   }
 
-  return s as SpendingPlannerState
+  // Migrate enabledCurrencies: default all to enabled if missing
+  const enabledCurrencies = migrateEnabledCurrencies(s.enabledCurrencies)
+
+  return {
+    ...s,
+    incomes: migratedIncomes,
+    stoneIncomeBreakdown: stoneBreakdown,
+    gemIncomeBreakdown: gemBreakdown,
+    enabledCurrencies,
+  } as SpendingPlannerState
+}
+
+/**
+ * Migrate enabledCurrencies or create default if missing/invalid.
+ * Ensures all values are valid CurrencyIds and defaults to all enabled.
+ */
+function migrateEnabledCurrencies(value: unknown): CurrencyId[] {
+  if (!Array.isArray(value)) {
+    // Missing or invalid - default all currencies to enabled
+    return [...CURRENCY_ORDER]
+  }
+
+  // Filter to only valid currency IDs
+  const validCurrencies = value.filter(
+    (id): id is CurrencyId => typeof id === 'string' && isValidCurrencyId(id)
+  )
+
+  // If empty after filtering, return all currencies enabled
+  if (validCurrencies.length === 0) {
+    return [...CURRENCY_ORDER]
+  }
+
+  return validCurrencies
 }
 
 /**
@@ -152,17 +196,80 @@ function isValidIncome(value: unknown): value is CurrencyIncome {
 }
 
 /**
- * Type guard for StoneIncomeBreakdown.
+ * Migrate incomes array to ensure all currencies are present.
+ * Adds missing currencies with default values.
  */
-function isValidStoneBreakdown(value: unknown): value is StoneIncomeBreakdown {
-  if (!value || typeof value !== 'object') return false
+function migrateIncomes(incomes: CurrencyIncome[]): CurrencyIncome[] {
+  const existingCurrencyIds = new Set(incomes.map((i) => i.currencyId))
+  const missingIncomes = CURRENCY_ORDER
+    .filter((id) => !existingCurrencyIds.has(id))
+    .map(createDefaultIncome)
+
+  // Return in CURRENCY_ORDER for consistent ordering
+  const allIncomes = [...incomes, ...missingIncomes]
+  return CURRENCY_ORDER.map(
+    (id) => allIncomes.find((i) => i.currencyId === id)!
+  )
+}
+
+/**
+ * Migrate stone breakdown to include purchasedWithMoney field.
+ * Returns null if the base structure is invalid.
+ */
+function migrateStoneBreakdown(value: unknown): StoneIncomeBreakdown | null {
+  if (!value || typeof value !== 'object') return null
 
   const v = value as Partial<StoneIncomeBreakdown>
-  return (
-    typeof v.weeklyChallenges === 'number' &&
-    typeof v.eventStore === 'number' &&
-    typeof v.tournamentResults === 'number'
-  )
+
+  // Check required base fields
+  if (
+    typeof v.weeklyChallenges !== 'number' ||
+    typeof v.eventStore !== 'number' ||
+    typeof v.tournamentResults !== 'number'
+  ) {
+    return null
+  }
+
+  // Migrate: add purchasedWithMoney if missing
+  return {
+    weeklyChallenges: v.weeklyChallenges,
+    eventStore: v.eventStore,
+    tournamentResults: v.tournamentResults,
+    purchasedWithMoney: typeof v.purchasedWithMoney === 'number' ? v.purchasedWithMoney : 0,
+  }
+}
+
+/** Helper to safely extract a number field with default */
+function getNumberField(obj: Record<string, unknown>, field: string, defaultValue = 0): number {
+  const value = obj[field]
+  return typeof value === 'number' ? value : defaultValue
+}
+
+/**
+ * Migrate gem breakdown or create default if missing/invalid.
+ */
+function migrateGemBreakdown(value: unknown): GemIncomeBreakdown {
+  if (!value || typeof value !== 'object') {
+    return createDefaultGemBreakdown()
+  }
+
+  const v = value as Record<string, unknown>
+
+  // Return migrated structure with defaults for missing fields
+  return {
+    adGems: getNumberField(v, 'adGems'),
+    floatingGems: getNumberField(v, 'floatingGems'),
+    storeDailyGems: getNumberField(v, 'storeDailyGems'),
+    storeWeeklyGems: getNumberField(v, 'storeWeeklyGems'),
+    missionsDailyCompletion: getNumberField(v, 'missionsDailyCompletion'),
+    missionsWeeklyChests: getNumberField(v, 'missionsWeeklyChests'),
+    tournaments: getNumberField(v, 'tournaments'),
+    biweeklyEventShop: getNumberField(v, 'biweeklyEventShop'),
+    guildWeeklyChests: getNumberField(v, 'guildWeeklyChests'),
+    guildSeasonalStore: getNumberField(v, 'guildSeasonalStore'),
+    offerWalls: getNumberField(v, 'offerWalls'),
+    purchasedWithMoney: getNumberField(v, 'purchasedWithMoney'),
+  }
 }
 
 /**

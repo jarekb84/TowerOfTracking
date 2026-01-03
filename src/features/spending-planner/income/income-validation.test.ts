@@ -112,6 +112,7 @@ describe('income-validation', () => {
         weeklyChallenges: 60,
         eventStore: 0,
         tournamentResults: 200,
+        purchasedWithMoney: 0,
       }
       const result = validateStoneBreakdown(breakdown)
       expect(result.isValid).toBe(true)
@@ -123,6 +124,7 @@ describe('income-validation', () => {
         weeklyChallenges: 0,
         eventStore: 0,
         tournamentResults: 0,
+        purchasedWithMoney: 0,
       }
       const result = validateStoneBreakdown(breakdown)
       expect(result.isValid).toBe(true)
@@ -133,6 +135,7 @@ describe('income-validation', () => {
         weeklyChallenges: -10,
         eventStore: 0,
         tournamentResults: 200,
+        purchasedWithMoney: 0,
       }
       const result = validateStoneBreakdown(breakdown)
       expect(result.isValid).toBe(false)
@@ -144,6 +147,7 @@ describe('income-validation', () => {
         weeklyChallenges: 60,
         eventStore: -50,
         tournamentResults: 200,
+        purchasedWithMoney: 0,
       }
       const result = validateStoneBreakdown(breakdown)
       expect(result.isValid).toBe(false)
@@ -155,6 +159,7 @@ describe('income-validation', () => {
         weeklyChallenges: 60,
         eventStore: 0,
         tournamentResults: -100,
+        purchasedWithMoney: 0,
       }
       const result = validateStoneBreakdown(breakdown)
       expect(result.isValid).toBe(false)

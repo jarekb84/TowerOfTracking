@@ -18,6 +18,7 @@ export function SpendingPlanner() {
     eventQueue,
     timeline,
     toggleIncomePanel,
+    handleToggleCurrency,
     handleAddEvent,
     handleRemoveEvent,
     handleEditEvent,
@@ -39,17 +40,22 @@ export function SpendingPlanner() {
       <IncomePanel
         incomes={state.incomes}
         stoneBreakdown={state.stoneIncomeBreakdown}
+        gemBreakdown={state.gemIncomeBreakdown}
+        enabledCurrencies={state.enabledCurrencies}
         isCollapsed={state.incomePanelCollapsed}
         onToggleCollapse={toggleIncomePanel}
+        onToggleCurrency={handleToggleCurrency}
         onBalanceChange={income.updateBalance}
         onWeeklyIncomeChange={income.updateWeeklyIncome}
         onGrowthRateChange={income.updateGrowthRate}
         onStoneBreakdownChange={income.updateStoneBreakdown}
+        onGemBreakdownChange={income.updateGemBreakdown}
       />
 
       {/* Event Queue */}
       <EventQueuePanel
         events={state.events}
+        enabledCurrencies={state.enabledCurrencies}
         draggedIndex={eventQueue.draggedIndex}
         draggedOverIndex={eventQueue.draggedOverIndex}
         onDragStart={eventQueue.handleDragStart}
@@ -64,6 +70,7 @@ export function SpendingPlanner() {
       {/* Timeline Visualization */}
       <TimelinePanel
         timelineData={timelineData}
+        enabledCurrencies={state.enabledCurrencies}
         config={timeline.config}
         weekOptions={timeline.weekOptions}
         startDate={timeline.startDate}

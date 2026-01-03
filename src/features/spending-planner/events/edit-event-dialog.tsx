@@ -15,8 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { CurrencyId } from '../types'
-import type { SpendingEvent } from '../types'
-import { getAllCurrencyConfigs } from '../currencies/currency-config'
+import type { SpendingEvent, CurrencyConfig } from '../types'
 import { AddEventForm } from './add-event-form'
 import { getDisplayValueAndScale, calculateFinalAmount, parseDurationDays } from './event-form-utils'
 
@@ -30,20 +29,22 @@ interface SaveEventData {
 
 interface EditEventDialogProps {
   event: SpendingEvent | null
+  currencies: CurrencyConfig[]
   isOpen: boolean
   onClose: () => void
   onSave: (data: SaveEventData) => void
 }
 
-export function EditEventDialog({ event, isOpen, onClose, onSave }: EditEventDialogProps) {
+export function EditEventDialog({ event, currencies, isOpen, onClose, onSave }: EditEventDialogProps) {
   const [name, setName] = useState('')
   const [currencyId, setCurrencyId] = useState<CurrencyId>(CurrencyId.Coins)
   const [amountValue, setAmountValue] = useState('')
   const [amountScale, setAmountScale] = useState('T')
   const [durationDays, setDurationDays] = useState('')
 
-  const currencies = useMemo(() => getAllCurrencyConfigs(), [])
-  const selectedCurrency = currencies.find((c) => c.id === currencyId)!
+  const selectedCurrency = useMemo(() => {
+    return currencies.find((c) => c.id === currencyId) ?? currencies[0]
+  }, [currencies, currencyId])
 
   // Populate form when event changes
   useEffect(() => {

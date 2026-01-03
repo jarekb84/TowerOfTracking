@@ -5,13 +5,15 @@
  */
 
 import { cn } from '@/shared/lib/utils'
-import { CURRENCY_ORDER, getCurrencyConfig } from '../currencies/currency-config'
+import type { CurrencyId } from '../types'
+import { getCurrencyConfig } from '../currencies/currency-config'
 
 interface TimelineRowLabelsProps {
   width: number
+  enabledCurrencies: CurrencyId[]
 }
 
-export function TimelineRowLabels({ width }: TimelineRowLabelsProps) {
+export function TimelineRowLabels({ width, enabledCurrencies }: TimelineRowLabelsProps) {
   return (
     <div
       className="flex flex-col shrink-0 border-r border-slate-700/50"
@@ -25,11 +27,12 @@ export function TimelineRowLabels({ width }: TimelineRowLabelsProps) {
       {/* Income labels */}
       <div className="px-2 py-1.5 border-b border-slate-700/30 space-y-0.5">
         <div className="text-xs text-slate-400 font-medium">Income</div>
-        {CURRENCY_ORDER.map((currencyId) => {
+        {enabledCurrencies.map((currencyId) => {
           const currencyConfig = getCurrencyConfig(currencyId)
+          const displayName = currencyConfig.timelineName ?? currencyConfig.displayName
           return (
             <div key={currencyId} className={cn('text-xs pl-2', currencyConfig.color)}>
-              {currencyConfig.displayName}
+              {displayName}
             </div>
           )
         })}
@@ -38,11 +41,12 @@ export function TimelineRowLabels({ width }: TimelineRowLabelsProps) {
       {/* Balance labels */}
       <div className="px-2 py-1.5 space-y-0.5">
         <div className="text-xs text-slate-400 font-medium">Balance</div>
-        {CURRENCY_ORDER.map((currencyId) => {
+        {enabledCurrencies.map((currencyId) => {
           const currencyConfig = getCurrencyConfig(currencyId)
+          const displayName = currencyConfig.timelineName ?? currencyConfig.displayName
           return (
             <div key={currencyId} className={cn('text-xs pl-2', currencyConfig.color)}>
-              {currencyConfig.displayName}
+              {displayName}
             </div>
           )
         })}

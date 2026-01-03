@@ -17,6 +17,8 @@
 export enum CurrencyId {
   Coins = 'coins',
   Stones = 'stones',
+  RerollShards = 'rerollShards',
+  Gems = 'gems',
 }
 
 /**
@@ -28,6 +30,8 @@ export interface CurrencyConfig {
   id: CurrencyId
   /** Human-readable name (e.g., "Coins", "Stones") */
   displayName: string
+  /** Shorter name for timeline display where space is limited (defaults to displayName) */
+  timelineName?: string
   /** Short abbreviation for compact display (e.g., "c", "st") */
   abbreviation: string
   /** Tailwind color class for visual distinction */
@@ -66,6 +70,39 @@ export interface StoneIncomeBreakdown {
   eventStore: number
   /** Stones from tournament results (per week) */
   tournamentResults: number
+  /** Stones purchased with real money (per week average) */
+  purchasedWithMoney: number
+}
+
+/**
+ * Breakdown of gem income sources.
+ * Gems come from various in-game activities.
+ */
+export interface GemIncomeBreakdown {
+  /** Gems from watching ads */
+  adGems: number
+  /** Floating gems (Bob) collected during runs */
+  floatingGems: number
+  /** Free daily gems from store */
+  storeDailyGems: number
+  /** Free weekly gems from store (web) */
+  storeWeeklyGems: number
+  /** Gems from daily mission completion */
+  missionsDailyCompletion: number
+  /** Gems from weekly mission chests */
+  missionsWeeklyChests: number
+  /** Gems from tournament participation */
+  tournaments: number
+  /** Gems from biweekly event shop */
+  biweeklyEventShop: number
+  /** Gems from guild weekly chests */
+  guildWeeklyChests: number
+  /** Gems from guild seasonal store */
+  guildSeasonalStore: number
+  /** Gems from offer walls/TapJoy */
+  offerWalls: number
+  /** Gems purchased with real money */
+  purchasedWithMoney: number
 }
 
 // =============================================================================
@@ -157,12 +194,16 @@ export interface SpendingPlannerState {
   incomes: CurrencyIncome[]
   /** Stone income breakdown (manual entry) */
   stoneIncomeBreakdown: StoneIncomeBreakdown
+  /** Gem income breakdown (manual entry) */
+  gemIncomeBreakdown: GemIncomeBreakdown
   /** Planned spending events in priority order */
   events: SpendingEvent[]
   /** Timeline view configuration */
   timelineConfig: TimelineViewConfig
   /** UI state: whether income panel is collapsed */
   incomePanelCollapsed: boolean
+  /** Which currencies are enabled for tracking */
+  enabledCurrencies: CurrencyId[]
   /** Timestamp of last update */
   lastUpdated: number
 }
