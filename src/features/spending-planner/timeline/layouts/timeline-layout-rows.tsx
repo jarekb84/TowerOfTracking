@@ -225,14 +225,16 @@ function CurrencyCell({
     const expenditures = timelineData.expenditureByWeek.get(currencyId) ?? []
     const balances = timelineData.balancesByWeek.get(currencyId) ?? []
 
-    const rawBalance = balances[weekIndex] ?? 0
+    // Use balances[weekIndex + 1] as the raw ending balance for this week
+    // (mid-week spending model: spending deducted from ending balance, not starting)
+    const rawEndingBalance = balances[weekIndex + 1] ?? 0
     const income = incomes[weekIndex] ?? 0
     const expenditure = expenditures[weekIndex] ?? 0
     const week0FullIncome = incomes[0] ?? 0
 
     // Use single source of truth for balance calculation
     return calculateWeekBalance({
-      rawBalance,
+      rawEndingBalance,
       income,
       expenditure,
       weekIndex,

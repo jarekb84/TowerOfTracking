@@ -177,10 +177,19 @@ export function calculateProrationAdjustment(
 
 /**
  * Input data needed for accurate week balance calculations.
+ *
+ * IMPORTANT: Balance Array Semantics (Mid-Week Spending Model)
+ * ------------------------------------------------------------
+ * The timeline calculator uses mid-week spending semantics:
+ * - balances[N] = starting balance for week N (before income, before spending)
+ * - balances[N+1] = ending balance for week N (after income AND spending)
+ *
+ * Spending is deducted from the ending balance, not the starting balance.
+ * This allows events to be scheduled when (starting balance + income) >= cost.
  */
 interface WeekBalanceInputs {
-  /** Raw balance from timeline calculator (assumes full income) */
-  rawBalance: number
+  /** Raw ending balance from timeline calculator: balances[weekIndex + 1] */
+  rawEndingBalance: number
   /** Income for this week */
   income: number
   /** Expenditure for this week */
@@ -199,18 +208,21 @@ interface WeekBalanceInputs {
  * This is the SINGLE SOURCE OF TRUTH for balance calculations.
  * Both layout modes (Columns and Rows) should use this function.
  *
- * Formula:
- * - Prior balance = rawBalance + expenditure (what balance was before spending)
- * - For week 0: endingBalance = rawBalance + (income * prorationFactor)
- * - For week N > 0: endingBalance = rawBalance + income + prorationAdjustment
+ * Balance Array Semantics (Mid-Week Spending Model):
+ * - rawEndingBalance = balances[weekIndex + 1] = ending balance after income AND spending
+ * - Prior balance = balance at START of week (before income and spending)
+ *   = endingBalance - displayedIncome + expenditure
  *
- * where prorationAdjustment = (prorationFactor - 1) * week0FullIncome
+ * Proration Adjustment:
+ * - Week 0: Income is prorated, but rawEndingBalance already reflects full income
+ *   so we adjust: endingBalance = rawEndingBalance - (fullIncome - proratedIncome)
+ * - Week N > 0: rawEndingBalance assumes full week 0 income, so we apply adjustment
  *
  * @returns Accurate prior balance, income, expenditure, and ending balance
  */
 export function calculateWeekBalance(inputs: WeekBalanceInputs): WeekCurrencyData {
   const {
-    rawBalance,
+    rawEndingBalance,
     income,
     expenditure,
     weekIndex,
@@ -218,13 +230,14 @@ export function calculateWeekBalance(inputs: WeekBalanceInputs): WeekCurrencyDat
     week0FullIncome,
   } = inputs
 
-  // Prior balance = raw balance + expenditure (balance before spending was subtracted)
-  const priorBalance = rawBalance + expenditure
-
   if (weekIndex === 0) {
     // Week 0: Apply proration to income
     const proratedIncome = income * currentWeekProrationFactor
-    const endingBalance = rawBalance + proratedIncome
+    // rawEndingBalance has full income added, adjust for proration
+    const incomeAdjustment = proratedIncome - income
+    const endingBalance = rawEndingBalance + incomeAdjustment
+    // Prior balance = starting balance = endingBalance - proratedIncome + expenditure
+    const priorBalance = endingBalance - proratedIncome + expenditure
     return {
       priorBalance,
       income: proratedIncome,
@@ -237,10 +250,11 @@ export function calculateWeekBalance(inputs: WeekBalanceInputs): WeekCurrencyDat
       week0FullIncome,
       currentWeekProrationFactor
     )
-    const endingBalance = rawBalance + income + prorationAdjustment
-    const adjustedPriorBalance = priorBalance + prorationAdjustment
+    const endingBalance = rawEndingBalance + prorationAdjustment
+    // Prior balance = starting balance = endingBalance - income + expenditure
+    const priorBalance = endingBalance - income + expenditure
     return {
-      priorBalance: adjustedPriorBalance,
+      priorBalance,
       income,
       expenditure,
       balance: endingBalance,
