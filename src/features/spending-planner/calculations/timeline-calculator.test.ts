@@ -35,7 +35,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(1)
       expect(result.events[0].triggerWeek).toBe(0)
@@ -51,7 +51,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(1)
       // Week 3 ending balance = 100 + 4*100 = 500 (start + 4 weeks of income)
@@ -68,7 +68,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 700, priority: 0 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(2)
       // Event 1 (priority 0) should trigger first at week 0 (1000 >= 700)
@@ -88,7 +88,7 @@ describe('timeline-calculator', () => {
         { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 200, priority: 1 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(2)
       // Event 1: ending balance = 500 + 100 = 600 >= 400, triggers week 0
@@ -107,7 +107,7 @@ describe('timeline-calculator', () => {
         { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 150, priority: 1 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(2)
       expect(result.events[0].event.currencyId).toBe(CurrencyId.Coins)
@@ -130,7 +130,7 @@ describe('timeline-calculator', () => {
         { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(2)
       // Coin event triggers at week 3 (ending balance = 100 + 4*100 = 500)
@@ -147,7 +147,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Coins, amount: 10000, priority: 0 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(0)
       expect(result.unaffordableEvents).toHaveLength(1)
@@ -162,7 +162,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(1)
       // Week 1 ending balance = 100 + 2*100 = 300, can afford mid-week
@@ -179,7 +179,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Lab', currencyId: CurrencyId.Coins, amount: 500, priority: 0, durationDays: 40 },
       ]
 
-      const result = calculateTimeline(incomes, events, 12, startDate)
+      const result = calculateTimeline(incomes, events, 12, { startDate })
 
       expect(result.events).toHaveLength(1)
       expect(result.events[0].endDate).toBeDefined()
@@ -189,43 +189,13 @@ describe('timeline-calculator', () => {
       expect(result.events[0].endDate!.getDate()).toBe(expectedEnd.getDate())
     })
 
-    it('should include balance projections in result', () => {
-      const incomes: CurrencyIncome[] = [
-        createTestIncome(CurrencyId.Coins, 100, 50, 0),
-      ]
-      const events: SpendingEvent[] = []
+    it('should include balance, income, and expenditure projections in result', () => {
+      const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Coins, 100, 50, 0)]
+      const result = calculateTimeline(incomes, [], 4, { startDate })
 
-      const result = calculateTimeline(incomes, events, 4, startDate)
-
-      const coinBalances = result.balancesByWeek.get(CurrencyId.Coins)
-      expect(coinBalances).toBeDefined()
-      expect(coinBalances).toEqual([100, 150, 200, 250, 300])
-    })
-
-    it('should include income projections in result', () => {
-      const incomes: CurrencyIncome[] = [
-        createTestIncome(CurrencyId.Coins, 100, 50, 0),
-      ]
-      const events: SpendingEvent[] = []
-
-      const result = calculateTimeline(incomes, events, 4, startDate)
-
-      const coinIncomes = result.incomeByWeek.get(CurrencyId.Coins)
-      expect(coinIncomes).toBeDefined()
-      expect(coinIncomes).toEqual([50, 50, 50, 50])
-    })
-
-    it('should include expenditure tracking in result with no events', () => {
-      const incomes: CurrencyIncome[] = [
-        createTestIncome(CurrencyId.Coins, 100, 50, 0),
-      ]
-      const events: SpendingEvent[] = []
-
-      const result = calculateTimeline(incomes, events, 4, startDate)
-
-      const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
-      expect(coinExpenditures).toBeDefined()
-      expect(coinExpenditures).toEqual([0, 0, 0, 0])
+      expect(result.balancesByWeek.get(CurrencyId.Coins)).toEqual([100, 150, 200, 250, 300])
+      expect(result.incomeByWeek.get(CurrencyId.Coins)).toEqual([50, 50, 50, 50])
+      expect(result.expenditureByWeek.get(CurrencyId.Coins)).toEqual([0, 0, 0, 0])
     })
 
     it('should track expenditure in the correct week', () => {
@@ -236,7 +206,7 @@ describe('timeline-calculator', () => {
         { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
       ]
 
-      const result = calculateTimeline(incomes, events, 4, startDate)
+      const result = calculateTimeline(incomes, events, 4, { startDate })
 
       const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
       expect(coinExpenditures).toBeDefined()
@@ -253,7 +223,7 @@ describe('timeline-calculator', () => {
         { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1 },
       ]
 
-      const result = calculateTimeline(incomes, events, 4, startDate)
+      const result = calculateTimeline(incomes, events, 4, { startDate })
 
       const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
       expect(coinExpenditures).toBeDefined()
@@ -270,7 +240,7 @@ describe('timeline-calculator', () => {
         { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 500, priority: 1 },
       ]
 
-      const result = calculateTimeline(incomes, events, 4, startDate)
+      const result = calculateTimeline(incomes, events, 4, { startDate })
 
       const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
       expect(coinExpenditures).toBeDefined()
@@ -290,13 +260,89 @@ describe('timeline-calculator', () => {
         { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 75, priority: 1 },
       ]
 
-      const result = calculateTimeline(incomes, events, 4, startDate)
+      const result = calculateTimeline(incomes, events, 4, { startDate })
 
       const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
       const stoneExpenditures = result.expenditureByWeek.get(CurrencyId.Stones)
 
       expect(coinExpenditures).toEqual([300, 0, 0, 0])
       expect(stoneExpenditures).toEqual([75, 0, 0, 0])
+    })
+  })
+
+  describe('week 0 proration', () => {
+    it('should delay event when prorated income is insufficient for week 0', () => {
+      // Bug fix: With proration, balances should reflect actual available income
+      // Starting: 499, Full income: 446, Cost: 750
+      // Without proration: 499 + 446 = 945 >= 750, triggers week 0 (WRONG)
+      // With 50% proration: 499 + 223 = 722 < 750, should delay to week 1
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Stones, 499, 446, 0),
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0 },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.5 })
+      expect(result.events).toHaveLength(1)
+      expect(result.events[0].triggerWeek).toBe(1) // Delayed due to insufficient prorated income
+    })
+
+    it('should allow event in week 0 when prorated income is sufficient', () => {
+      // Starting: 500, Full income: 500, Cost: 700 → With 50%: 500 + 250 = 750 >= 700
+      const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Stones, 500, 500, 0)]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Affordable Event', currencyId: CurrencyId.Stones, amount: 700, priority: 0 },
+      ]
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.5 })
+      expect(result.events).toHaveLength(1)
+      expect(result.events[0].triggerWeek).toBe(0)
+    })
+
+    it('should use full income when proration factor is 1', () => {
+      // Starting: 499, Full income: 446 → 499 + 446 = 945 >= 750
+      const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Stones, 499, 446, 0)]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0 },
+      ]
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 1 })
+      expect(result.events).toHaveLength(1)
+      expect(result.events[0].triggerWeek).toBe(0)
+    })
+
+    it('should never result in negative ending balance for week 0', () => {
+      // Starting: 499, Full: 446, Cost: 750 → With 50%: 499 + 223 = 722 < 750
+      const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Stones, 499, 446, 0)]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0 },
+      ]
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.5 })
+      expect(result.events[0].triggerWeek).toBe(1)
+      const balances = result.balancesByWeek.get(CurrencyId.Stones)!
+      expect(balances[1]).toBeCloseTo(499 + 446 * 0.5, 5) // 722
+      expect(balances[1]).toBeGreaterThan(0)
+    })
+
+    it('should correctly handle edge case with small proration factors', () => {
+      // Starting: 100, Full: 1000 → With 10%: 100 + 100 = 200 >= 200
+      const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Coins, 100, 1000, 0)]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 200, priority: 0 },
+      ]
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.1 })
+      expect(result.events).toHaveLength(1)
+      expect(result.events[0].triggerWeek).toBe(0) // Just affordable
+    })
+
+    it('should delay event when just barely unaffordable with proration', () => {
+      // Starting: 100, Full: 1000, Cost: 201 → With 10%: 100 + 100 = 200 < 201
+      const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Coins, 100, 1000, 0)]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 201, priority: 0 },
+      ]
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.1 })
+      expect(result.events).toHaveLength(1)
+      expect(result.events[0].triggerWeek).toBe(1)
     })
   })
 

@@ -19,11 +19,12 @@ import { sortByPriority } from '../events/event-reorder'
  */
 function initializeBalances(
   incomes: CurrencyIncome[],
-  weeks: number
+  weeks: number,
+  week0ProrationFactor: number = 1
 ): Map<CurrencyId, number[]> {
   const balances = new Map<CurrencyId, number[]>()
   for (const income of incomes) {
-    balances.set(income.currencyId, projectBalances(income, weeks))
+    balances.set(income.currencyId, projectBalances(income, weeks, week0ProrationFactor))
   }
   return balances
 }
@@ -96,16 +97,34 @@ function processEvent(event: SpendingEvent, ctx: ProcessEventContext): TimelineE
 }
 
 /**
+ * Options for timeline calculation.
+ */
+interface CalculateTimelineOptions {
+  /** Start date for timeline (defaults to current date) */
+  startDate?: Date
+  /** Proration factor for week 0 income (0 < factor <= 1).
+   *  Defaults to 1 (full week). Events will only trigger in week 0 if the
+   *  prorated income (not full income) plus starting balance covers the cost. */
+  week0ProrationFactor?: number
+}
+
+/**
  * Calculate timeline for all spending events.
+ *
+ * @param incomes - Income configurations for all currencies
+ * @param events - Spending events to schedule
+ * @param weeks - Number of weeks to project
+ * @param options - Optional configuration for timeline calculation
  */
 export function calculateTimeline(
   incomes: CurrencyIncome[],
   events: SpendingEvent[],
   weeks: number,
-  startDate: Date = new Date()
+  options: CalculateTimelineOptions = {}
 ): TimelineData {
+  const { startDate = new Date(), week0ProrationFactor = 1 } = options
   const sortedEvents = sortByPriority(events)
-  const runningBalances = initializeBalances(incomes, weeks)
+  const runningBalances = initializeBalances(incomes, weeks, week0ProrationFactor)
   const incomeByWeek = initializeIncomes(incomes, weeks)
   const expenditureByWeek = initializeExpenditures(incomes, weeks)
 
