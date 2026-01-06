@@ -83,6 +83,67 @@ describe('income-projection', () => {
       expect(balances[2]).toBe(250)
       expect(balances[3]).toBe(275)
     })
+
+    describe('week 0 proration', () => {
+      it('should apply proration to week 0 income only', () => {
+        const income = createTestIncome(CurrencyId.Coins, 100, 100, 0)
+
+        const balances = projectBalances(income, 3, 0.5) // 50% proration
+
+        // Week 0 starting: 100
+        // Week 0 ending (balances[1]): 100 + 50 = 150 (prorated)
+        // Week 1 ending (balances[2]): 150 + 100 = 250 (full income)
+        // Week 2 ending (balances[3]): 250 + 100 = 350 (full income)
+        expect(balances[0]).toBe(100)
+        expect(balances[1]).toBe(150) // Prorated
+        expect(balances[2]).toBe(250) // Full income
+        expect(balances[3]).toBe(350) // Full income
+      })
+
+      it('should use full income when proration factor is 1', () => {
+        const income = createTestIncome(CurrencyId.Coins, 100, 100, 0)
+
+        const balances = projectBalances(income, 3, 1)
+
+        expect(balances).toEqual([100, 200, 300, 400])
+      })
+
+      it('should handle zero proration factor', () => {
+        const income = createTestIncome(CurrencyId.Coins, 100, 100, 0)
+
+        const balances = projectBalances(income, 3, 0)
+
+        // Week 0: no income added (0% proration)
+        // Week 1+: full income
+        expect(balances[0]).toBe(100)
+        expect(balances[1]).toBe(100) // No income from week 0
+        expect(balances[2]).toBe(200) // 100 + 100
+        expect(balances[3]).toBe(300) // 200 + 100
+      })
+
+      it('should apply proration with growth rate', () => {
+        const income = createTestIncome(CurrencyId.Coins, 100, 100, 10)
+
+        const balances = projectBalances(income, 3, 0.5)
+
+        // Week 0 starting: 100, week 0 income: 100 * 0.5 = 50
+        // Week 0 ending (balances[1]): 100 + 50 = 150
+        // Week 1 income: 100 * 1.1 = 110, balances[2]: 150 + 110 = 260
+        // Week 2 income: 110 * 1.1 = 121, balances[3]: 260 + 121 = 381
+        expect(balances[0]).toBe(100)
+        expect(balances[1]).toBe(150)
+        expect(balances[2]).toBeCloseTo(260, 5)
+        expect(balances[3]).toBeCloseTo(381, 5)
+      })
+
+      it('should default to full income when proration not specified', () => {
+        const income = createTestIncome(CurrencyId.Coins, 100, 100, 0)
+
+        const balances = projectBalances(income, 3)
+
+        expect(balances).toEqual([100, 200, 300, 400])
+      })
+    })
   })
 
   describe('projectIncomes', () => {

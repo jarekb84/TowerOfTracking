@@ -229,15 +229,13 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     eventQueue.handleDragEnd()
   }, [eventQueue, state.events])
 
-  // Calculate timeline
+  // Calculate timeline with proration for week 0
   const timelineData = useMemo(() => {
-    return calculateTimeline(
-      state.incomes,
-      state.events,
-      state.timelineConfig.weeks,
-      timeline.startDate
-    )
-  }, [state.incomes, state.events, state.timelineConfig.weeks, timeline.startDate])
+    return calculateTimeline(state.incomes, state.events, state.timelineConfig.weeks, {
+      startDate: timeline.startDate,
+      week0ProrationFactor: timeline.currentWeekProrationFactor,
+    })
+  }, [state.incomes, state.events, state.timelineConfig.weeks, timeline.startDate, timeline.currentWeekProrationFactor])
 
   return {
     state,

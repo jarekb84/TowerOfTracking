@@ -12,16 +12,25 @@ import type { CurrencyIncome, CurrencyId } from '../types'
  *
  * @param income - Income configuration for the currency
  * @param weeks - Number of weeks to project
+ * @param week0ProrationFactor - Proration factor for week 0 income (0 < factor <= 1).
+ *        Defaults to 1 (full week). Use this to account for partial weeks when the
+ *        current day is mid-week.
  * @returns Array of balances, one per week (index 0 = week 0, current balance)
  */
-export function projectBalances(income: CurrencyIncome, weeks: number): number[] {
+export function projectBalances(
+  income: CurrencyIncome,
+  weeks: number,
+  week0ProrationFactor: number = 1
+): number[] {
   const balances: number[] = [income.currentBalance]
   let currentIncome = income.weeklyIncome
   const growthMultiplier = 1 + income.growthRatePercent / 100
 
   for (let week = 1; week <= weeks; week++) {
     const previousBalance = balances[week - 1]
-    balances.push(previousBalance + currentIncome)
+    // Apply proration to week 0's income (week 1 balance = week 0 ending balance)
+    const effectiveIncome = week === 1 ? currentIncome * week0ProrationFactor : currentIncome
+    balances.push(previousBalance + effectiveIncome)
     // Apply growth for next week's income
     currentIncome *= growthMultiplier
   }
