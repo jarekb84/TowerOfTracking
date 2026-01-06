@@ -70,6 +70,7 @@ export default defineConfig([
   {
     files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
     rules: {
+      "max-lines": "off",
       "max-nested-callbacks": ["error", { "max": 5 }],
       "max-lines-per-function": "off",
       "max-statements": "off",

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import type { ManualSlot, RollLogEntry, RollLogEffect } from '../types';
 import {

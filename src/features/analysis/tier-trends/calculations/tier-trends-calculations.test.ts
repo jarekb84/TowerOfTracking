@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import { calculateTierTrends, getAvailableTiersForTrends, getDefaultAggregationType, getQuantityLabel } from './tier-trends-calculations';
 import type { TierTrendsFilters } from '../types';

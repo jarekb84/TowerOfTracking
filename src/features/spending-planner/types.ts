@@ -149,6 +149,8 @@ export interface SpendingEvent {
   durationDays?: number
   /** Priority order (lower = higher priority) */
   priority: number
+  /** ID of event this is chained to (null = free-floating) */
+  lockedToEventId: string | null
 }
 
 // =============================================================================

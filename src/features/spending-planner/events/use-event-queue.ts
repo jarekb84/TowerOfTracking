@@ -13,6 +13,7 @@ import {
   updateEvent as updateEventFn,
   cloneEvent as cloneEventFn,
   generateEventId,
+  toggleEventChain as toggleEventChainFn,
 } from './event-reorder'
 
 /** Input for adding a new event */
@@ -46,6 +47,7 @@ interface UseEventQueueReturn {
   removeEvent: (events: SpendingEvent[], eventId: string) => SpendingEvent[]
   updateEvent: (events: SpendingEvent[], eventId: string, input: UpdateEventInput) => SpendingEvent[]
   cloneEvent: (events: SpendingEvent[], eventId: string) => SpendingEvent[]
+  toggleEventChain: (events: SpendingEvent[], eventId: string) => SpendingEvent[] | null
 }
 
 /**
@@ -118,6 +120,13 @@ export function useEventQueue(): UseEventQueueReturn {
     []
   )
 
+  const toggleEventChain = useCallback(
+    (events: SpendingEvent[], eventId: string): SpendingEvent[] | null => {
+      return toggleEventChainFn(events, eventId)
+    },
+    []
+  )
+
   const isDragging = draggedIndex !== null
 
   return {
@@ -132,5 +141,6 @@ export function useEventQueue(): UseEventQueueReturn {
     removeEvent,
     updateEvent,
     cloneEvent,
+    toggleEventChain,
   }
 }

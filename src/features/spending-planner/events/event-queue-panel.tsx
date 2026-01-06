@@ -12,6 +12,7 @@ import { EditEventDialog } from './edit-event-dialog'
 import type { SpendingEvent, CurrencyId } from '../types'
 import { getEnabledCurrenciesInOrder, getCurrencyConfig } from '../currencies/currency-config'
 import type { CurrencyConfig } from '../types'
+import { isChainedEvent, canChainEvent, groupEventsIntoChains, sortByPriority } from './event-reorder'
 
 export interface AddEventData {
   name: string
@@ -36,8 +37,10 @@ interface EventQueuePanelProps {
   onRemoveEvent: (eventId: string) => void
   onEditEvent: (data: EditEventData) => void
   onCloneEvent: (eventId: string) => void
+  onToggleChain: (eventId: string) => void
 }
 
+/* eslint-disable-next-line max-lines-per-function */
 export function EventQueuePanel({
   events,
   enabledCurrencies,
@@ -50,6 +53,7 @@ export function EventQueuePanel({
   onRemoveEvent,
   onEditEvent,
   onCloneEvent,
+  onToggleChain,
 }: EventQueuePanelProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<SpendingEvent | null>(null)
@@ -58,6 +62,15 @@ export function EventQueuePanel({
   const enabledCurrencyConfigs = useMemo((): CurrencyConfig[] => {
     return getEnabledCurrenciesInOrder(enabledCurrencies).map(getCurrencyConfig)
   }, [enabledCurrencies])
+
+  // Group events into chains for rendering
+  const eventGroups = useMemo(() => groupEventsIntoChains(events), [events])
+
+  // Map event IDs to their index in the sorted array (for drag handlers)
+  const eventIndexMap = useMemo(() => {
+    const sorted = sortByPriority(events)
+    return new Map(sorted.map((e, i) => [e.id, i]))
+  }, [events])
 
   const handleEditClick = (event: SpendingEvent) => {
     setEditingEvent(event)
@@ -95,20 +108,36 @@ export function EventQueuePanel({
           </div>
         ) : (
           <div className="flex flex-wrap gap-3">
-            {events.map((event, index) => (
-              <EventPill
-                key={event.id}
-                event={event}
-                index={index}
-                isDragging={draggedIndex === index}
-                isDraggedOver={draggedOverIndex === index && draggedIndex !== index}
-                onDragStart={onDragStart}
-                onDragEnter={onDragEnter}
-                onDragEnd={onDragEnd}
-                onRemove={onRemoveEvent}
-                onEdit={handleEditClick}
-                onClone={onCloneEvent}
-              />
+            {eventGroups.map((group) => (
+              <div
+                key={group.events[0].id}
+                className="inline-flex"
+              >
+                {group.events.map((event, groupIndex) => {
+                  const index = eventIndexMap.get(event.id) ?? 0
+                  // Events that are not the last in a chain have a chained dependent
+                  const hasChainedDependent = group.isChain && groupIndex < group.events.length - 1
+                  return (
+                    <EventPill
+                      key={event.id}
+                      event={event}
+                      index={index}
+                      isDragging={draggedIndex === index}
+                      isDraggedOver={draggedOverIndex === index && draggedIndex !== index}
+                      isChained={isChainedEvent(event)}
+                      canChain={canChainEvent(events, event.id)}
+                      hasChainedDependent={hasChainedDependent}
+                      onDragStart={onDragStart}
+                      onDragEnter={onDragEnter}
+                      onDragEnd={onDragEnd}
+                      onRemove={onRemoveEvent}
+                      onEdit={handleEditClick}
+                      onClone={onCloneEvent}
+                      onToggleChain={onToggleChain}
+                    />
+                  )
+                })}
+              </div>
             ))}
           </div>
         )}
@@ -117,7 +146,7 @@ export function EventQueuePanel({
       {/* Hint */}
       {events.length > 0 && (
         <div className="px-4 pb-3 text-xs text-slate-500">
-          Drag to reorder priorities. Events trigger when balance is sufficient.
+          Hover and click the left handle to chain events together. Chained events trigger consecutively.
         </div>
       )}
 
