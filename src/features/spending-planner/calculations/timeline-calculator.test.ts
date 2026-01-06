@@ -32,7 +32,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -48,7 +48,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -64,8 +64,8 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1 },
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 700, priority: 0 },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1, lockedToEventId: null },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 700, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -84,8 +84,8 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 500, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
-        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 200, priority: 1 },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 200, priority: 1, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -103,8 +103,8 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Stones, 200, 50, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
-        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 150, priority: 1 },
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 400, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 150, priority: 1, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -117,17 +117,17 @@ describe('timeline-calculator', () => {
       expect(result.events[1].triggerWeek).toBe(0)
     })
 
-    it('should enforce queue sequence - later events cannot trigger before earlier ones', () => {
+    it('should allow free-floating events to trigger independently', () => {
       const incomes: CurrencyIncome[] = [
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
         createTestIncome(CurrencyId.Stones, 500, 50, 0),
       ]
       // Event 1 (coins) can't afford until week 3 (ending balance = 500)
-      // Event 2 (stones) COULD afford immediately at week 0
-      // But Event 2 should wait for Event 1 due to queue sequence
+      // Event 2 (stones) CAN afford immediately at week 0
+      // Free-floating events can trigger as soon as balance allows
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 500, priority: 0 },
-        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1 },
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -135,7 +135,29 @@ describe('timeline-calculator', () => {
       expect(result.events).toHaveLength(2)
       // Coin event triggers at week 3 (ending balance = 100 + 4*100 = 500)
       expect(result.events[0].triggerWeek).toBe(3)
-      // Stone event must wait until week 3 even though balance allows week 0
+      // Stone event triggers at week 0 since it's free-floating and balance allows
+      expect(result.events[1].triggerWeek).toBe(0)
+    })
+
+    it('should enforce chained event sequence - chained events wait for predecessor', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
+        createTestIncome(CurrencyId.Stones, 500, 50, 0),
+      ]
+      // Event 1 (coins) can't afford until week 3 (ending balance = 500)
+      // Event 2 (stones) COULD afford immediately at week 0
+      // But Event 2 is chained to Event 1, so it must wait
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: '1' },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(2)
+      // Coin event triggers at week 3 (ending balance = 100 + 4*100 = 500)
+      expect(result.events[0].triggerWeek).toBe(3)
+      // Stone event must wait until week 3 because it's chained to Event 1
       expect(result.events[1].triggerWeek).toBe(3)
     })
 
@@ -144,7 +166,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 100, 10, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Coins, amount: 10000, priority: 0 },
+        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Coins, amount: 10000, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -159,7 +181,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
+        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -176,7 +198,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Lab', currencyId: CurrencyId.Coins, amount: 500, priority: 0, durationDays: 40 },
+        { id: '1', name: 'Lab', currencyId: CurrencyId.Coins, amount: 500, priority: 0, durationDays: 40, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 12, { startDate })
@@ -203,7 +225,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 300, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 4, { startDate })
@@ -219,8 +241,8 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 200, priority: 0 },
-        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1 },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 200, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 300, priority: 1, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 4, { startDate })
@@ -236,8 +258,8 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 500, 200, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0 },
-        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 500, priority: 1 },
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 400, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 500, priority: 1, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 4, { startDate })
@@ -256,8 +278,8 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Stones, 100, 50, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0 },
-        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 75, priority: 1 },
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 300, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 75, priority: 1, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 4, { startDate })
@@ -280,7 +302,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Stones, 499, 446, 0),
       ]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0 },
+        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0, lockedToEventId: null },
       ]
 
       const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.5 })
@@ -292,7 +314,7 @@ describe('timeline-calculator', () => {
       // Starting: 500, Full income: 500, Cost: 700 → With 50%: 500 + 250 = 750 >= 700
       const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Stones, 500, 500, 0)]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Affordable Event', currencyId: CurrencyId.Stones, amount: 700, priority: 0 },
+        { id: '1', name: 'Affordable Event', currencyId: CurrencyId.Stones, amount: 700, priority: 0, lockedToEventId: null },
       ]
       const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.5 })
       expect(result.events).toHaveLength(1)
@@ -303,7 +325,7 @@ describe('timeline-calculator', () => {
       // Starting: 499, Full income: 446 → 499 + 446 = 945 >= 750
       const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Stones, 499, 446, 0)]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0 },
+        { id: '1', name: 'Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0, lockedToEventId: null },
       ]
       const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 1 })
       expect(result.events).toHaveLength(1)
@@ -314,7 +336,7 @@ describe('timeline-calculator', () => {
       // Starting: 499, Full: 446, Cost: 750 → With 50%: 499 + 223 = 722 < 750
       const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Stones, 499, 446, 0)]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0 },
+        { id: '1', name: 'Expensive Event', currencyId: CurrencyId.Stones, amount: 750, priority: 0, lockedToEventId: null },
       ]
       const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.5 })
       expect(result.events[0].triggerWeek).toBe(1)
@@ -327,7 +349,7 @@ describe('timeline-calculator', () => {
       // Starting: 100, Full: 1000 → With 10%: 100 + 100 = 200 >= 200
       const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Coins, 100, 1000, 0)]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 200, priority: 0 },
+        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 200, priority: 0, lockedToEventId: null },
       ]
       const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.1 })
       expect(result.events).toHaveLength(1)
@@ -338,7 +360,7 @@ describe('timeline-calculator', () => {
       // Starting: 100, Full: 1000, Cost: 201 → With 10%: 100 + 100 = 200 < 201
       const incomes: CurrencyIncome[] = [createTestIncome(CurrencyId.Coins, 100, 1000, 0)]
       const events: SpendingEvent[] = [
-        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 201, priority: 0 },
+        { id: '1', name: 'Event', currencyId: CurrencyId.Coins, amount: 201, priority: 0, lockedToEventId: null },
       ]
       const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.1 })
       expect(result.events).toHaveLength(1)
@@ -372,6 +394,113 @@ describe('timeline-calculator', () => {
     it('should return correct date for later weeks', () => {
       const result = getWeekStartDate(2, startDate)
       expect(result.getDate()).toBe(15) // Jan 1 + 14 days = Jan 15
+    })
+  })
+
+  describe('event chaining', () => {
+    it('should allow free-floating events to trigger based on balance only', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
+        createTestIncome(CurrencyId.Stones, 500, 50, 0),
+      ]
+      // Two free-floating events - different currencies
+      // Coin event needs to wait, Stone event can trigger immediately
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: null },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(2)
+      // Coin event triggers at week 3 (ending balance = 100 + 4*100 = 500)
+      expect(result.events[0].triggerWeek).toBe(3)
+      // Stone event is free-floating so can trigger at week 0 (balance = 550 >= 100)
+      expect(result.events[1].triggerWeek).toBe(0)
+    })
+
+    it('should make chained events wait for predecessor', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
+        createTestIncome(CurrencyId.Stones, 500, 50, 0),
+      ]
+      // Stone event is chained to Coin event - must wait for Coin event
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: '1' },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(2)
+      // Coin event triggers at week 3
+      expect(result.events[0].triggerWeek).toBe(3)
+      // Stone event is chained, so must wait until at least week 3
+      expect(result.events[1].triggerWeek).toBe(3)
+    })
+
+    it('should handle multi-level chains correctly', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 1000, 100, 0),
+      ]
+      // Three events in a chain: A -> B -> C
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event A', currencyId: CurrencyId.Coins, amount: 400, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Event B', currencyId: CurrencyId.Coins, amount: 400, priority: 1, lockedToEventId: '1' },
+        { id: '3', name: 'Event C', currencyId: CurrencyId.Coins, amount: 400, priority: 2, lockedToEventId: '2' },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(3)
+      // Event A: week 0 (1100 >= 400)
+      expect(result.events[0].triggerWeek).toBe(0)
+      // Event B: must wait for A, and balance after A = 700, so week 0 still works (700 >= 400)
+      expect(result.events[1].triggerWeek).toBe(0)
+      // Event C: must wait for B, and balance after A+B = 300, need to wait
+      // Week 0 balance: 300, Week 1: 400 >= 400
+      expect(result.events[2].triggerWeek).toBe(1)
+    })
+
+    it('should handle mixed chained and free-floating events', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
+        createTestIncome(CurrencyId.Stones, 200, 50, 0),
+      ]
+      // Event 1 (coins) - free-floating, needs week 3
+      // Event 2 (stones) - chained to 1, has enough balance but must wait
+      // Event 3 (coins) - free-floating, can trigger whenever balance allows
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Coin Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: '1' },
+        { id: '3', name: 'Coin Event 2', currencyId: CurrencyId.Coins, amount: 150, priority: 2, lockedToEventId: null },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(3)
+      // Event 1: week 3 (100 + 4*100 = 500)
+      expect(result.events[0].triggerWeek).toBe(3)
+      // Event 2: chained, must wait until week 3 despite having balance
+      expect(result.events[1].triggerWeek).toBe(3)
+      // Event 3: free-floating, can trigger at week 0 (200 >= 150)
+      expect(result.events[2].triggerWeek).toBe(0)
+    })
+
+    it('should treat invalid chain references as free-floating', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 500, 100, 0),
+      ]
+      // Event with reference to non-existent event
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event A', currencyId: CurrencyId.Coins, amount: 400, priority: 0, lockedToEventId: 'non-existent' },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(1)
+      // Should trigger at week 0 since invalid reference defaults to minTriggerWeek = 0
+      expect(result.events[0].triggerWeek).toBe(0)
     })
   })
 })

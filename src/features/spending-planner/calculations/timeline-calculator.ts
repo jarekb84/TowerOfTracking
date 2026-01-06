@@ -61,19 +61,23 @@ interface ProcessEventContext {
   balances: Map<CurrencyId, number[]>
   expenditures: Map<CurrencyId, number[]>
   startDate: Date
-  minTriggerWeek: number
 }
 
 /**
  * Process a single event and return the timeline event if affordable.
+ * @param minTriggerWeek - Earliest week this event can trigger (based on chain or queue order)
  */
-function processEvent(event: SpendingEvent, ctx: ProcessEventContext): TimelineEvent | null {
+function processEvent(
+  event: SpendingEvent,
+  ctx: ProcessEventContext,
+  minTriggerWeek: number
+): TimelineEvent | null {
   const currencyBalances = ctx.balances.get(event.currencyId)
   const currencyExpenditures = ctx.expenditures.get(event.currencyId)
   if (!currencyBalances || !currencyExpenditures) return null
 
-  // Find trigger week, but no earlier than minTriggerWeek (respects queue order)
-  const triggerWeek = findTriggerWeek(currencyBalances, event.amount, ctx.minTriggerWeek)
+  // Find trigger week, but no earlier than minTriggerWeek
+  const triggerWeek = findTriggerWeek(currencyBalances, event.amount, minTriggerWeek)
   if (triggerWeek === -1) return null
 
   const triggerDate = addWeeks(ctx.startDate, triggerWeek)
@@ -136,15 +140,23 @@ export function calculateTimeline(
     balances: runningBalances,
     expenditures: expenditureByWeek,
     startDate,
-    minTriggerWeek: 0,
   }
 
+  // Build trigger week map as events are processed
+  const triggerWeekMap = new Map<string, number>()
+
   for (const event of sortedEvents) {
-    const result = processEvent(event, ctx)
+    // Calculate per-event minTriggerWeek based on chain status
+    // Free-floating events can trigger any time (week 0)
+    // Chained events must wait for their predecessor
+    const minTriggerWeek = event.lockedToEventId === null
+      ? 0
+      : (triggerWeekMap.get(event.lockedToEventId) ?? 0)
+
+    const result = processEvent(event, ctx, minTriggerWeek)
     if (result) {
       timelineEvents.push(result)
-      // Update minimum trigger week for subsequent events
-      ctx.minTriggerWeek = result.triggerWeek
+      triggerWeekMap.set(event.id, result.triggerWeek)
     } else {
       unaffordableEvents.push(event)
     }

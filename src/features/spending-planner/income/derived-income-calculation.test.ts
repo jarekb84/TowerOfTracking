@@ -2,7 +2,6 @@
  * Derived Income Calculation Tests
  */
 
-/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest'
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types'
 import { CurrencyId } from '../types'

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import type { CalculatorConfig, SlotTarget } from '../types';
 import type { ManualModeConfig } from './types';

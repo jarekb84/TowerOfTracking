@@ -26,6 +26,7 @@ export function SpendingPlanner() {
     handleCloneEvent,
     handleDrop,
     handleLookbackPeriodChange,
+    handleToggleChain,
   } = useSpendingPlannerState()
 
   return (
@@ -74,6 +75,7 @@ export function SpendingPlanner() {
         onRemoveEvent={handleRemoveEvent}
         onEditEvent={handleEditEvent}
         onCloneEvent={handleCloneEvent}
+        onToggleChain={handleToggleChain}
       />
 
       {/* Timeline Visualization */}

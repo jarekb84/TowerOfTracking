@@ -148,6 +148,9 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     return defaultState
   }
 
+  // Migrate events to include lockedToEventId field
+  const migratedEvents = migrateEvents(s.events)
+
   // Migrate timeline config (adds layoutMode if missing)
   const timelineConfig = migrateTimelineConfig(s.timelineConfig)
   if (!timelineConfig) {
@@ -170,6 +173,7 @@ function validateStoredState(state: unknown): SpendingPlannerState {
     incomes: migratedIncomes,
     stoneIncomeBreakdown: stoneBreakdown,
     gemIncomeBreakdown: gemBreakdown,
+    events: migratedEvents,
     timelineConfig,
     enabledCurrencies,
     incomeDerivedPreferences,
@@ -338,8 +342,9 @@ function migrateGemBreakdown(value: unknown): GemIncomeBreakdown {
 }
 
 /**
- * Type guard for SpendingEvent.
+ * Type guard for SpendingEvent (base validation, migration adds lockedToEventId).
  */
+/* eslint-disable-next-line complexity */
 function isValidEvent(value: unknown): value is SpendingEvent {
   if (!value || typeof value !== 'object') return false
 
@@ -351,8 +356,21 @@ function isValidEvent(value: unknown): value is SpendingEvent {
     isValidCurrencyId(v.currencyId) &&
     typeof v.amount === 'number' &&
     typeof v.priority === 'number' &&
-    (v.durationDays === undefined || typeof v.durationDays === 'number')
+    (v.durationDays === undefined || typeof v.durationDays === 'number') &&
+    // lockedToEventId can be null, undefined (for migration), or string
+    (v.lockedToEventId === null || v.lockedToEventId === undefined || typeof v.lockedToEventId === 'string')
   )
+}
+
+/**
+ * Migrate events to include lockedToEventId field.
+ * Defaults missing field to null (free-floating).
+ */
+function migrateEvents(events: SpendingEvent[]): SpendingEvent[] {
+  return events.map((event) => ({
+    ...event,
+    lockedToEventId: event.lockedToEventId ?? null,
+  }))
 }
 
 /**

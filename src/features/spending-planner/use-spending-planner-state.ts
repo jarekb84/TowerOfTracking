@@ -58,6 +58,8 @@ interface UseSpendingPlannerStateReturn {
   handleDrop: () => void
   /** Update lookback period for derived income calculation */
   handleLookbackPeriodChange: (period: LookbackPeriod) => void
+  /** Toggle event chain state */
+  handleToggleChain: (eventId: string) => void
 }
 
 /**
@@ -229,6 +231,17 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     eventQueue.handleDragEnd()
   }, [eventQueue, state.events])
 
+  // Toggle event chain state
+  const handleToggleChain = useCallback(
+    (eventId: string) => {
+      const newEvents = eventQueue.toggleEventChain(state.events, eventId)
+      if (newEvents) {
+        setState((prev) => ({ ...prev, events: newEvents }))
+      }
+    },
+    [eventQueue, state.events]
+  )
+
   // Calculate timeline with proration for week 0
   const timelineData = useMemo(() => {
     return calculateTimeline(state.incomes, state.events, state.timelineConfig.weeks, {
@@ -252,5 +265,6 @@ export function useSpendingPlannerState(): UseSpendingPlannerStateReturn {
     handleCloneEvent,
     handleDrop,
     handleLookbackPeriodChange,
+    handleToggleChain,
   }
 }
