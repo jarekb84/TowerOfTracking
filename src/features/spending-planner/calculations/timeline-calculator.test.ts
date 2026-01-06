@@ -27,7 +27,7 @@ describe('timeline-calculator', () => {
   const startDate = new Date(2025, 0, 1) // Jan 1, 2025
 
   describe('calculateTimeline', () => {
-    it('should schedule event in week 0 if affordable immediately', () => {
+    it('should schedule event in week 0 if affordable by end of week', () => {
       const incomes: CurrencyIncome[] = [
         createTestIncome(CurrencyId.Coins, 1000, 100, 0),
       ]
@@ -39,10 +39,11 @@ describe('timeline-calculator', () => {
 
       expect(result.events).toHaveLength(1)
       expect(result.events[0].triggerWeek).toBe(0)
-      expect(result.events[0].balanceAtTrigger).toBe(1000)
+      // balanceAtTrigger is now the ending balance (start + income) = 1000 + 100 = 1100
+      expect(result.events[0].balanceAtTrigger).toBe(1100)
     })
 
-    it('should schedule event in later week if not affordable immediately', () => {
+    it('should schedule event in later week when ending balance can cover it', () => {
       const incomes: CurrencyIncome[] = [
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
       ]
@@ -53,7 +54,9 @@ describe('timeline-calculator', () => {
       const result = calculateTimeline(incomes, events, 12, startDate)
 
       expect(result.events).toHaveLength(1)
-      expect(result.events[0].triggerWeek).toBe(4) // 100 + 4*100 = 500
+      // Week 3 ending balance = 100 + 4*100 = 500 (start + 4 weeks of income)
+      // Event can be purchased mid-week after receiving week 3 income
+      expect(result.events[0].triggerWeek).toBe(3)
     })
 
     it('should process events in priority order', () => {
@@ -88,10 +91,10 @@ describe('timeline-calculator', () => {
       const result = calculateTimeline(incomes, events, 12, startDate)
 
       expect(result.events).toHaveLength(2)
-      // Event 1: triggers week 0 (500 >= 400)
+      // Event 1: ending balance = 500 + 100 = 600 >= 400, triggers week 0
       expect(result.events[0].triggerWeek).toBe(0)
-      // Event 2: balance after event 1 is 100, needs 200, so triggers week 1 (100+100=200)
-      expect(result.events[1].triggerWeek).toBe(1)
+      // Event 2: ending balance after event 1 = 600 - 400 = 200 >= 200, also triggers week 0
+      expect(result.events[1].triggerWeek).toBe(0)
     })
 
     it('should handle multiple currencies independently when sequence allows', () => {
@@ -119,7 +122,7 @@ describe('timeline-calculator', () => {
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
         createTestIncome(CurrencyId.Stones, 500, 50, 0),
       ]
-      // Event 1 (coins) can't afford until week 4
+      // Event 1 (coins) can't afford until week 3 (ending balance = 500)
       // Event 2 (stones) COULD afford immediately at week 0
       // But Event 2 should wait for Event 1 due to queue sequence
       const events: SpendingEvent[] = [
@@ -130,10 +133,10 @@ describe('timeline-calculator', () => {
       const result = calculateTimeline(incomes, events, 12, startDate)
 
       expect(result.events).toHaveLength(2)
-      // Coin event triggers at week 4 (100 + 4*100 = 500)
-      expect(result.events[0].triggerWeek).toBe(4)
-      // Stone event must wait until week 4 even though balance allows week 0
-      expect(result.events[1].triggerWeek).toBe(4)
+      // Coin event triggers at week 3 (ending balance = 100 + 4*100 = 500)
+      expect(result.events[0].triggerWeek).toBe(3)
+      // Stone event must wait until week 3 even though balance allows week 0
+      expect(result.events[1].triggerWeek).toBe(3)
     })
 
     it('should mark events as unaffordable if cannot be afforded within timeline', () => {
@@ -162,9 +165,10 @@ describe('timeline-calculator', () => {
       const result = calculateTimeline(incomes, events, 12, startDate)
 
       expect(result.events).toHaveLength(1)
-      expect(result.events[0].triggerWeek).toBe(2) // Week 2: 100 + 2*100 = 300
-      // 2 weeks after Jan 1 = Jan 15
-      expect(result.events[0].triggerDate.getDate()).toBe(15)
+      // Week 1 ending balance = 100 + 2*100 = 300, can afford mid-week
+      expect(result.events[0].triggerWeek).toBe(1)
+      // 1 week after Jan 1 = Jan 8
+      expect(result.events[0].triggerDate.getDate()).toBe(8)
     })
 
     it('should calculate end dates for events with duration', () => {
@@ -236,8 +240,8 @@ describe('timeline-calculator', () => {
 
       const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
       expect(coinExpenditures).toBeDefined()
-      // Event triggers at week 2 (100 + 2*100 = 300)
-      expect(coinExpenditures).toEqual([0, 0, 300, 0])
+      // Event triggers at week 1 (ending balance = 100 + 2*100 = 300)
+      expect(coinExpenditures).toEqual([0, 300, 0, 0])
     })
 
     it('should accumulate multiple expenditures in the same week', () => {
@@ -270,9 +274,10 @@ describe('timeline-calculator', () => {
 
       const coinExpenditures = result.expenditureByWeek.get(CurrencyId.Coins)
       expect(coinExpenditures).toBeDefined()
-      // Event 1: week 0 (500 >= 400)
-      // Event 2: week 2 (100 + 2*200 = 500)
-      expect(coinExpenditures).toEqual([400, 0, 500, 0])
+      // Event 1: week 0 (ending balance = 500 + 200 = 700 >= 400)
+      // After deduction: ending balance = 300
+      // Event 2: week 1 (ending balance after event 1 = 300 + 200 = 500 >= 500)
+      expect(coinExpenditures).toEqual([400, 500, 0, 0])
     })
 
     it('should track expenditures for multiple currencies', () => {

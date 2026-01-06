@@ -90,7 +90,8 @@ function processEvent(event: SpendingEvent, ctx: ProcessEventContext): TimelineE
     triggerWeek,
     triggerDate,
     endDate,
-    balanceAtTrigger: currencyBalances[triggerWeek] + event.amount,
+    // Balance available when purchase is made (ending balance after income, before this spending)
+    balanceAtTrigger: currencyBalances[triggerWeek + 1] + event.amount,
   }
 }
 
@@ -136,11 +137,18 @@ export function calculateTimeline(
 /**
  * Find the first week where balance can cover the amount.
  *
+ * Uses ending balance (starting balance + income) to determine affordability,
+ * allowing events to be purchased mid-week after income is received.
+ *
+ * @param balances - Array where balances[N] is starting balance for week N,
+ *                   and balances[N+1] is ending balance for week N
  * @param startWeek - Earliest week to consider (for queue sequence enforcement)
  */
 function findTriggerWeek(balances: number[], amount: number, startWeek: number = 0): number {
-  for (let week = startWeek; week < balances.length; week++) {
-    if (balances[week] >= amount) {
+  // Check ending balance (balances[week + 1]) to allow mid-week purchases
+  // Loop until balances.length - 1 to ensure balances[week + 1] is valid
+  for (let week = startWeek; week < balances.length - 1; week++) {
+    if (balances[week + 1] >= amount) {
       return week
     }
   }
@@ -150,13 +158,18 @@ function findTriggerWeek(balances: number[], amount: number, startWeek: number =
 /**
  * Subtract an amount from balances starting at a specific week.
  * Modifies the balances array in place.
+ *
+ * Since spending happens mid-week (after income is received), the deduction
+ * starts from the ending balance of the trigger week (balances[fromWeek + 1]).
  */
 function subtractFromBalances(
   balances: number[],
   fromWeek: number,
   amount: number
 ): void {
-  for (let week = fromWeek; week < balances.length; week++) {
+  // Start from fromWeek + 1 because spending happens after income is received
+  // This affects the ending balance of fromWeek and all subsequent weeks
+  for (let week = fromWeek + 1; week < balances.length; week++) {
     balances[week] -= amount
   }
 }
