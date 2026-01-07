@@ -22,34 +22,34 @@ describe('results-formatters', () => {
     });
 
     it('formats thousands with K suffix', () => {
-      expect(formatCost(1000)).toBe('1.0K');
+      expect(formatCost(1000)).toBe('1K');
       expect(formatCost(1500)).toBe('1.5K');
-      expect(formatCost(999999)).toBe('1000.0K');
+      expect(formatCost(999999)).toBe('1,000K');
     });
 
-    it('formats millions with M suffix and 2 decimals', () => {
-      expect(formatCost(1000000)).toBe('1.00M');
-      expect(formatCost(2500000)).toBe('2.50M');
+    it('formats millions with M suffix', () => {
+      expect(formatCost(1000000)).toBe('1M');
+      expect(formatCost(2500000)).toBe('2.5M');
       expect(formatCost(1580000)).toBe('1.58M');
       expect(formatCost(1660000)).toBe('1.66M');
     });
 
-    it('formats billions with B suffix and 2 decimals', () => {
-      expect(formatCost(1000000000)).toBe('1.00B');
-      expect(formatCost(3700000000)).toBe('3.70B');
+    it('formats billions with B suffix', () => {
+      expect(formatCost(1000000000)).toBe('1B');
+      expect(formatCost(3700000000)).toBe('3.7B');
     });
   });
 
   describe('formatCostRange', () => {
     it('formats range with appropriate suffixes', () => {
-      expect(formatCostRange(1000, 5000)).toBe('1.0K - 5.0K');
-      expect(formatCostRange(500000, 2000000)).toBe('500.0K - 2.00M');
+      expect(formatCostRange(1000, 5000)).toBe('1K - 5K');
+      expect(formatCostRange(500000, 2000000)).toBe('500K - 2M');
     });
   });
 
   describe('formatPercentage', () => {
     it('formats with specified decimals', () => {
-      expect(formatPercentage(50)).toBe('50.0%');
+      expect(formatPercentage(50)).toBe('50%');
       expect(formatPercentage(33.333, 2)).toBe('33.33%');
     });
   });
@@ -80,7 +80,7 @@ describe('results-formatters', () => {
   describe('formatRollCount', () => {
     it('formats roll count', () => {
       expect(formatRollCount(100)).toBe('100 rolls');
-      expect(formatRollCount(50000)).toBe('50.0K rolls');
+      expect(formatRollCount(50000)).toBe('50K rolls');
     });
   });
 
@@ -96,34 +96,35 @@ describe('results-formatters', () => {
   });
 
   describe('getPercentileColor', () => {
-    it('returns green for low percentiles (lucky)', () => {
-      expect(getPercentileColor(5)).toBe('#22c55e');
+    it('returns green for low percentiles (good case)', () => {
       expect(getPercentileColor(10)).toBe('#22c55e');
+      expect(getPercentileColor(25)).toBe('#22c55e');
     });
 
-    it('returns orange for median', () => {
-      expect(getPercentileColor(50)).toBe('#f97316');
+    it('returns yellow for median (typical)', () => {
+      expect(getPercentileColor(50)).toBe('#eab308');
     });
 
-    it('returns yellow for high percentiles', () => {
-      expect(getPercentileColor(75)).toBe('#eab308');
+    it('returns orange for high percentiles (pessimistic)', () => {
+      expect(getPercentileColor(75)).toBe('#f97316');
     });
 
-    it('returns red for very high percentiles (unlucky)', () => {
+    it('returns red for very high percentiles (worst case)', () => {
       expect(getPercentileColor(95)).toBe('#ef4444');
     });
   });
 
   describe('formatPercentileLabel', () => {
     it('formats special percentiles', () => {
-      expect(formatPercentileLabel(10)).toBe('10th %ile (lucky)');
+      expect(formatPercentileLabel(25)).toBe('25th %ile (good)');
       expect(formatPercentileLabel(50)).toBe('Median');
-      expect(formatPercentileLabel(95)).toBe('95th %ile (unlucky)');
+      expect(formatPercentileLabel(75)).toBe('75th %ile (pessimistic)');
+      expect(formatPercentileLabel(95)).toBe('95th %ile (worst)');
     });
 
     it('formats regular percentiles', () => {
-      expect(formatPercentileLabel(25)).toBe('25th %ile');
-      expect(formatPercentileLabel(75)).toBe('75th %ile');
+      expect(formatPercentileLabel(10)).toBe('10th %ile');
+      expect(formatPercentileLabel(60)).toBe('60th %ile');
     });
   });
 
@@ -148,7 +149,7 @@ describe('results-formatters', () => {
   describe('formatConfidenceMessage', () => {
     it('formats confidence message', () => {
       expect(formatConfidenceMessage(5000000)).toBe(
-        '95% of runs cost less than 5.00M shards'
+        '95% of runs cost less than 5M shards'
       );
     });
   });
