@@ -462,14 +462,14 @@ describe('timeline-calculator', () => {
       expect(result.events[2].triggerWeek).toBe(1)
     })
 
-    it('should handle mixed chained and free-floating events', () => {
+    it('should handle mixed chained and free-floating events with same-currency queueing', () => {
       const incomes: CurrencyIncome[] = [
         createTestIncome(CurrencyId.Coins, 100, 100, 0),
         createTestIncome(CurrencyId.Stones, 200, 50, 0),
       ]
       // Event 1 (coins) - free-floating, needs week 3
       // Event 2 (stones) - chained to 1, has enough balance but must wait
-      // Event 3 (coins) - free-floating, can trigger whenever balance allows
+      // Event 3 (coins) - free-floating, same currency as Event 1, must wait for it
       const events: SpendingEvent[] = [
         { id: '1', name: 'Coin Event 1', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
         { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: '1' },
@@ -483,8 +483,31 @@ describe('timeline-calculator', () => {
       expect(result.events[0].triggerWeek).toBe(3)
       // Event 2: chained, must wait until week 3 despite having balance
       expect(result.events[1].triggerWeek).toBe(3)
-      // Event 3: free-floating, can trigger at week 0 (200 >= 150)
-      expect(result.events[2].triggerWeek).toBe(0)
+      // Event 3: same-currency queueing - must wait for Event 1 (coins) to trigger first
+      // Week 3 ending balance after Event 1: 500 - 500 = 0, plus income = 100
+      // Need to wait until balance recovers: week 3 + 1 = week 4 or later for 150
+      expect(result.events[2].triggerWeek).toBeGreaterThanOrEqual(3)
+    })
+
+    it('should allow different currency events to trigger independently', () => {
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 100, 100, 0),
+        createTestIncome(CurrencyId.Stones, 500, 50, 0),
+      ]
+      // Coins event needs to wait, Stones event can trigger immediately
+      // Different currencies are independent - no queueing constraint
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Coin Event', currencyId: CurrencyId.Coins, amount: 500, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Stone Event', currencyId: CurrencyId.Stones, amount: 100, priority: 1, lockedToEventId: null },
+      ]
+
+      const result = calculateTimeline(incomes, events, 12, { startDate })
+
+      expect(result.events).toHaveLength(2)
+      // Coins event needs week 3 (100 + 4*100 = 500)
+      expect(result.events[0].triggerWeek).toBe(3)
+      // Stones event triggers immediately - different currency, no queueing
+      expect(result.events[1].triggerWeek).toBe(0)
     })
 
     it('should treat invalid chain references as free-floating', () => {
@@ -501,6 +524,280 @@ describe('timeline-calculator', () => {
       expect(result.events).toHaveLength(1)
       // Should trigger at week 0 since invalid reference defaults to minTriggerWeek = 0
       expect(result.events[0].triggerWeek).toBe(0)
+    })
+  })
+
+  describe('user scenario: priority queue violation bug', () => {
+    /**
+     * BUG REPRODUCTION: User's exact localStorage data
+     *
+     * This test documents a bug where same-currency events can trigger out of priority order.
+     * Lower priority events can "jump the queue" if they happen to be affordable while
+     * higher priority events are still waiting for sufficient balance.
+     *
+     * User's localStorage data:
+     * - incomes: coins (1T balance, 406T/week), stones (499, 260/week), rerollShards (1.51M, 232K/week), gems (582, 1916/week)
+     * - events: 12 total events across multiple currencies with chaining
+     *
+     * BUGS OBSERVED:
+     * 1. RerollShards: Roll PC (priority 3) triggers week 0, Roll Armor (priority 5, 500K) triggers week 0,
+     *    but Roll DimCore (priority 4, 960K) triggers week 1 with NEGATIVE balance.
+     *    Priority 5 event should NOT trigger before priority 4 event within the same currency.
+     *
+     * 2. Coins: WS+ Health (priority 11, 222T) triggers week 0, while RPC+ (priority 9) and
+     *    Shatter Shards (priority 10) are still waiting. Free-floating events with lower priority
+     *    are skipping ahead of higher priority events within the same currency.
+     */
+
+    /** User's exact income data from localStorage */
+    const userIncomes: CurrencyIncome[] = [
+      createTestIncome(CurrencyId.Coins, 1000000000000, 405996470000000, 10), // 1T balance, 406T/week
+      createTestIncome(CurrencyId.Stones, 499, 260, 0),
+      createTestIncome(CurrencyId.RerollShards, 1510000, 232627, 0.6), // 1.51M balance, ~233K/week
+      createTestIncome(CurrencyId.Gems, 582, 1916, 0),
+    ]
+
+    /** User's exact events from localStorage */
+    const userEvents: SpendingEvent[] = [
+      { id: '1', name: 'Unlock DMG+', currencyId: CurrencyId.Stones, amount: 750, priority: 0, lockedToEventId: null },
+      { id: '2', name: 'DMG+ lvl 0->1', currencyId: CurrencyId.Coins, amount: 965000000000000, durationDays: 2, priority: 1, lockedToEventId: '1' },
+      { id: '3', name: 'DMG+ lvl 1->2', currencyId: CurrencyId.Coins, amount: 1140000000000000, durationDays: 3, priority: 2, lockedToEventId: '2' },
+      { id: '4', name: 'Roll PC', currencyId: CurrencyId.RerollShards, amount: 800000, priority: 3, lockedToEventId: null },
+      { id: '5', name: 'Roll DimCore', currencyId: CurrencyId.RerollShards, amount: 960000, priority: 4, lockedToEventId: null },
+      { id: '6', name: 'Roll Armor', currencyId: CurrencyId.RerollShards, amount: 500000, priority: 5, lockedToEventId: null },
+      { id: '7', name: 'Unlock SuperTower+', currencyId: CurrencyId.Stones, amount: 1000, priority: 6, lockedToEventId: null },
+      { id: '8', name: 'ST+ lvl 0->1', currencyId: CurrencyId.Coins, amount: 965000000000000, durationDays: 2, priority: 7, lockedToEventId: '7' },
+      { id: '9', name: 'ST+ lvl 1->2', currencyId: CurrencyId.Coins, amount: 1140000000000000, durationDays: 3, priority: 8, lockedToEventId: '8' },
+      { id: '10', name: 'RPC+ lvl 0->1', currencyId: CurrencyId.Coins, amount: 965000000000000, durationDays: 2, priority: 9, lockedToEventId: null },
+      { id: '11', name: 'Shatter Shards lvl 5', currencyId: CurrencyId.Coins, amount: 1040000000000000, durationDays: 40, priority: 10, lockedToEventId: null },
+      { id: '12', name: 'WS+ Health', currencyId: CurrencyId.Coins, amount: 222000000000000, priority: 11, lockedToEventId: null },
+    ]
+
+    it('rerollShards events should trigger in priority order within same currency', () => {
+      // Same-currency queueing: Roll Armor (priority 5) must wait for Roll DimCore (priority 4)
+      const result = calculateTimeline(userIncomes, userEvents, 12, { startDate })
+
+      const rollPc = result.events.find(e => e.event.name === 'Roll PC')
+      const rollDimCore = result.events.find(e => e.event.name === 'Roll DimCore')
+      const rollArmor = result.events.find(e => e.event.name === 'Roll Armor')
+
+      expect(rollPc).toBeDefined()
+      expect(rollDimCore).toBeDefined()
+      expect(rollArmor).toBeDefined()
+
+      // Expected behavior:
+      // - Roll PC (priority 3, 800K) triggers week 0 - starting balance 1.51M is sufficient
+      expect(rollPc!.triggerWeek).toBe(0)
+
+      // - Roll DimCore (priority 4, 960K) should wait until affordable, then trigger
+      //   After Roll PC: 1.51M - 800K = 710K remaining at end of week 0
+      //   Week 0 income: ~233K -> ending balance ~943K after Roll PC deduction
+      //   Actually: 1.51M + 233K - 800K = 943K, still not enough for 960K
+      //   Week 1: 943K + 233K = 1.176M >= 960K, Roll DimCore triggers week 1
+      expect(rollDimCore!.triggerWeek).toBe(1)
+
+      // - Roll Armor (priority 5, 500K) should wait for Roll DimCore to trigger first
+      //   This is the KEY expected behavior: Roll Armor must NOT trigger before Roll DimCore,
+      //   even though 500K is affordable at week 0.
+      //   Roll Armor should trigger AFTER Roll DimCore (week 1 or later).
+      expect(rollArmor!.triggerWeek).toBeGreaterThanOrEqual(rollDimCore!.triggerWeek)
+
+      // The key principle: within the same currency, events MUST trigger in priority order.
+      // A lower priority event (Roll Armor, p5) should NOT trigger before a higher priority event
+      // (Roll DimCore, p4) just because it happens to be affordable sooner.
+    })
+
+    it('coins free-floating events should trigger in priority order within same currency', () => {
+      // Same-currency queueing: WS+ Health (priority 11) must wait for RPC+ (priority 9) and Shatter Shards (priority 10)
+      const result = calculateTimeline(userIncomes, userEvents, 12, { startDate })
+
+      const rpcPlus = result.events.find(e => e.event.name === 'RPC+ lvl 0->1')
+      const shatterShards = result.events.find(e => e.event.name === 'Shatter Shards lvl 5')
+      const wsHealth = result.events.find(e => e.event.name === 'WS+ Health')
+
+      expect(rpcPlus).toBeDefined()
+      expect(shatterShards).toBeDefined()
+      expect(wsHealth).toBeDefined()
+
+      // Expected behavior for free-floating coin events (not chained):
+      // They should trigger in priority order, NOT affordability order.
+
+      // RPC+ (priority 9) should trigger before Shatter Shards (priority 10)
+      expect(rpcPlus!.triggerWeek).toBeLessThanOrEqual(shatterShards!.triggerWeek)
+
+      // Shatter Shards (priority 10) should trigger before WS+ Health (priority 11)
+      expect(shatterShards!.triggerWeek).toBeLessThanOrEqual(wsHealth!.triggerWeek)
+
+      // WS+ Health (priority 11) should wait until both higher priority events trigger
+      // Even though 222T is much cheaper than 965T or 1040T, the user set priority explicitly.
+      expect(wsHealth!.triggerWeek).toBeGreaterThanOrEqual(rpcPlus!.triggerWeek)
+      expect(wsHealth!.triggerWeek).toBeGreaterThanOrEqual(shatterShards!.triggerWeek)
+    })
+  })
+
+  describe('negative balance prevention', () => {
+    it('should delay third event when combined cost exceeds balance with proration', () => {
+      // User scenario reproduction:
+      // - Starting balance: 1,510,000 Shards
+      // - Weekly income: ~330,000 (prorated week 0 to ~234,000 at 71%)
+      // - Events: Roll PC (800K), Roll Armor (500K), Roll DimCore (960K)
+      //
+      // Expected behavior:
+      // Week 0: start=1510K, income=234K (prorated), ending=1744K
+      // After Roll PC: 1744K - 800K = 944K
+      // After Roll Armor: 944K - 500K = 444K (week 0 ending balance)
+      // Week 1: start=444K, income=330K, ending=774K
+      // 774K < 960K, so Roll DimCore should NOT trigger at week 1
+      // Week 2: start=774K, income=330K, ending=1104K >= 960K, triggers here
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Stones, 1510000, 330000, 0),
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Roll PC', currencyId: CurrencyId.Stones, amount: 800000, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Roll Armor', currencyId: CurrencyId.Stones, amount: 500000, priority: 1, lockedToEventId: null },
+        { id: '3', name: 'Roll DimCore', currencyId: CurrencyId.Stones, amount: 960000, priority: 2, lockedToEventId: null },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, { startDate, week0ProrationFactor: 0.71 })
+
+      // All events should be scheduled
+      expect(result.events).toHaveLength(3)
+
+      // Roll PC and Roll Armor should trigger week 0
+      expect(result.events[0].triggerWeek).toBe(0)
+      expect(result.events[1].triggerWeek).toBe(0)
+
+      // Roll DimCore should NOT trigger at week 1 (774K < 960K)
+      // It should trigger at week 2 (1104K >= 960K)
+      expect(result.events[2].triggerWeek).toBe(2)
+
+      // CRITICAL: No balance should ever be negative
+      const balances = result.balancesByWeek.get(CurrencyId.Stones)!
+      for (let i = 0; i < balances.length; i++) {
+        expect(balances[i]).toBeGreaterThanOrEqual(0)
+      }
+    })
+
+    it('should never produce negative ending balances in weekDisplayData', () => {
+      // Simpler test case with exact numbers
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 1000, 200, 0),
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 600, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 500, priority: 1, lockedToEventId: null },
+        { id: '3', name: 'Event 3', currencyId: CurrencyId.Coins, amount: 400, priority: 2, lockedToEventId: null },
+      ]
+
+      // Week 0: start=1000, income=200, ending=1200
+      // After Event 1: 1200 - 600 = 600
+      // After Event 2: 600 - 500 = 100 (ending balance week 0)
+      // Week 1: start=100, income=200, ending=300 < 400
+      // Week 2: start=300, income=200, ending=500 >= 400, triggers here
+      const result = calculateTimeline(incomes, events, 4, { startDate })
+
+      expect(result.events).toHaveLength(3)
+      expect(result.events[0].triggerWeek).toBe(0)
+      expect(result.events[1].triggerWeek).toBe(0)
+      expect(result.events[2].triggerWeek).toBe(2) // NOT week 1
+
+      // Check weekDisplayData balances
+      const displayData = result.weekDisplayData.get(CurrencyId.Coins)!
+      for (let i = 0; i < displayData.length; i++) {
+        expect(displayData[i].balance).toBeGreaterThanOrEqual(0)
+      }
+    })
+
+    it('should handle chained events that would cause negative balance', () => {
+      // Test case: chained event that cannot afford but is forced to wait for predecessor
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 1000, 200, 0),
+      ]
+      // Event 3 is CHAINED to Event 2
+      // After Event 1 (600) and Event 2 (500) in week 0, balance = 100
+      // Event 3 needs 400, chained to Event 2 (week 0)
+      // minTriggerWeek = 0, so it checks balances[1] = 100 < 400
+      // Should still wait until balance is sufficient
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Event 1', currencyId: CurrencyId.Coins, amount: 600, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Event 2', currencyId: CurrencyId.Coins, amount: 500, priority: 1, lockedToEventId: null },
+        { id: '3', name: 'Event 3', currencyId: CurrencyId.Coins, amount: 400, priority: 2, lockedToEventId: '2' },
+      ]
+
+      const result = calculateTimeline(incomes, events, 4, { startDate })
+
+      expect(result.events).toHaveLength(3)
+      // Events 1 and 2 trigger week 0
+      expect(result.events[0].triggerWeek).toBe(0)
+      expect(result.events[1].triggerWeek).toBe(0)
+      // Event 3 is chained to Event 2 (week 0), but balance is only 100
+      // It should STILL wait until week 2 when balance is 500
+      expect(result.events[2].triggerWeek).toBe(2)
+
+      // Verify no negative balances
+      const balances = result.balancesByWeek.get(CurrencyId.Coins)!
+      for (let i = 0; i < balances.length; i++) {
+        expect(balances[i]).toBeGreaterThanOrEqual(0)
+      }
+    })
+
+    it('should match user scenario: 610K available, 960K cost should NOT trigger', () => {
+      // Exact user scenario reproduction:
+      // - Week 0 ending after two events: 376K
+      // - Week 1 income: 234K
+      // - Week 1 ending (before Roll DimCore): 376K + 234K = 610K
+      // - Roll DimCore costs 960K
+      // - 610K < 960K, so Roll DimCore should NOT trigger at week 1
+      //
+      // Setup to achieve this:
+      // - Starting balance: 1,510K
+      // - Weekly income: 234K (use proration to simulate)
+      // - Week 0 events: Roll PC (800K) + Roll Armor (500K) = 1,300K
+      // - Week 0 ending: 1,510K + 234K - 1,300K = 444K
+      // - Week 1 ending: 444K + 234K = 678K < 960K
+      // - Week 2 ending: 678K + 234K = 912K < 960K
+      // - Week 3 ending: 912K + 234K = 1146K >= 960K (triggers here)
+      const incomes: CurrencyIncome[] = [
+        createTestIncome(CurrencyId.Coins, 1510000, 234000, 0),
+      ]
+      const events: SpendingEvent[] = [
+        { id: '1', name: 'Roll PC', currencyId: CurrencyId.Coins, amount: 800000, priority: 0, lockedToEventId: null },
+        { id: '2', name: 'Roll Armor', currencyId: CurrencyId.Coins, amount: 500000, priority: 1, lockedToEventId: null },
+        { id: '3', name: 'Roll DimCore', currencyId: CurrencyId.Coins, amount: 960000, priority: 2, lockedToEventId: null },
+      ]
+
+      const result = calculateTimeline(incomes, events, 8, { startDate })
+
+      // All events should be scheduled
+      expect(result.events).toHaveLength(3)
+
+      // Roll PC triggers week 0 (1510K + 234K = 1744K >= 800K)
+      expect(result.events[0].triggerWeek).toBe(0)
+      expect(result.events[0].event.name).toBe('Roll PC')
+
+      // Roll Armor triggers week 0 (1744K - 800K = 944K >= 500K)
+      expect(result.events[1].triggerWeek).toBe(0)
+      expect(result.events[1].event.name).toBe('Roll Armor')
+
+      // Roll DimCore should trigger at week 3, NOT week 0 or 1
+      // Week 0 ending: 1744K - 800K - 500K = 444K < 960K
+      // Week 1 ending: 444K + 234K = 678K < 960K
+      // Week 2 ending: 678K + 234K = 912K < 960K
+      // Week 3 ending: 912K + 234K = 1146K >= 960K
+      expect(result.events[2].triggerWeek).toBe(3)
+      expect(result.events[2].event.name).toBe('Roll DimCore')
+
+      // CRITICAL: Verify no negative balances anywhere
+      const balances = result.balancesByWeek.get(CurrencyId.Coins)!
+      for (let i = 0; i < balances.length; i++) {
+        expect(balances[i]).toBeGreaterThanOrEqual(0)
+      }
+
+      // Also verify weekDisplayData has no negative balances
+      const displayData = result.weekDisplayData.get(CurrencyId.Coins)!
+      for (let i = 0; i < displayData.length; i++) {
+        expect(displayData[i].balance).toBeGreaterThanOrEqual(0)
+      }
     })
   })
 })

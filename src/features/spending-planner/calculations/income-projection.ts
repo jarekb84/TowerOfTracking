@@ -60,6 +60,31 @@ export function projectIncomes(income: CurrencyIncome, weeks: number): number[] 
 }
 
 /**
+ * Project display income amounts for a currency with week 0 proration.
+ * This produces the income values that should be displayed to users,
+ * with week 0 showing the prorated amount.
+ *
+ * @param income - Income configuration for the currency
+ * @param weeks - Number of weeks to project
+ * @param week0ProrationFactor - Proration factor for week 0 (0 < factor <= 1)
+ * @returns Array of display income amounts, one per week
+ */
+export function projectDisplayIncomes(
+  income: CurrencyIncome,
+  weeks: number,
+  week0ProrationFactor: number = 1
+): number[] {
+  const incomes = projectIncomes(income, weeks)
+
+  // Apply proration to week 0 for display purposes
+  if (week0ProrationFactor !== 1 && incomes.length > 0) {
+    incomes[0] = incomes[0] * week0ProrationFactor
+  }
+
+  return incomes
+}
+
+/**
  * Project balances for all currencies.
  *
  * @param incomes - Income configurations for all currencies

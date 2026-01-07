@@ -86,7 +86,6 @@ export function SpendingPlanner() {
         weekOptions={timeline.weekOptions}
         startDate={timeline.startDate}
         incomes={state.incomes}
-        currentWeekProrationFactor={timeline.currentWeekProrationFactor}
         onWeeksChange={timeline.setWeeks}
         onLayoutModeChange={timeline.setLayoutMode}
       />

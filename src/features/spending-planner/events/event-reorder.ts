@@ -55,11 +55,14 @@ export function reorderEvents(
   }
   collectChain(draggedEvent.id)
 
-  // If dropping into a chain, find the chain head position
+  // If dropping onto a chain (either head or member), redirect to chain head position
+  // and mark that we're dropping onto a chain to handle insertion correctly
   let adjustedToIndex = toIndex
+  let droppingOntoChain = false
   const targetEvent = events[toIndex]
+
   if (targetEvent.lockedToEventId !== null) {
-    // Find the chain head's index
+    // Target is a chain member - find the chain head
     let headEvent = targetEvent
     while (headEvent.lockedToEventId !== null) {
       const parent = events.find((e) => e.id === headEvent.lockedToEventId)
@@ -67,6 +70,13 @@ export function reorderEvents(
       headEvent = parent
     }
     adjustedToIndex = events.findIndex((e) => e.id === headEvent.id)
+    droppingOntoChain = true
+  } else {
+    // Target might be a chain head (has dependents but is not itself chained)
+    const hasDependents = events.some((e) => e.lockedToEventId === targetEvent.id)
+    if (hasDependents) {
+      droppingOntoChain = true
+    }
   }
 
   // Separate chain members from other events
@@ -74,11 +84,19 @@ export function reorderEvents(
   const otherEvents = events.filter((e) => !chainIds.has(e.id))
 
   // Calculate insertion position in the filtered array
-  // For forward moves (fromIndex < toIndex), we insert AFTER the target, so count up to and including toIndex
-  // For backward moves (fromIndex > toIndex), we insert AT the target, so count up to (not including) toIndex
+  // When dropping onto a chain: always insert BEFORE the chain (at chain head position)
+  // For normal moves:
+  //   - Forward moves (fromIndex < toIndex): insert AFTER the target, count up to and including toIndex
+  //   - Backward moves (fromIndex > toIndex): insert AT the target, count up to (not including) toIndex
   let insertPosition = 0
   const isMovingForward = fromIndex < adjustedToIndex
-  const countLimit = isMovingForward ? adjustedToIndex + 1 : adjustedToIndex
+  let countLimit: number
+  if (droppingOntoChain) {
+    // Always insert before the chain head - use backward move logic regardless of direction
+    countLimit = adjustedToIndex
+  } else {
+    countLimit = isMovingForward ? adjustedToIndex + 1 : adjustedToIndex
+  }
   for (let i = 0; i < countLimit; i++) {
     if (!chainIds.has(events[i].id)) {
       insertPosition++

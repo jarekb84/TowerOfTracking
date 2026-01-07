@@ -2,6 +2,7 @@
  * Timeline Calculator
  *
  * Calculate when spending events can be triggered based on income projections.
+ * This is the SINGLE SOURCE OF TRUTH for all balance calculations.
  */
 
 import type {
@@ -9,9 +10,10 @@ import type {
   SpendingEvent,
   TimelineEvent,
   TimelineData,
+  WeekDisplayData,
   CurrencyId,
 } from '../types'
-import { projectBalances, projectIncomes } from './income-projection'
+import { projectBalances, projectIncomes, projectDisplayIncomes } from './income-projection'
 import { sortByPriority } from '../events/event-reorder'
 
 /**
@@ -57,10 +59,130 @@ function initializeExpenditures(
   return result
 }
 
+/**
+ * Initialize display income projections for all currencies.
+ * Display income has proration applied to week 0.
+ */
+function initializeDisplayIncomes(
+  incomes: CurrencyIncome[],
+  weeks: number,
+  week0ProrationFactor: number
+): Map<CurrencyId, number[]> {
+  const result = new Map<CurrencyId, number[]>()
+  for (const income of incomes) {
+    result.set(income.currencyId, projectDisplayIncomes(income, weeks, week0ProrationFactor))
+  }
+  return result
+}
+
+/**
+ * Input parameters for building week display data.
+ */
+interface BuildWeekDisplayDataParams {
+  /** Original currency income configurations */
+  incomes: CurrencyIncome[]
+  /** Running balances after events are processed */
+  balances: Map<CurrencyId, number[]>
+  /** Prorated income for display (week 0 is prorated) */
+  displayIncomes: Map<CurrencyId, number[]>
+  /** Expenditure per week */
+  expenditures: Map<CurrencyId, number[]>
+  /** Number of weeks */
+  weeks: number
+}
+
+/**
+ * Build pre-computed display data for each currency per week.
+ *
+ * This is the SINGLE SOURCE OF TRUTH for what the display layer should show.
+ * The display layer must use these values directly without any recalculation.
+ *
+ * Balance semantics (mid-week spending model):
+ * - balances[N] = starting balance for week N (before income, before spending)
+ * - balances[N+1] = ending balance for week N (after income AND spending)
+ */
+function buildWeekDisplayData(params: BuildWeekDisplayDataParams): Map<CurrencyId, WeekDisplayData[]> {
+  const { incomes, balances, displayIncomes, expenditures, weeks } = params
+  const result = new Map<CurrencyId, WeekDisplayData[]>()
+
+  for (const income of incomes) {
+    const currencyId = income.currencyId
+    const currencyBalances = balances.get(currencyId) ?? []
+    const currencyDisplayIncomes = displayIncomes.get(currencyId) ?? []
+    const currencyExpenditures = expenditures.get(currencyId) ?? []
+
+    const weekData: WeekDisplayData[] = []
+
+    for (let weekIndex = 0; weekIndex < weeks; weekIndex++) {
+      // Raw ending balance from the timeline calculator (balances[weekIndex + 1])
+      const rawEndingBalance = currencyBalances[weekIndex + 1] ?? 0
+      const displayIncome = currencyDisplayIncomes[weekIndex] ?? 0
+      const expenditure = currencyExpenditures[weekIndex] ?? 0
+
+      // Prior balance = ending balance - income + expenditure
+      // This reverses the formula: endingBalance = priorBalance + income - expenditure
+      const priorBalance = rawEndingBalance - displayIncome + expenditure
+
+      weekData.push({
+        priorBalance,
+        income: displayIncome,
+        expenditure,
+        balance: rawEndingBalance,
+      })
+    }
+
+    result.set(currencyId, weekData)
+  }
+
+  return result
+}
+
 interface ProcessEventContext {
   balances: Map<CurrencyId, number[]>
   expenditures: Map<CurrencyId, number[]>
   startDate: Date
+}
+
+interface ProcessEventsResult {
+  timelineEvents: TimelineEvent[]
+  unaffordableEvents: SpendingEvent[]
+}
+
+/**
+ * Process all events in priority order, respecting chain and same-currency queueing constraints.
+ */
+function processEvents(
+  sortedEvents: SpendingEvent[],
+  ctx: ProcessEventContext
+): ProcessEventsResult {
+  const timelineEvents: TimelineEvent[] = []
+  const unaffordableEvents: SpendingEvent[] = []
+
+  // Track trigger weeks for chain constraints
+  const triggerWeekMap = new Map<string, number>()
+
+  // Track last trigger week per currency for same-currency queueing
+  const currencyLastTriggerWeek = new Map<CurrencyId, number>()
+
+  for (const event of sortedEvents) {
+    // Calculate minTriggerWeek based on chain + same-currency queue constraints
+    const chainMinWeek = event.lockedToEventId === null
+      ? 0
+      : (triggerWeekMap.get(event.lockedToEventId) ?? 0)
+    const currencyMinWeek = currencyLastTriggerWeek.get(event.currencyId) ?? 0
+    const minTriggerWeek = Math.max(chainMinWeek, currencyMinWeek)
+
+    const result = processEvent(event, ctx, minTriggerWeek)
+    if (result) {
+      timelineEvents.push(result)
+      triggerWeekMap.set(event.id, result.triggerWeek)
+      currencyLastTriggerWeek.set(event.currencyId, result.triggerWeek)
+    } else {
+      unaffordableEvents.push(event)
+    }
+  }
+
+  return { timelineEvents, unaffordableEvents }
 }
 
 /**
@@ -127,42 +249,35 @@ export function calculateTimeline(
   options: CalculateTimelineOptions = {}
 ): TimelineData {
   const { startDate = new Date(), week0ProrationFactor = 1 } = options
-  const sortedEvents = sortByPriority(events)
   const runningBalances = initializeBalances(incomes, weeks, week0ProrationFactor)
   const incomeByWeek = initializeIncomes(incomes, weeks)
   const expenditureByWeek = initializeExpenditures(incomes, weeks)
 
-  const timelineEvents: TimelineEvent[] = []
-  const unaffordableEvents: SpendingEvent[] = []
+  // Process events in priority order with chain and same-currency queueing constraints
+  const { timelineEvents, unaffordableEvents } = processEvents(
+    sortByPriority(events),
+    { balances: runningBalances, expenditures: expenditureByWeek, startDate }
+  )
 
-  // Context for event processing
-  const ctx: ProcessEventContext = {
+  // Build display-ready data (SINGLE SOURCE OF TRUTH for the display layer)
+  const displayIncomes = initializeDisplayIncomes(incomes, weeks, week0ProrationFactor)
+  const weekDisplayData = buildWeekDisplayData({
+    incomes,
     balances: runningBalances,
+    displayIncomes,
     expenditures: expenditureByWeek,
-    startDate,
+    weeks,
+  })
+
+  return {
+    events: timelineEvents,
+    balancesByWeek: runningBalances,
+    incomeByWeek,
+    expenditureByWeek,
+    unaffordableEvents,
+    weekDisplayData,
+    meta: { week0ProrationFactor, startDate },
   }
-
-  // Build trigger week map as events are processed
-  const triggerWeekMap = new Map<string, number>()
-
-  for (const event of sortedEvents) {
-    // Calculate per-event minTriggerWeek based on chain status
-    // Free-floating events can trigger any time (week 0)
-    // Chained events must wait for their predecessor
-    const minTriggerWeek = event.lockedToEventId === null
-      ? 0
-      : (triggerWeekMap.get(event.lockedToEventId) ?? 0)
-
-    const result = processEvent(event, ctx, minTriggerWeek)
-    if (result) {
-      timelineEvents.push(result)
-      triggerWeekMap.set(event.id, result.triggerWeek)
-    } else {
-      unaffordableEvents.push(event)
-    }
-  }
-
-  return { events: timelineEvents, balancesByWeek: runningBalances, incomeByWeek, expenditureByWeek, unaffordableEvents }
 }
 
 /**
