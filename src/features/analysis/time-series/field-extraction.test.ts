@@ -12,6 +12,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }
@@ -28,6 +29,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }
@@ -44,6 +46,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 75000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }
@@ -60,6 +63,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1500,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }
@@ -76,6 +80,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 7200,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }
@@ -92,6 +97,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -116,6 +122,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         waveDuration: {
@@ -140,6 +147,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }
@@ -156,6 +164,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         notes: {
@@ -180,6 +189,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         battleDate: {
@@ -204,6 +214,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         customMetric: {
@@ -228,6 +239,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         tier: {
@@ -253,6 +265,7 @@ describe('extractFieldValue', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         invalidDuration: {

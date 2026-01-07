@@ -37,6 +37,7 @@ function createRun(id: string, timestamp: Date): ParsedGameRun {
     coinsEarned: 0,
     cellsEarned: 0,
     realTime: 3600,
+    gameSpeed: 2.0,
     runType: 'farm',
   };
 }
@@ -193,6 +194,7 @@ describe('applyDateDerivationFixes', () => {
       coinsEarned: 0,
       cellsEarned: 0,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
     };
     const warnings = [createWarning(1, true, derivedTimestamp)];

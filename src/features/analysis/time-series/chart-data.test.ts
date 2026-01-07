@@ -14,6 +14,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         },
@@ -25,6 +26,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -51,6 +53,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         },
@@ -62,6 +65,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -95,6 +99,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -119,6 +124,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -143,6 +149,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -165,6 +172,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         },
@@ -176,6 +184,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -198,6 +207,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }
@@ -220,6 +230,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1000000,
           cellsEarned: 50000,
           realTime: 3600,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         },
@@ -232,6 +243,7 @@ describe('Chart Data Utils', () => {
           coinsEarned: 1200000,
           cellsEarned: 60000,
           realTime: 4000,
+          gameSpeed: 2.0,
           fields: {},
           runType: 'farm'
         }

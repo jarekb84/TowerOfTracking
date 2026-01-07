@@ -35,6 +35,7 @@ describe('extractRawFieldData', () => {
       coinsEarned: 43.91e12,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
     };
 
@@ -55,6 +56,7 @@ describe('extractRawFieldData', () => {
       coinsEarned: 0,
       cellsEarned: 0,
       realTime: 0,
+      gameSpeed: null,
       runType: 'farm',
     };
 
@@ -81,6 +83,7 @@ describe('extractRawFieldData', () => {
       coinsEarned: 0,
       cellsEarned: 0,
       realTime: 0,
+      gameSpeed: null,
       runType: 'farm',
     };
 

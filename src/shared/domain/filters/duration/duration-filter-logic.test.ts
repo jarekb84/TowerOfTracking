@@ -19,9 +19,10 @@ function createMockRunWithDate(date: Date): ParsedGameRun {
     coinsEarned: 1000,
     cellsEarned: 100,
     realTime: 3600,
+    gameSpeed: 2.0,
     runType: 'farm',
     fields: {}
-  } as ParsedGameRun
+  }
 }
 
 describe('getAvailableDurations', () => {

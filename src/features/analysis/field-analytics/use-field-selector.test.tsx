@@ -13,6 +13,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }]
@@ -31,6 +32,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -63,6 +65,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }]
@@ -88,6 +91,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }]
@@ -108,6 +112,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }]
@@ -138,6 +143,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }]
@@ -156,6 +162,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         waveDuration: {
@@ -186,6 +193,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }]
@@ -205,6 +213,7 @@ describe('useFieldSelector', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
