@@ -171,8 +171,8 @@ export interface CostStatistics {
   max: number;
   mean: number;
   median: number;
-  percentile10: number;
-  percentile90: number;
+  percentile25: number;
+  percentile75: number;
   percentile95: number;
 }
 

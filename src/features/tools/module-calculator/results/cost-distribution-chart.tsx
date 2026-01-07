@@ -5,7 +5,7 @@
  */
 
 import type { CostStatistics, HistogramBucket } from '../types';
-import { formatCost } from './results-formatters';
+import { formatCost, formatPercentage } from './results-formatters';
 
 interface CostDistributionChartProps {
   statistics: CostStatistics;
@@ -34,24 +34,30 @@ interface PercentileSummaryProps {
 function PercentileSummary({ statistics }: PercentileSummaryProps) {
   return (
     <div className="space-y-3">
-      {/* Main stats row */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Main stats row - 2 cols on very small, 4 cols on sm+ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
         <StatBox
-          label="Best Case"
-          sublabel="10th percentile"
-          value={statistics.percentile10}
-          color="text-green-400"
+          label="Good"
+          sublabel="25th pctl"
+          value={statistics.percentile25}
+          color="text-emerald-400"
         />
         <StatBox
           label="Typical"
           sublabel="Median"
           value={statistics.median}
-          color="text-orange-400"
+          color="text-amber-400"
           highlight
         />
         <StatBox
-          label="Worst Case"
-          sublabel="95th percentile"
+          label="Pessimistic"
+          sublabel="75th pctl"
+          value={statistics.percentile75}
+          color="text-orange-400"
+        />
+        <StatBox
+          label="Worst"
+          sublabel="95th pctl"
           value={statistics.percentile95}
           color="text-red-400"
         />
@@ -77,17 +83,17 @@ interface StatBoxProps {
 function StatBox({ label, sublabel, value, color, highlight }: StatBoxProps) {
   return (
     <div
-      className={`text-center p-2 rounded-lg ${
+      className={`text-center px-1.5 py-2 sm:px-2 sm:py-2.5 rounded-lg transition-colors ${
         highlight
-          ? 'bg-orange-500/10 border border-orange-500/30'
+          ? 'bg-amber-500/10 border border-amber-500/30'
           : 'bg-slate-800/30 border border-slate-700/30'
       }`}
     >
-      <div className="text-xs text-slate-400">{label}</div>
-      <div className={`text-lg font-bold ${color}`}>
+      <div className="text-[10px] sm:text-xs text-slate-400 font-medium truncate">{label}</div>
+      <div className={`text-base sm:text-lg font-bold tabular-nums ${color}`}>
         {formatCost(value)}
       </div>
-      <div className="text-[10px] text-slate-500">{sublabel}</div>
+      <div className="text-[9px] sm:text-[10px] text-slate-500 truncate">{sublabel}</div>
     </div>
   );
 }
@@ -137,7 +143,7 @@ function Histogram({ buckets }: HistogramProps) {
                     {isLastBucket && hasOutliers && ' (includes outliers)'}
                   </div>
                   <div className="text-slate-400 mt-0.5">
-                    {bucket.count} runs ({bucket.percentage.toFixed(1)}%)
+                    {bucket.count} runs ({formatPercentage(bucket.percentage)})
                   </div>
                 </div>
               </div>

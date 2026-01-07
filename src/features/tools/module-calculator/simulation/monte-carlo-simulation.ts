@@ -167,8 +167,8 @@ export function calculateStatistics(values: number[]): CostStatistics {
       max: 0,
       mean: 0,
       median: 0,
-      percentile10: 0,
-      percentile90: 0,
+      percentile25: 0,
+      percentile75: 0,
       percentile95: 0,
     };
   }
@@ -181,8 +181,8 @@ export function calculateStatistics(values: number[]): CostStatistics {
     max: sorted[sorted.length - 1],
     mean: sum / sorted.length,
     median: getPercentile(sorted, 50),
-    percentile10: getPercentile(sorted, 10),
-    percentile90: getPercentile(sorted, 90),
+    percentile25: getPercentile(sorted, 25),
+    percentile75: getPercentile(sorted, 75),
     percentile95: getPercentile(sorted, 95),
   };
 }

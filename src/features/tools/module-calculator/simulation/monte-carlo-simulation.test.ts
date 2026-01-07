@@ -185,7 +185,7 @@ describe('monte-carlo-simulation', () => {
 
       expect(results.shardCost.min).toBeLessThanOrEqual(results.shardCost.median);
       expect(results.shardCost.median).toBeLessThanOrEqual(results.shardCost.max);
-      expect(results.shardCost.percentile10).toBeLessThanOrEqual(results.shardCost.percentile90);
+      expect(results.shardCost.percentile25).toBeLessThanOrEqual(results.shardCost.percentile75);
     });
 
     it('calculates roll count statistics', () => {
@@ -231,8 +231,8 @@ describe('monte-carlo-simulation', () => {
       const values = Array.from({ length: 100 }, (_, i) => i + 1);
       const result = calculateStatistics(values);
 
-      expect(result.percentile10).toBeCloseTo(10.9, 0);
-      expect(result.percentile90).toBeCloseTo(90.1, 0);
+      expect(result.percentile25).toBeCloseTo(25.75, 0);
+      expect(result.percentile75).toBeCloseTo(75.25, 0);
       expect(result.percentile95).toBeCloseTo(95.05, 0);
     });
   });
