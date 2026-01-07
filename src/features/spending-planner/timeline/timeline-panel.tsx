@@ -22,8 +22,6 @@ interface TimelinePanelProps {
   startDate: Date
   /** Income configuration for accessing initial balances */
   incomes: CurrencyIncome[]
-  /** Proration factor for current week's income (0 < factor <= 1) */
-  currentWeekProrationFactor: number
   onWeeksChange: (weeks: TimelineWeeks) => void
   onLayoutModeChange: (mode: TimelineLayoutMode) => void
 }
@@ -41,7 +39,6 @@ export function TimelinePanel(props: TimelinePanelProps) {
     weekOptions,
     startDate,
     incomes,
-    currentWeekProrationFactor,
     onWeeksChange,
     onLayoutModeChange,
   } = props
@@ -74,14 +71,12 @@ export function TimelinePanel(props: TimelinePanelProps) {
             enabledCurrencies={orderedCurrencies}
             weekDates={weekDates}
             initialBalances={initialBalances}
-            currentWeekProrationFactor={currentWeekProrationFactor}
           />
         ) : (
           <TimelineLayoutRows
             timelineData={timelineData}
             enabledCurrencies={orderedCurrencies}
             weekDates={weekDates}
-            currentWeekProrationFactor={currentWeekProrationFactor}
           />
         )}
         <TimelineEventsGrid events={timelineData.events} weeks={config.weeks} labelWidth={labelWidth} columnWidth={columnWidth} startingColumnWidth={startingColumnWidth} />

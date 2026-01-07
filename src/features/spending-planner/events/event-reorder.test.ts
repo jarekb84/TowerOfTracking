@@ -402,6 +402,84 @@ describe('event-reorder', () => {
       expect(result[1].id).toBe('1')
       expect(result[2].id).toBe('2')
     })
+
+    it('should insert before chain when dropping onto chain head (forward move)', () => {
+      // BUG FIX: When dropping onto a chain head, the event should go BEFORE the chain,
+      // not between the head and its dependents.
+      // Scenario: [DimCore, PC, Armor] where Armor is chained to PC
+      // User drags DimCore onto PC - DimCore should stay before the chain
+      const events: SpendingEvent[] = [
+        { id: 'dimcore', name: 'DimCore', currencyId: CurrencyId.Coins, amount: 960, priority: 0, lockedToEventId: null },
+        { id: 'pc', name: 'Roll PC', currencyId: CurrencyId.Coins, amount: 800, priority: 1, lockedToEventId: null },
+        { id: 'armor', name: 'Roll Armor', currencyId: CurrencyId.Coins, amount: 500, priority: 2, lockedToEventId: 'pc' },
+      ]
+      // Drag DimCore (index 0) onto chain head PC (index 1)
+      const result = reorderEvents(events, 0, 1)
+
+      // DimCore should go BEFORE the chain [PC, Armor], not between them
+      // Expected order: [DimCore, PC, Armor] (unchanged, since dropping before chain from position 0)
+      expect(result[0].id).toBe('dimcore')
+      expect(result[1].id).toBe('pc')
+      expect(result[2].id).toBe('armor')
+
+      // CRITICAL: DimCore must NOT end up between PC and Armor
+      // That would break the chain's atomic behavior and cause negative balances
+    })
+
+    it('should insert before chain when dropping onto chain member (forward move)', () => {
+      // Same scenario but dropping onto the chain member instead of head
+      const events: SpendingEvent[] = [
+        { id: 'dimcore', name: 'DimCore', currencyId: CurrencyId.Coins, amount: 960, priority: 0, lockedToEventId: null },
+        { id: 'pc', name: 'Roll PC', currencyId: CurrencyId.Coins, amount: 800, priority: 1, lockedToEventId: null },
+        { id: 'armor', name: 'Roll Armor', currencyId: CurrencyId.Coins, amount: 500, priority: 2, lockedToEventId: 'pc' },
+      ]
+      // Drag DimCore (index 0) onto chain member Armor (index 2)
+      const result = reorderEvents(events, 0, 2)
+
+      // Should redirect to chain head and insert before the chain
+      expect(result[0].id).toBe('dimcore')
+      expect(result[1].id).toBe('pc')
+      expect(result[2].id).toBe('armor')
+    })
+
+    it('should insert before chain when dropping onto chain head (backward move)', () => {
+      // Scenario: [PC, Armor, DimCore] where Armor is chained to PC
+      // User drags DimCore onto PC - DimCore should go before the chain
+      const events: SpendingEvent[] = [
+        { id: 'pc', name: 'Roll PC', currencyId: CurrencyId.Coins, amount: 800, priority: 0, lockedToEventId: null },
+        { id: 'armor', name: 'Roll Armor', currencyId: CurrencyId.Coins, amount: 500, priority: 1, lockedToEventId: 'pc' },
+        { id: 'dimcore', name: 'DimCore', currencyId: CurrencyId.Coins, amount: 960, priority: 2, lockedToEventId: null },
+      ]
+      // Drag DimCore (index 2) onto chain head PC (index 0)
+      const result = reorderEvents(events, 2, 0)
+
+      // DimCore should go BEFORE the chain
+      expect(result[0].id).toBe('dimcore')
+      expect(result[1].id).toBe('pc')
+      expect(result[2].id).toBe('armor')
+    })
+
+    it('should maintain chain contiguity after any reorder operation', () => {
+      // Verify that chain members always stay together after reordering
+      const events: SpendingEvent[] = [
+        { id: 'free1', name: 'Free 1', currencyId: CurrencyId.Coins, amount: 100, priority: 0, lockedToEventId: null },
+        { id: 'head', name: 'Chain Head', currencyId: CurrencyId.Coins, amount: 200, priority: 1, lockedToEventId: null },
+        { id: 'member', name: 'Chain Member', currencyId: CurrencyId.Coins, amount: 300, priority: 2, lockedToEventId: 'head' },
+        { id: 'free2', name: 'Free 2', currencyId: CurrencyId.Coins, amount: 400, priority: 3, lockedToEventId: null },
+      ]
+
+      // Try dropping free2 onto the chain head
+      const result1 = reorderEvents(events, 3, 1)
+      const headIndex1 = result1.findIndex((e) => e.id === 'head')
+      const memberIndex1 = result1.findIndex((e) => e.id === 'member')
+      expect(memberIndex1).toBe(headIndex1 + 1) // Member must be right after head
+
+      // Try dropping free1 onto the chain member
+      const result2 = reorderEvents(events, 0, 2)
+      const headIndex2 = result2.findIndex((e) => e.id === 'head')
+      const memberIndex2 = result2.findIndex((e) => e.id === 'member')
+      expect(memberIndex2).toBe(headIndex2 + 1) // Member must be right after head
+    })
   })
 
   describe('removeEvent with chains', () => {

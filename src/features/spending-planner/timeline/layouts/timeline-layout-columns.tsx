@@ -3,15 +3,17 @@
  *
  * Layout A: 3 sub-columns per week (Inc, Exp, Balance), currencies as rows.
  * Design: Zero income = blank, No spending = '-'
+ *
+ * This component is a PURE RENDERER - it displays pre-computed values from
+ * TimelineData.weekDisplayData without any balance calculations.
  */
 
-import { useMemo } from 'react'
 import { cn } from '@/shared/lib/utils'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import { formatDisplayMonthDay } from '@/shared/formatting/date-formatters'
-import type { TimelineData, CurrencyId } from '../../types'
+import type { TimelineData, CurrencyId, WeekDisplayData } from '../../types'
 import { getCurrencyConfig } from '../../currencies/currency-config'
-import { calculateWeekBalance, formatMetricDisplay } from './timeline-layout-utils'
+import { formatMetricDisplay } from './timeline-layout-utils'
 
 interface TimelineLayoutColumnsProps {
   timelineData: TimelineData
@@ -19,8 +21,6 @@ interface TimelineLayoutColumnsProps {
   weekDates: Date[]
   /** Initial balances for each currency (for "Starting" column) */
   initialBalances: Map<CurrencyId, number>
-  /** Proration factor for current week's income (0 < factor <= 1) */
-  currentWeekProrationFactor: number
 }
 
 const LABEL_WIDTH = 80
@@ -32,7 +32,6 @@ export function TimelineLayoutColumns({
   enabledCurrencies,
   weekDates,
   initialBalances,
-  currentWeekProrationFactor,
 }: TimelineLayoutColumnsProps) {
   return (
     <div className="flex">
@@ -51,7 +50,6 @@ export function TimelineLayoutColumns({
           enabledCurrencies={enabledCurrencies}
           timelineData={timelineData}
           isCurrentWeek={weekIndex === 0}
-          currentWeekProrationFactor={currentWeekProrationFactor}
         />
       ))}
     </div>
@@ -141,8 +139,6 @@ interface WeekColumnProps {
   enabledCurrencies: CurrencyId[]
   timelineData: TimelineData
   isCurrentWeek: boolean
-  /** Proration factor for current week's income (0 < factor <= 1) */
-  currentWeekProrationFactor: number
 }
 
 function WeekColumn({
@@ -151,7 +147,6 @@ function WeekColumn({
   enabledCurrencies,
   timelineData,
   isCurrentWeek,
-  currentWeekProrationFactor,
 }: WeekColumnProps) {
   const dateLabel = formatDisplayMonthDay(date)
 
@@ -190,7 +185,6 @@ function WeekColumn({
             currencyId={currencyId}
             weekIndex={weekIndex}
             timelineData={timelineData}
-            currentWeekProrationFactor={currentWeekProrationFactor}
           />
         ))}
       </div>
@@ -202,35 +196,29 @@ interface CurrencyRowProps {
   currencyId: CurrencyId
   weekIndex: number
   timelineData: TimelineData
-  /** Proration factor for current week's income (0 < factor <= 1) */
-  currentWeekProrationFactor: number
 }
 
-function CurrencyRow({ currencyId, weekIndex, timelineData, currentWeekProrationFactor }: CurrencyRowProps) {
+/**
+ * Get display data for a currency/week from pre-computed weekDisplayData.
+ * Falls back to default values if data is missing.
+ */
+function getWeekDisplayData(
+  timelineData: TimelineData,
+  currencyId: CurrencyId,
+  weekIndex: number
+): WeekDisplayData {
+  const currencyData = timelineData.weekDisplayData.get(currencyId)
+  if (!currencyData || weekIndex >= currencyData.length) {
+    return { priorBalance: 0, income: 0, expenditure: 0, balance: 0 }
+  }
+  return currencyData[weekIndex]
+}
+
+function CurrencyRow({ currencyId, weekIndex, timelineData }: CurrencyRowProps) {
   const config = getCurrencyConfig(currencyId)
 
-  const data = useMemo(() => {
-    const incomes = timelineData.incomeByWeek.get(currencyId) ?? []
-    const expenditures = timelineData.expenditureByWeek.get(currencyId) ?? []
-    const balances = timelineData.balancesByWeek.get(currencyId) ?? []
-
-    // Use balances[weekIndex + 1] as the raw ending balance for this week
-    // (mid-week spending model: spending deducted from ending balance, not starting)
-    const rawEndingBalance = balances[weekIndex + 1] ?? 0
-    const income = incomes[weekIndex] ?? 0
-    const expenditure = expenditures[weekIndex] ?? 0
-    const week0FullIncome = incomes[0] ?? 0
-
-    // Use single source of truth for balance calculation
-    return calculateWeekBalance({
-      rawEndingBalance,
-      income,
-      expenditure,
-      weekIndex,
-      currentWeekProrationFactor,
-      week0FullIncome,
-    })
-  }, [currencyId, weekIndex, timelineData, currentWeekProrationFactor])
+  // Use pre-computed display data directly - NO calculations in the display layer
+  const data = getWeekDisplayData(timelineData, currencyId, weekIndex)
 
   const incomeDisplay = formatMetricDisplay(data.income, 'income')
   const expenditureDisplay = formatMetricDisplay(data.expenditure, 'expenditure')

@@ -175,6 +175,37 @@ export interface TimelineEvent {
 }
 
 /**
+ * Display-ready data for a single week.
+ *
+ * This is the SINGLE SOURCE OF TRUTH for balance display.
+ * Pre-computed by the timeline calculator to prevent display layer
+ * from applying its own adjustments (which caused the negative balance bug).
+ *
+ * The display layer should render these values directly without modification.
+ */
+export interface WeekDisplayData {
+  /** Starting balance (before income, before spending) */
+  priorBalance: number
+  /** Display income (prorated for week 0, full for other weeks) */
+  income: number
+  /** Spending for this week */
+  expenditure: number
+  /** Ending balance (after income, after spending) */
+  balance: number
+}
+
+/**
+ * Metadata about timeline calculation parameters.
+ * Used to understand how the timeline was computed.
+ */
+interface TimelineMeta {
+  /** Proration factor applied to week 0 income (0 < factor <= 1) */
+  week0ProrationFactor: number
+  /** Start date of the timeline */
+  startDate: Date
+}
+
+/**
  * Complete timeline calculation result.
  * Contains projected balances and scheduled events.
  */
@@ -189,6 +220,17 @@ export interface TimelineData {
   expenditureByWeek: Map<CurrencyId, number[]>
   /** Events that cannot be afforded within the timeline */
   unaffordableEvents: SpendingEvent[]
+  /**
+   * Pre-computed display data for each currency per week.
+   * The display layer should use this directly instead of computing balances.
+   * This is the SINGLE SOURCE OF TRUTH for display values.
+   */
+  weekDisplayData: Map<CurrencyId, WeekDisplayData[]>
+  /**
+   * Metadata about calculation parameters.
+   * Useful for debugging and understanding how values were computed.
+   */
+  meta: TimelineMeta
 }
 
 // =============================================================================
