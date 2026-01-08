@@ -1,41 +1,54 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { MovingAveragePeriod } from './moving-average-types'
-import { loadMovingAveragePeriod, saveMovingAveragePeriod } from './moving-average-persistence'
+import type { TimePeriod } from '../chart-types'
+import type { TrendWindowValue } from './moving-average-types'
+import { getWindowSize } from './moving-average-types'
+import { loadTrendWindow, saveTrendWindow } from './moving-average-persistence'
 
 interface UseMovingAverageResult {
-  /** Current moving average period ('none' or window size) */
-  averagePeriod: MovingAveragePeriod
-  /** Update moving average period (persists to localStorage) */
-  setAveragePeriod: (period: MovingAveragePeriod) => void
-  /** Whether moving average is enabled (not 'none') */
-  isAverageEnabled: boolean
+  /** Current trend window value ('none' or period-specific string like '7d') */
+  trendWindow: TrendWindowValue
+  /** Update trend window value (persists to localStorage) */
+  setTrendWindow: (value: TrendWindowValue) => void
+  /** Numeric window size for calculation, null when 'none' */
+  windowSize: number | null
+  /** Whether trend line is enabled (not 'none') */
+  isEnabled: boolean
 }
 
 /**
- * Hook to manage moving average state with localStorage persistence.
+ * Hook to manage trend window state with localStorage persistence.
  * Loads persisted value on mount and saves changes automatically.
+ * Values are stored per metric + period combination.
  *
- * @param metricKey - Unique key to identify this chart's moving average setting
- * @returns Moving average state and setter function
+ * @param metricKey - Unique key to identify this chart's metric
+ * @param period - Current time period for the chart
+ * @returns Trend window state and setter function
  */
-export function useMovingAverage(metricKey: string): UseMovingAverageResult {
-  const [averagePeriod, setAveragePeriodState] = useState<MovingAveragePeriod>('none')
+export function useMovingAverage(
+  metricKey: string,
+  period: TimePeriod
+): UseMovingAverageResult {
+  const [trendWindow, setTrendWindowState] = useState<TrendWindowValue>('none')
 
-  // Load persisted moving average period on mount (SSR-safe)
+  // Load persisted trend window on mount and when metric/period changes (SSR-safe)
   useEffect(() => {
-    const savedPeriod = loadMovingAveragePeriod(metricKey)
-    setAveragePeriodState(savedPeriod)
-  }, [metricKey])
+    const savedValue = loadTrendWindow(metricKey, period)
+    setTrendWindowState(savedValue)
+  }, [metricKey, period])
 
-  // Handle moving average period change with persistence
-  const setAveragePeriod = useCallback((period: MovingAveragePeriod) => {
-    setAveragePeriodState(period)
-    saveMovingAveragePeriod(metricKey, period)
-  }, [metricKey])
+  // Handle trend window change with persistence
+  const setTrendWindow = useCallback(
+    (value: TrendWindowValue) => {
+      setTrendWindowState(value)
+      saveTrendWindow(metricKey, period, value)
+    },
+    [metricKey, period]
+  )
 
   return {
-    averagePeriod,
-    setAveragePeriod,
-    isAverageEnabled: averagePeriod !== 'none',
+    trendWindow,
+    setTrendWindow,
+    windowSize: getWindowSize(trendWindow),
+    isEnabled: trendWindow !== 'none',
   }
 }

@@ -6,7 +6,7 @@ import { generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-
 import {
   calculateMovingAverage,
   useMovingAverage,
-  type MovingAveragePeriod,
+  type TrendWindowValue,
 } from './moving-average'
 import { calculatePercentChange, usePercentChange } from './percent-change'
 
@@ -17,8 +17,8 @@ interface UseTimeSeriesChartDataResult {
   selectedPeriod: TimePeriod
   setSelectedPeriod: (period: TimePeriod) => void
   yAxisTicks: number[]
-  averagePeriod: MovingAveragePeriod
-  setAveragePeriod: (period: MovingAveragePeriod) => void
+  trendWindow: TrendWindowValue
+  setTrendWindow: (value: TrendWindowValue) => void
   isAverageEnabled: boolean
   percentChangeEnabled: boolean
   setPercentChangeEnabled: (enabled: boolean) => void
@@ -34,12 +34,6 @@ export function useTimeSeriesChartData(
   defaultPeriod: TimePeriod
 ): UseTimeSeriesChartDataResult {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
-
-  // Moving average state with localStorage persistence
-  const { averagePeriod, setAveragePeriod, isAverageEnabled } = useMovingAverage(metric)
-
-  // Percentage change state with localStorage persistence
-  const { isEnabled: percentChangeEnabled, setEnabled: setPercentChangeEnabled } = usePercentChange(metric)
 
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
@@ -60,6 +54,14 @@ export function useTimeSeriesChartData(
     availablePeriodConfigs.find((config) => config.period === selectedPeriod) ||
     availablePeriodConfigs[0]
 
+  // Moving average state with localStorage persistence (period-aware)
+  const { trendWindow, setTrendWindow, windowSize, isEnabled: isAverageEnabled } =
+    useMovingAverage(metric, selectedPeriod)
+
+  // Percentage change state with localStorage persistence
+  const { isEnabled: percentChangeEnabled, setEnabled: setPercentChangeEnabled } =
+    usePercentChange(metric)
+
   const baseChartData = useMemo(() => {
     return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
   }, [filteredRuns, selectedPeriod, metric])
@@ -68,8 +70,8 @@ export function useTimeSeriesChartData(
   const chartData = useMemo(() => {
     let data = baseChartData
 
-    if (isAverageEnabled) {
-      data = calculateMovingAverage(data, averagePeriod as number)
+    if (isAverageEnabled && windowSize !== null) {
+      data = calculateMovingAverage(data, windowSize)
     }
 
     if (percentChangeEnabled) {
@@ -77,7 +79,7 @@ export function useTimeSeriesChartData(
     }
 
     return data
-  }, [baseChartData, averagePeriod, isAverageEnabled, percentChangeEnabled])
+  }, [baseChartData, windowSize, isAverageEnabled, percentChangeEnabled])
 
   const yAxisTicks = useMemo(() => {
     if (chartData.length === 0) return []
@@ -92,8 +94,8 @@ export function useTimeSeriesChartData(
     selectedPeriod,
     setSelectedPeriod,
     yAxisTicks,
-    averagePeriod,
-    setAveragePeriod,
+    trendWindow,
+    setTrendWindow,
     isAverageEnabled,
     percentChangeEnabled,
     setPercentChangeEnabled,
