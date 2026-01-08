@@ -9,7 +9,7 @@ import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
 import { DataPointsCount } from './data-points-count'
-import { MovingAverageSelector, type MovingAveragePeriod } from './moving-average'
+import { MovingAverageSelector, type TrendWindowValue } from './moving-average'
 import { PercentChangeToggle } from './percent-change'
 import { useTimeSeriesChartData } from './use-time-series-chart-data'
 import { TimeSeriesChartBody } from './time-series-chart-body'
@@ -37,8 +37,8 @@ interface FilterControlsProps {
   runTypeFilter: RunTypeFilter
   onRunTypeChange?: (runType: RunTypeFilter) => void
   dataPointCount: number
-  averagePeriod: MovingAveragePeriod
-  onAveragePeriodChange: (period: MovingAveragePeriod) => void
+  trendWindow: TrendWindowValue
+  onTrendWindowChange: (value: TrendWindowValue) => void
   percentChangeEnabled: boolean
   onPercentChangeToggle: (enabled: boolean) => void
 }
@@ -51,11 +51,14 @@ function FilterControls({
   runTypeFilter,
   onRunTypeChange,
   dataPointCount,
-  averagePeriod,
-  onAveragePeriodChange,
+  trendWindow,
+  onTrendWindowChange,
   percentChangeEnabled,
   onPercentChangeToggle,
 }: FilterControlsProps) {
+  // Hide trend selector for yearly view (not enough data points for meaningful trends)
+  const showTrendSelector = selectedPeriod !== 'yearly'
+
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       {/* Left side: Duration selector */}
@@ -82,8 +85,14 @@ function FilterControls({
           />
         )}
 
-        {/* Moving average trend line selector */}
-        <MovingAverageSelector value={averagePeriod} onChange={onAveragePeriodChange} />
+        {/* Moving average trend line selector - hidden for yearly view */}
+        {showTrendSelector && (
+          <MovingAverageSelector
+            value={trendWindow}
+            period={selectedPeriod}
+            onChange={onTrendWindowChange}
+          />
+        )}
 
         {/* Percentage change overlay toggle */}
         <PercentChangeToggle
@@ -127,8 +136,8 @@ export function TimeSeriesChart({
     selectedPeriod,
     setSelectedPeriod,
     yAxisTicks,
-    averagePeriod,
-    setAveragePeriod,
+    trendWindow,
+    setTrendWindow,
     isAverageEnabled,
     percentChangeEnabled,
     setPercentChangeEnabled,
@@ -165,8 +174,8 @@ export function TimeSeriesChart({
           runTypeFilter={runTypeFilter}
           onRunTypeChange={onRunTypeChange}
           dataPointCount={chartData.length}
-          averagePeriod={averagePeriod}
-          onAveragePeriodChange={setAveragePeriod}
+          trendWindow={trendWindow}
+          onTrendWindowChange={setTrendWindow}
           percentChangeEnabled={percentChangeEnabled}
           onPercentChangeToggle={setPercentChangeEnabled}
         />
