@@ -31,6 +31,7 @@ describe('tier-stats-config', () => {
     coinsEarned: 100000000,
     cellsEarned: 50000,
     realTime: 9000,
+    gameSpeed: 2.0,
     runType: 'farm',
     ...overrides
   })

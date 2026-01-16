@@ -15,6 +15,7 @@ function createTestRun(overrides: Partial<ParsedGameRun> = {}): ParsedGameRun {
     coinsEarned: 1000000,
     cellsEarned: 500,
     realTime: 3600,
+    gameSpeed: 2.0,
     runType: 'farm',
     ...overrides,
   };

@@ -10,6 +10,7 @@ const mockPreviewData: ParsedGameRun = {
   tier: 10,
   wave: 5881,
   realTime: 28566, // 7h 46m 6s in seconds
+  gameSpeed: 2.0,
   coinsEarned: 1130000000000, // 1.13T
   cellsEarned: 45200, // 45.2K
   fields: {

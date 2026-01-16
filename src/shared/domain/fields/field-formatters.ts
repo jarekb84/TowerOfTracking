@@ -1,5 +1,6 @@
 import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
+import { formatGameSpeed } from '@/shared/formatting/run-display-formatters'
 
 /**
  * Convert field key to human-readable display name
@@ -30,6 +31,11 @@ export function getFieldFormatter(fieldKey: string, dataType: string): (value: n
   // Duration fields show as "HH:MM:SS" or "Xh Ym Zs"
   if (dataType === 'duration' || fieldKey === 'realTime') {
     return formatDuration
+  }
+
+  // Game speed shows as "Y.YYYx" (3 decimal places)
+  if (fieldKey === 'gameSpeed') {
+    return formatGameSpeed
   }
 
   // Default: use large number formatting (K, M, B, T, Q, etc.) for all numeric fields

@@ -113,6 +113,7 @@ function createTestRun(id: string, notes?: string, runType: 'farm' | 'tournament
     coinsEarned: 1130000000000,
     cellsEarned: 45200,
     realTime: 27966,
+    gameSpeed: 2.0,
     runType
   };
 }

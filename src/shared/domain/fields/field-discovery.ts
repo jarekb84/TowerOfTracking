@@ -88,7 +88,7 @@ export function extractNumericFieldNames(runs: ParsedGameRun[]): string[] {
   const numericFields = new Set<string>()
 
   // Add cached numeric properties
-  const cachedNumericProps = ['tier', 'wave', 'coinsEarned', 'cellsEarned', 'realTime']
+  const cachedNumericProps = ['tier', 'wave', 'coinsEarned', 'cellsEarned', 'realTime', 'gameSpeed']
   cachedNumericProps.forEach(prop => numericFields.add(prop))
 
   // Scan all runs for dynamic numeric fields
@@ -112,7 +112,7 @@ export function extractNumericFieldNames(runs: ParsedGameRun[]): string[] {
  */
 export function getFieldDataType(runs: ParsedGameRun[], fieldKey: string): string {
   // Check if it's a cached property
-  const cachedNumericProps = ['tier', 'wave', 'coinsEarned', 'cellsEarned', 'realTime']
+  const cachedNumericProps = ['tier', 'wave', 'coinsEarned', 'cellsEarned', 'realTime', 'gameSpeed']
   if (cachedNumericProps.includes(fieldKey)) {
     return 'number'
   }
