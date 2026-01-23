@@ -121,11 +121,12 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
   coinsEarned: number;
   cellsEarned: number;
   realTime: number;
+  gameSpeed: number | null;
   runType: RunTypeValue;
 } {
   const tierStr = (fields.tier?.rawValue) || '';
   const runType: RunTypeValue = determineRunType(tierStr);
-  
+
   // Extract numeric tier value from both numeric fields and tournament strings like "8+"
   let tier: number;
   if (fields.tier?.dataType === 'number') {
@@ -136,13 +137,18 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
     tier = match ? parseInt(match[1], 10) : 0;
   }
   tier = tier || 0;
-  
+
+  const realTime = (fields.realTime?.value as number) || 0;
+  const gameTime = (fields.gameTime?.value as number) || 0;
+  const gameSpeed = realTime === 0 ? null : Math.round((gameTime / realTime) * 1000) / 1000;
+
   return {
     tier,
     wave: (fields.wave?.value as number) || 0,
     coinsEarned: (fields.coinsEarned?.value as number) || 0,
     cellsEarned: (fields.cellsEarned?.value as number) || 0,
-    realTime: (fields.realTime?.value as number) || 0,
+    realTime,
+    gameSpeed,
     runType
   };
 }
