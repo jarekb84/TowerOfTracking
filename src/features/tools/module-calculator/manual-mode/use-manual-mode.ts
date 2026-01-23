@@ -24,8 +24,15 @@ import {
   setAutoRolling,
   getBalanceStatus,
   buildMinRarityMap,
+  getLockedEffectIds,
+  areTargetsEqual,
+  syncRemainingTargetsWithConfig,
 } from './manual-mode-logic';
 import { processRollForLogging } from './roll-log';
+import {
+  loadRollLogSettings,
+  saveRollLogSettings,
+} from './roll-log/roll-log-settings-persistence';
 
 const AUTO_ROLL_DELAY_MS = 100;
 
@@ -93,11 +100,17 @@ export interface UseManualModeResult {
   /** Current log entries */
   logEntries: RollLogEntry[];
 
+  /** Whether to show target match indicators ("what may have been") */
+  showTargetMatches: boolean;
+
   /** Toggle log enabled state */
   setLogEnabled: (enabled: boolean) => void;
 
   /** Set minimum rarity threshold for logging */
   setMinimumLogRarity: (rarity: Rarity) => void;
+
+  /** Toggle showing target match indicators */
+  setShowTargetMatches: (show: boolean) => void;
 
   /** Clear all log entries */
   clearLog: () => void;
@@ -116,6 +129,10 @@ export function useManualMode(
   // Roll log settings (kept separate from state to avoid re-render on every roll)
   const [logEnabled, setLogEnabled] = useState(true);
   const [minimumLogRarity, setMinimumLogRarityInternal] = useState<Rarity>(config.moduleRarity);
+  // Show target match indicators ("what may have been") - persisted in localStorage
+  const [showTargetMatches, setShowTargetMatchesInternal] = useState(() => {
+    return loadRollLogSettings().showTargetMatches;
+  });
   // Track if user has manually customized the rarity filter
   const hasCustomizedLogRarity = useRef(false);
   // Use ref to access current log settings in auto-roll interval
@@ -135,6 +152,12 @@ export function useManualMode(
     setMinimumLogRarityInternal(rarity);
   }, []);
 
+  // Wrapper that persists to localStorage
+  const setShowTargetMatches = useCallback((show: boolean) => {
+    setShowTargetMatchesInternal(show);
+    saveRollLogSettings({ showTargetMatches: show });
+  }, []);
+
   // Build mode config from calculator config
   const modeConfig = useMemo<ManualModeConfig>(
     () => ({
@@ -152,6 +175,26 @@ export function useManualMode(
       stopAutoRollInternal();
     }
   }, [config.moduleType, config.moduleRarity, config.slotCount]);
+
+  // Sync remainingTargets when slotTargets config changes mid-session
+  // This handles the case where user changes target rarity or adds/removes targets
+  // while manual mode is active
+  useEffect(() => {
+    if (!state) return;
+
+    const lockedEffectIds = getLockedEffectIds(state);
+    const preLockedEffectIds = config.preLockedEffects.map((e) => e.effectId);
+    const syncedTargets = syncRemainingTargetsWithConfig(
+      config.slotTargets,
+      lockedEffectIds,
+      preLockedEffectIds
+    );
+
+    // Only update if there's an actual difference (prevent infinite loops)
+    if (!areTargetsEqual(state.remainingTargets, syncedTargets)) {
+      setState((prev) => (prev ? { ...prev, remainingTargets: syncedTargets } : null));
+    }
+  }, [config.slotTargets, config.preLockedEffects, state]);
 
   const stopAutoRollInternal = useCallback(() => {
     if (autoRollIntervalRef.current) {
@@ -383,8 +426,10 @@ export function useManualMode(
     logEnabled,
     minimumLogRarity,
     logEntries,
+    showTargetMatches,
     setLogEnabled,
     setMinimumLogRarity,
+    setShowTargetMatches,
     clearLog,
   };
 }

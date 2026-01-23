@@ -75,6 +75,17 @@
     border-color: theme('colors.border');
   }
 
+  /* Native select option styling for dark theme */
+  select option {
+    background-color: #1e293b;
+    color: #e2e8f0;
+  }
+
+  select option:checked {
+    background-color: #334155;
+    color: #e2e8f0;
+  }
+
   body {
     background-color: theme('colors.background');
     color: theme('colors.foreground');

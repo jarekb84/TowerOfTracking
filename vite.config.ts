@@ -30,6 +30,7 @@ const config = defineConfig({
   },
   base: process.env.CI === 'true' ? '/TowerOfTracking/' : '/',
     server: {
+    allowedHosts: true,
     host: '127.0.0.1',
     port: 3000,
     strictPort: true,

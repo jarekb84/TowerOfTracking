@@ -100,11 +100,23 @@ Each review agent has hundreds of lines of specialized instructions about patter
 - Invokes Architecture Review Agent
 - Agent reviews component decomposition, abstraction design, performance patterns, and extensibility
 
-**Step 5: Code Organization & Naming Review** (ALWAYS required)
+**Step 5: Localization Review** (ALWAYS required)
+- Invokes Localization Enforcer Agent
+- Agent reviews all number and date formatting to ensure locale-aware utility usage
+- Fixes any violations by replacing manual formatting with shared utilities
+
+**Step 6: Code Organization & Naming Review** (ALWAYS required)
 - Invokes Code Organization & Naming Agent
 - Agent reviews file organization, naming clarity, and feature-based structure
 
-**Step 6: Final Summary**
+**Step 7: Local Storage Safety Review** (ALWAYS required)
+- Invokes Local Storage Safety Reviewer Agent
+- Agent analyzes git diff for potential data loss risks in localStorage persistence
+- Checks for: key conflicts, backwards-incompatible changes, missing migration logic
+- Returns findings to Main Agent—if CRITICAL ISSUES found, Main Agent must address before proceeding
+- If Main Agent makes significant changes to address findings, invoke this agent again to verify fixes
+
+**Step 8: Final Summary**
 - Main Agent provides comprehensive summary to user including improvements from all agents
 
 ### Orchestration Rules

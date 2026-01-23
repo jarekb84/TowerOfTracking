@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import type { CalculatorConfig, SlotTarget } from '../types';
 import type { ManualModeConfig } from './types';
@@ -20,6 +19,9 @@ import {
   countLockedSlots,
   getPoolSize,
   buildMinRarityMap,
+  getLockedEffectIds,
+  areTargetsEqual,
+  syncRemainingTargetsWithConfig,
 } from './manual-mode-logic';
 
 describe('manual-mode-logic', () => {
@@ -950,6 +952,210 @@ describe('manual-mode-logic', () => {
       // With a nonexistent effect, we shouldn't hit any target
       expect(result.hasTargetHit).toBe(false);
       expect(result.hasCurrentPriorityHit).toBe(false);
+    });
+  });
+
+  describe('getLockedEffectIds', () => {
+    it('returns empty set when no slots are locked', () => {
+      const config = createTestConfig({ slotCount: 4 });
+      const state = initializeManualMode(config, 'accumulator', 0);
+
+      const lockedIds = getLockedEffectIds(state);
+
+      expect(lockedIds.size).toBe(0);
+    });
+
+    it('returns locked effect IDs', () => {
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'common' },
+      ];
+      const config = createTestConfig({ slotCount: 4, slotTargets: targets });
+      let state = initializeManualMode(config, 'accumulator', 0);
+      const modeConfig = createModeConfig(targets);
+
+      // Roll until we get an effect and lock it
+      let attempts = 0;
+      while (attempts < 100) {
+        const { newState } = executeRoll(state, modeConfig);
+        state = newState;
+        if (state.slots[0]?.effect) {
+          state = lockSlot(state, 1);
+          break;
+        }
+        attempts++;
+      }
+
+      const lockedIds = getLockedEffectIds(state);
+
+      expect(lockedIds.size).toBe(1);
+      expect(lockedIds.has(state.slots[0].effect!.id)).toBe(true);
+    });
+
+    it('ignores unlocked slots with effects', () => {
+      const config = createTestConfig({ slotCount: 4 });
+      let state = initializeManualMode(config, 'accumulator', 0);
+      const modeConfig = createModeConfig([]);
+
+      // Roll to fill slots but don't lock
+      const { newState } = executeRoll(state, modeConfig);
+      state = newState;
+
+      const lockedIds = getLockedEffectIds(state);
+
+      expect(lockedIds.size).toBe(0);
+    });
+  });
+
+  describe('areTargetsEqual', () => {
+    it('returns true for identical targets', () => {
+      const targets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'legendary' },
+        { slotNumber: 2, acceptableEffects: ['damage'], minRarity: 'epic' },
+      ];
+
+      expect(areTargetsEqual(targets, targets)).toBe(true);
+    });
+
+    it('returns true for equal but different arrays', () => {
+      const targets1: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+      const targets2: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+
+      expect(areTargetsEqual(targets1, targets2)).toBe(true);
+    });
+
+    it('returns false for different lengths', () => {
+      const targets1: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+      const targets2: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+        { slotNumber: 2, acceptableEffects: ['damage'], minRarity: 'epic' },
+      ];
+
+      expect(areTargetsEqual(targets1, targets2)).toBe(false);
+    });
+
+    it('returns false for different slot numbers', () => {
+      const targets1: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+      const targets2: SlotTarget[] = [
+        { slotNumber: 2, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+
+      expect(areTargetsEqual(targets1, targets2)).toBe(false);
+    });
+
+    it('returns false for different minRarity', () => {
+      const targets1: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+      const targets2: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'ancestral' },
+      ];
+
+      expect(areTargetsEqual(targets1, targets2)).toBe(false);
+    });
+
+    it('returns false for different acceptableEffects', () => {
+      const targets1: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+      ];
+      const targets2: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['critChance'], minRarity: 'legendary' },
+      ];
+
+      expect(areTargetsEqual(targets1, targets2)).toBe(false);
+    });
+
+    it('returns true for empty arrays', () => {
+      expect(areTargetsEqual([], [])).toBe(true);
+    });
+  });
+
+  describe('syncRemainingTargetsWithConfig', () => {
+    it('returns fresh targets when no effects are locked', () => {
+      const newTargets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'legendary' },
+        { slotNumber: 2, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'legendary' },
+      ];
+
+      const synced = syncRemainingTargetsWithConfig(newTargets, new Set(), []);
+
+      expect(synced).toHaveLength(2);
+      expect(synced[0].acceptableEffects).toEqual(['attackSpeed', 'critChance']);
+      expect(synced[1].acceptableEffects).toEqual(['attackSpeed', 'critChance']);
+    });
+
+    it('removes locked effects from targets', () => {
+      const newTargets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'legendary' },
+        { slotNumber: 2, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'legendary' },
+      ];
+      const lockedEffects = new Set(['attackSpeed']);
+
+      const synced = syncRemainingTargetsWithConfig(newTargets, lockedEffects, []);
+
+      // Both targets should now only have critChance
+      expect(synced).toHaveLength(2);
+      expect(synced[0].acceptableEffects).toEqual(['critChance']);
+      expect(synced[1].acceptableEffects).toEqual(['critChance']);
+    });
+
+    it('removes pre-locked effects from targets', () => {
+      const newTargets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed', 'critChance'], minRarity: 'legendary' },
+      ];
+      const preLockedEffects = ['critChance'];
+
+      const synced = syncRemainingTargetsWithConfig(newTargets, new Set(), preLockedEffects);
+
+      expect(synced).toHaveLength(1);
+      expect(synced[0].acceptableEffects).toEqual(['attackSpeed']);
+    });
+
+    it('removes targets with no remaining acceptable effects', () => {
+      const newTargets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'legendary' },
+        { slotNumber: 2, acceptableEffects: ['critChance'], minRarity: 'legendary' },
+      ];
+      const lockedEffects = new Set(['attackSpeed']);
+
+      const synced = syncRemainingTargetsWithConfig(newTargets, lockedEffects, []);
+
+      // Slot 1 should be removed (no acceptable effects left)
+      expect(synced).toHaveLength(1);
+      expect(synced[0].slotNumber).toBe(2);
+      expect(synced[0].acceptableEffects).toEqual(['critChance']);
+    });
+
+    it('reflects minRarity changes from new config', () => {
+      // This is the key test - verifying that changed rarity is reflected
+      const newTargets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['attackSpeed'], minRarity: 'mythic' }, // Changed from ancestral
+      ];
+
+      const synced = syncRemainingTargetsWithConfig(newTargets, new Set(), []);
+
+      expect(synced).toHaveLength(1);
+      expect(synced[0].minRarity).toBe('mythic');
+    });
+
+    it('handles both locked and pre-locked effects together', () => {
+      const newTargets: SlotTarget[] = [
+        { slotNumber: 1, acceptableEffects: ['a', 'b', 'c'], minRarity: 'legendary' },
+      ];
+      const lockedEffects = new Set(['a']);
+      const preLockedEffects = ['b'];
+
+      const synced = syncRemainingTargetsWithConfig(newTargets, lockedEffects, preLockedEffects);
+
+      expect(synced).toHaveLength(1);
+      expect(synced[0].acceptableEffects).toEqual(['c']);
     });
   });
 });

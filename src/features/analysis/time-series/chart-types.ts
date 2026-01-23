@@ -19,6 +19,10 @@ export interface ChartDataPoint {
   runInfo?: RunInfo
   /** Optional period info for weekly/monthly daily averages */
   periodInfo?: PeriodInfo
+  /** Moving average value at this point, null if insufficient preceding data */
+  movingAverage?: number | null
+  /** Period-over-period percentage change (first point is always 0%) */
+  percentChange?: number
 }
 
 

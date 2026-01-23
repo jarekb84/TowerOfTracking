@@ -118,17 +118,16 @@ function BanToggle({ isBanned, isLocked, onToggle }: BanToggleProps) {
       title={isLocked ? 'Cannot ban a locked effect' : (isBanned ? 'Unban effect' : 'Ban effect (Lab Research)')}
       aria-pressed={isBanned}
     >
-      {isBanned ? (
-        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-        </svg>
-      ) : (
-        <svg className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="9" />
-          <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" />
-        </svg>
-      )}
+      <BanIcon />
     </button>
+  );
+}
+
+function BanIcon() {
+  return (
+    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31C15.55 19.37 13.85 20 12 20zm6.31-3.1L7.1 5.69C8.45 4.63 10.15 4 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z" />
+    </svg>
   );
 }
 

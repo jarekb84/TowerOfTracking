@@ -75,6 +75,25 @@ describe('simulation-engine', () => {
       expect(hitFound).toBe(true);
     });
 
+    it('never produces duplicate effects in the same round', () => {
+      const pool = createTestPool();
+      const targets: SlotTarget[] = [];
+      const minRarityMap = new Map();
+
+      // Roll many rounds with multiple slots to check for duplicates
+      // This is a critical invariant: a module cannot have duplicate effects
+      for (let i = 0; i < 200; i++) {
+        const result = rollRound(pool, 5, targets, minRarityMap);
+
+        // Extract effect IDs from this round
+        const effectIds = result.slotResults.map((sr) => sr.entry.effect.id);
+
+        // Check for duplicates using a Set
+        const uniqueIds = new Set(effectIds);
+        expect(uniqueIds.size).toBe(effectIds.length);
+      }
+    });
+
     it('distinguishes current priority from future priority targets', () => {
       const pool = createTestPool();
       // Two different priorities

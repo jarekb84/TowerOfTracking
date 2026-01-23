@@ -16,7 +16,7 @@ import { getNumberFormatter, getImportFormat } from '@/shared/locale/locale-stor
  * All multipliers are exactly 1000x apart (powers of 10^3), which enables
  * O(1) lookup using: index = floor(log10(value) / 3) - 1
  */
-const SCALE_DEFINITIONS = [
+export const SCALE_DEFINITIONS = [
   { suffix: 'K', multiplier: 1e3 },   // Thousand
   { suffix: 'M', multiplier: 1e6 },   // Million
   { suffix: 'B', multiplier: 1e9 },   // Billion

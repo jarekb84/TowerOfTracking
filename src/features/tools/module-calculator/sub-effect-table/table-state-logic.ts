@@ -26,14 +26,27 @@ export function createEmptySelection(effectId: string): EffectSelection {
  * Update the minimum rarity for an effect
  *
  * If clicking the same rarity that's already selected, clears it.
+ * When setting a rarity and no target slots exist, auto-assigns the default slot (priority 1).
+ *
+ * @param selection - Current effect selection
+ * @param rarity - The rarity to set as minimum
+ * @param defaultSlot - Optional slot to auto-assign when first selecting a rarity (defaults to 1)
  */
 export function toggleMinRarity(
   selection: EffectSelection,
-  rarity: Rarity
+  rarity: Rarity,
+  defaultSlot: number = 1
 ): EffectSelection {
+  // Clicking same rarity clears the selection
   if (selection.minRarity === rarity) {
     return { ...selection, minRarity: null };
   }
+
+  // Setting a new rarity - auto-assign first slot if none assigned
+  if (selection.targetSlots.length === 0) {
+    return { ...selection, minRarity: rarity, targetSlots: [defaultSlot] };
+  }
+
   return { ...selection, minRarity: rarity };
 }
 

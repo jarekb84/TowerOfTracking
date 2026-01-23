@@ -9,6 +9,10 @@
 
 import type { RunInfo, ChartDataPoint, PeriodInfo } from './chart-types'
 import { RunInfoHeader } from '@/features/analysis/shared/tooltips/run-info-header'
+import {
+  getPercentChangeColorClass,
+  formatPercentChangeDisplay,
+} from './percent-change/percent-change-display'
 
 interface TimeSeriesTooltipProps {
   /** Period label (e.g., "Per Run", "Daily") */
@@ -27,6 +31,10 @@ interface TimeSeriesTooltipProps {
   formatter?: (value: number) => string
   /** Accent color for styling */
   accentColor?: string
+  /** Moving average value at this data point (null if insufficient data) */
+  trendValue?: number | null
+  /** Percentage change value at this data point */
+  percentChangeValue?: number
 }
 
 function TimeSeriesTooltip({
@@ -38,6 +46,8 @@ function TimeSeriesTooltip({
   periodInfo,
   formatter,
   accentColor,
+  trendValue,
+  percentChangeValue,
 }: TimeSeriesTooltipProps) {
   return (
     <div
@@ -70,6 +80,36 @@ function TimeSeriesTooltip({
         </span>
       </div>
 
+      {/* Moving average row - only when enabled and value exists */}
+      {trendValue !== undefined && trendValue !== null && formatter && (
+        <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
+          <span className="text-xs flex items-center gap-1.5">
+            <svg width="12" height="2" className="shrink-0">
+              <line x1="0" y1="1" x2="12" y2="1" stroke="rgb(249 115 22 / 0.7)" strokeWidth="2" strokeDasharray="3 2" />
+            </svg>
+            <span className="text-slate-400">Moving Avg</span>
+          </span>
+          <span className="text-orange-400/80 text-xs tabular-nums font-medium">
+            {formatter(trendValue)}
+          </span>
+        </div>
+      )}
+
+      {/* Percentage change row - only when enabled */}
+      {percentChangeValue !== undefined && (
+        <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
+          <span className="text-xs flex items-center gap-1.5">
+            <svg width="12" height="2" className="shrink-0">
+              <line x1="0" y1="1" x2="12" y2="1" stroke="rgb(34 211 238 / 0.7)" strokeWidth="2" strokeDasharray="2 1" />
+            </svg>
+            <span className="text-slate-400">% Change</span>
+          </span>
+          <span className={`text-xs tabular-nums font-medium ${getPercentChangeColorClass(percentChangeValue)}`}>
+            {formatPercentChangeDisplay(percentChangeValue)}
+          </span>
+        </div>
+      )}
+
       {/* Daily Average row - only for weekly/monthly */}
       {periodInfo && formatter && (
         <div className="flex items-baseline justify-between gap-4 mt-2 pt-2 border-t border-slate-700/30">
@@ -99,6 +139,10 @@ interface TimeSeriesChartTooltipProps {
   formatter: (value: number) => string
   isHourlyPeriod: boolean
   accentColor: string
+  /** Whether to show moving average value in tooltip */
+  showTrendLine?: boolean
+  /** Whether to show percentage change value in tooltip */
+  showPercentChange?: boolean
 }
 
 /**
@@ -114,6 +158,8 @@ export function TimeSeriesChartTooltip({
   formatter,
   isHourlyPeriod,
   accentColor,
+  showTrendLine = false,
+  showPercentChange = false,
 }: TimeSeriesChartTooltipProps) {
   if (!active || !payload || !payload.length) return null
 
@@ -131,6 +177,8 @@ export function TimeSeriesChartTooltip({
       periodInfo={dataPoint.periodInfo}
       formatter={formatter}
       accentColor={accentColor}
+      trendValue={showTrendLine ? dataPoint.movingAverage : undefined}
+      percentChangeValue={showPercentChange ? dataPoint.percentChange : undefined}
     />
   )
 }

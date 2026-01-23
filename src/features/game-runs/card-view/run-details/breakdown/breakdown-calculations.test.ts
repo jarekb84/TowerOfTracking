@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 /**
  * Breakdown Calculations Tests
  *

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 // Comprehensive test suite for data migration system requires extensive test cases
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {

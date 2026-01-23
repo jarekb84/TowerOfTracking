@@ -21,25 +21,15 @@
 - Handles shorthand number formats (100K, 15.2M, 1.5B, up to 1e63) and duration strings (7H 45M 35S)
 - See `src/shared/formatting/number-scale.ts` for number parsing/formatting
 
-## Localization (CRITICAL)
+## Number & Date Formatting
 
-**The app supports multiple locales.** All date and number handling MUST use the shared utilities:
+The codebase supports **locale-aware formatting** for all user-facing numbers and dates. Shared utilities in `src/shared/formatting/` handle parsing and display:
+- `date-formatters.ts` - Date parsing and display
+- `number-scale.ts` - Number formatting with K/M/B/T suffixes
 
-**Dates** (`src/shared/formatting/date-formatters.ts`):
-- `parseBattleDate()` - Parse dates from game export (handles multiple locale formats)
-- `formatDisplayDate()`, `formatDisplayDateTime()` - Locale-aware display
-- `formatIsoDate()`, `formatCanonicalBattleDate()` - Storage format (US-centric)
+**Key principle**: Never format numbers or dates manually—always use the shared utilities.
 
-**Numbers** (`src/shared/formatting/number-scale.ts`):
-- `parseShorthandNumber()` - Parse "100K", "1.5M" with locale-aware separators
-- `formatLargeNumber()` - Format numbers with scale suffixes
-
-**Canonical Data Format:**
-- **Storage/Memory**: US-centric format (e.g., "Oct 14, 2025 13:14")
-- **User Input**: Parsed according to user's locale settings
-- **Display Output**: Formatted according to user's locale settings
-
-**NEVER construct dates or format numbers directly.** Always use the shared utilities.
+The **Localization Enforcer Agent** runs during the mandatory review phase to catch any violations and ensure consistent locale support across the codebase.
 
 ## Analytics Features
 

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import type { ManualSlot, RollLogEntry, RollLogEffect } from '../types';
 import {
@@ -95,6 +94,7 @@ describe('roll-log-logic', () => {
         name: 'Effect testEffect',
         rarity: 'ancestral',
         shortName: 'A',
+        isTargetMatch: false,
       });
     });
 
@@ -159,7 +159,7 @@ describe('roll-log-logic', () => {
   describe('createLogEntry', () => {
     it('creates entry with correct properties', () => {
       const effects: RollLogEffect[] = [
-        { effectId: 'effect1', name: 'Effect 1', rarity: 'mythic', shortName: 'M' },
+        { effectId: 'effect1', name: 'Effect 1', rarity: 'mythic', shortName: 'M', isTargetMatch: false },
       ];
 
       const entry = createLogEntry(42, 4200, 100, effects);
@@ -180,8 +180,8 @@ describe('roll-log-logic', () => {
 
     it('handles multiple effects', () => {
       const effects: RollLogEffect[] = [
-        { effectId: 'effect1', name: 'Effect 1', rarity: 'mythic', shortName: 'M' },
-        { effectId: 'effect2', name: 'Effect 2', rarity: 'ancestral', shortName: 'A' },
+        { effectId: 'effect1', name: 'Effect 1', rarity: 'mythic', shortName: 'M', isTargetMatch: false },
+        { effectId: 'effect2', name: 'Effect 2', rarity: 'ancestral', shortName: 'A', isTargetMatch: true },
       ];
 
       const entry = createLogEntry(1, 100, 100, effects);
@@ -429,7 +429,7 @@ describe('roll-log-logic', () => {
     it('returns singular "entry" for one entry', () => {
       const entries = [
         createMockEntry(1, [
-          { effectId: 'e1', name: 'Effect 1', rarity: 'legendary', shortName: 'L' },
+          { effectId: 'e1', name: 'Effect 1', rarity: 'legendary', shortName: 'L', isTargetMatch: false },
         ]),
       ];
       expect(generateRollLogSummary(entries)).toBe('1 entry | Latest: Legendary');
@@ -438,10 +438,10 @@ describe('roll-log-logic', () => {
     it('returns plural "entries" for multiple entries', () => {
       const entries = [
         createMockEntry(2, [
-          { effectId: 'e1', name: 'Effect 1', rarity: 'mythic', shortName: 'M' },
+          { effectId: 'e1', name: 'Effect 1', rarity: 'mythic', shortName: 'M', isTargetMatch: false },
         ]),
         createMockEntry(1, [
-          { effectId: 'e2', name: 'Effect 2', rarity: 'epic', shortName: 'E' },
+          { effectId: 'e2', name: 'Effect 2', rarity: 'epic', shortName: 'E', isTargetMatch: false },
         ]),
       ];
       expect(generateRollLogSummary(entries)).toBe('2 entries | Latest: Mythic');
@@ -450,9 +450,9 @@ describe('roll-log-logic', () => {
     it('shows highest rarity from latest entry', () => {
       const entries = [
         createMockEntry(1, [
-          { effectId: 'e1', name: 'Effect 1', rarity: 'rare', shortName: 'R' },
-          { effectId: 'e2', name: 'Effect 2', rarity: 'ancestral', shortName: 'A' },
-          { effectId: 'e3', name: 'Effect 3', rarity: 'epic', shortName: 'E' },
+          { effectId: 'e1', name: 'Effect 1', rarity: 'rare', shortName: 'R', isTargetMatch: false },
+          { effectId: 'e2', name: 'Effect 2', rarity: 'ancestral', shortName: 'A', isTargetMatch: true },
+          { effectId: 'e3', name: 'Effect 3', rarity: 'epic', shortName: 'E', isTargetMatch: false },
         ]),
       ];
       expect(generateRollLogSummary(entries)).toBe('1 entry | Latest: Ancestral');
@@ -466,7 +466,7 @@ describe('roll-log-logic', () => {
     it('handles large entry counts', () => {
       const entries = Array.from({ length: 100 }, (_, i) =>
         createMockEntry(i + 1, [
-          { effectId: 'e1', name: 'Effect 1', rarity: 'common', shortName: 'C' },
+          { effectId: 'e1', name: 'Effect 1', rarity: 'common', shortName: 'C', isTargetMatch: false },
         ])
       );
       expect(generateRollLogSummary(entries)).toBe('100 entries | Latest: Common');
