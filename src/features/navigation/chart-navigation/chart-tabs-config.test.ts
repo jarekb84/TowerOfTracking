@@ -3,8 +3,8 @@ import { CHART_TABS, getValidChartRoutes } from './chart-tabs-config'
 
 describe('chart-tabs-config', () => {
   describe('CHART_TABS', () => {
-    it('should have 8 chart tabs', () => {
-      expect(CHART_TABS).toHaveLength(8)
+    it('should have 9 chart tabs', () => {
+      expect(CHART_TABS).toHaveLength(9)
     })
 
     it('should have all required properties for each tab', () => {
@@ -39,7 +39,7 @@ describe('chart-tabs-config', () => {
   describe('getValidChartRoutes', () => {
     it('should return all chart routes', () => {
       const routes = getValidChartRoutes()
-      expect(routes).toHaveLength(8)
+      expect(routes).toHaveLength(9)
     })
 
     it('should return routes matching CHART_TABS', () => {
@@ -66,6 +66,11 @@ describe('chart-tabs-config', () => {
     it('should include coverage route', () => {
       const routes = getValidChartRoutes()
       expect(routes).toContain('/charts/coverage')
+    })
+
+    it('should include activity route', () => {
+      const routes = getValidChartRoutes()
+      expect(routes).toContain('/charts/activity')
     })
   })
 })

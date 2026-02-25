@@ -76,6 +76,12 @@ export const NAVIGATION_SECTIONS: NavigationSection[] = [
         label: 'Coverage Report',
         href: '/charts/coverage',
         icon: 'field-analytics'
+      },
+      {
+        id: 'activity-heatmap',
+        label: 'Activity',
+        href: '/charts/activity',
+        icon: 'field-analytics'
       }
     ]
   },
