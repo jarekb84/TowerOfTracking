@@ -61,6 +61,13 @@ export const CHART_TABS: TabConfig[] = [
     shortLabel: 'Coverage',
     activeClassName: 'data-[active=true]:bg-cyan-500/15 data-[active=true]:text-cyan-100 hover:bg-cyan-500/10',
   },
+  {
+    value: 'activity',
+    route: '/charts/activity',
+    label: 'Activity',
+    shortLabel: 'Activity',
+    activeClassName: 'data-[active=true]:bg-amber-500/15 data-[active=true]:text-amber-100 hover:bg-amber-500/10',
+  },
 ]
 
 /**
