@@ -34,6 +34,7 @@ import { Route as ChartsDeathsRouteImport } from './routes/charts/deaths'
 import { Route as ChartsCoverageRouteImport } from './routes/charts/coverage'
 import { Route as ChartsCoinsRouteImport } from './routes/charts/coins'
 import { Route as ChartsCellsRouteImport } from './routes/charts/cells'
+import { Route as ChartsActivityRouteImport } from './routes/charts/activity'
 
 const ToolsRoute = ToolsRouteImport.update({
   id: '/tools',
@@ -160,6 +161,11 @@ const ChartsCellsRoute = ChartsCellsRouteImport.update({
   path: '/cells',
   getParentRoute: () => ChartsRoute,
 } as any)
+const ChartsActivityRoute = ChartsActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => ChartsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tools': typeof ToolsRouteWithChildren
+  '/charts/activity': typeof ChartsActivityRoute
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/tools': typeof ToolsRouteWithChildren
+  '/charts/activity': typeof ChartsActivityRoute
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/runs': typeof RunsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/tools': typeof ToolsRouteWithChildren
+  '/charts/activity': typeof ChartsActivityRoute
   '/charts/cells': typeof ChartsCellsRoute
   '/charts/coins': typeof ChartsCoinsRoute
   '/charts/coverage': typeof ChartsCoverageRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/runs'
     | '/settings'
     | '/tools'
+    | '/charts/activity'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/tools'
+    | '/charts/activity'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/runs'
     | '/settings'
     | '/tools'
+    | '/charts/activity'
     | '/charts/cells'
     | '/charts/coins'
     | '/charts/coverage'
@@ -506,10 +518,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChartsCellsRouteImport
       parentRoute: typeof ChartsRoute
     }
+    '/charts/activity': {
+      id: '/charts/activity'
+      path: '/activity'
+      fullPath: '/charts/activity'
+      preLoaderRoute: typeof ChartsActivityRouteImport
+      parentRoute: typeof ChartsRoute
+    }
   }
 }
 
 interface ChartsRouteChildren {
+  ChartsActivityRoute: typeof ChartsActivityRoute
   ChartsCellsRoute: typeof ChartsCellsRoute
   ChartsCoinsRoute: typeof ChartsCoinsRoute
   ChartsCoverageRoute: typeof ChartsCoverageRoute
@@ -522,6 +542,7 @@ interface ChartsRouteChildren {
 }
 
 const ChartsRouteChildren: ChartsRouteChildren = {
+  ChartsActivityRoute: ChartsActivityRoute,
   ChartsCellsRoute: ChartsCellsRoute,
   ChartsCoinsRoute: ChartsCoinsRoute,
   ChartsCoverageRoute: ChartsCoverageRoute,

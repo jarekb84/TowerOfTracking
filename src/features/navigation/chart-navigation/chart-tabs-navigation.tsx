@@ -11,7 +11,7 @@ export function ChartTabsNavigation() {
       tabs={CHART_TABS}
       ariaLabel="Chart analytics navigation"
       maxWidth="max-w-6xl"
-      columns={8}
+      columns={9}
     />
   )
 }

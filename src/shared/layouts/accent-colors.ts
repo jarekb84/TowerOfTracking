@@ -11,6 +11,7 @@ export type AccentColor =
   | 'red'
   | 'purple'
   | 'cyan'
+  | 'amber'
 
 /**
  * Pre-computed Tailwind classes for each accent color.
@@ -75,6 +76,12 @@ const ACCENT_COLOR_MAP: Record<AccentColor, AccentColorClasses> = {
     headerGradient: 'bg-gradient-to-r from-cyan-500/10 via-transparent to-cyan-500/10',
     accentBar: 'bg-gradient-to-b from-cyan-400 to-cyan-600',
     accentBarShadow: 'shadow-cyan-500/30',
+  },
+  amber: {
+    hoverShadow: 'hover:shadow-amber-500/10',
+    headerGradient: 'bg-gradient-to-r from-amber-500/10 via-transparent to-amber-500/10',
+    accentBar: 'bg-gradient-to-b from-amber-400 to-amber-600',
+    accentBarShadow: 'shadow-amber-500/30',
   },
 }
 
