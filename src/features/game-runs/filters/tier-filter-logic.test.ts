@@ -11,6 +11,7 @@ const mockRun = (id: string, tier: number): ParsedGameRun => ({
   coinsEarned: 100,
   cellsEarned: 10,
   realTime: 60,
+  gameSpeed: 2.0,
   runType: 'farm'
 });
 

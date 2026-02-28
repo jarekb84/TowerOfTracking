@@ -14,6 +14,7 @@ describe('csv-import-executor', () => {
     coinsEarned: 0,
     cellsEarned: 0,
     realTime: 0,
+    gameSpeed: null,
     runType: 'farm'
   });
 

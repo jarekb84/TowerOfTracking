@@ -31,6 +31,7 @@ function createMockRun(overrides: Partial<ParsedGameRun> = {}): ParsedGameRun {
     coinsEarned: 1000,
     cellsEarned: 500,
     realTime: 31415, // 8hr 43min 35sec
+    gameSpeed: 2.0,
     runType: 'farm',
     fields: {
       tier: createMockField(10, 'number', 'Tier'),

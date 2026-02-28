@@ -23,6 +23,7 @@ describe('useTierStatsConfig', () => {
     coinsEarned: 100000000,
     cellsEarned: 50000,
     realTime: 9000,
+    gameSpeed: 2.0,
     runType: 'farm'
   })
 
@@ -357,6 +358,7 @@ describe('useTierStatsConfig', () => {
         coinsEarned: 100000000,
         cellsEarned: 50000,
         realTime: 9000,
+        gameSpeed: 2.0,
         runType: 'farm'
       }]
 

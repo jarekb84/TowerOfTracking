@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { describe, it, expect } from 'vitest';
 import {
   extractNumericFieldNames,
@@ -20,6 +21,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     };
@@ -42,6 +44,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -76,6 +79,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         waveDuration: {
@@ -102,6 +106,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         notes: {
@@ -136,6 +141,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -156,6 +162,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 60000,
       cellsEarned: 1100,
       realTime: 3700,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -193,6 +200,7 @@ describe('extractNumericFieldNames', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         zebra: {
@@ -230,6 +238,7 @@ describe('getFieldDataType', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }];
@@ -250,6 +259,7 @@ describe('getFieldDataType', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {
         damageDealt: {
@@ -282,6 +292,7 @@ describe('getFieldDataType', () => {
       coinsEarned: 50000,
       cellsEarned: 1000,
       realTime: 3600,
+      gameSpeed: 2.0,
       runType: 'farm',
       fields: {}
     }];
@@ -299,6 +310,7 @@ describe('getFieldDataType', () => {
         coinsEarned: 50000,
         cellsEarned: 1000,
         realTime: 3600,
+        gameSpeed: 2.0,
         runType: 'farm',
         fields: {}
       },
@@ -310,6 +322,7 @@ describe('getFieldDataType', () => {
         coinsEarned: 60000,
         cellsEarned: 1100,
         realTime: 3700,
+        gameSpeed: 2.0,
         runType: 'farm',
         fields: {
           damageDealt: {

@@ -15,6 +15,7 @@ describe('tier-stats-sort', () => {
     tier,
     coinsEarned: coins,
     realTime: duration,
+    gameSpeed: duration === 0 ? null : 2.0,
     wave: 1000,
     cellsEarned: 0,
     runType: 'farm'

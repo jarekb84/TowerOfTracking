@@ -13,6 +13,7 @@ describe('calculateFieldPercentiles', () => {
     tier: 1,
     wave: 100,
     realTime: duration,
+    gameSpeed: duration === 0 ? null : 2.0,
     coinsEarned: coins,
     cellsEarned: 0,
     runType: 'farm'
@@ -144,6 +145,7 @@ describe('calculateFieldPercentiles', () => {
       tier: 1,
       wave: 100,
       realTime: 5000,
+      gameSpeed: 2.0,
       coinsEarned: 0,
       cellsEarned: 0,
       runType: 'farm'

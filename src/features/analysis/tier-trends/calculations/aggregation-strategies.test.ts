@@ -37,6 +37,7 @@ function createMockRun(realTimeSeconds: number): ParsedGameRun {
     coinsEarned: 1000,
     cellsEarned: 500,
     realTime: realTimeSeconds,
+    gameSpeed: realTimeSeconds === 0 ? null : 2.0,
     runType: 'farm',
   };
 }

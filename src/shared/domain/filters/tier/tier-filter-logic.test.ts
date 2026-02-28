@@ -20,9 +20,10 @@ function createMockRun(tier: number, runType: 'farm' | 'tournament' | 'milestone
     coinsEarned: 1000,
     cellsEarned: 100,
     realTime: 3600,
+    gameSpeed: 2.0,
     runType,
     fields: {}
-  } as ParsedGameRun
+  }
 }
 
 describe('extractAvailableTiers', () => {

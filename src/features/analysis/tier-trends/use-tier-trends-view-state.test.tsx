@@ -24,6 +24,7 @@ describe('useTierTrendsViewState', () => {
       coinsEarned: 1130000000000,
       cellsEarned: 45200,
       realTime: 27966,
+      gameSpeed: 2.0,
       runType: RunType.FARM,
       fields: {}
     },
@@ -35,6 +36,7 @@ describe('useTierTrendsViewState', () => {
       coinsEarned: 1100000000000,
       cellsEarned: 44000,
       realTime: 27000,
+      gameSpeed: 2.0,
       runType: RunType.FARM,
       fields: {}
     }
