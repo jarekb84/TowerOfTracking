@@ -1,6 +1,6 @@
 import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 import { formatDuration } from '@/features/analysis/shared/parsing/data-parser'
-import { formatGameSpeed } from '@/shared/formatting/run-display-formatters'
+import { formatMultiplier } from '@/shared/formatting/run-display-formatters'
 
 /**
  * Convert field key to human-readable display name
@@ -35,7 +35,7 @@ export function getFieldFormatter(fieldKey: string, dataType: string): (value: n
 
   // Game speed shows as "Y.YYYx" (3 decimal places)
   if (fieldKey === 'gameSpeed') {
-    return formatGameSpeed
+    return formatMultiplier
   }
 
   // Default: use large number formatting (K, M, B, T, Q, etc.) for all numeric fields

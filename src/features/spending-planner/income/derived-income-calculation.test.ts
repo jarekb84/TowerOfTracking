@@ -45,6 +45,7 @@ function createMockRun(
     coinsEarned,
     cellsEarned: 0,
     realTime: 3600,
+    gameSpeed: 2.0,
     runType: 'farm',
     fields: {
       rerollShardsEarned: createField(rerollShardsEarned),

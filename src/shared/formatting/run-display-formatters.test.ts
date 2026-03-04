@@ -4,7 +4,7 @@ import {
   formatWaveNumber,
   formatTierWaveHeader,
   formatTimestampDisplay,
-  formatGameSpeed,
+  formatMultiplier,
 } from './run-display-formatters'
 
 describe('run-display-formatters', () => {
@@ -75,32 +75,32 @@ describe('run-display-formatters', () => {
     })
   })
 
-  describe('formatGameSpeed', () => {
+  describe('formatMultiplier', () => {
     it('should trim trailing zeros for cleaner display', () => {
-      expect(formatGameSpeed(1.5)).toBe('1.5x')
-      expect(formatGameSpeed(2.25)).toBe('2.25x')
+      expect(formatMultiplier(1.5)).toBe('1.5x')
+      expect(formatMultiplier(2.25)).toBe('2.25x')
     })
 
     it('should format whole numbers without decimal places', () => {
-      expect(formatGameSpeed(2)).toBe('2x')
-      expect(formatGameSpeed(1)).toBe('1x')
+      expect(formatMultiplier(2)).toBe('2x')
+      expect(formatMultiplier(1)).toBe('1x')
     })
 
     it('should round to 3 decimal places when needed', () => {
-      expect(formatGameSpeed(2.12345)).toBe('2.123x')
-      expect(formatGameSpeed(1.9999)).toBe('2x') // rounds to 2.000, then trims to 2
-      expect(formatGameSpeed(4.787)).toBe('4.787x') // typical game speed value
+      expect(formatMultiplier(2.12345)).toBe('2.123x')
+      expect(formatMultiplier(1.9999)).toBe('2x') // rounds to 2.000, then trims to 2
+      expect(formatMultiplier(4.787)).toBe('4.787x') // typical game speed value
     })
 
     it('should handle values less than 1', () => {
-      expect(formatGameSpeed(0.5)).toBe('0.5x')
-      expect(formatGameSpeed(0.125)).toBe('0.125x')
+      expect(formatMultiplier(0.5)).toBe('0.5x')
+      expect(formatMultiplier(0.125)).toBe('0.125x')
     })
 
     it('should preserve precision when meaningful', () => {
-      expect(formatGameSpeed(2.001)).toBe('2.001x')
-      expect(formatGameSpeed(3.14)).toBe('3.14x')
-      expect(formatGameSpeed(1.100)).toBe('1.1x') // trims trailing zero
+      expect(formatMultiplier(2.001)).toBe('2.001x')
+      expect(formatMultiplier(3.14)).toBe('3.14x')
+      expect(formatMultiplier(1.100)).toBe('1.1x') // trims trailing zero
     })
   })
 })

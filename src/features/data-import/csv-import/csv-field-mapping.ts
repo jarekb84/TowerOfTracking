@@ -12,6 +12,7 @@ import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/inte
 import { extractFieldNamesFromStorage } from '@/shared/domain/fields/field-discovery';
 import { classifyFields } from '@/shared/domain/fields/field-similarity';
 import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
+import { calculateGameSpeed } from '@/shared/domain/game-speed-calculation';
 
 /**
  * Create enhanced field mapping report with similarity detection
@@ -106,17 +107,6 @@ export function createFieldMappingReport(
     unsupportedFields,
     skippedFields: [] // No fields are skipped anymore
   };
-}
-
-/**
- * Calculate game speed (gameTime / realTime) rounded to 3 decimal places.
- * Returns null if realTime is 0 (cannot calculate).
- */
-function calculateGameSpeed(gameTime: number, realTime: number): number | null {
-  if (realTime === 0) {
-    return null;
-  }
-  return Math.round((gameTime / realTime) * 1000) / 1000;
 }
 
 /**

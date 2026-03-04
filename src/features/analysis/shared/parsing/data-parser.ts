@@ -14,6 +14,7 @@ import {
   formatIsoDate,
   formatIsoTime
 } from '@/shared/formatting/date-formatters';
+import { calculateGameSpeed } from '@/shared/domain/game-speed-calculation';
 import {
   INTERNAL_FIELD_NAMES,
   isLegacyField,
@@ -140,7 +141,7 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
 
   const realTime = (fields.realTime?.value as number) || 0;
   const gameTime = (fields.gameTime?.value as number) || 0;
-  const gameSpeed = realTime === 0 ? null : Math.round((gameTime / realTime) * 1000) / 1000;
+  const gameSpeed = calculateGameSpeed(gameTime, realTime);
 
   return {
     tier,

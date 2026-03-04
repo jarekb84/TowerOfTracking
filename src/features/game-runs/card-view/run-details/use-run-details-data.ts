@@ -14,7 +14,7 @@ import {
   findUncategorizedFields,
   calculatePerHourRate,
 } from './breakdown/breakdown-calculations'
-import { formatGameSpeed } from '@/shared/formatting/run-display-formatters'
+import { formatMultiplier } from '@/shared/formatting/run-display-formatters'
 import { formatLargeNumber } from '@/shared/formatting/number-scale'
 import {
   BATTLE_REPORT_ESSENTIAL,
@@ -51,7 +51,7 @@ export function useRunDetailsData(run: ParsedGameRun): RunDetailsData {
       battleReport.essential.items.push({
         fieldName: 'gameSpeed',
         displayName: 'Game Speed',
-        displayValue: formatGameSpeed(run.gameSpeed),
+        displayValue: formatMultiplier(run.gameSpeed),
       })
     }
 

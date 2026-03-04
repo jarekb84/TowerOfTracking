@@ -9,6 +9,7 @@
  * - Duration (hours/minutes)
  * - Timestamps
  * - Wave numbers with locale formatting
+ * - Multiplier values (e.g., game speed)
  */
 
 import { formatDisplayShortDateTime } from './date-formatters'
@@ -66,16 +67,15 @@ export function formatTimestampDisplay(timestamp: Date): string {
 }
 
 // ============================================================================
-// Game Speed Formatting
+// Multiplier Formatting
 // ============================================================================
 
 /**
- * Format game speed with 'x' suffix.
+ * Format a multiplier value with 'x' suffix.
  * Removes unnecessary trailing zeros for cleaner display.
  * Examples: 2.0 -> "2x", 2.5 -> "2.5x", 2.123 -> "2.123x"
- * Game speed is the ratio of gameTime to realTime.
  */
-export function formatGameSpeed(value: number): string {
+export function formatMultiplier(value: number): string {
   // Use up to 3 decimal places, trimming trailing zeros and decimal point
   const formatted = value.toFixed(3).replace(/\.?0+$/, '')
   return formatted + 'x'
