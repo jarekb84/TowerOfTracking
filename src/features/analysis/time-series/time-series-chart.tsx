@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { FormControl } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { TimePeriod, TimePeriodConfig } from './chart-types'
 import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 import { filterRunsByType, type RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
@@ -8,7 +9,7 @@ import { RunType } from '@/shared/domain/run-types/types'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import { TimeSeriesHeader } from './time-series-header'
 import { PeriodSelectorButton } from './period-selector-button'
-import { DataPointsCount } from './data-points-count'
+import { DateRangeSelector, useDateRange, type DateRange } from './date-range'
 import { MovingAverageSelector, type TrendWindowValue } from './moving-average'
 import { PercentChangeToggle } from './percent-change'
 import { useTimeSeriesChartData } from './use-time-series-chart-data'
@@ -36,7 +37,9 @@ interface FilterControlsProps {
   showRunTypeSelector: boolean
   runTypeFilter: RunTypeFilter
   onRunTypeChange?: (runType: RunTypeFilter) => void
-  dataPointCount: number
+  typeFilteredRuns: readonly ParsedGameRun[]
+  dateRange: DateRange
+  onDateRangeChange: (value: DateRange) => void
   trendWindow: TrendWindowValue
   onTrendWindowChange: (value: TrendWindowValue) => void
   percentChangeEnabled: boolean
@@ -50,7 +53,9 @@ function FilterControls({
   showRunTypeSelector,
   runTypeFilter,
   onRunTypeChange,
-  dataPointCount,
+  typeFilteredRuns,
+  dateRange,
+  onDateRangeChange,
   trendWindow,
   onTrendWindowChange,
   percentChangeEnabled,
@@ -100,8 +105,12 @@ function FilterControls({
           onToggle={onPercentChangeToggle}
         />
 
-        {/* Data points indicator - aligned with controls */}
-        <DataPointsCount count={dataPointCount} />
+        {/* Date range filter */}
+        <DateRangeSelector
+          value={dateRange}
+          onChange={onDateRangeChange}
+          runs={typeFilteredRuns}
+        />
       </div>
     </div>
   )
@@ -124,9 +133,12 @@ export function TimeSeriesChart({
   const formatter = valueFormatter ?? ((value: number) => formatLargeNumber(value))
 
   // Filter runs based on runTypeFilter prop
-  const filteredRuns = useMemo(() => {
+  const typeFilteredRuns = useMemo(() => {
     return filterRunsByType(runs, runTypeFilter)
   }, [runs, runTypeFilter])
+
+  // Apply date range filter on top of type filter
+  const { dateRange, setDateRange, filteredRuns } = useDateRange(typeFilteredRuns)
 
   // Use custom hook for all chart data preparation
   const {
@@ -173,7 +185,9 @@ export function TimeSeriesChart({
           showRunTypeSelector={showRunTypeSelector}
           runTypeFilter={runTypeFilter}
           onRunTypeChange={onRunTypeChange}
-          dataPointCount={chartData.length}
+          typeFilteredRuns={typeFilteredRuns}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
           trendWindow={trendWindow}
           onTrendWindowChange={setTrendWindow}
           percentChangeEnabled={percentChangeEnabled}
