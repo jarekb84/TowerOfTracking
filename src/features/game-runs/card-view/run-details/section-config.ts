@@ -163,12 +163,15 @@ export const UPGRADE_SHARDS_CONFIG: BreakdownConfig = {
   ],
 }
 
+/** Field names that contribute to the reroll shards total */
+export const REROLL_SHARDS_FIELDS = ['rerollShardsEarned', 'rerollShards'] as const;
+
 export const REROLL_SHARDS_CONFIG: BreakdownConfig = {
   totalField: null, // Computed sum
   label: 'REROLL SHARDS',
   sources: [
-    { fieldName: 'rerollShardsEarned', displayName: 'Earned', color: '#94a3b8' }, 
-    { fieldName: 'rerollShards', displayName: 'from Guardian', color: '#94a3b8' },    
+    { fieldName: REROLL_SHARDS_FIELDS[0], displayName: 'Earned', color: '#94a3b8' },
+    { fieldName: REROLL_SHARDS_FIELDS[1], displayName: 'from Guardian', color: '#94a3b8' },
   ],
 }
 

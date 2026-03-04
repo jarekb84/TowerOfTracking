@@ -57,7 +57,22 @@ const createMockRun = (overrides: Partial<ParsedGameRun> = {}): ParsedGameRun =>
       displayValue: 'Fire Orc',
       originalKey: 'killedBy',
       dataType: 'string'
-    }
+    },
+    rerollShardsEarned: {
+      value: 10000,
+      rawValue: '10000',
+      displayValue: '10K',
+      originalKey: 'Reroll Shards Earned',
+      dataType: 'number'
+    },
+    rerollShards: {
+      value: 500,
+      rawValue: '500',
+      displayValue: '500',
+      originalKey: 'Reroll Shards',
+      dataType: 'number'
+    },
+    ...(overrides.fields || {}),
   },
   ...overrides,
 } as ParsedGameRun);
@@ -132,39 +147,46 @@ describe('calculateEconomyData', () => {
   it('should calculate economy data with per-hour rates', () => {
     const run = createMockRun();
     const result = calculateEconomyData(run);
-    
+
     expect(result.coins).toBe('150,000');
     expect(result.coinsPerHour).toBe('75,000'); // 150k / 2 hours
     expect(result.cells).toBe('2,500');
     expect(result.cellsPerHour).toBe('1,250'); // 2.5k / 2 hours
+    expect(result.rerollShards).toBe('10,500'); // 10000 + 500
+    expect(result.rerollShardsPerHour).toBe('5,250'); // 10500 / 2 hours
   });
 
   it('should handle missing earnings', () => {
-    const run = createMockRun({ coinsEarned: undefined, cellsEarned: undefined });
+    const run = createMockRun({ coinsEarned: undefined, cellsEarned: undefined, fields: {} });
     const result = calculateEconomyData(run);
-    
+
     expect(result.coins).toBe('-');
     expect(result.cells).toBe('-');
     expect(result.coinsPerHour).toBe('-'); // 0 per hour
     expect(result.cellsPerHour).toBe('-'); // 0 per hour
+    expect(result.rerollShards).toBe('-');
+    expect(result.rerollShardsPerHour).toBe('-');
   });
 
   it('should handle zero earnings', () => {
-    const run = createMockRun({ coinsEarned: 0, cellsEarned: 0 });
+    const run = createMockRun({ coinsEarned: 0, cellsEarned: 0, fields: {} });
     const result = calculateEconomyData(run);
-    
+
     expect(result.coins).toBe('-');
     expect(result.cells).toBe('-');
     expect(result.coinsPerHour).toBe('-');
     expect(result.cellsPerHour).toBe('-');
+    expect(result.rerollShards).toBe('-');
+    expect(result.rerollShardsPerHour).toBe('-');
   });
 
   it('should handle missing real time', () => {
     const run = createMockRun({ realTime: undefined });
     const result = calculateEconomyData(run);
-    
+
     expect(result.coinsPerHour).toBe('-');
     expect(result.cellsPerHour).toBe('-');
+    expect(result.rerollShardsPerHour).toBe('-');
   });
 });
 
@@ -192,6 +214,8 @@ describe('extractRunCardData', () => {
       coinsPerHour: '75,000',
       cells: '2,500',
       cellsPerHour: '1,250',
+      rerollShards: '10,500',
+      rerollShardsPerHour: '5,250',
     });
   });
 });

@@ -1,5 +1,7 @@
 import { formatNumber, formatDuration, calculatePerHour } from '@/features/analysis/shared/parsing/data-parser';
 import { getFieldValue } from '@/features/analysis/shared/parsing/field-utils';
+import { calculateSumTotal } from '@/features/game-runs/card-view/run-details/breakdown/breakdown-calculations';
+import { REROLL_SHARDS_FIELDS } from '@/features/game-runs/card-view/run-details/section-config';
 import { formatDisplayDate, formatDisplayTime } from '@/shared/formatting/date-formatters';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 
@@ -30,18 +32,24 @@ export function extractProgressData(run: ParsedGameRun) {
   };
 }
 
+function formatOrDash(value: number): string {
+  return value ? formatNumber(value) : '-';
+}
+
 /**
  * Calculates economy data with per-hour rates for the RunCard
  */
 export function calculateEconomyData(run: ParsedGameRun) {
-  const coinsPerHour = calculatePerHour(run.coinsEarned ?? 0, run.realTime ?? 0);
-  const cellsPerHour = calculatePerHour(run.cellsEarned ?? 0, run.realTime ?? 0);
-  
+  const realTime = run.realTime ?? 0;
+  const rerollShardsTotal = calculateSumTotal(run, [...REROLL_SHARDS_FIELDS]);
+
   return {
-    coins: run.coinsEarned ? formatNumber(run.coinsEarned) : '-',
-    coinsPerHour: coinsPerHour ? formatNumber(coinsPerHour) : '-',
-    cells: run.cellsEarned ? formatNumber(run.cellsEarned) : '-',
-    cellsPerHour: cellsPerHour ? formatNumber(cellsPerHour) : '-',
+    coins: formatOrDash(run.coinsEarned ?? 0),
+    coinsPerHour: formatOrDash(calculatePerHour(run.coinsEarned ?? 0, realTime)),
+    cells: formatOrDash(run.cellsEarned ?? 0),
+    cellsPerHour: formatOrDash(calculatePerHour(run.cellsEarned ?? 0, realTime)),
+    rerollShards: formatOrDash(rerollShardsTotal),
+    rerollShardsPerHour: formatOrDash(calculatePerHour(rerollShardsTotal, realTime)),
   };
 }
 

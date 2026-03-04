@@ -76,9 +76,19 @@ export function useRunDetailsData(run: ParsedGameRun): RunDetailsData {
     }
 
     // Modules section
+    const rerollShards = calculateBreakdownGroup(run, REROLL_SHARDS_CONFIG)
+
+    // Add reroll shards per hour as a computed display value
+    if (rerollShards && rerollShards.total > 0) {
+      const rerollShardsPerHour = calculatePerHourRate(rerollShards.total, run.realTime)
+      if (rerollShardsPerHour > 0) {
+        rerollShards.perHourDisplayValue = formatLargeNumber(rerollShardsPerHour)
+      }
+    }
+
     const modules = {
       upgradeShards: calculateBreakdownGroup(run, UPGRADE_SHARDS_CONFIG),
-      rerollShards: calculateBreakdownGroup(run, REROLL_SHARDS_CONFIG),
+      rerollShards,
       modules: calculateBreakdownGroup(run, MODULES_CONFIG),
     }
 
