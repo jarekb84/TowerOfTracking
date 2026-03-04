@@ -78,7 +78,7 @@ export function RunCard({ run, onToggleExpanded, isExpanded, onRemove }: RunCard
           <div className="grid grid-cols-3 gap-3 text-sm">
             <EconomyCard label="Coins" total={economy.coins} perHour={economy.coinsPerHour} />
             <EconomyCard label="Cells" total={economy.cells} perHour={economy.cellsPerHour} />
-            <EconomyCard label="Shards" total={economy.rerollShards} perHour={economy.rerollShardsPerHour} />
+            <EconomyCard label="Reroll" total={economy.rerollShards} perHour={economy.rerollShardsPerHour} />
           </div>
         </MobileCardSection>
 
