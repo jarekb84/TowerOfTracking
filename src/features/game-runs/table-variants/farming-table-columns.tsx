@@ -1,5 +1,7 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table';
 import { calculatePerHour } from '@/features/analysis/shared/parsing/data-parser';
+import { calculateSumTotal } from '@/features/game-runs/card-view/run-details/breakdown/breakdown-calculations';
+import { REROLL_SHARDS_FIELDS } from '@/features/game-runs/card-view/run-details/section-config';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import {
@@ -48,7 +50,7 @@ export function createFarmingTableColumns(
       calculatePerHour(row.coinsEarned ?? 0, row.realTime ?? 0)
     , {
       id: 'coinsPerHour',
-      header: 'Coins/Hour',
+      header: 'Coins/hr',
       cell: (info) => {
         const value = info.getValue() as number;
         return value ? formatLargeNumber(value) : '-';
@@ -61,12 +63,25 @@ export function createFarmingTableColumns(
       calculatePerHour(row.cellsEarned ?? 0, row.realTime ?? 0)
     , {
       id: 'cellsPerHour',
-      header: 'Cells/Hour',
+      header: 'Cells/hr',
       cell: (info) => {
         const value = info.getValue() as number;
         return value ? formatLargeNumber(value) : '-';
       },
       size: COLUMN_SIZES.cellsPerHour,
+    }),
+    // Farming-specific reroll shards/hour column
+    columnHelper.accessor((row) => {
+      const total = calculateSumTotal(row, [...REROLL_SHARDS_FIELDS]);
+      return calculatePerHour(total, row.realTime ?? 0);
+    }, {
+      id: 'rerollShardsPerHour',
+      header: 'Reroll/hr',
+      cell: (info) => {
+        const value = info.getValue() as number;
+        return value ? formatLargeNumber(value) : '-';
+      },
+      size: COLUMN_SIZES.rerollShardsPerHour,
     }),
     createActionsColumn(removeRun),
   ] as ColumnDef<ParsedGameRun>[];

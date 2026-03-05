@@ -166,6 +166,22 @@ describe('useRunDetailsData', () => {
       expect(coinsEarned!.perHourDisplayValue).toBeDefined()
     })
 
+    it('calculates reroll shards per hour dynamically', () => {
+      const run = createMockRun({
+        rerollShardsEarned: 10000,
+        rerollShards: 500,
+      }, {
+        realTime: 3600, // 1 hour
+      })
+
+      const { result } = renderHook(() => useRunDetailsData(run))
+      const rerollShards = result.current.modules.rerollShards
+
+      expect(rerollShards).not.toBeNull()
+      expect(rerollShards!.total).toBe(10500)
+      expect(rerollShards!.perHourDisplayValue).toBeDefined()
+    })
+
     it('calculates cells per hour dynamically', () => {
       const run = createMockRun({
         cellsEarned: 100,
