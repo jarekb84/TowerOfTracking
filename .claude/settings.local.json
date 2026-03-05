@@ -38,7 +38,9 @@
       "Skill(commit)",
       "Skill(commit:*)",
       "Bash(tree:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(ls:*)"
     ],
     "defaultMode": "acceptEdits"
   },

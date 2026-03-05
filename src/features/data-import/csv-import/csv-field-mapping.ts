@@ -12,6 +12,7 @@ import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/inte
 import { extractFieldNamesFromStorage } from '@/shared/domain/fields/field-discovery';
 import { classifyFields } from '@/shared/domain/fields/field-similarity';
 import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
+import { calculateGameSpeed } from '@/shared/domain/game-speed-calculation';
 
 /**
  * Create enhanced field mapping report with similarity detection
@@ -117,9 +118,14 @@ export function extractKeyStatsFromFields(fields: Record<string, GameRunField>):
   coinsEarned: number;
   cellsEarned: number;
   realTime: number;
+  gameSpeed: number | null;
   runType: 'farm' | 'tournament' | 'milestone';
 } {
   const numericStats = extractNumericStats(fields);
+
+  // Calculate gameSpeed from gameTime and realTime
+  const gameTime = (fields.gameTime?.value as number) || 0;
+  const gameSpeed = calculateGameSpeed(gameTime, numericStats.realTime);
 
   // Check if _runType field exists (from CSV), otherwise detect from tier
   let runType: 'farm' | 'tournament' | 'milestone';
@@ -132,6 +138,7 @@ export function extractKeyStatsFromFields(fields: Record<string, GameRunField>):
 
   return {
     ...numericStats,
+    gameSpeed,
     runType,
   };
 }
