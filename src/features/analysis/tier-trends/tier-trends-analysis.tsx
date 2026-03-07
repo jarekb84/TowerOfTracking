@@ -4,6 +4,9 @@ import { getAvailableTiersForTrends } from './calculations/tier-trends-calculati
 import { RunType } from '@/shared/domain/run-types/types'
 import { Duration, TrendsAggregation } from './types'
 import { useAvailableDurations } from '@/shared/domain/filters'
+import { usePeriodCountOptions } from '@/shared/domain/filters/period-count/use-period-count-options'
+import { usePeriodCountFallback } from '@/shared/domain/filters/period-count/use-period-count-fallback'
+import { TIER_TRENDS_PERIOD_COUNTS } from './filters/tier-trends-period-counts'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { TierTrendsFilters as TierTrendsFiltersComponent } from './filters/tier-trends-filters'
 import { TierTrendsTable } from './table/tier-trends-table'
@@ -35,7 +38,19 @@ export function TierTrendsAnalysis() {
     quantity: 4, // Default to 4 periods for better trending visibility
     aggregationType: TrendsAggregation.AVERAGE
   })
-  
+
+  // Data-aware period count options
+  const { options: periodCountOptions, label: periodCountLabel } =
+    usePeriodCountOptions(filters.duration, TIER_TRENDS_PERIOD_COUNTS, runs)
+
+  // Auto-fallback when options change and current selection is no longer available
+  usePeriodCountFallback(
+    filters.quantity,
+    periodCountOptions,
+    (count) => { if (typeof count === 'number') setFilters(prev => ({ ...prev, quantity: count })) },
+    'last-available'
+  )
+
   // Auto-select first available tier when run type changes
   useEffect(() => {
     if (availableTiers.length > 0 && filters.tier !== 0 && !availableTiers.includes(filters.tier)) {
@@ -107,6 +122,8 @@ export function TierTrendsAnalysis() {
         onFiltersChange={setFilters}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
 
       {/* Conditional Results Area */}

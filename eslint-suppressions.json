@@ -193,11 +193,6 @@
       "count": 1
     }
   },
-  "src/shared/domain/filters/duration/duration-filter-logic.ts": {
-    "max-statements": {
-      "count": 1
-    }
-  },
   "src/shared/domain/run-types/run-type-detection.ts": {
     "complexity": {
       "count": 1

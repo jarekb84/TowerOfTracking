@@ -9,8 +9,6 @@ import {
   DurationSelector,
   PeriodCountSelector,
   Duration,
-  getPeriodCountOptions,
-  getPeriodCountLabel,
 } from '@/shared/domain/filters'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
@@ -21,6 +19,8 @@ interface CoverageReportFiltersProps {
   filters: CoverageReportFilters
   availableTiers: number[]
   availableDurations: Duration[]
+  periodCountOptions: number[]
+  periodCountLabel: string
   onToggleMetric: (fieldName: CoverageFieldName) => void
   onRunTypeChange: (runType: RunTypeFilter) => void
   onTierChange: (tier: number | 'all') => void
@@ -32,14 +32,14 @@ export function CoverageReportFiltersComponent({
   filters,
   availableTiers,
   availableDurations,
+  periodCountOptions,
+  periodCountLabel,
   onToggleMetric,
   onRunTypeChange,
   onTierChange,
   onDurationChange,
   onPeriodCountChange,
 }: CoverageReportFiltersProps) {
-  const periodOptions = getPeriodCountOptions(filters.duration)
-  const periodLabel = getPeriodCountLabel(filters.duration)
 
   return (
     <div className="space-y-4">
@@ -80,8 +80,8 @@ export function CoverageReportFiltersComponent({
         <PeriodCountSelector
           selectedCount={filters.periodCount}
           onCountChange={onPeriodCountChange}
-          countOptions={periodOptions}
-          label={periodLabel}
+          countOptions={periodCountOptions}
+          label={periodCountLabel}
           accentColor="cyan"
           layout="vertical"
         />

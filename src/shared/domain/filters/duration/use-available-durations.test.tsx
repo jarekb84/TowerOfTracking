@@ -25,11 +25,11 @@ describe('useAvailableDurations', () => {
     expect(result.current.durations).toEqual([])
   })
 
-  it('should return HOURLY and PER_RUN for single run', () => {
+  it('should return HOURLY, PER_RUN, and DAILY for single run', () => {
     const runs = [createMockRunWithDate(new Date('2024-01-15'))]
     const { result } = renderHook(() => useAvailableDurations(runs))
 
-    expect(result.current.durations).toEqual([Duration.HOURLY, Duration.PER_RUN])
+    expect(result.current.durations).toEqual([Duration.HOURLY, Duration.PER_RUN, Duration.DAILY])
   })
 
   it('should include appropriate durations based on data span', () => {

@@ -10,6 +10,8 @@ import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import type { PeriodCountFilter } from '@/shared/domain/filters/types'
 import { clampPeriodCount } from '@/shared/domain/filters/period-count/period-count-logic'
+import { usePeriodCountOptions } from '@/shared/domain/filters/period-count/use-period-count-options'
+import { usePeriodCountFallback } from '@/shared/domain/filters/period-count/use-period-count-fallback'
 import type {
   CoverageReportFilters,
   CoverageAnalysisData,
@@ -56,6 +58,8 @@ interface UseCoverageReportReturn {
   // Available options for filters
   availableTiers: number[]
   availableDurations: Duration[]
+  periodCountOptions: number[]
+  periodCountLabel: string
 }
 
 /**
@@ -84,6 +88,17 @@ export function useCoverageReport({
   // Use unified hooks for available options
   const { tiers: availableTiers } = useAvailableTiers(runs, filters.runType)
   const { durations: availableDurations } = useAvailableDurations(runs)
+
+  // Data-aware period count options
+  const { options: periodCountOptions, label: periodCountLabel } =
+    usePeriodCountOptions(filters.duration, undefined, runs)
+
+  // Auto-fallback when options change and current selection is no longer available
+  usePeriodCountFallback(
+    filters.periodCount,
+    periodCountOptions,
+    (periodCount) => setFilters(prev => ({ ...prev, periodCount }))
+  )
 
   // Auto-reset tier to 'all' when the selected tier is no longer available
   useEffect(() => {
@@ -174,5 +189,7 @@ export function useCoverageReport({
     // Available options
     availableTiers,
     availableDurations,
+    periodCountOptions,
+    periodCountLabel,
   }
 }

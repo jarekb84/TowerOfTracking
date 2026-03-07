@@ -5,7 +5,7 @@ import { Duration } from '@/shared/domain/filters/types'
 
 describe('Chart Data Utils', () => {
   describe('getAvailableTimePeriods', () => {
-    it('should show daily, weekly, and monthly views even with single day of data', () => {
+    it('should show only hourly, per-run, and daily for same-day data', () => {
       const runs: ParsedGameRun[] = [
         {
           id: '1',
@@ -37,9 +37,9 @@ describe('Chart Data Utils', () => {
       expect(periodTypes).toContain(Duration.HOURLY)
       expect(periodTypes).toContain(Duration.PER_RUN)
       expect(periodTypes).toContain(Duration.DAILY)
-      expect(periodTypes).toContain(Duration.WEEKLY)
-      expect(periodTypes).toContain(Duration.MONTHLY)
-      expect(periodTypes).not.toContain(Duration.YEARLY) // Only one year of data
+      expect(periodTypes).not.toContain(Duration.WEEKLY)
+      expect(periodTypes).not.toContain(Duration.MONTHLY)
+      expect(periodTypes).not.toContain(Duration.YEARLY)
     })
 
     it('should show yearly view only when data spans multiple years', () => {
@@ -74,13 +74,13 @@ describe('Chart Data Utils', () => {
       expect(periodTypes).toContain(Duration.YEARLY)
     })
 
-    it('should only show hourly and run views when no data', () => {
+    it('should return empty when no data', () => {
       const runs: ParsedGameRun[] = []
 
       const periods = getAvailableTimePeriods(runs)
       const periodTypes = periods.map(p => p.period)
 
-      expect(periodTypes).toEqual([Duration.HOURLY, Duration.PER_RUN])
+      expect(periodTypes).toEqual([])
     })
   })
 

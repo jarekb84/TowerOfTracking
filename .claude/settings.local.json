@@ -41,7 +41,8 @@
       "Bash(findstr:*)",
       "Bash(npx vitest run --reporter=verbose)",
       "Bash(npx vitest run --reporter=dot)",
-      "Bash(npx vitest run)"
+      "Bash(npx vitest run)",
+      "Bash(npx vitest run src/**)"      
     ],
     "defaultMode": "acceptEdits"
   },

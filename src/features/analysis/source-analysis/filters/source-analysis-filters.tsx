@@ -11,8 +11,6 @@ import {
   DurationSelector,
   PeriodCountSelector,
   Duration,
-  getPeriodCountOptions,
-  getPeriodCountLabel,
 } from '@/shared/domain/filters'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
@@ -27,6 +25,8 @@ interface SourceAnalysisFiltersProps {
   filters: SourceAnalysisFilters
   availableTiers: number[]
   availableDurations: Duration[]
+  periodCountOptions: number[]
+  periodCountLabel: string
   onCategoryChange: (category: SourceCategory) => void
   onRunTypeChange: (runType: RunTypeFilter) => void
   onTierChange: (tier: number | 'all') => void
@@ -38,6 +38,8 @@ export function SourceAnalysisFiltersComponent({
   filters,
   availableTiers,
   availableDurations,
+  periodCountOptions,
+  periodCountLabel,
   onCategoryChange,
   onRunTypeChange,
   onTierChange,
@@ -45,8 +47,6 @@ export function SourceAnalysisFiltersComponent({
   onQuantityChange,
 }: SourceAnalysisFiltersProps) {
   const categories = getAvailableCategories()
-  const periodOptions = getPeriodCountOptions(filters.duration)
-  const periodLabel = getPeriodCountLabel(filters.duration)
 
   return (
     <div className="space-y-4">
@@ -95,8 +95,8 @@ export function SourceAnalysisFiltersComponent({
         <PeriodCountSelector
           selectedCount={filters.quantity}
           onCountChange={onQuantityChange}
-          countOptions={periodOptions}
-          label={periodLabel}
+          countOptions={periodCountOptions}
+          label={periodCountLabel}
           accentColor="purple"
           layout="vertical"
         />

@@ -41,11 +41,18 @@ function createMockRun(
   };
 }
 
-const mockRuns: ParsedGameRun[] = [
-  createMockRun('1', new Date('2024-03-15'), { orbDamage: 600, thornDamage: 400 }, 11, 'farm'),
-  createMockRun('2', new Date('2024-03-16'), { orbDamage: 700, thornDamage: 300 }, 11, 'tournament'),
-  createMockRun('3', new Date('2024-03-17'), { orbDamage: 500, thornDamage: 500 }, 12, 'farm'),
-];
+// 60 runs spanning ~7 months to support all default period counts across durations
+const mockRuns: ParsedGameRun[] = Array.from({ length: 60 }, (_, i) => {
+  const date = new Date('2024-01-01')
+  date.setDate(date.getDate() + i * 3.5)
+  return createMockRun(
+    String(i + 1),
+    date,
+    { orbDamage: 500 + i * 20, thornDamage: 500 - i * 10 },
+    i < 40 ? 11 : 12,
+    i % 3 === 0 ? 'tournament' : 'farm'
+  )
+});
 
 describe('useSourceAnalysis', () => {
   describe('initialization', () => {
@@ -261,13 +268,20 @@ describe('useSourceAnalysis', () => {
   });
 
   describe('available tiers', () => {
+    // Use minimal data for tier-specific tests
+    const tierTestRuns: ParsedGameRun[] = [
+      createMockRun('t1', new Date('2024-03-15'), { orbDamage: 600, thornDamage: 400 }, 11, 'farm'),
+      createMockRun('t2', new Date('2024-03-16'), { orbDamage: 700, thornDamage: 300 }, 11, 'tournament'),
+      createMockRun('t3', new Date('2024-03-17'), { orbDamage: 500, thornDamage: 500 }, 12, 'farm'),
+    ];
+
     it('filters tiers by current run type', () => {
       const { result } = renderHook(() =>
-        useSourceAnalysis({ runs: mockRuns })
+        useSourceAnalysis({ runs: tierTestRuns })
       );
 
       // Default category is damageDealt with tournament run type
-      // Only run 2 is tournament (T11), so only T11 should be available
+      // Only run t2 is tournament (T11), so only T11 should be available
       expect(result.current.availableTiers).toEqual([11]);
 
       // Switch to farm runs to see different tiers
@@ -275,7 +289,7 @@ describe('useSourceAnalysis', () => {
         result.current.setRunType('farm');
       });
 
-      // Farm runs include T11 (run 1) and T12 (run 3)
+      // Farm runs include T11 (run t1) and T12 (run t3)
       expect(result.current.availableTiers).toEqual([12, 11]);
     });
 
@@ -289,7 +303,7 @@ describe('useSourceAnalysis', () => {
 
     it('resets tier to all when selected tier becomes unavailable', () => {
       const { result } = renderHook(() =>
-        useSourceAnalysis({ runs: mockRuns })
+        useSourceAnalysis({ runs: tierTestRuns })
       );
 
       // Switch to farm to get T12 available

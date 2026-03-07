@@ -27,41 +27,56 @@ describe('getAvailableDurations', () => {
     expect(getAvailableDurations([])).toEqual([])
   })
 
-  it('should return HOURLY and PER_RUN for single run', () => {
+  it('should return HOURLY, PER_RUN, and DAILY for single run', () => {
     const runs = [createMockRunWithDate(new Date('2024-01-15'))]
-    expect(getAvailableDurations(runs)).toEqual([Duration.HOURLY, Duration.PER_RUN])
+    expect(getAvailableDurations(runs)).toEqual([Duration.HOURLY, Duration.PER_RUN, Duration.DAILY])
   })
 
-  it('should include DAILY for runs spanning 2+ days', () => {
+  it('should always include DAILY when runs exist', () => {
     const runs = [
       createMockRunWithDate(new Date('2024-01-15')),
-      createMockRunWithDate(new Date('2024-01-16'))
+      createMockRunWithDate(new Date('2024-01-15'))
     ]
     const available = getAvailableDurations(runs)
-    expect(available).toContain(Duration.HOURLY)
-    expect(available).toContain(Duration.PER_RUN)
     expect(available).toContain(Duration.DAILY)
+  })
+
+  it('should not include WEEKLY for 7 days or fewer', () => {
+    const runs = [
+      createMockRunWithDate(new Date('2024-01-01')),
+      createMockRunWithDate(new Date('2024-01-08'))
+    ]
+    const available = getAvailableDurations(runs)
     expect(available).not.toContain(Duration.WEEKLY)
   })
 
-  it('should include WEEKLY for runs spanning 14+ days', () => {
+  it('should include WEEKLY for data spanning more than 7 days', () => {
     const runs = [
       createMockRunWithDate(new Date('2024-01-01')),
-      createMockRunWithDate(new Date('2024-01-15'))
+      createMockRunWithDate(new Date('2024-01-09'))
     ]
     const available = getAvailableDurations(runs)
     expect(available).toContain(Duration.WEEKLY)
     expect(available).not.toContain(Duration.MONTHLY)
   })
 
-  it('should include MONTHLY for runs spanning 60+ days', () => {
+  it('should include MONTHLY for runs in different calendar months', () => {
     const runs = [
-      createMockRunWithDate(new Date('2024-01-01')),
-      createMockRunWithDate(new Date('2024-03-02'))
+      createMockRunWithDate(new Date('2024-01-31')),
+      createMockRunWithDate(new Date('2024-02-01'))
     ]
     const available = getAvailableDurations(runs)
     expect(available).toContain(Duration.MONTHLY)
     expect(available).not.toContain(Duration.YEARLY)
+  })
+
+  it('should not include MONTHLY for runs in same calendar month', () => {
+    const runs = [
+      createMockRunWithDate(new Date('2024-01-01')),
+      createMockRunWithDate(new Date('2024-01-31'))
+    ]
+    const available = getAvailableDurations(runs)
+    expect(available).not.toContain(Duration.MONTHLY)
   })
 
   it('should include YEARLY for runs spanning multiple calendar years', () => {
@@ -87,9 +102,9 @@ describe('getAvailableDurations', () => {
       { ...createMockRunWithDate(new Date('2024-01-01')), timestamp: undefined } as unknown as ParsedGameRun,
       createMockRunWithDate(new Date('2024-01-02'))
     ]
-    // With only one valid date, can't determine span
+    // With only one valid date, can't determine span beyond daily
     const available = getAvailableDurations(runs)
-    expect(available).toEqual([Duration.HOURLY, Duration.PER_RUN])
+    expect(available).toEqual([Duration.HOURLY, Duration.PER_RUN, Duration.DAILY])
   })
 })
 
@@ -135,4 +150,3 @@ describe('getClosestAvailableDuration', () => {
     expect(getClosestAvailableDuration(Duration.WEEKLY, [])).toBe(Duration.PER_RUN)
   })
 })
-
