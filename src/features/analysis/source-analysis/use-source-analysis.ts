@@ -17,6 +17,8 @@ import { DEFAULT_FILTERS, getDefaultRunTypeForCategory } from './types';
 import { getCategoryDefinition } from './category-config';
 import { calculateSourceAnalysis } from './calculations/period-grouping';
 import { clampPeriodCount } from '@/shared/domain/filters/period-count/period-count-logic';
+import { usePeriodCountOptions } from '@/shared/domain/filters/period-count/use-period-count-options';
+import { usePeriodCountFallback } from '@/shared/domain/filters/period-count/use-period-count-fallback';
 import {
   useAvailableTiers,
   useAvailableDurations,
@@ -50,6 +52,8 @@ interface UseSourceAnalysisReturn {
   // Available options for filters
   availableTiers: number[];
   availableDurations: Duration[];
+  periodCountOptions: number[];
+  periodCountLabel: string;
 }
 
 /**
@@ -72,6 +76,17 @@ export function useSourceAnalysis({
   // Filter tiers by current run type to only show tiers with data for that run type
   const { tiers: availableTiers } = useAvailableTiers(runs, filters.runType);
   const { durations: availableDurations } = useAvailableDurations(runs);
+
+  // Data-aware period count options
+  const { options: periodCountOptions, label: periodCountLabel } =
+    usePeriodCountOptions(filters.duration, undefined, runs);
+
+  // Auto-fallback when options change and current selection is no longer available
+  usePeriodCountFallback(
+    filters.quantity,
+    periodCountOptions,
+    (quantity) => setFilters(prev => ({ ...prev, quantity }))
+  );
 
   // Auto-reset tier to 'all' when the selected tier is no longer available
   useEffect(() => {
@@ -143,5 +158,7 @@ export function useSourceAnalysis({
     // Available options
     availableTiers,
     availableDurations,
+    periodCountOptions,
+    periodCountLabel,
   };
 }

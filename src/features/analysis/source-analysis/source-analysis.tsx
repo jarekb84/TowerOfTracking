@@ -172,6 +172,62 @@ function ChartCard({ title, children }: ChartCardProps) {
   )
 }
 
+function SourceAnalysisCharts({
+  analysisData,
+  highlightedSource,
+  onSourceHover,
+}: {
+  analysisData: NonNullable<ReturnType<typeof useSourceAnalysis>['analysisData']>
+  highlightedSource: string | null
+  onSourceHover: (fieldName: string | null) => void
+}) {
+  return (
+    <div className="space-y-6">
+      <ChartCard title="Source Proportions Over Time">
+        <SourceTimelineChart
+          periods={analysisData.periods}
+          sortedSources={analysisData.summary.sources}
+          highlightedSource={highlightedSource}
+          onSourceHover={onSourceHover}
+        />
+      </ChartCard>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ChartCard title="Overall Breakdown">
+          <div className="flex items-center justify-center" style={{ height: Math.max(224, analysisData.summary.sources.length * 32 + 40) }}>
+            <SourcePieChart
+              sources={analysisData.summary.sources}
+              highlightedSource={highlightedSource}
+              onSourceHover={onSourceHover}
+            />
+          </div>
+        </ChartCard>
+
+        <div className="lg:col-span-2">
+          <ChartCard title="Source Ranking">
+            <SourceBarChart
+              sources={analysisData.summary.sources}
+              highlightedSource={highlightedSource}
+              onSourceHover={onSourceHover}
+            />
+          </ChartCard>
+        </div>
+      </div>
+
+      {analysisData.periods.length <= 2 && (
+        <div className="text-center text-sm text-slate-400 py-2">
+          <span className="inline-flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Add more runs for detailed trend analysis.
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function SourceAnalysis() {
   const { runs } = useData()
 
@@ -188,20 +244,22 @@ export function SourceAnalysis() {
     setHighlightedSource,
     availableTiers,
     availableDurations,
+    periodCountOptions,
+    periodCountLabel,
   } = useSourceAnalysis({ runs })
 
-  // Show empty state if no runs at all
   if (runs.length === 0) {
     return <EmptyState />
   }
 
   return (
     <div className="space-y-6">
-      {/* Filter Controls */}
       <SourceAnalysisFiltersComponent
         filters={filters}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
         onCategoryChange={setCategory}
         onRunTypeChange={setRunType}
         onTierChange={setTier}
@@ -209,7 +267,6 @@ export function SourceAnalysis() {
         onQuantityChange={setQuantity}
       />
 
-      {/* Filter Summary */}
       {analysisData && (
         <FilterSummary
           categoryName={analysisData.category.name}
@@ -222,62 +279,18 @@ export function SourceAnalysis() {
         />
       )}
 
-      {/* No filtered data state */}
       {!hasData && (
         <NoFilteredDataState
           message="Try expanding the time period or adjusting tier/run type filters."
         />
       )}
 
-      {/* Charts */}
       {hasData && analysisData && (
-        <div className="space-y-6">
-          {/* Timeline Chart */}
-          <ChartCard title="Source Proportions Over Time">
-            <SourceTimelineChart
-              periods={analysisData.periods}
-              sortedSources={analysisData.summary.sources}
-              highlightedSource={highlightedSource}
-              onSourceHover={setHighlightedSource}
-            />
-          </ChartCard>
-
-          {/* Summary Charts Row - 1/3 pie chart, 2/3 bar chart */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ChartCard title="Overall Breakdown">
-              <div className="flex items-center justify-center" style={{ height: Math.max(224, analysisData.summary.sources.length * 32 + 40) }}>
-                <SourcePieChart
-                  sources={analysisData.summary.sources}
-                  highlightedSource={highlightedSource}
-                  onSourceHover={setHighlightedSource}
-                />
-              </div>
-            </ChartCard>
-
-            {/* Bar Chart - takes 2/3 width */}
-            <div className="lg:col-span-2">
-              <ChartCard title="Source Ranking">
-                <SourceBarChart
-                  sources={analysisData.summary.sources}
-                  highlightedSource={highlightedSource}
-                  onSourceHover={setHighlightedSource}
-                />
-              </ChartCard>
-            </div>
-          </div>
-
-          {/* Limited Data Notice */}
-          {analysisData.periods.length <= 2 && (
-            <div className="text-center text-sm text-slate-400 py-2">
-              <span className="inline-flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Add more runs for detailed trend analysis.
-              </span>
-            </div>
-          )}
-        </div>
+        <SourceAnalysisCharts
+          analysisData={analysisData}
+          highlightedSource={highlightedSource}
+          onSourceHover={setHighlightedSource}
+        />
       )}
     </div>
   )

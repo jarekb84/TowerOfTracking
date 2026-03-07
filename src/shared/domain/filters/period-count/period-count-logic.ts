@@ -7,6 +7,7 @@
  */
 
 import { Duration, PERIOD_UNIT_LABELS } from '../types'
+import { pruneCountOptions } from './prune-period-options'
 
 /**
  * Custom period count overrides for consumers with layout-specific needs.
@@ -157,4 +158,47 @@ export function adjustPeriodCountForDuration(
   }
 
   return closest
+}
+
+/**
+ * Get period count options pruned by actual data coverage.
+ * Uses N+1 bucket rule: includes one option beyond the data's period count.
+ */
+export function getDataAwarePeriodCountOptions(
+  duration: Duration,
+  dataPeriodCount: number,
+  overrides?: PeriodCountOverrides
+): number[] {
+  const allOptions = getPeriodCountOptions(duration, overrides)
+  return pruneCountOptions(allOptions, dataPeriodCount)
+}
+
+/**
+ * Fallback strategy when the current selection is not in the available options.
+ * - 'all': fall back to 'all' (for chart-based views that support unlimited)
+ * - 'last-available': fall back to the last numeric option (for table-based views)
+ */
+export type FallbackStrategy = 'all' | 'last-available'
+
+/**
+ * Fall back to a valid option when the current selection is pruned away.
+ *
+ * With 'last-available' strategy, falls back to the highest available numeric
+ * option instead of 'all'. Use this for consumers whose state is number-only.
+ */
+export function fallbackToValidOption(
+  currentCount: number | 'all',
+  availableOptions: number[],
+  fallbackTo: FallbackStrategy = 'all'
+): number | 'all' {
+  if (currentCount === 'all') {
+    return 'all'
+  }
+  if (availableOptions.includes(currentCount)) {
+    return currentCount
+  }
+  if (fallbackTo === 'last-available' && availableOptions.length > 0) {
+    return availableOptions[availableOptions.length - 1]
+  }
+  return 'all'
 }

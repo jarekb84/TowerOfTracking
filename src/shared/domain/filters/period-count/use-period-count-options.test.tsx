@@ -1,8 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { Duration } from '../types'
 import type { PeriodCountOverrides } from './period-count-logic'
 import { usePeriodCountOptions } from './use-period-count-options'
+
+function mockRun(date: Date): ParsedGameRun {
+  return {
+    id: `run-${date.getTime()}`,
+    timestamp: date,
+    tier: 14,
+    wave: 100,
+    coinsEarned: 1000,
+    cellsEarned: 100,
+    realTime: 3600,
+    runType: 'farm',
+    fields: {}
+  } as ParsedGameRun
+}
 
 describe('usePeriodCountOptions', () => {
   it('should return correct options for PER_RUN', () => {
@@ -119,6 +134,57 @@ describe('usePeriodCountOptions', () => {
       expect(result.current.adjustForDuration(14)).toBe(7)
       // 5 is valid
       expect(result.current.adjustForDuration(5)).toBe(5)
+    })
+  })
+
+  describe('with runs (data-aware pruning)', () => {
+    it('should prune options based on data coverage', () => {
+      // 9 distinct weeks of data
+      const runs: ParsedGameRun[] = []
+      for (let i = 0; i < 9; i++) {
+        const date = new Date('2024-01-01')
+        date.setDate(date.getDate() + i * 7)
+        runs.push(mockRun(date))
+      }
+
+      const { result } = renderHook(() =>
+        usePeriodCountOptions(Duration.WEEKLY, undefined, runs)
+      )
+
+      // Weekly options [5,10,15,20,25,30], 9 weeks -> [5, 10]
+      expect(result.current.options).toEqual([5, 10])
+    })
+
+    it('should return full options when runs not provided', () => {
+      const { result } = renderHook(() =>
+        usePeriodCountOptions(Duration.WEEKLY)
+      )
+
+      expect(result.current.options).toEqual([5, 10, 15, 20, 25, 30])
+    })
+
+    it('should provide ensureValidOption helper', () => {
+      // 4 months of data
+      const runs = [
+        mockRun(new Date('2024-01-15')),
+        mockRun(new Date('2024-02-15')),
+        mockRun(new Date('2024-03-15')),
+        mockRun(new Date('2024-04-15')),
+      ]
+
+      const { result } = renderHook(() =>
+        usePeriodCountOptions(Duration.MONTHLY, undefined, runs)
+      )
+
+      // Monthly options [3,6,9,12], 4 months -> [3, 6]
+      expect(result.current.options).toEqual([3, 6])
+
+      // 3 is valid
+      expect(result.current.ensureValidOption(3)).toBe(3)
+      // 9 is pruned, falls back to 'all'
+      expect(result.current.ensureValidOption(9)).toBe('all')
+      // 'all' stays 'all'
+      expect(result.current.ensureValidOption('all')).toBe('all')
     })
   })
 })

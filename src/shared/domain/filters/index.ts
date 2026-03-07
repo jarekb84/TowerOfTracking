@@ -5,7 +5,7 @@
  */
 
 // Types
-export { Duration, PERIOD_UNIT_LABELS } from './types'
+export { Duration, PERIOD_UNIT_LABELS } from './types'
 
 // Tier filter - pure logic functions, hooks, and components
 export {
@@ -22,11 +22,6 @@ export { TierSelector,  } from './tier/tier-selector'
 export { useAvailableDurations,  } from './duration/use-available-durations'
 export { DurationSelector,  } from './duration/duration-selector'
 
-// Period count filter - pure logic functions, hooks, and components
-export {
-  getPeriodCountOptions,
-  getDefaultPeriodCount,
-  getPeriodCountLabel
-} from './period-count/period-count-logic'
-
+// Period count filter - pure logic functions, hooks, and components
+export { getDefaultPeriodCount } from './period-count/period-count-logic'
 export { PeriodCountSelector,  } from './period-count/period-count-selector'

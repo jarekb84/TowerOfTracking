@@ -1,6 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { Duration, type PeriodCountFilter } from '@/shared/domain/filters/types'
-import { getPeriodCountOptions, getPeriodCountLabel } from '@/shared/domain/filters/period-count/period-count-logic'
+import {
+  getDataAwarePeriodCountOptions,
+  getPeriodCountLabel,
+  fallbackToValidOption,
+} from '@/shared/domain/filters/period-count/period-count-logic'
+import { countDataPeriods } from '@/shared/domain/filters/period-count/count-data-periods'
 import {
   loadPersistedIntervalCount,
   savePersistedIntervalCount,
@@ -15,16 +21,34 @@ interface UseIntervalSelectorResult {
 
 /**
  * Hook to manage interval count state with localStorage persistence.
- * Loads persisted value on duration change, falls back to 'all'.
+ * Prunes options based on actual data coverage using N+1 bucket rule.
  */
-export function useIntervalSelector(duration: Duration): UseIntervalSelectorResult {
+export function useIntervalSelector(
+  duration: Duration,
+  runs?: ParsedGameRun[]
+): UseIntervalSelectorResult {
   const [intervalCount, setIntervalCountState] = useState<PeriodCountFilter>('all')
 
-  // Load persisted interval when duration changes
+  const dataPeriodCount = useMemo(
+    () => (runs ? countDataPeriods(runs, duration) : null),
+    [runs, duration]
+  )
+
+  const countOptions = useMemo(
+    () => getDataAwarePeriodCountOptions(duration, dataPeriodCount ?? Infinity),
+    [duration, dataPeriodCount]
+  )
+
+  // Load persisted interval when duration or options change, with fallback
   useEffect(() => {
     const persisted = loadPersistedIntervalCount(duration)
-    setIntervalCountState(persisted ?? 'all')
-  }, [duration])
+    const value = persisted ?? 'all'
+    const valid = fallbackToValidOption(value, countOptions)
+    setIntervalCountState(valid)
+    if (valid !== value) {
+      savePersistedIntervalCount(duration, valid)
+    }
+  }, [duration, countOptions])
 
   const setIntervalCount = useCallback(
     (count: PeriodCountFilter) => {
@@ -37,7 +61,7 @@ export function useIntervalSelector(duration: Duration): UseIntervalSelectorResu
   return {
     intervalCount,
     setIntervalCount,
-    countOptions: getPeriodCountOptions(duration),
+    countOptions,
     label: getPeriodCountLabel(duration),
   }
 }

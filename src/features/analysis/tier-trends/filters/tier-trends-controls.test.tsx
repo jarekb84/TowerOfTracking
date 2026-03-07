@@ -16,6 +16,8 @@ describe('TierTrendsControls', () => {
 
   const availableTiers = [1, 2, 3, 4, 5]
   const availableDurations = [Duration.PER_RUN, Duration.DAILY, Duration.WEEKLY, Duration.MONTHLY, Duration.YEARLY]
+  const periodCountOptions = [2, 3, 4, 5, 6, 7]
+  const periodCountLabel = 'Last Runs'
 
   it('renders all control groups', () => {
     const onRunTypeChange = vi.fn()
@@ -29,6 +31,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -49,6 +53,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -77,6 +83,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -103,6 +111,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -130,6 +140,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -156,6 +168,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -188,6 +202,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 
@@ -221,6 +237,8 @@ describe('TierTrendsControls', () => {
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
       />
     )
 

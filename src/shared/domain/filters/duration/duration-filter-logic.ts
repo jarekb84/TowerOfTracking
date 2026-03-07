@@ -8,63 +8,46 @@
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { Duration, DURATION_LABELS } from '../types'
-
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
+import { calculateDataSpan } from '../data-span'
 
 /**
  * Determine which duration options should be available based on the data span
  *
- * Rules:
- * - Per Run: Always available if runs exist
- * - Daily: Available if data spans at least 2 days
- * - Weekly: Available if data spans at least 2 weeks
- * - Monthly: Available if data spans at least 2 months
- * - Yearly: Available if data spans multiple years
+ * Rules (aligned with PRD):
+ * - Hourly & Per Run: Always available if runs exist
+ * - Daily: Always available if runs exist (any amount of data supports daily)
+ * - Weekly: Available if data spans more than 7 days
+ * - Monthly: Available if data spans different calendar months
+ * - Yearly: Available if data spans different calendar years
  */
 export function getAvailableDurations(runs: ParsedGameRun[]): Duration[] {
   if (runs.length === 0) {
     return []
   }
 
+  const available: Duration[] = [Duration.HOURLY, Duration.PER_RUN, Duration.DAILY]
+
   if (runs.length === 1) {
-    return [Duration.HOURLY, Duration.PER_RUN]
-  }
-
-  const available: Duration[] = [Duration.HOURLY, Duration.PER_RUN]
-
-  // Find date range from runs
-  const dates = runs
-    .map(run => run.timestamp)
-    .filter((date): date is Date => date instanceof Date && !isNaN(date.getTime()))
-
-  if (dates.length < 2) {
     return available
   }
 
-  const sortedDates = dates.sort((a, b) => a.getTime() - b.getTime())
-  const earliest = sortedDates[0]
-  const latest = sortedDates[sortedDates.length - 1]
-
-  const daySpan = Math.floor((latest.getTime() - earliest.getTime()) / MILLISECONDS_PER_DAY)
-
-  // Daily requires at least 2 different days
-  if (daySpan >= 1) {
-    available.push(Duration.DAILY)
+  const span = calculateDataSpan(runs)
+  if (!span) {
+    return available
   }
 
-  // Weekly requires at least 2 weeks of data (14 days)
-  if (daySpan >= 14) {
+  // Weekly: data spans more than 7 days
+  if (span.daySpan > 7) {
     available.push(Duration.WEEKLY)
   }
 
-  // Monthly requires at least 2 months of data (60 days as approximation)
-  if (daySpan >= 60) {
+  // Monthly: earliest and latest are in different calendar months
+  if (span.spansDifferentMonths) {
     available.push(Duration.MONTHLY)
   }
 
-  // Yearly requires data spanning multiple calendar years
-  // Use UTC year to avoid timezone issues
-  if (earliest.getUTCFullYear() !== latest.getUTCFullYear()) {
+  // Yearly: 2+ distinct calendar years
+  if (span.spansDifferentYears) {
     available.push(Duration.YEARLY)
   }
 
@@ -118,4 +101,3 @@ export function getClosestAvailableDuration(
 
   return Duration.PER_RUN
 }
-

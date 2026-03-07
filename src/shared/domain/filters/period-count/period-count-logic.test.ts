@@ -7,7 +7,9 @@ import {
   getDefaultPeriodCount,
   getPeriodCountLabel,
   formatPeriodCountValue,
-  adjustPeriodCountForDuration
+  adjustPeriodCountForDuration,
+  getDataAwarePeriodCountOptions,
+  fallbackToValidOption
 } from './period-count-logic'
 
 describe('getPeriodCountOptions', () => {
@@ -192,5 +194,67 @@ describe('asNumericPeriodCount', () => {
       [Duration.DAILY]: [2, 3, 4, 5, 6, 7],
     }
     expect(asNumericPeriodCount('all', Duration.WEEKLY, overrides)).toBe(10)
+  })
+})
+
+describe('getDataAwarePeriodCountOptions', () => {
+  it('should prune weekly options with N+1 rule', () => {
+    // 9 weeks of data, weekly options [5,10,15,20,25,30] -> [5, 10]
+    expect(getDataAwarePeriodCountOptions(Duration.WEEKLY, 9)).toEqual([5, 10])
+  })
+
+  it('should prune monthly options with N+1 rule', () => {
+    // 4 months, monthly options [3,6,9,12] -> [3, 6]
+    expect(getDataAwarePeriodCountOptions(Duration.MONTHLY, 4)).toEqual([3, 6])
+  })
+
+  it('should return all options when data exceeds all', () => {
+    expect(getDataAwarePeriodCountOptions(Duration.WEEKLY, 35)).toEqual([5, 10, 15, 20, 25, 30])
+  })
+
+  it('should return empty when dataPeriodCount is 0', () => {
+    expect(getDataAwarePeriodCountOptions(Duration.WEEKLY, 0)).toEqual([])
+  })
+
+  it('should respect overrides', () => {
+    const overrides: PeriodCountOverrides = {
+      [Duration.DAILY]: [2, 3, 4, 5, 6, 7],
+    }
+    // 3 days of data, overrides [2,3,4,5,6,7] -> [2, 3, 4]
+    expect(getDataAwarePeriodCountOptions(Duration.DAILY, 3, overrides)).toEqual([2, 3, 4])
+  })
+})
+
+describe('fallbackToValidOption', () => {
+  it('should pass through "all" unchanged', () => {
+    expect(fallbackToValidOption('all', [5, 10, 15])).toBe('all')
+  })
+
+  it('should keep valid numeric option', () => {
+    expect(fallbackToValidOption(10, [5, 10, 15])).toBe(10)
+  })
+
+  it('should fall back to "all" when option is not available', () => {
+    expect(fallbackToValidOption(20, [5, 10, 15])).toBe('all')
+  })
+
+  it('should fall back to "all" for empty options', () => {
+    expect(fallbackToValidOption(5, [])).toBe('all')
+  })
+
+  it('should fall back to last available option with last-available strategy', () => {
+    expect(fallbackToValidOption(20, [5, 10, 15], 'last-available')).toBe(15)
+  })
+
+  it('should fall back to "all" with last-available strategy when options are empty', () => {
+    expect(fallbackToValidOption(5, [], 'last-available')).toBe('all')
+  })
+
+  it('should keep valid option with last-available strategy', () => {
+    expect(fallbackToValidOption(10, [5, 10, 15], 'last-available')).toBe(10)
+  })
+
+  it('should pass through "all" with last-available strategy', () => {
+    expect(fallbackToValidOption('all', [5, 10, 15], 'last-available')).toBe('all')
   })
 })

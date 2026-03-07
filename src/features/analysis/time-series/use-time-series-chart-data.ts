@@ -66,7 +66,7 @@ export function useTimeSeriesChartData(
     setIntervalCount,
     countOptions: intervalCountOptions,
     label: intervalLabel,
-  } = useIntervalSelector(selectedPeriod)
+  } = useIntervalSelector(selectedPeriod, filteredRuns)
 
   // Moving average state with localStorage persistence (period-aware)
   const { trendWindow, setTrendWindow, windowSize, isEnabled: isAverageEnabled } =

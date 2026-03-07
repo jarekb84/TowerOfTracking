@@ -7,7 +7,6 @@ import {
   zeroToAllTierAdapter,
   allToZeroTierAdapter
 } from '@/shared/domain/filters'
-import { usePeriodCountOptions } from '@/shared/domain/filters/period-count/use-period-count-options'
 import { adjustPeriodCountForDuration, asNumericPeriodCount } from '@/shared/domain/filters/period-count/period-count-logic'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import type { TierTrendsFilters } from '../types'
@@ -23,6 +22,8 @@ interface TierTrendsControlsProps {
   onFiltersChange: (filters: TierTrendsFilters) => void
   availableTiers: number[]
   availableDurations: Duration[]
+  periodCountOptions: number[]
+  periodCountLabel: string
   tierCounts?: Map<number, number>
 }
 
@@ -33,11 +34,10 @@ export function TierTrendsControls({
   onFiltersChange,
   availableTiers,
   availableDurations,
-  tierCounts
+  periodCountOptions,
+  periodCountLabel,
+  tierCounts,
 }: TierTrendsControlsProps) {
-  const { options: periodCountOptions, label: periodCountLabel } =
-    usePeriodCountOptions(filters.duration, TIER_TRENDS_PERIOD_COUNTS)
-
   return (
     <div className="space-y-4">
       {/* Row 1: Run Type & Tier */}

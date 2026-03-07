@@ -47,18 +47,15 @@ function createMockRun(
 }
 
 describe('useCoverageReport', () => {
-  const defaultMockRuns = [
-    createMockRun('1', new Date(2024, 2, 15, 12, 0, 0), {
+  // 30 runs spanning ~7 months to support default period counts across durations
+  const defaultMockRuns = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date(2024, 0, 1 + i * 7, 12, 0, 0)
+    return createMockRun(String(i + 1), date, {
       totalEnemies: 1000,
-      taggedByDeathwave: 800,
-      destroyedInSpotlight: 300,
-    }),
-    createMockRun('2', new Date(2024, 2, 16, 12, 0, 0), {
-      totalEnemies: 1000,
-      taggedByDeathwave: 600,
-      destroyedInSpotlight: 400,
-    }),
-  ]
+      taggedByDeathwave: 800 - i * 10,
+      destroyedInSpotlight: 300 + i * 5,
+    })
+  })
 
   describe('initialization', () => {
     it('initializes with default filters', () => {
@@ -82,12 +79,12 @@ describe('useCoverageReport', () => {
       const { result } = renderHook(() =>
         useCoverageReport({
           runs: defaultMockRuns,
-          initialFilters: { tier: 11, periodCount: 10 },
+          initialFilters: { tier: 11, periodCount: 14 },
         })
       )
 
       expect(result.current.filters.tier).toBe(11)
-      expect(result.current.filters.periodCount).toBe(10)
+      expect(result.current.filters.periodCount).toBe(14)
       // Other values should be defaults
       expect(result.current.filters.runType).toBe('farm')
     })

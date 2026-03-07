@@ -214,6 +214,8 @@ export function CoverageReport() {
     yAxisMax,
     availableTiers,
     availableDurations,
+    periodCountOptions,
+    periodCountLabel,
   } = useCoverageReport({ runs })
 
   // Show empty state if no runs at all
@@ -228,6 +230,8 @@ export function CoverageReport() {
         filters={filters}
         availableTiers={availableTiers}
         availableDurations={availableDurations}
+        periodCountOptions={periodCountOptions}
+        periodCountLabel={periodCountLabel}
         onToggleMetric={toggleMetric}
         onRunTypeChange={setRunType}
         onTierChange={setTier}
