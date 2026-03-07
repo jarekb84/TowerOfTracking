@@ -3,18 +3,19 @@ import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { TierTrendsControls } from './tier-trends-controls'
 import { RunType } from '@/shared/domain/run-types/types'
-import { TrendsDuration, TrendsAggregation } from '../types'
+import { Duration, TrendsAggregation } from '../types'
 import type { TierTrendsFilters } from '../types'
 
 describe('TierTrendsControls', () => {
   const defaultFilters: TierTrendsFilters = {
     tier: 0,
-    duration: TrendsDuration.PER_RUN,
+    duration: Duration.PER_RUN,
     quantity: 4,
     aggregationType: TrendsAggregation.AVERAGE
   }
 
   const availableTiers = [1, 2, 3, 4, 5]
+  const availableDurations = [Duration.PER_RUN, Duration.DAILY, Duration.WEEKLY, Duration.MONTHLY, Duration.YEARLY]
 
   it('renders all control groups', () => {
     const onRunTypeChange = vi.fn()
@@ -27,12 +28,13 @@ describe('TierTrendsControls', () => {
         filters={defaultFilters}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
     expect(screen.getByText(/Tier/i)).toBeInTheDocument()
     expect(screen.getByText(/Duration/i)).toBeInTheDocument()
-    expect(screen.getByText(/Last runs/i)).toBeInTheDocument()
+    expect(screen.getByText(/Last Runs/i)).toBeInTheDocument()
   })
 
   it('shows aggregation selector with Actual and Per Hour options when duration is per-run', () => {
@@ -46,6 +48,7 @@ describe('TierTrendsControls', () => {
         filters={defaultFilters}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -63,7 +66,7 @@ describe('TierTrendsControls', () => {
 
     const filtersWithDailyDuration: TierTrendsFilters = {
       ...defaultFilters,
-      duration: TrendsDuration.DAILY
+      duration: Duration.DAILY
     }
 
     render(
@@ -73,6 +76,7 @@ describe('TierTrendsControls', () => {
         filters={filtersWithDailyDuration}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -98,6 +102,7 @@ describe('TierTrendsControls', () => {
         filters={defaultFilters}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -107,7 +112,7 @@ describe('TierTrendsControls', () => {
 
     expect(onFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
-      duration: TrendsDuration.DAILY,
+      duration: Duration.DAILY,
       aggregationType: TrendsAggregation.SUM
     })
   })
@@ -124,6 +129,7 @@ describe('TierTrendsControls', () => {
         filters={defaultFilters}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -132,7 +138,7 @@ describe('TierTrendsControls', () => {
 
     expect(onFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
-      duration: TrendsDuration.WEEKLY,
+      duration: Duration.WEEKLY,
       aggregationType: TrendsAggregation.SUM
     })
   })
@@ -149,6 +155,7 @@ describe('TierTrendsControls', () => {
         filters={defaultFilters}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -157,7 +164,7 @@ describe('TierTrendsControls', () => {
 
     expect(onFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
-      duration: TrendsDuration.MONTHLY,
+      duration: Duration.MONTHLY,
       aggregationType: TrendsAggregation.SUM
     })
   })
@@ -169,7 +176,7 @@ describe('TierTrendsControls', () => {
 
     const filtersWithDailyAndMax: TierTrendsFilters = {
       ...defaultFilters,
-      duration: TrendsDuration.DAILY,
+      duration: Duration.DAILY,
       aggregationType: TrendsAggregation.MAX
     }
 
@@ -180,6 +187,7 @@ describe('TierTrendsControls', () => {
         filters={filtersWithDailyAndMax}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -189,7 +197,7 @@ describe('TierTrendsControls', () => {
     // Should preserve 'max' aggregation type
     expect(onFiltersChange).toHaveBeenCalledWith({
       ...filtersWithDailyAndMax,
-      duration: TrendsDuration.WEEKLY,
+      duration: Duration.WEEKLY,
       aggregationType: TrendsAggregation.MAX
     })
   })
@@ -201,7 +209,7 @@ describe('TierTrendsControls', () => {
 
     const filtersWithDaily: TierTrendsFilters = {
       ...defaultFilters,
-      duration: TrendsDuration.DAILY,
+      duration: Duration.DAILY,
       aggregationType: TrendsAggregation.SUM
     }
 
@@ -212,6 +220,7 @@ describe('TierTrendsControls', () => {
         filters={filtersWithDaily}
         onFiltersChange={onFiltersChange}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
     )
 
@@ -221,7 +230,7 @@ describe('TierTrendsControls', () => {
     // Should preserve 'sum' even though it won't be used
     expect(onFiltersChange).toHaveBeenCalledWith({
       ...filtersWithDaily,
-      duration: TrendsDuration.PER_RUN,
+      duration: Duration.PER_RUN,
       aggregationType: TrendsAggregation.SUM
     })
   })

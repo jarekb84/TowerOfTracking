@@ -2,9 +2,17 @@
  * Period Count Logic
  *
  * Pure functions for generating period count options based on duration.
+ *
+ * Architecture decisions for this module: see DECISIONS.md in this directory
  */
 
 import { Duration, PERIOD_UNIT_LABELS } from '../types'
+
+/**
+ * Custom period count overrides for consumers with layout-specific needs.
+ * Table-based layouts need smaller values (2-7 columns) vs chart-based defaults.
+ */
+export type PeriodCountOverrides = Partial<Record<Duration, number[]>>
 
 /**
  * Period count increment configurations by duration
@@ -39,14 +47,24 @@ const DEFAULT_PERIOD_COUNTS: Record<Duration, number> = {
 /**
  * Get period count options for a given duration
  */
-export function getPeriodCountOptions(duration: Duration): number[] {
-  return PERIOD_COUNT_OPTIONS[duration]
+export function getPeriodCountOptions(
+  duration: Duration,
+  overrides?: PeriodCountOverrides
+): number[] {
+  return overrides?.[duration] ?? PERIOD_COUNT_OPTIONS[duration]
 }
 
 /**
  * Get the default period count for a duration
  */
-export function getDefaultPeriodCount(duration: Duration): number {
+export function getDefaultPeriodCount(
+  duration: Duration,
+  overrides?: PeriodCountOverrides
+): number {
+  const overrideOptions = overrides?.[duration]
+  if (overrideOptions) {
+    return overrideOptions[0]
+  }
   return DEFAULT_PERIOD_COUNTS[duration]
 }
 
@@ -76,19 +94,50 @@ export function formatPeriodCountValue(
   return `${count} ${unitLabel}`
 }
 
+const MIN_PERIOD_COUNT = 1
+const MAX_PERIOD_COUNT = 50
+
+/**
+ * Clamp a period count value to valid bounds [1, 50].
+ * Passes through 'all' unchanged.
+ */
+export function clampPeriodCount(count: number | 'all'): number | 'all' {
+  if (count === 'all') {
+    return 'all'
+  }
+  return Math.max(MIN_PERIOD_COUNT, Math.min(MAX_PERIOD_COUNT, count))
+}
+
+/**
+ * Narrow a period count filter to a numeric value.
+ * Use when 'all' is not a valid option (e.g., table-based layouts with showAllOption={false}).
+ * Returns the default period count for the given duration if the value is 'all'.
+ */
+export function asNumericPeriodCount(
+  count: number | 'all',
+  duration: Duration,
+  overrides?: PeriodCountOverrides
+): number {
+  if (count === 'all') {
+    return getDefaultPeriodCount(duration, overrides)
+  }
+  return count
+}
+
 /**
  * Validate and adjust period count when duration changes
  * Returns closest valid option if current selection is invalid
  */
 export function adjustPeriodCountForDuration(
   currentCount: number | 'all',
-  newDuration: Duration
+  newDuration: Duration,
+  overrides?: PeriodCountOverrides
 ): number | 'all' {
   if (currentCount === 'all') {
     return 'all'
   }
 
-  const options = getPeriodCountOptions(newDuration)
+  const options = getPeriodCountOptions(newDuration, overrides)
 
   // If current count is a valid option, keep it
   if (options.includes(currentCount)) {

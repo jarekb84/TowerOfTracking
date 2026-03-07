@@ -1,4 +1,4 @@
-import { TrendsDuration, TrendsAggregation } from '../types';
+import { Duration, TrendsAggregation } from '../types';
 
 /**
  * Option for UI selection components
@@ -14,8 +14,8 @@ interface SelectOption<T> {
  * Per-run mode shows only "Actual" (average) and "Per Hour" (hourly) options.
  * Time-based modes show all aggregation types: Sum, Avg, Min, Max, and Per Hour.
  */
-export function getAggregationOptions(duration: TrendsDuration): SelectOption<TrendsAggregation>[] {
-  if (duration === TrendsDuration.PER_RUN) {
+export function getAggregationOptions(duration: Duration): SelectOption<TrendsAggregation>[] {
+  if (duration === Duration.PER_RUN) {
     return [
       { value: TrendsAggregation.AVERAGE, label: 'Actual' },
       { value: TrendsAggregation.HOURLY, label: 'Per Hour' }

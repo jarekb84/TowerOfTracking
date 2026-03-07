@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { useSourceAnalysis } from './use-source-analysis';
-import { SourceDuration, getDefaultRunTypeForCategory } from './types';
+import { Duration, getDefaultRunTypeForCategory } from './types';
 
 // Test fixtures
 function createMockRun(
@@ -57,7 +57,7 @@ describe('useSourceAnalysis', () => {
       expect(result.current.filters.category).toBe('damageDealt');
       expect(result.current.filters.runType).toBe('tournament'); // Default for damageDealt
       expect(result.current.filters.tier).toBe('all');
-      expect(result.current.filters.duration).toBe(SourceDuration.PER_RUN);
+      expect(result.current.filters.duration).toBe(Duration.PER_RUN);
       expect(result.current.filters.quantity).toBe(10);
     });
 
@@ -143,23 +143,23 @@ describe('useSourceAnalysis', () => {
       );
 
       // Initial state: PER_RUN with quantity 10
-      expect(result.current.filters.duration).toBe(SourceDuration.PER_RUN);
+      expect(result.current.filters.duration).toBe(Duration.PER_RUN);
       expect(result.current.filters.quantity).toBe(10);
 
       act(() => {
-        result.current.setDuration(SourceDuration.DAILY);
+        result.current.setDuration(Duration.DAILY);
       });
 
       // Daily default is 14 (about 2 weeks)
-      expect(result.current.filters.duration).toBe(SourceDuration.DAILY);
+      expect(result.current.filters.duration).toBe(Duration.DAILY);
       expect(result.current.filters.quantity).toBe(14);
 
       act(() => {
-        result.current.setDuration(SourceDuration.MONTHLY);
+        result.current.setDuration(Duration.MONTHLY);
       });
 
       // Monthly default is 6
-      expect(result.current.filters.duration).toBe(SourceDuration.MONTHLY);
+      expect(result.current.filters.duration).toBe(Duration.MONTHLY);
       expect(result.current.filters.quantity).toBe(6);
     });
 

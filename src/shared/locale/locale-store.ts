@@ -46,6 +46,7 @@ let numericDateFormatter: Intl.DateTimeFormat | null = null;
 let timeFormatter: Intl.DateTimeFormat | null = null;
 let monthDayFormatter: Intl.DateTimeFormat | null = null;
 let monthFormatter: Intl.DateTimeFormat | null = null;
+let hourFormatter: Intl.DateTimeFormat | null = null;
 
 // Subscription listeners for React reactivity
 const listeners = new Set<() => void>();
@@ -215,6 +216,11 @@ function createFormatters(locale: DisplayLocale): void {
     monthFormatter = new Intl.DateTimeFormat(locale, {
       month: 'short',
     });
+
+    // Hour-only formatter (e.g., 2 PM or 14) - compact hour for chart labels
+    hourFormatter = new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+    });
   } catch (error) {
     console.error('[LocaleStore] Failed to create formatters:', error);
     // Fallback to en-US if locale is invalid
@@ -254,6 +260,9 @@ function createFormatters(locale: DisplayLocale): void {
     monthFormatter = new Intl.DateTimeFormat('en-US', {
       month: 'short',
     });
+    hourFormatter = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+    });
   }
 }
 
@@ -269,6 +278,7 @@ function invalidateFormatters(): void {
   timeFormatter = null;
   monthDayFormatter = null;
   monthFormatter = null;
+  hourFormatter = null;
 }
 
 // ============================================================================
@@ -380,6 +390,17 @@ export function getMonthDayFormatter(): Intl.DateTimeFormat {
     createFormatters(state.displayLocale);
   }
   return monthDayFormatter!;
+}
+
+/**
+ * Get cached hour-only formatter (e.g., 2 PM or 14).
+ * Used for compact chart axis labels where only the hour matters.
+ */
+export function getHourFormatter(): Intl.DateTimeFormat {
+  if (!hourFormatter) {
+    createFormatters(state.displayLocale);
+  }
+  return hourFormatter!;
 }
 
 /**

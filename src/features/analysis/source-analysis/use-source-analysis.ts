@@ -11,11 +11,12 @@ import type {
   SourceAnalysisData,
   SourceCategory,
   RunTypeFilter,
-  SourceDuration,
+  PeriodCountFilter,
 } from './types';
 import { DEFAULT_FILTERS, getDefaultRunTypeForCategory } from './types';
 import { getCategoryDefinition } from './category-config';
 import { calculateSourceAnalysis } from './calculations/period-grouping';
+import { clampPeriodCount } from '@/shared/domain/filters/period-count/period-count-logic';
 import {
   useAvailableTiers,
   useAvailableDurations,
@@ -34,8 +35,8 @@ interface UseSourceAnalysisReturn {
   setCategory: (category: SourceCategory) => void;
   setRunType: (runType: RunTypeFilter) => void;
   setTier: (tier: number | 'all') => void;
-  setDuration: (duration: SourceDuration) => void;
-  setQuantity: (quantity: number) => void;
+  setDuration: (duration: Duration) => void;
+  setQuantity: (quantity: PeriodCountFilter) => void;
 
   // Analysis data
   analysisData: SourceAnalysisData | null;
@@ -106,14 +107,16 @@ export function useSourceAnalysis({
     setFilters(prev => ({ ...prev, tier }));
   }, []);
 
-  const setDuration = useCallback((duration: SourceDuration) => {
-    // Reset quantity to default for the new duration
-    const newQuantity = getDefaultPeriodCount(duration as unknown as Duration);
+  const setDuration = useCallback((duration: Duration) => {
+    const newQuantity = getDefaultPeriodCount(duration);
     setFilters(prev => ({ ...prev, duration, quantity: newQuantity }));
   }, []);
 
-  const setQuantity = useCallback((quantity: number) => {
-    setFilters(prev => ({ ...prev, quantity: Math.max(1, Math.min(50, quantity)) }));
+  const setQuantity = useCallback((quantity: PeriodCountFilter) => {
+    setFilters(prev => ({
+      ...prev,
+      quantity: clampPeriodCount(quantity),
+    }));
   }, []);
 
   // Derived state

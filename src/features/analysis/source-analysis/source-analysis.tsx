@@ -11,7 +11,9 @@ import { SourceAnalysisFiltersComponent } from './filters/source-analysis-filter
 import { SourceTimelineChart } from './charts/source-timeline-chart'
 import { SourcePieChart } from './charts/source-pie-chart'
 import { SourceBarChart } from './charts/source-bar-chart'
-import { getQuantityLabel, type SourceDuration } from './types'
+import { Duration } from '@/shared/domain/filters/types'
+import { formatPeriodCountValue } from '@/shared/domain/filters/period-count/period-count-logic'
+import type { PeriodCountFilter } from '@/shared/domain/filters/types'
 import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 
 /** Purple theme color for Source Analysis */
@@ -98,8 +100,8 @@ function FilterSummary({
   categoryName: string
   runType: string
   tier: number | 'all'
-  duration: SourceDuration
-  quantity: number
+  duration: Duration
+  quantity: PeriodCountFilter
   periodCount: number
   total: number
 }) {
@@ -113,7 +115,7 @@ function FilterSummary({
     parts.push(`Tier ${tier}`)
   }
 
-  const periodLabel = getQuantityLabel(duration, quantity)
+  const periodLabel = formatPeriodCountValue(quantity, duration)
 
   return (
     <div className="text-sm text-slate-400">

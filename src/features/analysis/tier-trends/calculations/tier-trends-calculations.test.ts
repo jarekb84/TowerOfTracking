@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { calculateTierTrends, getAvailableTiersForTrends, getDefaultAggregationType, getQuantityLabel } from './tier-trends-calculations';
+import { calculateTierTrends, getAvailableTiersForTrends, getDefaultAggregationType } from './tier-trends-calculations';
 import type { TierTrendsFilters } from '../types';
 import { RunType } from '@/shared/domain/run-types/types';
-import { TrendsDuration, TrendsAggregation } from '../types';
+import { Duration, TrendsAggregation } from '../types';
 import { createMockField, createMockRun, createRunsWithVariation } from './__tests__/test-helpers';
 
 describe('tier-trends', () => {
@@ -54,7 +54,7 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(3, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 3,
         };
 
@@ -83,7 +83,7 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(2, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 2,
         };
 
@@ -127,7 +127,7 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 2,
           aggregationType: TrendsAggregation.HOURLY,
         };
@@ -147,7 +147,7 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(5, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.DAILY,
+          duration: Duration.DAILY,
           quantity: 3,
           aggregationType: TrendsAggregation.SUM,
         };
@@ -203,7 +203,7 @@ describe('tier-trends', () => {
         // Test sum aggregation
         const sumFilters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.DAILY,
+          duration: Duration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.SUM,
         };
@@ -216,7 +216,7 @@ describe('tier-trends', () => {
         // Test average aggregation
         const avgFilters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.DAILY,
+          duration: Duration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.AVERAGE,
         };
@@ -228,7 +228,7 @@ describe('tier-trends', () => {
         // Test min aggregation
         const minFilters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.DAILY,
+          duration: Duration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.MIN,
         };
@@ -240,7 +240,7 @@ describe('tier-trends', () => {
         // Test max aggregation
         const maxFilters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.DAILY,
+          duration: Duration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.MAX,
         };
@@ -290,7 +290,7 @@ describe('tier-trends', () => {
 
         const hourlyFilters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.DAILY,
+          duration: Duration.DAILY,
           quantity: 2,
           aggregationType: TrendsAggregation.HOURLY,
         };
@@ -324,7 +324,7 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 2,
         };
 
@@ -344,7 +344,7 @@ describe('tier-trends', () => {
         const runs = createRunsWithVariation(3, 1);
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 3,
         };
 
@@ -366,7 +366,7 @@ describe('tier-trends', () => {
         const runs = [createMockRun({}, undefined, 1)]; // Only 1 run
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 3,
         };
 
@@ -389,7 +389,7 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 2,
         };
 
@@ -414,7 +414,7 @@ describe('tier-trends', () => {
 
         const filters: TierTrendsFilters = {
           tier: 1,
-          duration: TrendsDuration.PER_RUN,
+          duration: Duration.PER_RUN,
           quantity: 2,
         };
 
@@ -430,45 +430,24 @@ describe('tier-trends', () => {
 
   describe('getDefaultAggregationType', () => {
     it('should return AVERAGE for per-run duration', () => {
-      const result = getDefaultAggregationType(TrendsDuration.PER_RUN);
+      const result = getDefaultAggregationType(Duration.PER_RUN);
       expect(result).toBe(TrendsAggregation.AVERAGE);
     });
 
     it('should return SUM for daily duration', () => {
-      const result = getDefaultAggregationType(TrendsDuration.DAILY);
+      const result = getDefaultAggregationType(Duration.DAILY);
       expect(result).toBe(TrendsAggregation.SUM);
     });
 
     it('should return SUM for weekly duration', () => {
-      const result = getDefaultAggregationType(TrendsDuration.WEEKLY);
+      const result = getDefaultAggregationType(Duration.WEEKLY);
       expect(result).toBe(TrendsAggregation.SUM);
     });
 
     it('should return SUM for monthly duration', () => {
-      const result = getDefaultAggregationType(TrendsDuration.MONTHLY);
+      const result = getDefaultAggregationType(Duration.MONTHLY);
       expect(result).toBe(TrendsAggregation.SUM);
     });
   });
 
-  describe('getQuantityLabel', () => {
-    it('should return "runs" for per-run duration', () => {
-      const result = getQuantityLabel(TrendsDuration.PER_RUN);
-      expect(result).toBe('runs');
-    });
-
-    it('should return "days" for daily duration', () => {
-      const result = getQuantityLabel(TrendsDuration.DAILY);
-      expect(result).toBe('days');
-    });
-
-    it('should return "weeks" for weekly duration', () => {
-      const result = getQuantityLabel(TrendsDuration.WEEKLY);
-      expect(result).toBe('weeks');
-    });
-
-    it('should return "months" for monthly duration', () => {
-      const result = getQuantityLabel(TrendsDuration.MONTHLY);
-      expect(result).toBe('months');
-    });
-  });
 });

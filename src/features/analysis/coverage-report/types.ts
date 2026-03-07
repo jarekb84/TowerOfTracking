@@ -5,7 +5,7 @@
  * Coverage metrics show the percentage of enemies affected by each game mechanic.
  */
 
-import type { Duration } from '@/shared/domain/filters'
+import type { Duration, PeriodCountFilter } from '@/shared/domain/filters/types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import type { RunInfo } from '@/features/analysis/shared/tooltips/run-info-header'
 
@@ -59,7 +59,7 @@ export interface CoverageReportFilters {
   /** Time grouping duration */
   duration: Duration
   /** Number of periods to show */
-  periodCount: number
+  periodCount: PeriodCountFilter
 }
 
 /**

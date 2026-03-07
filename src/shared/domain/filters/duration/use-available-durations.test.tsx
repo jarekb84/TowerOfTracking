@@ -25,11 +25,11 @@ describe('useAvailableDurations', () => {
     expect(result.current.durations).toEqual([])
   })
 
-  it('should return only PER_RUN for single run', () => {
+  it('should return HOURLY and PER_RUN for single run', () => {
     const runs = [createMockRunWithDate(new Date('2024-01-15'))]
     const { result } = renderHook(() => useAvailableDurations(runs))
 
-    expect(result.current.durations).toEqual([Duration.PER_RUN])
+    expect(result.current.durations).toEqual([Duration.HOURLY, Duration.PER_RUN])
   })
 
   it('should include appropriate durations based on data span', () => {
@@ -39,6 +39,7 @@ describe('useAvailableDurations', () => {
     ]
     const { result } = renderHook(() => useAvailableDurations(runs))
 
+    expect(result.current.durations).toContain(Duration.HOURLY)
     expect(result.current.durations).toContain(Duration.PER_RUN)
     expect(result.current.durations).toContain(Duration.DAILY)
     expect(result.current.durations).toContain(Duration.WEEKLY)
@@ -69,8 +70,8 @@ describe('useAvailableDurations', () => {
     // Available duration returns itself
     expect(result.current.getClosest(Duration.DAILY)).toBe(Duration.DAILY)
 
-    // Unavailable duration returns fallback
-    expect(result.current.getClosest(Duration.MONTHLY)).toBe(Duration.PER_RUN)
+    // Unavailable duration returns fallback (HOURLY is first in preference order)
+    expect(result.current.getClosest(Duration.MONTHLY)).toBe(Duration.HOURLY)
   })
 
   it('should include YEARLY for multi-year data', () => {

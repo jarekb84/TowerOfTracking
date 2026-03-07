@@ -3,6 +3,8 @@
  *
  * Unified duration selector with context-aware options.
  * Only shows Yearly when data spans multiple years.
+ *
+ * Architecture decisions for this module: see DECISIONS.md in this directory
  */
 
 import { FormControl } from '@/components/ui/form-field'

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { groupRunsByPeriod, getPeriodBounds } from './period-grouping';
-import { TrendsDuration } from '../types';
+import { Duration } from '../types';
 import { createMockRun, createRunsWithVariation } from './__tests__/test-helpers';
 
 describe('period-grouping', () => {
@@ -8,7 +8,7 @@ describe('period-grouping', () => {
     describe('PER_RUN mode', () => {
       it('should create individual period for each run', () => {
         const runs = createRunsWithVariation(3, 1);
-        const periods = groupRunsByPeriod(runs, TrendsDuration.PER_RUN, 3);
+        const periods = groupRunsByPeriod(runs, Duration.PER_RUN, 3);
 
         expect(periods).toHaveLength(3);
         expect(periods[0].runs).toHaveLength(1);
@@ -18,7 +18,7 @@ describe('period-grouping', () => {
 
       it('should use enhanced headers for per-run periods', () => {
         const runs = createRunsWithVariation(2, 1);
-        const periods = groupRunsByPeriod(runs, TrendsDuration.PER_RUN, 2);
+        const periods = groupRunsByPeriod(runs, Duration.PER_RUN, 2);
 
         // Check that labels have enhanced format (multi-line tier/wave/duration/date)
         const headerLines = periods[0].label.split('\n');
@@ -30,7 +30,7 @@ describe('period-grouping', () => {
 
       it('should limit runs to requested quantity', () => {
         const runs = createRunsWithVariation(5, 1);
-        const periods = groupRunsByPeriod(runs, TrendsDuration.PER_RUN, 3);
+        const periods = groupRunsByPeriod(runs, Duration.PER_RUN, 3);
 
         expect(periods).toHaveLength(3);
       });
@@ -46,7 +46,7 @@ describe('period-grouping', () => {
           createMockRun({}, day1, 1),
         ];
 
-        const periods = groupRunsByPeriod(runs, TrendsDuration.DAILY, 2);
+        const periods = groupRunsByPeriod(runs, Duration.DAILY, 2);
 
         expect(periods).toHaveLength(2);
         expect(periods[0].runs).toHaveLength(2); // Day 2 (most recent)
@@ -55,7 +55,7 @@ describe('period-grouping', () => {
 
       it('should format daily labels correctly', () => {
         const runs = createRunsWithVariation(1, 1);
-        const periods = groupRunsByPeriod(runs, TrendsDuration.DAILY, 1);
+        const periods = groupRunsByPeriod(runs, Duration.DAILY, 1);
 
         expect(periods[0].label).toMatch(/\d+\/\d+/); // Month/Day format
       });
@@ -71,7 +71,7 @@ describe('period-grouping', () => {
           createMockRun({}, week1, 1),
         ];
 
-        const periods = groupRunsByPeriod(runs, TrendsDuration.WEEKLY, 2);
+        const periods = groupRunsByPeriod(runs, Duration.WEEKLY, 2);
 
         expect(periods).toHaveLength(2);
         expect(periods[0].runs).toHaveLength(2); // Week 2 (most recent)
@@ -80,7 +80,7 @@ describe('period-grouping', () => {
 
       it('should format weekly labels correctly', () => {
         const runs = createRunsWithVariation(1, 1);
-        const periods = groupRunsByPeriod(runs, TrendsDuration.WEEKLY, 1);
+        const periods = groupRunsByPeriod(runs, Duration.WEEKLY, 1);
 
         expect(periods[0].label).toMatch(/Week of \d+\/\d+/);
       });
@@ -96,7 +96,7 @@ describe('period-grouping', () => {
           createMockRun({}, month1, 1),
         ];
 
-        const periods = groupRunsByPeriod(runs, TrendsDuration.MONTHLY, 2);
+        const periods = groupRunsByPeriod(runs, Duration.MONTHLY, 2);
 
         expect(periods).toHaveLength(2);
         expect(periods[0].runs).toHaveLength(2); // Month 2 (most recent)
@@ -105,7 +105,7 @@ describe('period-grouping', () => {
 
       it('should format monthly labels correctly', () => {
         const runs = createRunsWithVariation(1, 1);
-        const periods = groupRunsByPeriod(runs, TrendsDuration.MONTHLY, 1);
+        const periods = groupRunsByPeriod(runs, Duration.MONTHLY, 1);
 
         expect(periods[0].label).toMatch(/^[A-Z][a-z]{2}$/); // Short month name like "Jan"
       });
@@ -119,7 +119,7 @@ describe('period-grouping', () => {
         createMockRun({}, olderRun, 1),
       ];
 
-      const periods = groupRunsByPeriod(runs, TrendsDuration.DAILY, 2);
+      const periods = groupRunsByPeriod(runs, Duration.DAILY, 2);
 
       // Should group relative to latest run (6/15), not current date
       expect(periods[0].startDate.getDate()).toBe(15); // Today (relative to latest run)
@@ -128,7 +128,7 @@ describe('period-grouping', () => {
 
     it('should include empty periods for consistency', () => {
       const runs = [createMockRun({}, new Date('2024-01-01T00:00:00Z'), 1)];
-      const periods = groupRunsByPeriod(runs, TrendsDuration.DAILY, 3);
+      const periods = groupRunsByPeriod(runs, Duration.DAILY, 3);
 
       expect(periods).toHaveLength(3);
       expect(periods[0].runs).toHaveLength(1); // Run is in first period
@@ -142,7 +142,7 @@ describe('period-grouping', () => {
 
     describe('DAILY', () => {
       it('should return correct bounds for current day', () => {
-        const { startDate, endDate, label } = getPeriodBounds(referenceDate, TrendsDuration.DAILY, 0);
+        const { startDate, endDate, label } = getPeriodBounds(referenceDate, Duration.DAILY, 0);
 
         expect(startDate.getHours()).toBe(0);
         expect(startDate.getMinutes()).toBe(0);
@@ -153,7 +153,7 @@ describe('period-grouping', () => {
       });
 
       it('should return correct bounds for previous day', () => {
-        const { startDate, endDate, label } = getPeriodBounds(referenceDate, TrendsDuration.DAILY, 1);
+        const { startDate, endDate, label } = getPeriodBounds(referenceDate, Duration.DAILY, 1);
 
         expect(startDate.getDate()).toBe(14);
         expect(endDate.getDate()).toBe(14);
@@ -163,7 +163,7 @@ describe('period-grouping', () => {
 
     describe('WEEKLY', () => {
       it('should return correct bounds for current week', () => {
-        const { startDate, endDate, label } = getPeriodBounds(referenceDate, TrendsDuration.WEEKLY, 0);
+        const { startDate, endDate, label } = getPeriodBounds(referenceDate, Duration.WEEKLY, 0);
 
         // Week should start on Sunday (6/9) and end on Saturday (6/15)
         expect(startDate.getDay()).toBe(0); // Sunday
@@ -174,7 +174,7 @@ describe('period-grouping', () => {
       });
 
       it('should return correct bounds for previous week', () => {
-        const { startDate, endDate, label } = getPeriodBounds(referenceDate, TrendsDuration.WEEKLY, 1);
+        const { startDate, endDate, label } = getPeriodBounds(referenceDate, Duration.WEEKLY, 1);
 
         expect(startDate.getDay()).toBe(0); // Sunday
         expect(endDate.getDay()).toBe(6); // Saturday
@@ -186,7 +186,7 @@ describe('period-grouping', () => {
 
     describe('MONTHLY', () => {
       it('should return correct bounds for current month', () => {
-        const { startDate, endDate, label } = getPeriodBounds(referenceDate, TrendsDuration.MONTHLY, 0);
+        const { startDate, endDate, label } = getPeriodBounds(referenceDate, Duration.MONTHLY, 0);
 
         expect(startDate.getDate()).toBe(1); // First day of month
         expect(endDate.getDate()).toBe(30); // Last day of June
@@ -195,7 +195,7 @@ describe('period-grouping', () => {
       });
 
       it('should return correct bounds for previous month', () => {
-        const { startDate, endDate, label } = getPeriodBounds(referenceDate, TrendsDuration.MONTHLY, 1);
+        const { startDate, endDate, label } = getPeriodBounds(referenceDate, Duration.MONTHLY, 1);
 
         expect(startDate.getDate()).toBe(1); // First day of month
         expect(endDate.getDate()).toBe(31); // Last day of May

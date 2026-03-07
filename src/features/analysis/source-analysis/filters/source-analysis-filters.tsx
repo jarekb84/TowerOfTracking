@@ -13,15 +13,13 @@ import {
   Duration,
   getPeriodCountOptions,
   getPeriodCountLabel,
-  stringToDuration,
-  durationToString
 } from '@/shared/domain/filters'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import type { PeriodCountFilter } from '@/shared/domain/filters/types'
 import type {
   SourceAnalysisFilters,
   SourceCategory,
-  SourceDuration,
 } from '../types'
 import { getAvailableCategories } from '../category-config'
 
@@ -32,8 +30,8 @@ interface SourceAnalysisFiltersProps {
   onCategoryChange: (category: SourceCategory) => void
   onRunTypeChange: (runType: RunTypeFilter) => void
   onTierChange: (tier: number | 'all') => void
-  onDurationChange: (duration: SourceDuration) => void
-  onQuantityChange: (quantity: number) => void
+  onDurationChange: (duration: Duration) => void
+  onQuantityChange: (quantity: PeriodCountFilter) => void
 }
 
 export function SourceAnalysisFiltersComponent({
@@ -47,10 +45,8 @@ export function SourceAnalysisFiltersComponent({
   onQuantityChange,
 }: SourceAnalysisFiltersProps) {
   const categories = getAvailableCategories()
-  // Convert SourceDuration (legacy enum) to unified Duration using safe adapter
-  const unifiedDuration = stringToDuration(filters.duration)
-  const periodOptions = getPeriodCountOptions(unifiedDuration)
-  const periodLabel = getPeriodCountLabel(unifiedDuration)
+  const periodOptions = getPeriodCountOptions(filters.duration)
+  const periodLabel = getPeriodCountLabel(filters.duration)
 
   return (
     <div className="space-y-4">
@@ -89,8 +85,8 @@ export function SourceAnalysisFiltersComponent({
       {/* Row 3: Duration + Period Count */}
       <div className="flex flex-wrap gap-4 items-end">
         <DurationSelector
-          selectedDuration={unifiedDuration}
-          onDurationChange={(duration) => onDurationChange(durationToString(duration) as SourceDuration)}
+          selectedDuration={filters.duration}
+          onDurationChange={onDurationChange}
           availableDurations={availableDurations}
           accentColor="purple"
           layout="vertical"
@@ -98,15 +94,9 @@ export function SourceAnalysisFiltersComponent({
 
         <PeriodCountSelector
           selectedCount={filters.quantity}
-          onCountChange={(count) => {
-            // Since showAllOption={false}, we only receive numbers
-            if (typeof count === 'number') {
-              onQuantityChange(count)
-            }
-          }}
+          onCountChange={onQuantityChange}
           countOptions={periodOptions}
           label={periodLabel}
-          showAllOption={false}
           accentColor="purple"
           layout="vertical"
         />

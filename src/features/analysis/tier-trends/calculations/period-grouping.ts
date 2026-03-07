@@ -1,5 +1,5 @@
 import type { ParsedGameRun, TierTrendsFilters } from '../types';
-import { TrendsDuration } from '../types';
+import { Duration } from '../types';
 import { createEnhancedRunHeader } from './run-header-formatting';
 import {
   formatDisplayShortDate,
@@ -37,7 +37,7 @@ export function groupRunsByPeriod(
   duration: TierTrendsFilters['duration'],
   quantity: number
 ): PeriodData[] {
-  if (duration === TrendsDuration.PER_RUN) {
+  if (duration === Duration.PER_RUN) {
     return runs.slice(0, quantity).map((run) => {
       // Use enhanced headers for per-run analysis
       const headerData = createEnhancedRunHeader(run);
@@ -95,7 +95,7 @@ export function getPeriodBounds(
   const currentDate = new Date(now);
 
   switch (duration) {
-    case TrendsDuration.DAILY: {
+    case Duration.DAILY: {
       const targetDate = new Date(currentDate);
       targetDate.setDate(currentDate.getDate() - periodOffset);
 
@@ -112,7 +112,7 @@ export function getPeriodBounds(
       };
     }
 
-    case TrendsDuration.WEEKLY: {
+    case Duration.WEEKLY: {
       const targetDate = new Date(currentDate);
       targetDate.setDate(currentDate.getDate() - (periodOffset * 7));
 
@@ -133,7 +133,7 @@ export function getPeriodBounds(
       };
     }
 
-    case TrendsDuration.MONTHLY: {
+    case Duration.MONTHLY: {
       const targetDate = new Date(currentDate);
       targetDate.setMonth(currentDate.getMonth() - periodOffset);
 
@@ -147,7 +147,21 @@ export function getPeriodBounds(
       };
     }
 
+    case Duration.YEARLY: {
+      const targetYear = currentDate.getFullYear() - periodOffset;
+
+      const startDate = new Date(targetYear, 0, 1);
+      const endDate = new Date(targetYear, 11, 31, 23, 59, 59, 999);
+
+      return {
+        startDate,
+        endDate,
+        label: String(targetYear)
+      };
+    }
+
     default:
+      // HOURLY is filtered at the UI level and should never reach here
       throw new Error(`Unsupported duration: ${duration}`);
   }
 }

@@ -4,7 +4,7 @@ import type {
   TierTrendsData,
 } from '../types';
 import { RunType } from '@/shared/domain/run-types/types';
-import { TrendsDuration, TrendsAggregation } from '../types';
+import { Duration, TrendsAggregation } from '../types';
 import { RunTypeFilter, filterRunsByType } from '@/features/analysis/shared/filtering/run-type-filter';
 import {
   calculateTotalDurationHours,
@@ -27,35 +27,10 @@ import { calculateFieldTrendFromPeriods } from './trend-analysis';
  * Per-run mode defaults to AVERAGE to show actual raw values.
  * Time-based modes default to SUM to show total accumulation over the period.
  */
-export function getDefaultAggregationType(duration: TrendsDuration): TrendsAggregation {
-  return duration === TrendsDuration.PER_RUN
+export function getDefaultAggregationType(duration: Duration): TrendsAggregation {
+  return duration === Duration.PER_RUN
     ? TrendsAggregation.AVERAGE
     : TrendsAggregation.SUM;
-}
-
-/**
- * Get the quantity label for a given duration mode
- *
- * @param duration - The selected duration mode
- * @returns User-friendly label: "runs", "days", "weeks", or "months"
- *
- * @example
- * getQuantityLabel(TrendsDuration.PER_RUN); // Returns "runs"
- * getQuantityLabel(TrendsDuration.DAILY);   // Returns "days"
- */
-export function getQuantityLabel(duration: TrendsDuration): string {
-  switch (duration) {
-    case TrendsDuration.PER_RUN:
-      return 'runs';
-    case TrendsDuration.DAILY:
-      return 'days';
-    case TrendsDuration.WEEKLY:
-      return 'weeks';
-    case TrendsDuration.MONTHLY:
-      return 'months';
-    default:
-      return 'periods';
-  }
 }
 
 /**
@@ -99,7 +74,7 @@ export function calculateTierTrends(
     // For hourly aggregation on time-based periods, add total hours to subheader
     let subHeader = period.subLabel;
     if (filters.aggregationType === TrendsAggregation.HOURLY &&
-        filters.duration !== TrendsDuration.PER_RUN) {
+        filters.duration !== Duration.PER_RUN) {
       const totalHours = calculateTotalDurationHours(period.runs);
       subHeader = formatHoursSubheader(totalHours);
     }

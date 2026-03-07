@@ -25,7 +25,7 @@ interface CoverageReportFiltersProps {
   onRunTypeChange: (runType: RunTypeFilter) => void
   onTierChange: (tier: number | 'all') => void
   onDurationChange: (duration: Duration) => void
-  onPeriodCountChange: (count: number) => void
+  onPeriodCountChange: (count: number | 'all') => void
 }
 
 export function CoverageReportFiltersComponent({
@@ -79,14 +79,9 @@ export function CoverageReportFiltersComponent({
 
         <PeriodCountSelector
           selectedCount={filters.periodCount}
-          onCountChange={(count) => {
-            if (typeof count === 'number') {
-              onPeriodCountChange(count)
-            }
-          }}
+          onCountChange={onPeriodCountChange}
           countOptions={periodOptions}
           label={periodLabel}
-          showAllOption={false}
           accentColor="cyan"
           layout="vertical"
         />

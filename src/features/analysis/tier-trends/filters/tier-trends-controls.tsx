@@ -2,14 +2,19 @@ import { FormControl, SelectionButtonGroup } from '@/components/ui'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
 import {
   TierSelector,
+  DurationSelector,
+  PeriodCountSelector,
   zeroToAllTierAdapter,
   allToZeroTierAdapter
 } from '@/shared/domain/filters'
+import { usePeriodCountOptions } from '@/shared/domain/filters/period-count/use-period-count-options'
+import { adjustPeriodCountForDuration, asNumericPeriodCount } from '@/shared/domain/filters/period-count/period-count-logic'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import type { TierTrendsFilters } from '../types'
-import { TrendsDuration, TrendsAggregation } from '../types'
-import { getDefaultAggregationType, getQuantityLabel } from '../calculations/tier-trends-calculations'
+import { Duration, TrendsAggregation } from '../types'
+import { getDefaultAggregationType } from '../calculations/tier-trends-calculations'
 import { getAggregationOptions } from './aggregation-options'
+import { TIER_TRENDS_PERIOD_COUNTS } from './tier-trends-period-counts'
 
 interface TierTrendsControlsProps {
   runTypeFilter: RunTypeFilter
@@ -17,6 +22,7 @@ interface TierTrendsControlsProps {
   filters: TierTrendsFilters
   onFiltersChange: (filters: TierTrendsFilters) => void
   availableTiers: number[]
+  availableDurations: Duration[]
   tierCounts?: Map<number, number>
 }
 
@@ -26,8 +32,12 @@ export function TierTrendsControls({
   filters,
   onFiltersChange,
   availableTiers,
+  availableDurations,
   tierCounts
 }: TierTrendsControlsProps) {
+  const { options: periodCountOptions, label: periodCountLabel } =
+    usePeriodCountOptions(filters.duration, TIER_TRENDS_PERIOD_COUNTS)
+
   return (
     <div className="space-y-4">
       {/* Row 1: Run Type & Tier */}
@@ -50,41 +60,30 @@ export function TierTrendsControls({
       {/* Row 2: Duration, Quantity, Aggregation */}
       <div className="flex flex-wrap gap-4 items-end">
         {/* Duration Selector */}
-        <FormControl label="Duration" layout="vertical">
-          <SelectionButtonGroup<TrendsDuration>
-            options={[
-              { value: TrendsDuration.PER_RUN, label: 'Per Run' },
-              { value: TrendsDuration.DAILY, label: 'Daily' },
-              { value: TrendsDuration.WEEKLY, label: 'Weekly' },
-              { value: TrendsDuration.MONTHLY, label: 'Monthly' }
-            ]}
-            selectedValue={filters.duration}
-            onSelectionChange={(duration) => {
-              // When switching from per-run to aggregated duration, default to sum
-              const shouldDefaultToSum = filters.duration === TrendsDuration.PER_RUN && duration !== TrendsDuration.PER_RUN
-              onFiltersChange({
-                ...filters,
-                duration,
-                aggregationType: shouldDefaultToSum ? TrendsAggregation.SUM : filters.aggregationType
-              })
-            }}
-            size="sm"
-            fullWidthOnMobile={false}
-            ariaLabel="Select duration"
-          />
-        </FormControl>
+        <DurationSelector
+          selectedDuration={filters.duration}
+          onDurationChange={(duration) => {
+            const shouldDefaultToSum = filters.duration === Duration.PER_RUN && duration !== Duration.PER_RUN
+            onFiltersChange({
+              ...filters,
+              duration,
+              quantity: asNumericPeriodCount(adjustPeriodCountForDuration(filters.quantity, duration, TIER_TRENDS_PERIOD_COUNTS), duration, TIER_TRENDS_PERIOD_COUNTS),
+              aggregationType: shouldDefaultToSum ? TrendsAggregation.SUM : filters.aggregationType
+            })
+          }}
+          availableDurations={availableDurations}
+          layout="vertical"
+        />
 
         {/* Quantity Selector */}
-        <FormControl label={`Last ${getQuantityLabel(filters.duration)}`} layout="vertical">
-          <SelectionButtonGroup<number>
-            options={[2, 3, 4, 5, 6, 7].map(count => ({ value: count, label: count.toString() }))}
-            selectedValue={filters.quantity}
-            onSelectionChange={(quantity) => onFiltersChange({ ...filters, quantity })}
-            size="sm"
-            fullWidthOnMobile={false}
-            ariaLabel={`Select last ${getQuantityLabel(filters.duration).toLowerCase()}`}
-          />
-        </FormControl>
+        <PeriodCountSelector
+          selectedCount={filters.quantity}
+          onCountChange={(quantity) => onFiltersChange({ ...filters, quantity: asNumericPeriodCount(quantity, filters.duration, TIER_TRENDS_PERIOD_COUNTS) })}
+          countOptions={periodCountOptions}
+          label={periodCountLabel}
+          showAllOption={false}
+          layout="vertical"
+        />
 
         {/* Aggregation Selector */}
         <FormControl label="Aggregation" layout="vertical">

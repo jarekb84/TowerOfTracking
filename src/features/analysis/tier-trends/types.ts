@@ -13,16 +13,10 @@ import type { GameRunField, ParsedGameRun } from '@/shared/types/game-run.types'
 // Re-export types used by tier-trends calculations
 export type { GameRunField, ParsedGameRun };
 
-/**
- * Duration options for tier trends analysis
- */
-export enum TrendsDuration {
-  PER_RUN = 'per-run',
-  DAILY = 'daily',
-  WEEKLY = 'weekly',
-  MONTHLY = 'monthly',
-  YEARLY = 'yearly'
-}
+import { Duration } from '@/shared/domain/filters/types'
+
+// Re-export Duration for tier-trends consumers
+export { Duration }
 
 /**
  * Aggregation methods for combining run data within time periods
@@ -40,7 +34,7 @@ export enum TrendsAggregation {
  */
 export interface TierTrendsFilters {
   tier: number;
-  duration: TrendsDuration; // Time span for analysis
+  duration: Duration; // Time span for analysis
   quantity: number; // Number of periods to analyze (2-7)
   aggregationType?: TrendsAggregation; // Only used when duration is not 'per-run'
 }

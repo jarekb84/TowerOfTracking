@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { getAggregationOptions } from './aggregation-options';
-import { TrendsDuration, TrendsAggregation } from '../types';
+import { Duration, TrendsAggregation } from '../types';
 
 describe('tier-trends-ui-options', () => {
   describe('getAggregationOptions', () => {
     it('should return only Actual and Per Hour options for per-run duration', () => {
-      const options = getAggregationOptions(TrendsDuration.PER_RUN);
+      const options = getAggregationOptions(Duration.PER_RUN);
 
       expect(options).toHaveLength(2);
       expect(options[0]).toEqual({ value: TrendsAggregation.AVERAGE, label: 'Actual' });
@@ -13,7 +13,7 @@ describe('tier-trends-ui-options', () => {
     });
 
     it('should return all 5 aggregation options for daily duration', () => {
-      const options = getAggregationOptions(TrendsDuration.DAILY);
+      const options = getAggregationOptions(Duration.DAILY);
 
       expect(options).toHaveLength(5);
       expect(options[0]).toEqual({ value: TrendsAggregation.SUM, label: 'Sum' });
@@ -24,7 +24,7 @@ describe('tier-trends-ui-options', () => {
     });
 
     it('should return all 5 aggregation options for weekly duration', () => {
-      const options = getAggregationOptions(TrendsDuration.WEEKLY);
+      const options = getAggregationOptions(Duration.WEEKLY);
 
       expect(options).toHaveLength(5);
       expect(options.map(o => o.value)).toEqual([
@@ -37,7 +37,7 @@ describe('tier-trends-ui-options', () => {
     });
 
     it('should return all 5 aggregation options for monthly duration', () => {
-      const options = getAggregationOptions(TrendsDuration.MONTHLY);
+      const options = getAggregationOptions(Duration.MONTHLY);
 
       expect(options).toHaveLength(5);
       expect(options.map(o => o.value)).toEqual([
@@ -50,9 +50,9 @@ describe('tier-trends-ui-options', () => {
     });
 
     it('should maintain consistent option order across all time-based durations', () => {
-      const dailyOptions = getAggregationOptions(TrendsDuration.DAILY);
-      const weeklyOptions = getAggregationOptions(TrendsDuration.WEEKLY);
-      const monthlyOptions = getAggregationOptions(TrendsDuration.MONTHLY);
+      const dailyOptions = getAggregationOptions(Duration.DAILY);
+      const weeklyOptions = getAggregationOptions(Duration.WEEKLY);
+      const monthlyOptions = getAggregationOptions(Duration.MONTHLY);
 
       expect(dailyOptions).toEqual(weeklyOptions);
       expect(weeklyOptions).toEqual(monthlyOptions);

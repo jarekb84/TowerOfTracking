@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CategoryDefinition, SourceAnalysisFilters } from '../types';
-import { SourceDuration } from '../types';
+import { Duration } from '../types';
 import {
   groupRunsByPeriod,
   getPeriodKey,
@@ -65,56 +65,56 @@ describe('getPeriodKey', () => {
   const testDate = new Date('2024-03-15T14:30:00');
 
   it('returns ISO string for per-run', () => {
-    const key = getPeriodKey(testDate, SourceDuration.PER_RUN);
+    const key = getPeriodKey(testDate, Duration.PER_RUN);
     expect(key).toBe(testDate.toISOString());
   });
 
   it('returns YYYY-MM-DD for daily', () => {
-    const key = getPeriodKey(testDate, SourceDuration.DAILY);
+    const key = getPeriodKey(testDate, Duration.DAILY);
     expect(key).toBe('2024-03-15');
   });
 
   it('returns YYYY-MM-DD (Sunday date) for weekly', () => {
     // March 15, 2024 is a Friday; Sunday of that week is March 10
-    const key = getPeriodKey(testDate, SourceDuration.WEEKLY);
+    const key = getPeriodKey(testDate, Duration.WEEKLY);
     expect(key).toBe('2024-03-10');
   });
 
   it('returns YYYY-MM for monthly', () => {
-    const key = getPeriodKey(testDate, SourceDuration.MONTHLY);
+    const key = getPeriodKey(testDate, Duration.MONTHLY);
     expect(key).toBe('2024-03');
   });
 
   it('returns YYYY for yearly', () => {
-    const key = getPeriodKey(testDate, SourceDuration.YEARLY);
+    const key = getPeriodKey(testDate, Duration.YEARLY);
     expect(key).toBe('2024');
   });
 });
 
 describe('formatPeriodLabel', () => {
   it('formats per-run label with run number', () => {
-    const label = formatPeriodLabel('2024-03-15', SourceDuration.PER_RUN, 0, 5);
+    const label = formatPeriodLabel('2024-03-15', Duration.PER_RUN, 0, 5);
     expect(label).toBe('Run #5');
   });
 
   it('formats daily label', () => {
-    const label = formatPeriodLabel('2024-03-15', SourceDuration.DAILY);
+    const label = formatPeriodLabel('2024-03-15', Duration.DAILY);
     expect(label).toBe('Mar 15');
   });
 
   it('formats weekly label with Sunday date', () => {
     // Key is now YYYY-MM-DD format (the Sunday date)
-    const label = formatPeriodLabel('2024-03-10', SourceDuration.WEEKLY);
+    const label = formatPeriodLabel('2024-03-10', Duration.WEEKLY);
     expect(label).toBe('Mar 10');
   });
 
   it('formats monthly label', () => {
-    const label = formatPeriodLabel('2024-03', SourceDuration.MONTHLY);
+    const label = formatPeriodLabel('2024-03', Duration.MONTHLY);
     expect(label).toMatch(/Mar.*24/);
   });
 
   it('formats yearly label', () => {
-    const label = formatPeriodLabel('2024', SourceDuration.YEARLY);
+    const label = formatPeriodLabel('2024', Duration.YEARLY);
     expect(label).toBe('2024');
   });
 });
@@ -127,7 +127,7 @@ describe('groupRunsByPeriod', () => {
       createMockRun('3', new Date('2024-03-16T10:00:00'), { orbDamage: 300 }),
     ];
 
-    const groups = groupRunsByPeriod(runs, SourceDuration.DAILY);
+    const groups = groupRunsByPeriod(runs, Duration.DAILY);
 
     expect(groups.size).toBe(2);
     expect(groups.get('2024-03-15')?.length).toBe(2);
@@ -140,7 +140,7 @@ describe('groupRunsByPeriod', () => {
       createMockRun('2', new Date('2024-03-15T15:00:00'), { orbDamage: 200 }),
     ];
 
-    const groups = groupRunsByPeriod(runs, SourceDuration.PER_RUN);
+    const groups = groupRunsByPeriod(runs, Duration.PER_RUN);
 
     expect(groups.size).toBe(2);
   });
@@ -157,7 +157,7 @@ describe('filterRuns', () => {
     category: 'damageDealt',
     runType: 'all',
     tier: 'all',
-    duration: SourceDuration.PER_RUN,
+    duration: Duration.PER_RUN,
     quantity: 10
   };
 
@@ -272,7 +272,7 @@ describe('limitToPeriods', () => {
       ['2024-03-13', [createMockRun('3', new Date('2024-03-13'), {})]],
     ]);
 
-    const limited = limitToPeriods(groups, 2, SourceDuration.DAILY);
+    const limited = limitToPeriods(groups, 2, Duration.DAILY);
 
     expect(limited.size).toBe(2);
     expect(Array.from(limited.keys())).toEqual(['2024-03-14', '2024-03-15']); // Oldest first
@@ -290,7 +290,7 @@ describe('calculateSourceAnalysis', () => {
       category: 'damageDealt',
       runType: 'all',
       tier: 'all',
-      duration: SourceDuration.DAILY,
+      duration: Duration.DAILY,
       quantity: 10
     };
 
@@ -307,7 +307,7 @@ describe('calculateSourceAnalysis', () => {
       category: 'damageDealt',
       runType: 'all',
       tier: 'all',
-      duration: SourceDuration.DAILY,
+      duration: Duration.DAILY,
       quantity: 10
     };
 

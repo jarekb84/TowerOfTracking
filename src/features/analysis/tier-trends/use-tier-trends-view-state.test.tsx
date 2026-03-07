@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useTierTrendsViewState } from './use-tier-trends-view-state'
 import { RunType, type RunTypeValue } from '@/shared/domain/run-types/types'
-import { TrendsDuration, TrendsAggregation } from './types'
+import { Duration, TrendsAggregation } from './types'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { TierTrendsFilters } from './types'
 
@@ -10,7 +10,7 @@ describe('useTierTrendsViewState', () => {
   const mockFilters: TierTrendsFilters = {
     tier: 0,
     
-    duration: TrendsDuration.PER_RUN,
+    duration: Duration.PER_RUN,
     quantity: 4,
     aggregationType: TrendsAggregation.AVERAGE
   }

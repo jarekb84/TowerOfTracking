@@ -8,6 +8,8 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import type { PeriodCountFilter } from '@/shared/domain/filters/types'
+import { clampPeriodCount } from '@/shared/domain/filters/period-count/period-count-logic'
 import type {
   CoverageReportFilters,
   CoverageAnalysisData,
@@ -35,7 +37,7 @@ interface UseCoverageReportReturn {
   setRunType: (runType: RunTypeFilter) => void
   setTier: (tier: number | 'all') => void
   setDuration: (duration: Duration) => void
-  setPeriodCount: (count: number) => void
+  setPeriodCount: (count: PeriodCountFilter) => void
 
   // Analysis data
   analysisData: CoverageAnalysisData | null
@@ -54,13 +56,6 @@ interface UseCoverageReportReturn {
   // Available options for filters
   availableTiers: number[]
   availableDurations: Duration[]
-}
-
-/**
- * D7: Filter out yearly duration - coverage analysis is more relevant at shorter time scales
- */
-function filterSupportedDurations(durations: Duration[]): Duration[] {
-  return durations.filter(d => d !== Duration.YEARLY)
 }
 
 /**
@@ -88,13 +83,7 @@ export function useCoverageReport({
 
   // Use unified hooks for available options
   const { tiers: availableTiers } = useAvailableTiers(runs, filters.runType)
-  const { durations: rawDurations } = useAvailableDurations(runs)
-
-  // D7: Filter out yearly duration
-  const availableDurations = useMemo(
-    () => filterSupportedDurations(rawDurations),
-    [rawDurations]
-  )
+  const { durations: availableDurations } = useAvailableDurations(runs)
 
   // Auto-reset tier to 'all' when the selected tier is no longer available
   useEffect(() => {
@@ -102,13 +91,6 @@ export function useCoverageReport({
       setFilters(prev => ({ ...prev, tier: 'all' }))
     }
   }, [availableTiers, filters.tier])
-
-  // Auto-reset duration if yearly was selected but not supported (D7)
-  useEffect(() => {
-    if (filters.duration === Duration.YEARLY) {
-      setFilters(prev => ({ ...prev, duration: Duration.DAILY }))
-    }
-  }, [filters.duration])
 
   // Calculate analysis data
   const analysisData = useMemo(() => {
@@ -146,19 +128,14 @@ export function useCoverageReport({
   }, [])
 
   const setDuration = useCallback((duration: Duration) => {
-    // D7: Prevent setting yearly duration
-    if (duration === Duration.YEARLY) {
-      return
-    }
-    // Reset period count to default for the new duration
     const newPeriodCount = getDefaultPeriodCount(duration)
     setFilters(prev => ({ ...prev, duration, periodCount: newPeriodCount }))
   }, [])
 
-  const setPeriodCount = useCallback((count: number) => {
+  const setPeriodCount = useCallback((count: PeriodCountFilter) => {
     setFilters(prev => ({
       ...prev,
-      periodCount: Math.max(1, Math.min(50, count)),
+      periodCount: clampPeriodCount(count),
     }))
   }, [])
 

@@ -5,9 +5,7 @@ import {
   getAvailableDurations,
   isDurationAvailable,
   getDurationLabel,
-  getClosestAvailableDuration,
-  stringToDuration,
-  durationToString
+  getClosestAvailableDuration
 } from './duration-filter-logic'
 
 function createMockRunWithDate(date: Date): ParsedGameRun {
@@ -29,9 +27,9 @@ describe('getAvailableDurations', () => {
     expect(getAvailableDurations([])).toEqual([])
   })
 
-  it('should return only PER_RUN for single run', () => {
+  it('should return HOURLY and PER_RUN for single run', () => {
     const runs = [createMockRunWithDate(new Date('2024-01-15'))]
-    expect(getAvailableDurations(runs)).toEqual([Duration.PER_RUN])
+    expect(getAvailableDurations(runs)).toEqual([Duration.HOURLY, Duration.PER_RUN])
   })
 
   it('should include DAILY for runs spanning 2+ days', () => {
@@ -40,6 +38,7 @@ describe('getAvailableDurations', () => {
       createMockRunWithDate(new Date('2024-01-16'))
     ]
     const available = getAvailableDurations(runs)
+    expect(available).toContain(Duration.HOURLY)
     expect(available).toContain(Duration.PER_RUN)
     expect(available).toContain(Duration.DAILY)
     expect(available).not.toContain(Duration.WEEKLY)
@@ -90,7 +89,7 @@ describe('getAvailableDurations', () => {
     ]
     // With only one valid date, can't determine span
     const available = getAvailableDurations(runs)
-    expect(available).toEqual([Duration.PER_RUN])
+    expect(available).toEqual([Duration.HOURLY, Duration.PER_RUN])
   })
 })
 
@@ -137,28 +136,3 @@ describe('getClosestAvailableDuration', () => {
   })
 })
 
-describe('stringToDuration', () => {
-  it('should convert valid duration strings to Duration enum', () => {
-    expect(stringToDuration('per-run')).toBe(Duration.PER_RUN)
-    expect(stringToDuration('daily')).toBe(Duration.DAILY)
-    expect(stringToDuration('weekly')).toBe(Duration.WEEKLY)
-    expect(stringToDuration('monthly')).toBe(Duration.MONTHLY)
-    expect(stringToDuration('yearly')).toBe(Duration.YEARLY)
-  })
-
-  it('should return PER_RUN for invalid duration strings', () => {
-    expect(stringToDuration('invalid')).toBe(Duration.PER_RUN)
-    expect(stringToDuration('')).toBe(Duration.PER_RUN)
-    expect(stringToDuration('DAILY')).toBe(Duration.PER_RUN) // case-sensitive
-  })
-})
-
-describe('durationToString', () => {
-  it('should convert Duration enum to string', () => {
-    expect(durationToString(Duration.PER_RUN)).toBe('per-run')
-    expect(durationToString(Duration.DAILY)).toBe('daily')
-    expect(durationToString(Duration.WEEKLY)).toBe('weekly')
-    expect(durationToString(Duration.MONTHLY)).toBe('monthly')
-    expect(durationToString(Duration.YEARLY)).toBe('yearly')
-  })
-})
