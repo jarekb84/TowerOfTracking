@@ -88,35 +88,44 @@ Each review agent has hundreds of lines of specialized instructions about patter
 - Main Agent implements the user's requested changes
 - Applies all implementation standards (React separation, testing, etc.)
 
-**Step 2: Frontend Design Review** (features only, skipped for bug fixes)
+**Step 2: Pattern Drift Analysis** (ALWAYS required)
+- Invokes Pattern Drift Analyzer Agent (`.claude/agents/pattern-drift-analyzer.md`)
+- Agent analyzes the current changeset to identify concepts being introduced or modified
+- Scans the codebase for similar patterns, flagging drift, missing abstractions, and unification opportunities
+- Returns findings to Main Agent with severity ratings and recommendations
+- **If findings require user input**: Main Agent presents findings to user BEFORE proceeding to other agents
+- **If inline fixes are recommended**: Main Agent may apply them before continuing
+- **If breakout refactor is recommended**: Main Agent notes it for the final summary
+
+**Step 3: Frontend Design Review** (features only, skipped for bug fixes)
 - Invokes Frontend Design Review Agent
 - Agent reviews and implements CSS, visual consistency, layout, and responsive design improvements
 
-**Step 3: E2E Test Review** (conditional—only if E2E files modified)
+**Step 4: E2E Test Review** (conditional—only if E2E files modified)
 - Invokes E2E Test Architect Agent
 - Agent reviews Page Object Model patterns, test organization, and E2E best practices
 
-**Step 4: Architecture Review** (ALWAYS required)
+**Step 5: Architecture Review** (ALWAYS required)
 - Invokes Architecture Review Agent
 - Agent reviews component decomposition, abstraction design, performance patterns, and extensibility
 
-**Step 5: Localization Review** (ALWAYS required)
+**Step 6: Localization Review** (ALWAYS required)
 - Invokes Localization Enforcer Agent
 - Agent reviews all number and date formatting to ensure locale-aware utility usage
 - Fixes any violations by replacing manual formatting with shared utilities
 
-**Step 6: Code Organization & Naming Review** (ALWAYS required)
+**Step 7: Code Organization & Naming Review** (ALWAYS required)
 - Invokes Code Organization & Naming Agent
 - Agent reviews file organization, naming clarity, and feature-based structure
 
-**Step 7: Local Storage Safety Review** (ALWAYS required)
+**Step 8: Local Storage Safety Review** (ALWAYS required)
 - Invokes Local Storage Safety Reviewer Agent
 - Agent analyzes git diff for potential data loss risks in localStorage persistence
 - Checks for: key conflicts, backwards-incompatible changes, missing migration logic
 - Returns findings to Main Agent—if CRITICAL ISSUES found, Main Agent must address before proceeding
 - If Main Agent makes significant changes to address findings, invoke this agent again to verify fixes
 
-**Step 8: Final Summary**
+**Step 9: Final Summary**
 - Main Agent provides comprehensive summary to user including improvements from all agents
 
 ### Orchestration Rules
