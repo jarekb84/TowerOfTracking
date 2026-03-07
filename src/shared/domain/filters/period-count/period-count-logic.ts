@@ -16,6 +16,7 @@ import { Duration, PERIOD_UNIT_LABELS } from '../types'
  * Yearly: Small increments (2, 3, 4, 5)
  */
 const PERIOD_COUNT_OPTIONS: Record<Duration, number[]> = {
+  [Duration.HOURLY]: [6, 12, 18, 24, 30, 36],
   [Duration.PER_RUN]: [5, 10, 15, 20, 25, 30],
   [Duration.DAILY]: [7, 14, 21, 28, 35, 42],
   [Duration.WEEKLY]: [5, 10, 15, 20, 25, 30],
@@ -27,6 +28,7 @@ const PERIOD_COUNT_OPTIONS: Record<Duration, number[]> = {
  * Default period counts per duration
  */
 const DEFAULT_PERIOD_COUNTS: Record<Duration, number> = {
+  [Duration.HOURLY]: 12,
   [Duration.PER_RUN]: 10,
   [Duration.DAILY]: 14,
   [Duration.WEEKLY]: 10,

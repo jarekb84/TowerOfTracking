@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { FormControl } from '@/components/ui'
 import { useData } from '@/shared/domain/use-data'
+import { Duration, type PeriodCountFilter } from '@/shared/domain/filters/types'
+import { PeriodCountSelector } from '@/shared/domain/filters/period-count/period-count-selector'
 import type { TimePeriod, TimePeriodConfig } from './chart-types'
 import { formatLargeNumber } from '@/features/analysis/shared/formatting/chart-formatters'
 import { filterRunsByType, type RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
@@ -33,10 +35,15 @@ interface FilterControlsProps {
   availablePeriodConfigs: TimePeriodConfig[]
   selectedPeriod: TimePeriod
   onSelectPeriod: (period: TimePeriod) => void
+  intervalCount: PeriodCountFilter
+  onIntervalCountChange: (count: PeriodCountFilter) => void
+  intervalCountOptions: number[]
+  intervalLabel: string
   showRunTypeSelector: boolean
   runTypeFilter: RunTypeFilter
   onRunTypeChange?: (runType: RunTypeFilter) => void
   dataPointCount: number
+  showTrendSelector: boolean
   trendWindow: TrendWindowValue
   onTrendWindowChange: (value: TrendWindowValue) => void
   percentChangeEnabled: boolean
@@ -47,36 +54,50 @@ function FilterControls({
   availablePeriodConfigs,
   selectedPeriod,
   onSelectPeriod,
+  intervalCount,
+  onIntervalCountChange,
+  intervalCountOptions,
+  intervalLabel,
   showRunTypeSelector,
   runTypeFilter,
   onRunTypeChange,
   dataPointCount,
+  showTrendSelector,
   trendWindow,
   onTrendWindowChange,
   percentChangeEnabled,
   onPercentChangeToggle,
 }: FilterControlsProps) {
-  // Hide trend selector for yearly view (not enough data points for meaningful trends)
-  const showTrendSelector = selectedPeriod !== 'yearly'
-
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
-      {/* Left side: Duration selector */}
-      <FormControl label="Duration" layout="vertical">
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          {availablePeriodConfigs.map((config) => (
-            <PeriodSelectorButton
-              key={config.period}
-              config={config}
-              isSelected={selectedPeriod === config.period}
-              onSelect={onSelectPeriod}
-            />
-          ))}
-        </div>
-      </FormControl>
+      {/* Left side: Duration selector + Interval selector */}
+      <div className="flex flex-wrap items-end gap-4">
+        <FormControl label="Duration" layout="vertical">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {availablePeriodConfigs.map((config) => (
+              <PeriodSelectorButton
+                key={config.period}
+                config={config}
+                isSelected={selectedPeriod === config.period}
+                onSelect={onSelectPeriod}
+              />
+            ))}
+          </div>
+        </FormControl>
+
+        <PeriodCountSelector
+          selectedCount={intervalCount}
+          onCountChange={onIntervalCountChange}
+          countOptions={intervalCountOptions}
+          label={intervalLabel}
+          showAllOption={true}
+          layout="vertical"
+          accentColor="orange"
+        />
+      </div>
 
       {/* Right side: Run type selector + SMA selector + % Change toggle + Data points count */}
-      <div className="flex items-end gap-4">
+      <div className="flex flex-wrap items-end gap-4">
         {showRunTypeSelector && onRunTypeChange && (
           <RunTypeSelector
             selectedType={runTypeFilter}
@@ -112,7 +133,7 @@ export function TimeSeriesChart({
   title,
   subtitle,
   tooltipLabel,
-  defaultPeriod = 'run',
+  defaultPeriod = Duration.PER_RUN,
   runTypeFilter = RunType.FARM,
   onRunTypeChange,
   valueFormatter
@@ -139,8 +160,13 @@ export function TimeSeriesChart({
     trendWindow,
     setTrendWindow,
     isAverageEnabled,
+    showTrendSelector,
     percentChangeEnabled,
     setPercentChangeEnabled,
+    intervalCount,
+    setIntervalCount,
+    intervalCountOptions,
+    intervalLabel,
   } = useTimeSeriesChartData(filteredRuns, metric, defaultPeriod)
 
   if (chartData.length === 0) {
@@ -170,10 +196,15 @@ export function TimeSeriesChart({
           availablePeriodConfigs={availablePeriodConfigs}
           selectedPeriod={selectedPeriod}
           onSelectPeriod={setSelectedPeriod}
+          intervalCount={intervalCount}
+          onIntervalCountChange={setIntervalCount}
+          intervalCountOptions={intervalCountOptions}
+          intervalLabel={intervalLabel}
           showRunTypeSelector={showRunTypeSelector}
           runTypeFilter={runTypeFilter}
           onRunTypeChange={onRunTypeChange}
           dataPointCount={chartData.length}
+          showTrendSelector={showTrendSelector}
           trendWindow={trendWindow}
           onTrendWindowChange={setTrendWindow}
           percentChangeEnabled={percentChangeEnabled}

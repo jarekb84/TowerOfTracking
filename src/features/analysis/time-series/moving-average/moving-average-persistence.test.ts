@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
+import { Duration } from '@/shared/domain/filters/types'
 import {
   loadTrendWindow,
   saveTrendWindow,
@@ -13,15 +14,15 @@ describe('moving-average-persistence', () => {
 
   describe('buildCompoundKey', () => {
     it('creates compound key from metric and period', () => {
-      expect(buildCompoundKey('coinsEarned', 'daily')).toBe('coinsEarned:daily')
-      expect(buildCompoundKey('totalDamage', 'weekly')).toBe('totalDamage:weekly')
-      expect(buildCompoundKey('cellsEarned', 'run')).toBe('cellsEarned:run')
+      expect(buildCompoundKey('coinsEarned', Duration.DAILY)).toBe('coinsEarned:daily')
+      expect(buildCompoundKey('totalDamage', Duration.WEEKLY)).toBe('totalDamage:weekly')
+      expect(buildCompoundKey('cellsEarned', Duration.PER_RUN)).toBe('cellsEarned:per-run')
     })
   })
 
   describe('loadTrendWindow', () => {
     it('returns "none" when no stored value exists', () => {
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
     })
 
@@ -33,7 +34,7 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('7d')
     })
 
@@ -45,7 +46,7 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
     })
 
@@ -59,9 +60,9 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      expect(loadTrendWindow('coinsEarned', 'daily')).toBe('7d')
-      expect(loadTrendWindow('coinsEarned', 'weekly')).toBe('2w')
-      expect(loadTrendWindow('totalDamage', 'daily')).toBe('14d')
+      expect(loadTrendWindow('coinsEarned', Duration.DAILY)).toBe('7d')
+      expect(loadTrendWindow('coinsEarned', Duration.WEEKLY)).toBe('2w')
+      expect(loadTrendWindow('totalDamage', Duration.DAILY)).toBe('14d')
     })
 
     it('returns "none" for unknown metric+period combination', () => {
@@ -72,7 +73,7 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      const result = loadTrendWindow('unknownMetric', 'daily')
+      const result = loadTrendWindow('unknownMetric', Duration.DAILY)
       expect(result).toBe('none')
     })
 
@@ -84,21 +85,21 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
     })
 
     it('returns "none" when stored JSON is malformed', () => {
       localStorage.setItem('tower-tracking-moving-average-config', 'not valid json')
 
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
     })
   })
 
   describe('saveTrendWindow', () => {
     it('saves value to localStorage with compound key', () => {
-      saveTrendWindow('coinsEarned', 'daily', '7d')
+      saveTrendWindow('coinsEarned', Duration.DAILY, '7d')
 
       const stored = localStorage.getItem('tower-tracking-moving-average-config')
       expect(stored).toBeTruthy()
@@ -113,7 +114,7 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      saveTrendWindow('coinsEarned', 'daily', '7d')
+      saveTrendWindow('coinsEarned', Duration.DAILY, '7d')
 
       const stored = localStorage.getItem('tower-tracking-moving-average-config')
       expect(JSON.parse(stored!)).toEqual({
@@ -130,23 +131,23 @@ describe('moving-average-persistence', () => {
         })
       )
 
-      saveTrendWindow('coinsEarned', 'daily', '14d')
+      saveTrendWindow('coinsEarned', Duration.DAILY, '14d')
 
       const stored = localStorage.getItem('tower-tracking-moving-average-config')
       expect(JSON.parse(stored!)).toEqual({ 'coinsEarned:daily': '14d' })
     })
 
     it('handles "none" value', () => {
-      saveTrendWindow('coinsEarned', 'daily', 'none')
+      saveTrendWindow('coinsEarned', Duration.DAILY, 'none')
 
       const stored = localStorage.getItem('tower-tracking-moving-average-config')
       expect(JSON.parse(stored!)).toEqual({ 'coinsEarned:daily': 'none' })
     })
 
     it('stores independent values for same metric with different periods', () => {
-      saveTrendWindow('coinsEarned', 'daily', '7d')
-      saveTrendWindow('coinsEarned', 'weekly', '2w')
-      saveTrendWindow('coinsEarned', 'monthly', '3m')
+      saveTrendWindow('coinsEarned', Duration.DAILY, '7d')
+      saveTrendWindow('coinsEarned', Duration.WEEKLY, '2w')
+      saveTrendWindow('coinsEarned', Duration.MONTHLY, '3m')
 
       const stored = localStorage.getItem('tower-tracking-moving-average-config')
       expect(JSON.parse(stored!)).toEqual({
@@ -188,7 +189,7 @@ describe('moving-average-persistence', () => {
       )
 
       // Loading should detect legacy format and clear it
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
 
       // Storage should be cleared
@@ -205,7 +206,7 @@ describe('moving-average-persistence', () => {
       )
 
       // Should detect legacy format and clear all
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
       expect(localStorage.getItem('tower-tracking-moving-average-config')).toBeNull()
     })
@@ -217,7 +218,7 @@ describe('moving-average-persistence', () => {
       // @ts-expect-error - Testing SSR behavior
       delete global.window
 
-      const result = loadTrendWindow('coinsEarned', 'daily')
+      const result = loadTrendWindow('coinsEarned', Duration.DAILY)
       expect(result).toBe('none')
 
       global.window = originalWindow
@@ -228,7 +229,7 @@ describe('moving-average-persistence', () => {
       // @ts-expect-error - Testing SSR behavior
       delete global.window
 
-      expect(() => saveTrendWindow('coinsEarned', 'daily', '7d')).not.toThrow()
+      expect(() => saveTrendWindow('coinsEarned', Duration.DAILY, '7d')).not.toThrow()
 
       global.window = originalWindow
     })

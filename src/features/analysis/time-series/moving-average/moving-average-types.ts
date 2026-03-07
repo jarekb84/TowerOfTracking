@@ -1,3 +1,4 @@
+import { Duration } from '@/shared/domain/filters/types'
 import type { TimePeriod } from '../chart-types'
 
 /**
@@ -44,18 +45,6 @@ const MONTHLY_OPTIONS = [
 const YEARLY_OPTIONS = [{ value: 'none', label: 'No Trend' }] as const
 
 /**
- * Maps time periods to their trend window options.
- */
-const OPTIONS_BY_PERIOD = {
-  hourly: HOURLY_OPTIONS,
-  run: RUN_OPTIONS,
-  daily: DAILY_OPTIONS,
-  weekly: WEEKLY_OPTIONS,
-  monthly: MONTHLY_OPTIONS,
-  yearly: YEARLY_OPTIONS,
-} as const
-
-/**
  * All valid trend window values derived from the option definitions.
  */
 type HourlyValue = (typeof HOURLY_OPTIONS)[number]['value']
@@ -74,6 +63,18 @@ export type TrendWindowValue =
 interface TrendWindowOption {
   readonly value: TrendWindowValue
   readonly label: string
+}
+
+/**
+ * Maps time periods to their trend window options.
+ */
+const OPTIONS_BY_PERIOD: Record<TimePeriod, readonly TrendWindowOption[]> = {
+  [Duration.HOURLY]: HOURLY_OPTIONS,
+  [Duration.PER_RUN]: RUN_OPTIONS,
+  [Duration.DAILY]: DAILY_OPTIONS,
+  [Duration.WEEKLY]: WEEKLY_OPTIONS,
+  [Duration.MONTHLY]: MONTHLY_OPTIONS,
+  [Duration.YEARLY]: YEARLY_OPTIONS,
 }
 
 /**

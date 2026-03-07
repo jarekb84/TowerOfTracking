@@ -7,6 +7,7 @@ import { useFieldSelector } from '@/features/analysis/field-analytics/use-field-
 import { useData } from '@/shared/domain/use-data'
 import { formatFieldDisplayName, getFieldFormatter } from '@/shared/domain/fields/field-formatters'
 import { getFieldDataType } from '@/shared/domain/fields/field-discovery'
+import { Duration } from '@/shared/domain/filters/types'
 import { RunType } from '@/shared/domain/run-types/types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
@@ -56,7 +57,7 @@ function FieldAnalyticsPage() {
         <TimeSeriesChart
           metric={selectedField}
           tooltipLabel={tooltipLabel}
-          defaultPeriod="hourly"
+          defaultPeriod={Duration.HOURLY}
           runTypeFilter={runTypeFilter}
           onRunTypeChange={setRunTypeFilter}
           valueFormatter={valueFormatter}

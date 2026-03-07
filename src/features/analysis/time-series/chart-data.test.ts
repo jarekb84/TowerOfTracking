@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import { ParsedGameRun } from '@/shared/types/game-run.types'
+import { Duration } from '@/shared/domain/filters/types'
 
 describe('Chart Data Utils', () => {
   describe('getAvailableTimePeriods', () => {
@@ -33,12 +34,12 @@ describe('Chart Data Utils', () => {
       const periods = getAvailableTimePeriods(runs)
       const periodTypes = periods.map(p => p.period)
 
-      expect(periodTypes).toContain('hourly')
-      expect(periodTypes).toContain('run')
-      expect(periodTypes).toContain('daily')
-      expect(periodTypes).toContain('weekly')
-      expect(periodTypes).toContain('monthly')
-      expect(periodTypes).not.toContain('yearly') // Only one year of data
+      expect(periodTypes).toContain(Duration.HOURLY)
+      expect(periodTypes).toContain(Duration.PER_RUN)
+      expect(periodTypes).toContain(Duration.DAILY)
+      expect(periodTypes).toContain(Duration.WEEKLY)
+      expect(periodTypes).toContain(Duration.MONTHLY)
+      expect(periodTypes).not.toContain(Duration.YEARLY) // Only one year of data
     })
 
     it('should show yearly view only when data spans multiple years', () => {
@@ -70,7 +71,7 @@ describe('Chart Data Utils', () => {
       const periods = getAvailableTimePeriods(runs)
       const periodTypes = periods.map(p => p.period)
 
-      expect(periodTypes).toContain('yearly')
+      expect(periodTypes).toContain(Duration.YEARLY)
     })
 
     it('should only show hourly and run views when no data', () => {
@@ -79,7 +80,7 @@ describe('Chart Data Utils', () => {
       const periods = getAvailableTimePeriods(runs)
       const periodTypes = periods.map(p => p.period)
 
-      expect(periodTypes).toEqual(['hourly', 'run'])
+      expect(periodTypes).toEqual([Duration.HOURLY, Duration.PER_RUN])
     })
   })
 
@@ -100,8 +101,8 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const dailyData = prepareTimeSeriesData(runs, 'daily', 'coinsEarned')
-      
+      const dailyData = prepareTimeSeriesData(runs, Duration.DAILY, 'coinsEarned')
+
       expect(dailyData).toHaveLength(1)
       expect(dailyData[0].value).toBe(1000000)
       expect(dailyData[0].date).toBe('Aug 31')
@@ -124,7 +125,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const weeklyData = prepareTimeSeriesData(runs, 'weekly', 'coinsEarned')
+      const weeklyData = prepareTimeSeriesData(runs, Duration.WEEKLY, 'coinsEarned')
       
       expect(weeklyData).toHaveLength(1)
       expect(weeklyData[0].value).toBe(1000000)
@@ -148,7 +149,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const monthlyData = prepareTimeSeriesData(runs, 'monthly', 'coinsEarned')
+      const monthlyData = prepareTimeSeriesData(runs, Duration.MONTHLY, 'coinsEarned')
       
       expect(monthlyData).toHaveLength(1)
       expect(monthlyData[0].value).toBe(1000000)
@@ -181,7 +182,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const dailyData = prepareTimeSeriesData(runs, 'daily', 'coinsEarned')
+      const dailyData = prepareTimeSeriesData(runs, Duration.DAILY, 'coinsEarned')
       
       expect(dailyData).toHaveLength(1)
       expect(dailyData[0].value).toBe(2200000) // Sum of both runs
@@ -203,7 +204,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const cellsData = prepareTimeSeriesData(runs, 'daily', 'cellsEarned')
+      const cellsData = prepareTimeSeriesData(runs, Duration.DAILY, 'cellsEarned')
       
       expect(cellsData).toHaveLength(1)
       expect(cellsData[0].value).toBe(50000)
@@ -237,7 +238,7 @@ describe('Chart Data Utils', () => {
         }
       ]
 
-      const weeklyData = prepareTimeSeriesData(runs, 'weekly', 'coinsEarned')
+      const weeklyData = prepareTimeSeriesData(runs, Duration.WEEKLY, 'coinsEarned')
       
       expect(weeklyData).toHaveLength(2) // Two different weeks
       expect(weeklyData[0].value).toBe(1000000) // First week (Saturday Aug 30)

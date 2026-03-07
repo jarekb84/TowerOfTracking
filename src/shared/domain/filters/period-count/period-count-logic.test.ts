@@ -9,6 +9,10 @@ import {
 } from './period-count-logic'
 
 describe('getPeriodCountOptions', () => {
+  it('should return hourly increments for HOURLY', () => {
+    expect(getPeriodCountOptions(Duration.HOURLY)).toEqual([6, 12, 18, 24, 30, 36])
+  })
+
   it('should return standard increments for PER_RUN', () => {
     expect(getPeriodCountOptions(Duration.PER_RUN)).toEqual([5, 10, 15, 20, 25, 30])
   })
@@ -31,6 +35,10 @@ describe('getPeriodCountOptions', () => {
 })
 
 describe('getDefaultPeriodCount', () => {
+  it('should return 12 for HOURLY', () => {
+    expect(getDefaultPeriodCount(Duration.HOURLY)).toBe(12)
+  })
+
   it('should return 10 for PER_RUN', () => {
     expect(getDefaultPeriodCount(Duration.PER_RUN)).toBe(10)
   })
@@ -54,6 +62,7 @@ describe('getDefaultPeriodCount', () => {
 
 describe('getPeriodCountLabel', () => {
   it('should return correct labels for each duration', () => {
+    expect(getPeriodCountLabel(Duration.HOURLY)).toBe('Last Hours')
     expect(getPeriodCountLabel(Duration.PER_RUN)).toBe('Last Runs')
     expect(getPeriodCountLabel(Duration.DAILY)).toBe('Last Days')
     expect(getPeriodCountLabel(Duration.WEEKLY)).toBe('Last Weeks')

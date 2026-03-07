@@ -1,5 +1,6 @@
 import { Area, ComposedChart, Line, XAxis, YAxis, Tooltip } from 'recharts'
 import { ChartContainer } from '@/components/ui'
+import { Duration } from '@/shared/domain/filters/types'
 import type { ChartDataPoint, TimePeriodConfig } from './chart-types'
 import { TimeSeriesChartTooltip } from './time-series-tooltip'
 
@@ -66,7 +67,7 @@ export function TimeSeriesChartBody({
             content={
               <TimeSeriesChartTooltip
                 periodLabel={currentConfig.label} metricLabel={tooltipLabel}
-                formatter={formatter} isHourlyPeriod={selectedPeriod === 'hourly'}
+                formatter={formatter} isHourlyPeriod={selectedPeriod === Duration.HOURLY}
                 accentColor={color} showTrendLine={isAverageEnabled}
                 showPercentChange={percentChangeEnabled}
               />

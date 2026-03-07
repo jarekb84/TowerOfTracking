@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
+import { Duration } from '@/shared/domain/filters/types'
 import { useMovingAverage } from './use-moving-average'
 import type { TimePeriod } from '../chart-types'
 
@@ -10,7 +11,7 @@ describe('useMovingAverage', () => {
 
   describe('initial state', () => {
     it('returns "none" as default when no stored value exists', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       expect(result.current.trendWindow).toBe('none')
       expect(result.current.isEnabled).toBe(false)
@@ -25,7 +26,7 @@ describe('useMovingAverage', () => {
         })
       )
 
-      const { result } = renderHook(() => useMovingAverage('coinsEarned', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('coinsEarned', Duration.DAILY))
 
       expect(result.current.trendWindow).toBe('7d')
       expect(result.current.isEnabled).toBe(true)
@@ -40,7 +41,7 @@ describe('useMovingAverage', () => {
         })
       )
 
-      const { result } = renderHook(() => useMovingAverage('totalDamage', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('totalDamage', Duration.DAILY))
 
       expect(result.current.trendWindow).toBe('none')
       expect(result.current.isEnabled).toBe(false)
@@ -56,10 +57,10 @@ describe('useMovingAverage', () => {
       )
 
       const { result: dailyResult } = renderHook(() =>
-        useMovingAverage('coinsEarned', 'daily')
+        useMovingAverage('coinsEarned', Duration.DAILY)
       )
       const { result: weeklyResult } = renderHook(() =>
-        useMovingAverage('coinsEarned', 'weekly')
+        useMovingAverage('coinsEarned', Duration.WEEKLY)
       )
 
       expect(dailyResult.current.trendWindow).toBe('7d')
@@ -69,7 +70,7 @@ describe('useMovingAverage', () => {
 
   describe('setTrendWindow', () => {
     it('updates trendWindow state', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       act(() => {
         result.current.setTrendWindow('14d')
@@ -81,7 +82,7 @@ describe('useMovingAverage', () => {
     })
 
     it('persists value to localStorage with compound key', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       act(() => {
         result.current.setTrendWindow('3d')
@@ -93,7 +94,7 @@ describe('useMovingAverage', () => {
     })
 
     it('can set value back to "none"', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       act(() => {
         result.current.setTrendWindow('7d')
@@ -113,13 +114,13 @@ describe('useMovingAverage', () => {
 
   describe('windowSize', () => {
     it('returns null when trendWindow is "none"', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       expect(result.current.windowSize).toBeNull()
     })
 
     it('returns numeric value for daily options', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       act(() => {
         result.current.setTrendWindow('7d')
@@ -133,7 +134,7 @@ describe('useMovingAverage', () => {
     })
 
     it('returns numeric value for weekly options', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'weekly'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.WEEKLY))
 
       act(() => {
         result.current.setTrendWindow('2w')
@@ -149,13 +150,13 @@ describe('useMovingAverage', () => {
 
   describe('isEnabled', () => {
     it('is false when trendWindow is "none"', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       expect(result.current.isEnabled).toBe(false)
     })
 
     it('is true when trendWindow is not "none"', () => {
-      const { result } = renderHook(() => useMovingAverage('testMetric', 'daily'))
+      const { result } = renderHook(() => useMovingAverage('testMetric', Duration.DAILY))
 
       act(() => {
         result.current.setTrendWindow('3d')
@@ -178,12 +179,12 @@ describe('useMovingAverage', () => {
       const { result, rerender } = renderHook(
         ({ metricKey, period }: { metricKey: string; period: TimePeriod }) =>
           useMovingAverage(metricKey, period),
-        { initialProps: { metricKey: 'coinsEarned', period: 'daily' as TimePeriod } }
+        { initialProps: { metricKey: 'coinsEarned', period: Duration.DAILY as TimePeriod } }
       )
 
       expect(result.current.trendWindow).toBe('7d')
 
-      rerender({ metricKey: 'totalDamage', period: 'daily' as TimePeriod })
+      rerender({ metricKey: 'totalDamage', period: Duration.DAILY as TimePeriod })
 
       expect(result.current.trendWindow).toBe('14d')
     })
@@ -202,12 +203,12 @@ describe('useMovingAverage', () => {
       const { result, rerender } = renderHook(
         ({ metricKey, period }: { metricKey: string; period: TimePeriod }) =>
           useMovingAverage(metricKey, period),
-        { initialProps: { metricKey: 'coinsEarned', period: 'daily' as TimePeriod } }
+        { initialProps: { metricKey: 'coinsEarned', period: Duration.DAILY as TimePeriod } }
       )
 
       expect(result.current.trendWindow).toBe('7d')
 
-      rerender({ metricKey: 'coinsEarned', period: 'weekly' as TimePeriod })
+      rerender({ metricKey: 'coinsEarned', period: Duration.WEEKLY as TimePeriod })
 
       expect(result.current.trendWindow).toBe('2w')
     })
@@ -223,12 +224,12 @@ describe('useMovingAverage', () => {
       const { result, rerender } = renderHook(
         ({ metricKey, period }: { metricKey: string; period: TimePeriod }) =>
           useMovingAverage(metricKey, period),
-        { initialProps: { metricKey: 'coinsEarned', period: 'daily' as TimePeriod } }
+        { initialProps: { metricKey: 'coinsEarned', period: Duration.DAILY as TimePeriod } }
       )
 
       expect(result.current.trendWindow).toBe('7d')
 
-      rerender({ metricKey: 'coinsEarned', period: 'weekly' as TimePeriod })
+      rerender({ metricKey: 'coinsEarned', period: Duration.WEEKLY as TimePeriod })
 
       expect(result.current.trendWindow).toBe('none')
     })
