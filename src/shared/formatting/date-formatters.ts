@@ -19,6 +19,7 @@ import {
   getShortDateFormatter,
   getNumericDateFormatter,
   getTimeFormatter,
+  getHourFormatter,
   getMonthDayFormatter,
   getMonthFormatter,
 } from '@/shared/locale/locale-store';
@@ -404,6 +405,23 @@ export function formatDisplayNumericDate(date: Date): string {
  */
 export function formatDisplayTime(date: Date): string {
   return getTimeFormatter().format(date);
+}
+
+/**
+ * Format hour only using user's locale (e.g., 2 PM or 14)
+ * Used for compact chart axis labels where only the hour matters.
+ *
+ * @param date - Date to extract and format hour from
+ * @returns Locale-formatted hour string
+ *
+ * @example
+ * // With en-US locale
+ * formatDisplayHour(new Date('2025-11-20T14:00')) // '2 PM'
+ * // With de-DE locale
+ * formatDisplayHour(new Date('2025-11-20T14:00')) // '14'
+ */
+export function formatDisplayHour(date: Date): string {
+  return getHourFormatter().format(date);
 }
 
 /**

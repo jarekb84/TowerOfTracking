@@ -3,6 +3,8 @@
  *
  * Unified period count selector with dynamic labels based on duration.
  * Shows appropriate increments for each duration type.
+ *
+ * Architecture decisions for this module: see DECISIONS.md in this directory
  */
 
 import { FormControl } from '@/components/ui/form-field'

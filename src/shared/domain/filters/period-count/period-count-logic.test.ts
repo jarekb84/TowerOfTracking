@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { Duration } from '../types'
+import type { PeriodCountOverrides } from './period-count-logic'
 import {
+  asNumericPeriodCount,
   getPeriodCountOptions,
   getDefaultPeriodCount,
   getPeriodCountLabel,
@@ -128,5 +130,67 @@ describe('adjustPeriodCountForDuration', () => {
 
     // 1 is below all YEARLY options [2, 3, 4, 5]
     expect(adjustPeriodCountForDuration(1, Duration.YEARLY)).toBe(2)
+  })
+})
+
+describe('overrides support', () => {
+  const overrides: PeriodCountOverrides = {
+    [Duration.DAILY]: [2, 3, 4, 5, 6, 7],
+    [Duration.YEARLY]: [2, 3, 4, 5],
+  }
+
+  it('getPeriodCountOptions should return override options when provided', () => {
+    expect(getPeriodCountOptions(Duration.DAILY, overrides)).toEqual([2, 3, 4, 5, 6, 7])
+  })
+
+  it('getPeriodCountOptions should return defaults for durations without overrides', () => {
+    expect(getPeriodCountOptions(Duration.WEEKLY, overrides)).toEqual([5, 10, 15, 20, 25, 30])
+  })
+
+  it('getDefaultPeriodCount should return first override option', () => {
+    expect(getDefaultPeriodCount(Duration.DAILY, overrides)).toBe(2)
+    expect(getDefaultPeriodCount(Duration.YEARLY, overrides)).toBe(2)
+  })
+
+  it('getDefaultPeriodCount should return default for durations without overrides', () => {
+    expect(getDefaultPeriodCount(Duration.WEEKLY, overrides)).toBe(10)
+  })
+
+  it('adjustPeriodCountForDuration should use override options', () => {
+    // 14 is not in override [2, 3, 4, 5, 6, 7], closest is 7
+    expect(adjustPeriodCountForDuration(14, Duration.DAILY, overrides)).toBe(7)
+    // 5 is in override, keep it
+    expect(adjustPeriodCountForDuration(5, Duration.DAILY, overrides)).toBe(5)
+  })
+
+  it('adjustPeriodCountForDuration should use defaults without overrides', () => {
+    expect(adjustPeriodCountForDuration(14, Duration.DAILY)).toBe(14)
+  })
+})
+
+describe('asNumericPeriodCount', () => {
+  it('should pass through numeric values unchanged', () => {
+    expect(asNumericPeriodCount(5, Duration.DAILY)).toBe(5)
+    expect(asNumericPeriodCount(10, Duration.PER_RUN)).toBe(10)
+  })
+
+  it('should return default period count when value is all', () => {
+    expect(asNumericPeriodCount('all', Duration.DAILY)).toBe(14)
+    expect(asNumericPeriodCount('all', Duration.PER_RUN)).toBe(10)
+    expect(asNumericPeriodCount('all', Duration.MONTHLY)).toBe(6)
+  })
+
+  it('should use overrides for default when value is all', () => {
+    const overrides: PeriodCountOverrides = {
+      [Duration.DAILY]: [2, 3, 4, 5, 6, 7],
+    }
+    expect(asNumericPeriodCount('all', Duration.DAILY, overrides)).toBe(2)
+  })
+
+  it('should use standard default for durations without overrides', () => {
+    const overrides: PeriodCountOverrides = {
+      [Duration.DAILY]: [2, 3, 4, 5, 6, 7],
+    }
+    expect(asNumericPeriodCount('all', Duration.WEEKLY, overrides)).toBe(10)
   })
 })

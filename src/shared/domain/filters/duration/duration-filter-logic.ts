@@ -2,17 +2,12 @@
  * Duration Filter Logic
  *
  * Pure functions for determining available duration options based on data.
+ *
+ * Architecture decisions for this module: see DECISIONS.md in this directory
  */
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { Duration, DURATION_LABELS } from '../types'
-
-/**
- * Valid duration string values for mapping from legacy enums
- */
-const VALID_DURATION_VALUES = new Set<string>([
-  'per-run', 'daily', 'weekly', 'monthly', 'yearly'
-])
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 
@@ -32,10 +27,10 @@ export function getAvailableDurations(runs: ParsedGameRun[]): Duration[] {
   }
 
   if (runs.length === 1) {
-    return [Duration.PER_RUN]
+    return [Duration.HOURLY, Duration.PER_RUN]
   }
 
-  const available: Duration[] = [Duration.PER_RUN]
+  const available: Duration[] = [Duration.HOURLY, Duration.PER_RUN]
 
   // Find date range from runs
   const dates = runs
@@ -107,6 +102,7 @@ export function getClosestAvailableDuration(
 
   // Order of preference for fallback
   const preferenceOrder: Duration[] = [
+    Duration.HOURLY,
     Duration.PER_RUN,
     Duration.DAILY,
     Duration.WEEKLY,
@@ -123,31 +119,3 @@ export function getClosestAvailableDuration(
   return Duration.PER_RUN
 }
 
-/**
- * Type adapter: Convert a string value from a legacy duration enum to unified Duration
- *
- * This safely maps string values that match Duration enum values without
- * using unsafe type casts. Falls back to PER_RUN for invalid values.
- *
- * @param value - A string value from a legacy enum (e.g., SourceDuration, TrendsDuration)
- * @returns The corresponding Duration enum value
- */
-export function stringToDuration(value: string): Duration {
-  if (VALID_DURATION_VALUES.has(value)) {
-    return value as Duration
-  }
-  return Duration.PER_RUN
-}
-
-/**
- * Type adapter: Convert Duration to a string for use with legacy duration enums
- *
- * Since Duration enum values are already strings matching legacy enum values,
- * this is a type-safe pass-through.
- *
- * @param duration - A Duration enum value
- * @returns The string value for use with legacy enums
- */
-export function durationToString(duration: Duration): string {
-  return duration
-}

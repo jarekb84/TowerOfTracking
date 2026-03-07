@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { useData } from '@/shared/domain/use-data'
 import { getAvailableTiersForTrends } from './calculations/tier-trends-calculations'
 import { RunType } from '@/shared/domain/run-types/types'
-import { TrendsDuration, TrendsAggregation } from './types'
+import { Duration, TrendsAggregation } from './types'
+import { useAvailableDurations } from '@/shared/domain/filters'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { TierTrendsFilters as TierTrendsFiltersComponent } from './filters/tier-trends-filters'
 import { TierTrendsTable } from './table/tier-trends-table'
@@ -22,9 +23,15 @@ export function TierTrendsAnalysis() {
   
   const availableTiers = useMemo(() => getAvailableTiersForTrends(runs, runTypeFilter), [runs, runTypeFilter])
   
+  const { durations: rawDurations } = useAvailableDurations(runs)
+  const availableDurations = useMemo(
+    () => rawDurations.filter(d => d !== Duration.HOURLY),
+    [rawDurations]
+  )
+
   const [filters, setFilters] = useState<TierTrendsFilters>({
     tier: 0, // 0 = All tiers
-    duration: TrendsDuration.PER_RUN,
+    duration: Duration.PER_RUN,
     quantity: 4, // Default to 4 periods for better trending visibility
     aggregationType: TrendsAggregation.AVERAGE
   })
@@ -99,6 +106,7 @@ export function TierTrendsAnalysis() {
         filters={filters}
         onFiltersChange={setFilters}
         availableTiers={availableTiers}
+        availableDurations={availableDurations}
       />
 
       {/* Conditional Results Area */}

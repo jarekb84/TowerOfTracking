@@ -12,8 +12,13 @@ import {
   DISCREPANCY_FIELD_NAMES,
   DISCREPANCY_DISPLAY_NAMES,
 } from '@/shared/domain/fields/breakdown-sources';
+import { Duration } from '@/shared/domain/filters/types';
 import {
-  SourceDuration,
+  getPeriodKey,
+  formatPeriodLabel,
+  limitToPeriods,
+} from '@/features/analysis/shared/period-grouping';
+import {
   type CategoryDefinition,
   type PeriodSourceBreakdown,
   type SourceValue,
@@ -28,20 +33,16 @@ import {
   calculatePercentage,
   sortSourceSummaryByPercentage,
 } from './source-extraction';
-import {
-  getPeriodKey,
-  formatPeriodLabel,
-} from './period-formatting';
 
 // Re-export for backwards compatibility with existing imports
-export { getPeriodKey, formatPeriodLabel } from './period-formatting';
+export { getPeriodKey, formatPeriodLabel, limitToPeriods } from '@/features/analysis/shared/period-grouping';
 
 /**
  * Group runs by the specified duration period
  */
 export function groupRunsByPeriod(
   runs: ParsedGameRun[],
-  duration: SourceDuration
+  duration: Duration
 ): Map<string, ParsedGameRun[]> {
   const groups = new Map<string, ParsedGameRun[]>();
 
@@ -249,37 +250,6 @@ export function filterRuns(
 }
 
 /**
- * Get the most recent N periods of data
- */
-export function limitToPeriods(
-  groups: Map<string, ParsedGameRun[]>,
-  quantity: number,
-  duration: SourceDuration
-): Map<string, ParsedGameRun[]> {
-  // Sort keys by date (most recent first)
-  const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
-    if (duration === 'per-run') {
-      return new Date(b).getTime() - new Date(a).getTime();
-    }
-    return b.localeCompare(a);
-  });
-
-  // Take only the most recent N periods
-  const limitedKeys = sortedKeys.slice(0, quantity);
-
-  // Reverse to get oldest first for chart display
-  const result = new Map<string, ParsedGameRun[]>();
-  for (const key of limitedKeys.reverse()) {
-    const value = groups.get(key);
-    if (value) {
-      result.set(key, value);
-    }
-  }
-
-  return result;
-}
-
-/**
  * Main calculation function - produces complete source analysis data
  */
 export function calculateSourceAnalysis(
@@ -304,7 +274,7 @@ export function calculateSourceAnalysis(
   // Calculate breakdown for each period
   const groupEntries = Array.from(groups.entries());
   const totalRuns = groupEntries.length;
-  const isPerRunPeriod = filters.duration === SourceDuration.PER_RUN;
+  const isPerRunPeriod = filters.duration === Duration.PER_RUN;
 
   const periods: PeriodSourceBreakdown[] = groupEntries.map(([key, periodRuns], index) => {
     const label = formatPeriodLabel(key, filters.duration, index, totalRuns);

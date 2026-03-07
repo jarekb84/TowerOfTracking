@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { Duration } from '../types'
+import type { PeriodCountOverrides } from './period-count-logic'
 import { usePeriodCountOptions } from './use-period-count-options'
 
 describe('usePeriodCountOptions', () => {
@@ -89,5 +90,35 @@ describe('usePeriodCountOptions', () => {
     // Rerender with different duration
     rerender({ duration: Duration.WEEKLY })
     expect(result.current.options).not.toBe(firstOptions)
+  })
+
+  describe('with overrides', () => {
+    const overrides: PeriodCountOverrides = {
+      [Duration.DAILY]: [2, 3, 4, 5, 6, 7],
+    }
+
+    it('should return override options when provided', () => {
+      const { result } = renderHook(() => usePeriodCountOptions(Duration.DAILY, overrides))
+
+      expect(result.current.options).toEqual([2, 3, 4, 5, 6, 7])
+      expect(result.current.defaultCount).toBe(2)
+      expect(result.current.label).toBe('Last Days')
+    })
+
+    it('should return defaults for durations without overrides', () => {
+      const { result } = renderHook(() => usePeriodCountOptions(Duration.WEEKLY, overrides))
+
+      expect(result.current.options).toEqual([5, 10, 15, 20, 25, 30])
+      expect(result.current.defaultCount).toBe(10)
+    })
+
+    it('should use overrides in adjustForDuration', () => {
+      const { result } = renderHook(() => usePeriodCountOptions(Duration.DAILY, overrides))
+
+      // 14 not in [2,3,4,5,6,7], closest is 7
+      expect(result.current.adjustForDuration(14)).toBe(7)
+      // 5 is valid
+      expect(result.current.adjustForDuration(5)).toBe(5)
+    })
   })
 })

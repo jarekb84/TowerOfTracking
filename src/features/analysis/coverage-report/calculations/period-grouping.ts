@@ -24,21 +24,14 @@ import {
   sumAffectedCounts,
   calculateCoveragePercentage,
 } from './coverage-calculations'
-// D3: Reuse period utilities from source-analysis
+// Shared period utilities used across analysis features
 import {
-  getPeriodKey as getPeriodKeySource,
-  formatPeriodLabel as formatPeriodLabelSource,
-} from '@/features/analysis/source-analysis/calculations/period-grouping'
-import type { SourceDuration } from '@/features/analysis/source-analysis/types'
-
-// Type-safe wrapper functions to bridge Duration and SourceDuration
-function getPeriodKey(timestamp: Date, duration: Duration): string {
-  return getPeriodKeySource(timestamp, duration as unknown as SourceDuration)
-}
-
-function formatPeriodLabel(key: string, duration: Duration, index?: number, totalRuns?: number): string {
-  return formatPeriodLabelSource(key, duration as unknown as SourceDuration, index, totalRuns)
-}
+  getPeriodKey,
+  formatPeriodLabel,
+  limitToPeriods,
+} from '@/features/analysis/shared/period-grouping'
+// Re-export limitToPeriods so existing consumers (tests) can still import from here
+export { limitToPeriods }
 
 
 /**
@@ -85,37 +78,6 @@ export function groupRunsByPeriod(
   }
 
   return groups
-}
-
-/**
- * Get the most recent N periods of data
- */
-export function limitToPeriods(
-  groups: Map<string, ParsedGameRun[]>,
-  quantity: number,
-  duration: Duration
-): Map<string, ParsedGameRun[]> {
-  // Sort keys by date (most recent first)
-  const sortedKeys = Array.from(groups.keys()).sort((a, b) => {
-    if (duration === 'per-run') {
-      return new Date(b).getTime() - new Date(a).getTime()
-    }
-    return b.localeCompare(a)
-  })
-
-  // Take only the most recent N periods
-  const limitedKeys = sortedKeys.slice(0, quantity)
-
-  // Reverse to get oldest first for chart display
-  const result = new Map<string, ParsedGameRun[]>()
-  for (const key of limitedKeys.reverse()) {
-    const value = groups.get(key)
-    if (value) {
-      result.set(key, value)
-    }
-  }
-
-  return result
 }
 
 /**

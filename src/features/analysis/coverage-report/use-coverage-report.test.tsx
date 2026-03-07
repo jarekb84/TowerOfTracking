@@ -189,19 +189,16 @@ describe('useCoverageReport', () => {
       expect(result.current.filters.periodCount).toBeLessThanOrEqual(20)
     })
 
-    it('prevents setting yearly duration (D7)', () => {
+    it('allows setting yearly duration', () => {
       const { result } = renderHook(() =>
         useCoverageReport({ runs: defaultMockRuns })
       )
-
-      const originalDuration = result.current.filters.duration
 
       act(() => {
         result.current.setDuration(Duration.YEARLY)
       })
 
-      // Duration should not change to yearly
-      expect(result.current.filters.duration).toBe(originalDuration)
+      expect(result.current.filters.duration).toBe(Duration.YEARLY)
     })
 
     it('updates period count with bounds', () => {
@@ -304,12 +301,13 @@ describe('useCoverageReport', () => {
       expect(result.current.availableTiers).toContain(11)
     })
 
-    it('excludes yearly from available durations (D7)', () => {
+    it('includes all durations from data availability', () => {
       const { result } = renderHook(() =>
         useCoverageReport({ runs: defaultMockRuns })
       )
 
-      expect(result.current.availableDurations).not.toContain(Duration.YEARLY)
+      expect(result.current.availableDurations).toContain(Duration.HOURLY)
+      expect(result.current.availableDurations).toContain(Duration.PER_RUN)
     })
   })
 

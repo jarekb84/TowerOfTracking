@@ -18,16 +18,11 @@ export {
 export { useAvailableTiers,  } from './tier/use-available-tiers'
 export { TierSelector,  } from './tier/tier-selector'
 
-// Duration filter - pure logic functions, hooks, and components
-export {
-  // Duration value adapters for bridging legacy duration enums
-  stringToDuration,
-  durationToString
-} from './duration/duration-filter-logic'
+// Duration filter - hooks and components
 export { useAvailableDurations,  } from './duration/use-available-durations'
 export { DurationSelector,  } from './duration/duration-selector'
 
-// Period count filter - pure logic functions, hooks, and components
+// Period count filter - pure logic functions, hooks, and components
 export {
   getPeriodCountOptions,
   getDefaultPeriodCount,

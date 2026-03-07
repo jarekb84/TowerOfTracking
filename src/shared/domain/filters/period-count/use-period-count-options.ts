@@ -2,10 +2,13 @@
  * usePeriodCountOptions Hook
  *
  * React hook for generating period count options based on duration.
+ *
+ * Architecture decisions for this module: see DECISIONS.md in this directory
  */
 
 import { useMemo } from 'react'
 import { Duration } from '../types'
+import type { PeriodCountOverrides } from './period-count-logic'
 import {
   getPeriodCountOptions,
   getDefaultPeriodCount,
@@ -31,17 +34,18 @@ interface UsePeriodCountOptionsResult {
  * @returns Object containing options, default, label, and adjustment function
  */
 export function usePeriodCountOptions(
-  duration: Duration
+  duration: Duration,
+  overrides?: PeriodCountOverrides
 ): UsePeriodCountOptionsResult {
-  const options = useMemo(() => getPeriodCountOptions(duration), [duration])
+  const options = useMemo(() => getPeriodCountOptions(duration, overrides), [duration, overrides])
 
-  const defaultCount = useMemo(() => getDefaultPeriodCount(duration), [duration])
+  const defaultCount = useMemo(() => getDefaultPeriodCount(duration, overrides), [duration, overrides])
 
   const label = useMemo(() => getPeriodCountLabel(duration), [duration])
 
   const adjustForDuration = useMemo(
-    () => (count: number | 'all') => adjustPeriodCountForDuration(count, duration),
-    [duration]
+    () => (count: number | 'all') => adjustPeriodCountForDuration(count, duration, overrides),
+    [duration, overrides]
   )
 
   return { options, defaultCount, label, adjustForDuration }
