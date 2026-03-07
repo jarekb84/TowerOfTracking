@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ChartPageLayout } from '@/shared/layouts'
 import { TimeSeriesChart } from '@/features/analysis/time-series/time-series-chart'
+import { Duration } from '@/shared/domain/filters/types'
 import { RunType } from '@/shared/domain/run-types/types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
@@ -21,7 +22,7 @@ function CoinsChartPage() {
       <TimeSeriesChart
         metric="coinsEarned"
         tooltipLabel="Coins Earned"
-        defaultPeriod="hourly"
+        defaultPeriod={Duration.HOURLY}
         runTypeFilter={runTypeFilter}
         onRunTypeChange={setRunTypeFilter}
       />

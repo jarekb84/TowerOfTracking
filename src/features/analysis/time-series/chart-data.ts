@@ -2,10 +2,10 @@ import { format, startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date
 import { ParsedGameRun } from '@/shared/types/game-run.types'
 import {
   ChartDataPoint,
-  TimePeriod,
   TimePeriodConfig,
   TIME_PERIOD_CONFIGS
 } from './chart-types'
+import { Duration } from '@/shared/domain/filters/types'
 import {
   prepareFieldPerRunData,
   prepareFieldPerHourData,
@@ -21,21 +21,21 @@ import {
  */
 export function prepareTimeSeriesData(
   runs: ParsedGameRun[],
-  period: TimePeriod,
+  period: Duration,
   metric: string
 ): ChartDataPoint[] {
   switch (period) {
-    case 'hourly':
+    case Duration.HOURLY:
       return prepareFieldPerHourData(runs, metric)
-    case 'run':
+    case Duration.PER_RUN:
       return prepareFieldPerRunData(runs, metric)
-    case 'daily':
+    case Duration.DAILY:
       return prepareFieldPerDayData(runs, metric)
-    case 'weekly':
+    case Duration.WEEKLY:
       return prepareFieldPerWeekData(runs, metric)
-    case 'monthly':
+    case Duration.MONTHLY:
       return prepareFieldPerMonthData(runs, metric)
-    case 'yearly':
+    case Duration.YEARLY:
       return prepareFieldPerYearData(runs, metric)
     default:
       return []
@@ -50,7 +50,7 @@ export function getAvailableTimePeriods(runs: ParsedGameRun[]): TimePeriodConfig
   if (runs.length === 0) {
     // Always show hourly and per run when no data
     return TIME_PERIOD_CONFIGS.filter(config =>
-      config.period === 'hourly' || config.period === 'run'
+      config.period === Duration.HOURLY || config.period === Duration.PER_RUN
     )
   }
 
@@ -69,26 +69,26 @@ export function getAvailableTimePeriods(runs: ParsedGameRun[]): TimePeriodConfig
   })
 
   // Always include hourly and per run
-  const availablePeriods: TimePeriod[] = ['hourly', 'run']
+  const availablePeriods: Duration[] = [Duration.HOURLY, Duration.PER_RUN]
 
   // Always show daily view if we have any data
   if (uniqueDays.size >= 1) {
-    availablePeriods.push('daily')
+    availablePeriods.push(Duration.DAILY)
   }
 
   // Always show weekly view if we have any data
   if (uniqueWeeks.size >= 1) {
-    availablePeriods.push('weekly')
+    availablePeriods.push(Duration.WEEKLY)
   }
 
   // Always show monthly view if we have any data
   if (uniqueMonths.size >= 1) {
-    availablePeriods.push('monthly')
+    availablePeriods.push(Duration.MONTHLY)
   }
 
   // Only show yearly view if we have data spanning multiple years
   if (uniqueYears.size > 1) {
-    availablePeriods.push('yearly')
+    availablePeriods.push(Duration.YEARLY)
   }
 
   // Return configurations for available periods in original order

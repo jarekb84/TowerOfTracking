@@ -1,5 +1,6 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useMemo } from 'react'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
+import { Duration, type PeriodCountFilter } from '@/shared/domain/filters/types'
 import { prepareTimeSeriesData, getAvailableTimePeriods } from './chart-data'
 import type { TimePeriod, ChartDataPoint, TimePeriodConfig } from './chart-types'
 import { generateYAxisTicks } from '@/features/analysis/shared/formatting/chart-formatters'
@@ -9,6 +10,11 @@ import {
   type TrendWindowValue,
 } from './moving-average'
 import { calculatePercentChange, usePercentChange } from './percent-change'
+import {
+  sliceToInterval,
+  useIntervalSelector,
+  useDurationSelector,
+} from './interval-selector'
 
 interface UseTimeSeriesChartDataResult {
   chartData: ChartDataPoint[]
@@ -20,39 +26,47 @@ interface UseTimeSeriesChartDataResult {
   trendWindow: TrendWindowValue
   setTrendWindow: (value: TrendWindowValue) => void
   isAverageEnabled: boolean
+  /** Whether trend selector should be shown (hidden for yearly -- insufficient data points) */
+  showTrendSelector: boolean
   percentChangeEnabled: boolean
   setPercentChangeEnabled: (enabled: boolean) => void
+  intervalCount: PeriodCountFilter
+  setIntervalCount: (count: PeriodCountFilter) => void
+  intervalCountOptions: number[]
+  intervalLabel: string
 }
 
 /**
  * Custom hook that encapsulates all chart data preparation logic.
- * Handles period selection, moving average, and percent change calculations.
+ * Handles period selection, interval slicing, moving average, and percent change calculations.
  */
 export function useTimeSeriesChartData(
   filteredRuns: ParsedGameRun[],
   metric: string,
   defaultPeriod: TimePeriod
 ): UseTimeSeriesChartDataResult {
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>(defaultPeriod)
-
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
     return getAvailableTimePeriods(filteredRuns)
   }, [filteredRuns])
 
-  // Reset period if current selection is not available
-  useEffect(() => {
-    const isCurrentPeriodAvailable = availablePeriodConfigs.some(
-      (config) => config.period === selectedPeriod
-    )
-    if (!isCurrentPeriodAvailable && availablePeriodConfigs.length > 0) {
-      setSelectedPeriod(availablePeriodConfigs[0].period)
-    }
-  }, [availablePeriodConfigs, selectedPeriod])
+  // Duration selection with localStorage persistence and auto-reset
+  const { selectedPeriod, setSelectedPeriod } = useDurationSelector(
+    defaultPeriod,
+    availablePeriodConfigs
+  )
 
   const currentConfig =
     availablePeriodConfigs.find((config) => config.period === selectedPeriod) ||
     availablePeriodConfigs[0]
+
+  // Interval selector state with localStorage persistence
+  const {
+    intervalCount,
+    setIntervalCount,
+    countOptions: intervalCountOptions,
+    label: intervalLabel,
+  } = useIntervalSelector(selectedPeriod)
 
   // Moving average state with localStorage persistence (period-aware)
   const { trendWindow, setTrendWindow, windowSize, isEnabled: isAverageEnabled } =
@@ -66,9 +80,9 @@ export function useTimeSeriesChartData(
     return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)
   }, [filteredRuns, selectedPeriod, metric])
 
-  // Apply optional calculations: moving average and percent change
+  // Apply interval slicing, then moving average and percent change
   const chartData = useMemo(() => {
-    let data = baseChartData
+    let data = sliceToInterval(baseChartData, intervalCount)
 
     if (isAverageEnabled && windowSize !== null) {
       data = calculateMovingAverage(data, windowSize)
@@ -79,13 +93,16 @@ export function useTimeSeriesChartData(
     }
 
     return data
-  }, [baseChartData, windowSize, isAverageEnabled, percentChangeEnabled])
+  }, [baseChartData, intervalCount, windowSize, isAverageEnabled, percentChangeEnabled])
 
   const yAxisTicks = useMemo(() => {
     if (chartData.length === 0) return []
     const maxValue = Math.max(...chartData.map((d) => d.value))
     return generateYAxisTicks(maxValue)
   }, [chartData])
+
+  // Hide trend selector for yearly view (not enough data points for meaningful trends)
+  const showTrendSelector = selectedPeriod !== Duration.YEARLY
 
   return {
     chartData,
@@ -97,7 +114,12 @@ export function useTimeSeriesChartData(
     trendWindow,
     setTrendWindow,
     isAverageEnabled,
+    showTrendSelector,
     percentChangeEnabled,
     setPercentChangeEnabled,
+    intervalCount,
+    setIntervalCount,
+    intervalCountOptions,
+    intervalLabel,
   }
 }

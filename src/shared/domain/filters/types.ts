@@ -10,6 +10,7 @@
  * Replaces separate TrendsDuration and SourceDuration enums
  */
 export enum Duration {
+  HOURLY = 'hourly',
   PER_RUN = 'per-run',
   DAILY = 'daily',
   WEEKLY = 'weekly',
@@ -31,6 +32,7 @@ export type PeriodCountFilter = number | 'all'
  * Display labels for duration options
  */
 export const DURATION_LABELS: Record<Duration, string> = {
+  [Duration.HOURLY]: 'Per Hour',
   [Duration.PER_RUN]: 'Per Run',
   [Duration.DAILY]: 'Daily',
   [Duration.WEEKLY]: 'Weekly',
@@ -47,6 +49,7 @@ interface PeriodUnitLabels {
 }
 
 export const PERIOD_UNIT_LABELS: Record<Duration, PeriodUnitLabels> = {
+  [Duration.HOURLY]: { singular: 'Hour', plural: 'Hours' },
   [Duration.PER_RUN]: { singular: 'Run', plural: 'Runs' },
   [Duration.DAILY]: { singular: 'Day', plural: 'Days' },
   [Duration.WEEKLY]: { singular: 'Week', plural: 'Weeks' },

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { Duration } from '@/shared/domain/filters/types'
 import {
   getWindowSize,
   getTrendWindowOptions,
@@ -49,7 +50,7 @@ describe('moving-average-types', () => {
 
   describe('getTrendWindowOptions', () => {
     it('returns hourly options for hourly period', () => {
-      const options = getTrendWindowOptions('hourly')
+      const options = getTrendWindowOptions(Duration.HOURLY)
       expect(options).toHaveLength(5)
       expect(options[0]).toEqual({ value: 'none', label: 'No Trend' })
       expect(options[1]).toEqual({ value: '6h', label: '6 hours' })
@@ -57,7 +58,7 @@ describe('moving-average-types', () => {
     })
 
     it('returns run options for run period', () => {
-      const options = getTrendWindowOptions('run')
+      const options = getTrendWindowOptions(Duration.PER_RUN)
       expect(options).toHaveLength(4)
       expect(options[0]).toEqual({ value: 'none', label: 'No Trend' })
       expect(options[1]).toEqual({ value: '3r', label: '3 runs' })
@@ -65,7 +66,7 @@ describe('moving-average-types', () => {
     })
 
     it('returns daily options for daily period', () => {
-      const options = getTrendWindowOptions('daily')
+      const options = getTrendWindowOptions(Duration.DAILY)
       expect(options).toHaveLength(5)
       expect(options[0]).toEqual({ value: 'none', label: 'No Trend' })
       expect(options[1]).toEqual({ value: '3d', label: '3 days' })
@@ -73,7 +74,7 @@ describe('moving-average-types', () => {
     })
 
     it('returns weekly options for weekly period', () => {
-      const options = getTrendWindowOptions('weekly')
+      const options = getTrendWindowOptions(Duration.WEEKLY)
       expect(options).toHaveLength(4)
       expect(options[0]).toEqual({ value: 'none', label: 'No Trend' })
       expect(options[1]).toEqual({ value: '2w', label: '2 weeks' })
@@ -81,7 +82,7 @@ describe('moving-average-types', () => {
     })
 
     it('returns monthly options for monthly period', () => {
-      const options = getTrendWindowOptions('monthly')
+      const options = getTrendWindowOptions(Duration.MONTHLY)
       expect(options).toHaveLength(4)
       expect(options[0]).toEqual({ value: 'none', label: 'No Trend' })
       expect(options[1]).toEqual({ value: '2m', label: '2 months' })
@@ -89,7 +90,7 @@ describe('moving-average-types', () => {
     })
 
     it('returns only "none" for yearly period', () => {
-      const options = getTrendWindowOptions('yearly')
+      const options = getTrendWindowOptions(Duration.YEARLY)
       expect(options).toHaveLength(1)
       expect(options[0]).toEqual({ value: 'none', label: 'No Trend' })
     })
@@ -150,60 +151,60 @@ describe('moving-average-types', () => {
 
   describe('isValidForPeriod', () => {
     it('returns true for "none" with any period', () => {
-      expect(isValidForPeriod('none', 'hourly')).toBe(true)
-      expect(isValidForPeriod('none', 'run')).toBe(true)
-      expect(isValidForPeriod('none', 'daily')).toBe(true)
-      expect(isValidForPeriod('none', 'weekly')).toBe(true)
-      expect(isValidForPeriod('none', 'monthly')).toBe(true)
-      expect(isValidForPeriod('none', 'yearly')).toBe(true)
+      expect(isValidForPeriod('none', Duration.HOURLY)).toBe(true)
+      expect(isValidForPeriod('none', Duration.PER_RUN)).toBe(true)
+      expect(isValidForPeriod('none', Duration.DAILY)).toBe(true)
+      expect(isValidForPeriod('none', Duration.WEEKLY)).toBe(true)
+      expect(isValidForPeriod('none', Duration.MONTHLY)).toBe(true)
+      expect(isValidForPeriod('none', Duration.YEARLY)).toBe(true)
     })
 
     it('returns true for hourly values with hourly period', () => {
-      expect(isValidForPeriod('6h', 'hourly')).toBe(true)
-      expect(isValidForPeriod('12h', 'hourly')).toBe(true)
-      expect(isValidForPeriod('24h', 'hourly')).toBe(true)
+      expect(isValidForPeriod('6h', Duration.HOURLY)).toBe(true)
+      expect(isValidForPeriod('12h', Duration.HOURLY)).toBe(true)
+      expect(isValidForPeriod('24h', Duration.HOURLY)).toBe(true)
     })
 
     it('returns false for hourly values with non-hourly period', () => {
-      expect(isValidForPeriod('6h', 'daily')).toBe(false)
-      expect(isValidForPeriod('12h', 'weekly')).toBe(false)
+      expect(isValidForPeriod('6h', Duration.DAILY)).toBe(false)
+      expect(isValidForPeriod('12h', Duration.WEEKLY)).toBe(false)
     })
 
     it('returns true for run values with run period', () => {
-      expect(isValidForPeriod('3r', 'run')).toBe(true)
-      expect(isValidForPeriod('5r', 'run')).toBe(true)
-      expect(isValidForPeriod('10r', 'run')).toBe(true)
+      expect(isValidForPeriod('3r', Duration.PER_RUN)).toBe(true)
+      expect(isValidForPeriod('5r', Duration.PER_RUN)).toBe(true)
+      expect(isValidForPeriod('10r', Duration.PER_RUN)).toBe(true)
     })
 
     it('returns false for run values with non-run period', () => {
-      expect(isValidForPeriod('3r', 'daily')).toBe(false)
-      expect(isValidForPeriod('5r', 'hourly')).toBe(false)
+      expect(isValidForPeriod('3r', Duration.DAILY)).toBe(false)
+      expect(isValidForPeriod('5r', Duration.HOURLY)).toBe(false)
     })
 
     it('returns true for daily values with daily period', () => {
-      expect(isValidForPeriod('7d', 'daily')).toBe(true)
-      expect(isValidForPeriod('14d', 'daily')).toBe(true)
+      expect(isValidForPeriod('7d', Duration.DAILY)).toBe(true)
+      expect(isValidForPeriod('14d', Duration.DAILY)).toBe(true)
     })
 
     it('returns false for daily values with non-daily period', () => {
-      expect(isValidForPeriod('7d', 'weekly')).toBe(false)
-      expect(isValidForPeriod('14d', 'monthly')).toBe(false)
+      expect(isValidForPeriod('7d', Duration.WEEKLY)).toBe(false)
+      expect(isValidForPeriod('14d', Duration.MONTHLY)).toBe(false)
     })
 
     it('returns true for weekly values with weekly period', () => {
-      expect(isValidForPeriod('2w', 'weekly')).toBe(true)
-      expect(isValidForPeriod('4w', 'weekly')).toBe(true)
+      expect(isValidForPeriod('2w', Duration.WEEKLY)).toBe(true)
+      expect(isValidForPeriod('4w', Duration.WEEKLY)).toBe(true)
     })
 
     it('returns true for monthly values with monthly period', () => {
-      expect(isValidForPeriod('3m', 'monthly')).toBe(true)
-      expect(isValidForPeriod('4m', 'monthly')).toBe(true)
+      expect(isValidForPeriod('3m', Duration.MONTHLY)).toBe(true)
+      expect(isValidForPeriod('4m', Duration.MONTHLY)).toBe(true)
     })
 
     it('returns false for all non-none values with yearly period', () => {
       const values: TrendWindowValue[] = ['7d', '2w', '3m', '10r', '12h']
       values.forEach((value) => {
-        expect(isValidForPeriod(value, 'yearly')).toBe(false)
+        expect(isValidForPeriod(value, Duration.YEARLY)).toBe(false)
       })
     })
   })
