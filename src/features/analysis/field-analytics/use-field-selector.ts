@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { ParsedGameRun } from '@/shared/types/game-run.types'
 import { extractNumericFieldNames, getFieldDataType } from '@/shared/domain/fields/field-discovery'
 import { formatFieldDisplayName } from '@/shared/domain/fields/field-formatters'
 import type { FieldOption } from './field-selector'
+import { usePersistedPageState } from '@/shared/persistence'
 
 interface UseFieldSelectorReturn {
   selectedField: string
@@ -11,8 +12,12 @@ interface UseFieldSelectorReturn {
   isLoading: boolean
 }
 
+const PAGE_SCOPE = 'charts/fields'
+
 export function useFieldSelector(runs: ParsedGameRun[]): UseFieldSelectorReturn {
-  const [selectedField, setSelectedField] = useState<string>('rerollShardsEarned')
+  const [selectedField, setSelectedField] = usePersistedPageState<string>(
+    PAGE_SCOPE, 'selectedField', 'rerollShardsEarned'
+  )
 
   const availableFields = useMemo(() => {
     const numericFields = extractNumericFieldNames(runs)

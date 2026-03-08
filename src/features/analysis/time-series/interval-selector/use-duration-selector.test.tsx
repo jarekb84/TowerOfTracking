@@ -3,8 +3,10 @@ import { renderHook, act } from '@testing-library/react'
 import { Duration } from '@/shared/domain/filters/types'
 import { TIME_PERIOD_CONFIGS } from '../chart-types'
 import { useDurationSelector } from './use-duration-selector'
+import { resetCache } from '@/shared/persistence/page-state-store'
 
-const STORAGE_KEY = 'tower-tracking-time-series-filters'
+const STORAGE_KEY = 'tower-tracking-page-state'
+const PAGE_SCOPE = 'test/page'
 
 /** All configs except yearly */
 const standardConfigs = TIME_PERIOD_CONFIGS.filter(
@@ -14,12 +16,13 @@ const standardConfigs = TIME_PERIOD_CONFIGS.filter(
 describe('useDurationSelector', () => {
   beforeEach(() => {
     localStorage.clear()
+    resetCache()
   })
 
   describe('initial state', () => {
     it('defaults to the provided default period', () => {
       const { result } = renderHook(() =>
-        useDurationSelector(Duration.PER_RUN, standardConfigs)
+        useDurationSelector(Duration.PER_RUN, standardConfigs, PAGE_SCOPE)
       )
 
       expect(result.current.selectedPeriod).toBe(Duration.PER_RUN)
@@ -28,34 +31,35 @@ describe('useDurationSelector', () => {
     it('hydrates from localStorage on mount', () => {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ duration: 'daily' })
+        JSON.stringify({ [PAGE_SCOPE]: { duration: 'daily' } })
       )
 
       const { result } = renderHook(() =>
-        useDurationSelector(Duration.PER_RUN, standardConfigs)
+        useDurationSelector(Duration.PER_RUN, standardConfigs, PAGE_SCOPE)
       )
 
       expect(result.current.selectedPeriod).toBe(Duration.DAILY)
     })
 
-    it('ignores invalid persisted value', () => {
+    it('auto-resets when persisted value is not in available configs', () => {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ duration: 'invalid' })
+        JSON.stringify({ [PAGE_SCOPE]: { duration: 'invalid' } })
       )
 
       const { result } = renderHook(() =>
-        useDurationSelector(Duration.PER_RUN, standardConfigs)
+        useDurationSelector(Duration.PER_RUN, standardConfigs, PAGE_SCOPE)
       )
 
-      expect(result.current.selectedPeriod).toBe(Duration.PER_RUN)
+      // 'invalid' is not in standardConfigs, so auto-reset fires
+      expect(result.current.selectedPeriod).toBe(Duration.HOURLY)
     })
   })
 
   describe('setSelectedPeriod', () => {
     it('updates state', () => {
       const { result } = renderHook(() =>
-        useDurationSelector(Duration.PER_RUN, standardConfigs)
+        useDurationSelector(Duration.PER_RUN, standardConfigs, PAGE_SCOPE)
       )
 
       act(() => {
@@ -67,7 +71,7 @@ describe('useDurationSelector', () => {
 
     it('persists to localStorage', () => {
       const { result } = renderHook(() =>
-        useDurationSelector(Duration.PER_RUN, standardConfigs)
+        useDurationSelector(Duration.PER_RUN, standardConfigs, PAGE_SCOPE)
       )
 
       act(() => {
@@ -75,7 +79,7 @@ describe('useDurationSelector', () => {
       })
 
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
-      expect(stored.duration).toBe('weekly')
+      expect(stored[PAGE_SCOPE].duration).toBe('weekly')
     })
   })
 
@@ -83,29 +87,25 @@ describe('useDurationSelector', () => {
     it('resets to first available when selected period is removed', () => {
       const allConfigs = TIME_PERIOD_CONFIGS
       const { result, rerender } = renderHook(
-        ({ configs }) => useDurationSelector(Duration.YEARLY, configs),
+        ({ configs }) => useDurationSelector(Duration.YEARLY, configs, PAGE_SCOPE),
         { initialProps: { configs: allConfigs } }
       )
 
-      // Yearly is available initially
       expect(result.current.selectedPeriod).toBe(Duration.YEARLY)
 
-      // Remove yearly from available configs
       rerender({ configs: standardConfigs })
 
-      // Should reset to first available (HOURLY)
       expect(result.current.selectedPeriod).toBe(Duration.HOURLY)
     })
 
     it('keeps selection when period remains available', () => {
       const { result, rerender } = renderHook(
-        ({ configs }) => useDurationSelector(Duration.DAILY, configs),
+        ({ configs }) => useDurationSelector(Duration.DAILY, configs, PAGE_SCOPE),
         { initialProps: { configs: standardConfigs } }
       )
 
       expect(result.current.selectedPeriod).toBe(Duration.DAILY)
 
-      // Re-render with same configs
       rerender({ configs: standardConfigs })
 
       expect(result.current.selectedPeriod).toBe(Duration.DAILY)

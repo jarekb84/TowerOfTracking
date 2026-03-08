@@ -16,6 +16,12 @@
 **Context-Based State Management:**
 - `DataProvider` (`src/contexts/data-context.tsx`): Manages game run data with localStorage persistence
 
+**Page-Scoped Filter Persistence** (`src/shared/persistence/`):
+- Use `usePersistedPageState<T>(pageScope, key, defaultValue)` for all page/chart filter state (run type, tier, duration, sort, etc.)
+- Prefer `usePersistedPageState` over raw `useState` so filters survive navigation and page reloads
+- Each page defines a `PAGE_SCOPE` constant (e.g., `'charts/fields'`) — all keys are scoped under it to prevent cross-page contamination
+- All persistence flows through a single localStorage key (`tower-tracking-page-state`) with an in-memory cache
+
 **Data Processing Pipeline:**
 - Raw clipboard data → parsing → normalization → `ParsedGameRun` interface
 - Handles shorthand number formats (100K, 15.2M, 1.5B, up to 1e63) and duration strings (7H 45M 35S)

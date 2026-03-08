@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
 import type { TimePeriod } from '../chart-types'
 import type { TrendWindowValue } from './moving-average-types'
 import { getWindowSize } from './moving-average-types'
-import { loadTrendWindow, saveTrendWindow } from './moving-average-persistence'
+import { usePersistedPageState } from '@/shared/persistence'
 
 interface UseMovingAverageResult {
   /** Current trend window value ('none' or period-specific string like '7d') */
@@ -16,33 +15,16 @@ interface UseMovingAverageResult {
 }
 
 /**
- * Hook to manage trend window state with localStorage persistence.
- * Loads persisted value on mount and saves changes automatically.
- * Values are stored per metric + period combination.
- *
- * @param metricKey - Unique key to identify this chart's metric
- * @param period - Current time period for the chart
- * @returns Trend window state and setter function
+ * Hook to manage trend window state with page-scoped localStorage persistence.
+ * Values are stored per metric + period combination within the page scope.
  */
 export function useMovingAverage(
   metricKey: string,
-  period: TimePeriod
+  period: TimePeriod,
+  pageScope: string
 ): UseMovingAverageResult {
-  const [trendWindow, setTrendWindowState] = useState<TrendWindowValue>('none')
-
-  // Load persisted trend window on mount and when metric/period changes (SSR-safe)
-  useEffect(() => {
-    const savedValue = loadTrendWindow(metricKey, period)
-    setTrendWindowState(savedValue)
-  }, [metricKey, period])
-
-  // Handle trend window change with persistence
-  const setTrendWindow = useCallback(
-    (value: TrendWindowValue) => {
-      setTrendWindowState(value)
-      saveTrendWindow(metricKey, period, value)
-    },
-    [metricKey, period]
+  const [trendWindow, setTrendWindow] = usePersistedPageState<TrendWindowValue>(
+    pageScope, `movingAverage:${metricKey}:${period}`, 'none'
   )
 
   return {

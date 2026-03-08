@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { ChartPageLayout } from '@/shared/layouts'
 import { TimeSeriesChart } from '@/features/analysis/time-series/time-series-chart'
 import { FieldSelector } from '@/features/analysis/field-analytics/field-selector'
@@ -10,6 +10,9 @@ import { getFieldDataType } from '@/shared/domain/fields/field-discovery'
 import { Duration } from '@/shared/domain/filters/types'
 import { RunType } from '@/shared/domain/run-types/types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
+import { usePersistedPageState } from '@/shared/persistence'
+
+const PAGE_SCOPE = 'charts/fields'
 
 export const Route = createFileRoute('/charts/fields')({
   component: FieldAnalyticsPage,
@@ -18,7 +21,9 @@ export const Route = createFileRoute('/charts/fields')({
 function FieldAnalyticsPage() {
   const { runs } = useData()
   const { selectedField, setSelectedField, availableFields } = useFieldSelector(runs)
-  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>(RunType.FARM)
+  const [runTypeFilter, setRunTypeFilter] = usePersistedPageState<RunTypeFilter>(
+    PAGE_SCOPE, 'runType', RunType.FARM
+  )
 
   // Get field display name for tooltip
   const tooltipLabel = useMemo(() =>
@@ -61,6 +66,7 @@ function FieldAnalyticsPage() {
           runTypeFilter={runTypeFilter}
           onRunTypeChange={setRunTypeFilter}
           valueFormatter={valueFormatter}
+          pageScope={PAGE_SCOPE}
         />
       )}
     </ChartPageLayout>

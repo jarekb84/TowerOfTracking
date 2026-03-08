@@ -24,6 +24,7 @@ import { filterHeatmapRuns } from './filters/run-filtering'
 import { calculateHeatmapSummary } from './calculations/heatmap-statistics'
 import { loadHeatmapConfig, saveHeatmapConfig } from './persistence/heatmap-persistence'
 import { useWeekNavigation, type UseWeekNavigationReturn } from './navigation/use-week-navigation'
+import { usePersistedPageState } from '@/shared/persistence'
 
 export interface UseActivityHeatmapReturn extends UseWeekNavigationReturn {
   // Grid data
@@ -48,15 +49,17 @@ export interface UseActivityHeatmapReturn extends UseWeekNavigationReturn {
   hasRuns: boolean
 }
 
+const PAGE_SCOPE = 'charts/activity'
+
 export function useActivityHeatmap(): UseActivityHeatmapReturn {
   const { runs } = useData()
 
   // Week navigation (delegated to sub-hook)
   const weekNav = useWeekNavigation(runs)
 
-  // State: filters
-  const [selectedTier, setSelectedTier] = useState<TierFilter>('all')
-  const [selectedRunType, setSelectedRunType] = useState<RunTypeFilter>('all')
+  // State: filters (persisted)
+  const [selectedTier, setSelectedTier] = usePersistedPageState<TierFilter>(PAGE_SCOPE, 'tier', 'all')
+  const [selectedRunType, setSelectedRunType] = usePersistedPageState<RunTypeFilter>(PAGE_SCOPE, 'runType', 'all')
 
   // State: active hours (initialized from persistence)
   const [activeHours, setActiveHoursState] = useState<ActiveHoursConfig>(loadHeatmapConfig)

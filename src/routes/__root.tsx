@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { PostHogProvider } from 'posthog-js/react'
 
 import { DataProvider } from '../shared/domain/data-provider'
 import { GlobalDataInputProvider } from '../features/data-import/global-data-input-provider'
 import { NavigationProvider, AppLayout } from '../features/navigation'
+import { cleanupLegacyChartKeys } from '../shared/persistence'
 
 import appCss from '../styles.css?url'
 
@@ -53,6 +55,10 @@ function PostHogClientProvider({ children }: { children: React.ReactNode }) {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    cleanupLegacyChartKeys()
+  }, [])
+
   return (
     <html lang="en" className="dark">
       <head>

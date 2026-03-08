@@ -4,12 +4,15 @@
  * CRITICAL: This file must use .tsx extension for React Testing Library's renderHook()
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types'
 import { Duration } from '@/shared/domain/filters'
 import { useCoverageReport } from './use-coverage-report'
-import type { CoverageFieldName } from './types'
+import { resetCache } from '@/shared/persistence/page-state-store'
+
+const STORAGE_KEY = 'tower-tracking-page-state'
+const PAGE_SCOPE = 'charts/coverage'
 
 /**
  * Helper to create a mock game run with specified fields
@@ -47,6 +50,11 @@ function createMockRun(
 }
 
 describe('useCoverageReport', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    resetCache()
+  })
+
   // 30 runs spanning ~7 months to support default period counts across durations
   const defaultMockRuns = Array.from({ length: 30 }, (_, i) => {
     const date = new Date(2024, 0, 1 + i * 7, 12, 0, 0)
@@ -75,12 +83,14 @@ describe('useCoverageReport', () => {
       expect(result.current.filters.selectedMetrics.has('summonedEnemies')).toBe(false)
     })
 
-    it('merges initial filters with defaults', () => {
+    it('hydrates persisted filters from localStorage', () => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ [PAGE_SCOPE]: { tier: 11, periodCount: 14 } })
+      )
+
       const { result } = renderHook(() =>
-        useCoverageReport({
-          runs: defaultMockRuns,
-          initialFilters: { tier: 11, periodCount: 14 },
-        })
+        useCoverageReport({ runs: defaultMockRuns })
       )
 
       expect(result.current.filters.tier).toBe(11)
@@ -123,13 +133,14 @@ describe('useCoverageReport', () => {
     })
 
     it('prevents deselecting the last metric', () => {
-      // Start with only one metric selected via initialFilters
-      const initialMetrics = new Set<CoverageFieldName>(['taggedByDeathwave'])
+      // Start with only one metric selected via persisted state
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ [PAGE_SCOPE]: { selectedMetrics: ['taggedByDeathwave'] } })
+      )
+
       const { result } = renderHook(() =>
-        useCoverageReport({
-          runs: defaultMockRuns,
-          initialFilters: { selectedMetrics: initialMetrics },
-        })
+        useCoverageReport({ runs: defaultMockRuns })
       )
 
       // Verify we started with just one metric

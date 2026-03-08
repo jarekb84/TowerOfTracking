@@ -28,6 +28,8 @@ interface TimeSeriesChartProps {
   /** Callback when run type changes. If provided, enables the run type selector. */
   onRunTypeChange?: (runType: RunTypeFilter) => void
   valueFormatter?: (value: number) => string
+  /** Page scope for persisting filter state */
+  pageScope: string
 }
 
 
@@ -136,7 +138,8 @@ export function TimeSeriesChart({
   defaultPeriod = Duration.PER_RUN,
   runTypeFilter = RunType.FARM,
   onRunTypeChange,
-  valueFormatter
+  valueFormatter,
+  pageScope
 }: TimeSeriesChartProps) {
   const { runs } = useData()
 
@@ -167,7 +170,7 @@ export function TimeSeriesChart({
     setIntervalCount,
     intervalCountOptions,
     intervalLabel,
-  } = useTimeSeriesChartData(filteredRuns, metric, defaultPeriod)
+  } = useTimeSeriesChartData(filteredRuns, metric, defaultPeriod, pageScope)
 
   if (chartData.length === 0) {
     return (

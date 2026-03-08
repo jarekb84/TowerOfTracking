@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import { Duration, type PeriodCountFilter } from '@/shared/domain/filters/types'
 import {
@@ -7,10 +7,7 @@ import {
   fallbackToValidOption,
 } from '@/shared/domain/filters/period-count/period-count-logic'
 import { countDataPeriods } from '@/shared/domain/filters/period-count/count-data-periods'
-import {
-  loadPersistedIntervalCount,
-  savePersistedIntervalCount,
-} from './interval-persistence'
+import { usePersistedPageState, loadPageValue } from '@/shared/persistence'
 
 interface UseIntervalSelectorResult {
   intervalCount: PeriodCountFilter
@@ -20,14 +17,19 @@ interface UseIntervalSelectorResult {
 }
 
 /**
- * Hook to manage interval count state with localStorage persistence.
+ * Hook to manage interval count state with page-scoped localStorage persistence.
  * Prunes options based on actual data coverage using N+1 bucket rule.
  */
 export function useIntervalSelector(
   duration: Duration,
-  runs?: ParsedGameRun[]
+  runs: ParsedGameRun[] | undefined,
+  pageScope: string
 ): UseIntervalSelectorResult {
-  const [intervalCount, setIntervalCountState] = useState<PeriodCountFilter>('all')
+  const storageKey = `intervalCount:${duration}`
+
+  const [intervalCount, setIntervalCount] = usePersistedPageState<PeriodCountFilter>(
+    pageScope, storageKey, 'all'
+  )
 
   const dataPeriodCount = useMemo(
     () => (runs ? countDataPeriods(runs, duration) : null),
@@ -39,24 +41,13 @@ export function useIntervalSelector(
     [duration, dataPeriodCount]
   )
 
-  // Load persisted interval when duration or options change, with fallback
+  // Load-and-validate: read stored value directly to avoid stale-state race
+  // between usePersistedPageState hydration and this validation effect
   useEffect(() => {
-    const persisted = loadPersistedIntervalCount(duration)
-    const value = persisted ?? 'all'
-    const valid = fallbackToValidOption(value, countOptions)
-    setIntervalCountState(valid)
-    if (valid !== value) {
-      savePersistedIntervalCount(duration, valid)
-    }
-  }, [duration, countOptions])
-
-  const setIntervalCount = useCallback(
-    (count: PeriodCountFilter) => {
-      setIntervalCountState(count)
-      savePersistedIntervalCount(duration, count)
-    },
-    [duration]
-  )
+    const stored = loadPageValue<PeriodCountFilter>(pageScope, storageKey, 'all')
+    const valid = fallbackToValidOption(stored, countOptions)
+    setIntervalCount(valid)
+  }, [pageScope, storageKey, countOptions, setIntervalCount])
 
   return {
     intervalCount,

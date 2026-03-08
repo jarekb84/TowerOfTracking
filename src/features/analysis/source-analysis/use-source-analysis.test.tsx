@@ -2,11 +2,15 @@
  * Tests for Source Analysis View State Hook
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import { useSourceAnalysis } from './use-source-analysis';
 import { Duration, getDefaultRunTypeForCategory } from './types';
+import { resetCache } from '@/shared/persistence/page-state-store';
+
+const STORAGE_KEY = 'tower-tracking-page-state';
+const PAGE_SCOPE = 'charts/sources';
 
 // Test fixtures
 function createMockRun(
@@ -55,6 +59,10 @@ const mockRuns: ParsedGameRun[] = Array.from({ length: 60 }, (_, i) => {
 });
 
 describe('useSourceAnalysis', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    resetCache();
+  });
   describe('initialization', () => {
     it('initializes with default filters', () => {
       const { result } = renderHook(() =>
@@ -68,12 +76,14 @@ describe('useSourceAnalysis', () => {
       expect(result.current.filters.quantity).toBe(10);
     });
 
-    it('accepts initial filter overrides', () => {
+    it('hydrates persisted filter overrides from localStorage', () => {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ [PAGE_SCOPE]: { category: 'coinIncome', tier: 11 } })
+      );
+
       const { result } = renderHook(() =>
-        useSourceAnalysis({
-          runs: mockRuns,
-          initialFilters: { category: 'coinIncome', tier: 11 }
-        })
+        useSourceAnalysis({ runs: mockRuns })
       );
 
       expect(result.current.filters.category).toBe('coinIncome');
