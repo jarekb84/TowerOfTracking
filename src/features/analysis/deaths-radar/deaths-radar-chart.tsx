@@ -6,6 +6,7 @@ import { useData } from '@/shared/domain/use-data'
 import { prepareKilledByData, prepareRadarChartData } from './radar-calculations'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 import { RunTypeSelector } from '@/shared/domain/run-types/run-type-selector'
+import { usePersistedPageState } from '@/shared/persistence'
 
 // Colors for different tiers
 const tierColors = [
@@ -27,9 +28,11 @@ const chartConfig = {
   },
 }
 
+const PAGE_SCOPE = 'charts/deaths'
+
 export function DeathsRadarChart() {
   const { runs } = useData()
-  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>('all')
+  const [runTypeFilter, setRunTypeFilter] = usePersistedPageState<RunTypeFilter>(PAGE_SCOPE, 'runType', 'all')
   
   // Process the data
   const tierKilledByData = useMemo(() => prepareKilledByData(runs, runTypeFilter), [runs, runTypeFilter])

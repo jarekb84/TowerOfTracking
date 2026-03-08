@@ -25,10 +25,10 @@ import {
   Duration,
   getDefaultPeriodCount,
 } from '@/shared/domain/filters';
+import { usePersistedPageState } from '@/shared/persistence';
 
 interface UseSourceAnalysisOptions {
   runs: ParsedGameRun[];
-  initialFilters?: Partial<SourceAnalysisFilters>;
 }
 
 interface UseSourceAnalysisReturn {
@@ -56,24 +56,41 @@ interface UseSourceAnalysisReturn {
   periodCountLabel: string;
 }
 
+const PAGE_SCOPE = 'charts/sources';
+
 /**
  * Main hook for Source Analysis view state
  */
 export function useSourceAnalysis({
   runs,
-  initialFilters = {},
 }: UseSourceAnalysisOptions): UseSourceAnalysisReturn {
-  // Filter state
-  const [filters, setFilters] = useState<SourceAnalysisFilters>({
-    ...DEFAULT_FILTERS,
-    ...initialFilters,
-  });
 
-  // Cross-chart highlight state
+  // Persisted filter state
+  const [category, setCategoryState] = usePersistedPageState<SourceCategory>(
+    PAGE_SCOPE, 'category', DEFAULT_FILTERS.category
+  );
+  const [runType, setRunTypeState] = usePersistedPageState<RunTypeFilter>(
+    PAGE_SCOPE, 'runType', DEFAULT_FILTERS.runType
+  );
+  const [tier, setTierState] = usePersistedPageState<number | 'all'>(
+    PAGE_SCOPE, 'tier', DEFAULT_FILTERS.tier
+  );
+  const [duration, setDurationState] = usePersistedPageState<Duration>(
+    PAGE_SCOPE, 'duration', DEFAULT_FILTERS.duration
+  );
+  const [quantity, setQuantityState] = usePersistedPageState<PeriodCountFilter>(
+    PAGE_SCOPE, 'quantity', DEFAULT_FILTERS.quantity
+  );
+
+  // Reconstruct filters object for downstream consumers
+  const filters = useMemo<SourceAnalysisFilters>(() => ({
+    category, runType, tier, duration, quantity,
+  }), [category, runType, tier, duration, quantity]);
+
+  // Cross-chart highlight state (ephemeral)
   const [highlightedSource, setHighlightedSource] = useState<string | null>(null);
 
   // Use unified hooks for available options
-  // Filter tiers by current run type to only show tiers with data for that run type
   const { tiers: availableTiers } = useAvailableTiers(runs, filters.runType);
   const { durations: availableDurations } = useAvailableDurations(runs);
 
@@ -83,17 +100,17 @@ export function useSourceAnalysis({
 
   // Auto-fallback when options change and current selection is no longer available
   usePeriodCountFallback(
-    filters.quantity,
+    quantity,
     periodCountOptions,
-    (quantity) => setFilters(prev => ({ ...prev, quantity }))
+    setQuantityState
   );
 
   // Auto-reset tier to 'all' when the selected tier is no longer available
   useEffect(() => {
-    if (filters.tier !== 'all' && !availableTiers.includes(filters.tier)) {
-      setFilters(prev => ({ ...prev, tier: 'all' }));
+    if (tier !== 'all' && !availableTiers.includes(tier)) {
+      setTierState('all');
     }
-  }, [availableTiers, filters.tier]);
+  }, [availableTiers, tier, setTierState]);
 
   // Calculate analysis data
   const analysisData = useMemo(() => {
@@ -101,38 +118,32 @@ export function useSourceAnalysis({
       return null;
     }
 
-    const category = getCategoryDefinition(filters.category);
-    return calculateSourceAnalysis(runs, category, filters);
+    const categoryDef = getCategoryDefinition(filters.category);
+    return calculateSourceAnalysis(runs, categoryDef, filters);
   }, [runs, filters]);
 
   // Filter setters
-  const setCategory = useCallback((category: SourceCategory) => {
-    setFilters(prev => ({
-      ...prev,
-      category,
-      runType: getDefaultRunTypeForCategory(category),
-    }));
-  }, []);
+  const setCategory = useCallback((cat: SourceCategory) => {
+    setCategoryState(cat);
+    setRunTypeState(getDefaultRunTypeForCategory(cat));
+  }, [setCategoryState, setRunTypeState]);
 
-  const setRunType = useCallback((runType: RunTypeFilter) => {
-    setFilters(prev => ({ ...prev, runType }));
-  }, []);
+  const setRunType = useCallback((rt: RunTypeFilter) => {
+    setRunTypeState(rt);
+  }, [setRunTypeState]);
 
-  const setTier = useCallback((tier: number | 'all') => {
-    setFilters(prev => ({ ...prev, tier }));
-  }, []);
+  const setTier = useCallback((t: number | 'all') => {
+    setTierState(t);
+  }, [setTierState]);
 
-  const setDuration = useCallback((duration: Duration) => {
-    const newQuantity = getDefaultPeriodCount(duration);
-    setFilters(prev => ({ ...prev, duration, quantity: newQuantity }));
-  }, []);
+  const setDuration = useCallback((d: Duration) => {
+    setDurationState(d);
+    setQuantityState(getDefaultPeriodCount(d));
+  }, [setDurationState, setQuantityState]);
 
-  const setQuantity = useCallback((quantity: PeriodCountFilter) => {
-    setFilters(prev => ({
-      ...prev,
-      quantity: clampPeriodCount(quantity),
-    }));
-  }, []);
+  const setQuantity = useCallback((q: PeriodCountFilter) => {
+    setQuantityState(clampPeriodCount(q));
+  }, [setQuantityState]);
 
   // Derived state
   const hasData = analysisData !== null && analysisData.periods.length > 0;
@@ -148,7 +159,7 @@ export function useSourceAnalysis({
 
     // Analysis data
     analysisData,
-    isLoading: false, // Calculations are synchronous
+    isLoading: false,
     hasData,
 
     // Cross-chart highlight state

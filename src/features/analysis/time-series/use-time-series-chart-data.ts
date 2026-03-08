@@ -43,7 +43,8 @@ interface UseTimeSeriesChartDataResult {
 export function useTimeSeriesChartData(
   filteredRuns: ParsedGameRun[],
   metric: string,
-  defaultPeriod: TimePeriod
+  defaultPeriod: TimePeriod,
+  pageScope: string
 ): UseTimeSeriesChartDataResult {
   // Get available periods based on data span
   const availablePeriodConfigs = useMemo(() => {
@@ -53,7 +54,8 @@ export function useTimeSeriesChartData(
   // Duration selection with localStorage persistence and auto-reset
   const { selectedPeriod, setSelectedPeriod } = useDurationSelector(
     defaultPeriod,
-    availablePeriodConfigs
+    availablePeriodConfigs,
+    pageScope
   )
 
   const currentConfig =
@@ -66,15 +68,15 @@ export function useTimeSeriesChartData(
     setIntervalCount,
     countOptions: intervalCountOptions,
     label: intervalLabel,
-  } = useIntervalSelector(selectedPeriod, filteredRuns)
+  } = useIntervalSelector(selectedPeriod, filteredRuns, pageScope)
 
   // Moving average state with localStorage persistence (period-aware)
   const { trendWindow, setTrendWindow, windowSize, isEnabled: isAverageEnabled } =
-    useMovingAverage(metric, selectedPeriod)
+    useMovingAverage(metric, selectedPeriod, pageScope)
 
   // Percentage change state with localStorage persistence
   const { isEnabled: percentChangeEnabled, setEnabled: setPercentChangeEnabled } =
-    usePercentChange(metric)
+    usePercentChange(metric, pageScope)
 
   const baseChartData = useMemo(() => {
     return prepareTimeSeriesData(filteredRuns, selectedPeriod, metric)

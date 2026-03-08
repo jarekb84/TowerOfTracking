@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useCallback } from 'react'
 import { useData } from '@/shared/domain/use-data'
 import { getAvailableTiersForTrends } from './calculations/tier-trends-calculations'
+import { sortFieldTrends, getNextSortState, type SortField, type SortDirection } from './calculations/sort-field-trends'
 import { RunType } from '@/shared/domain/run-types/types'
 import { Duration, TrendsAggregation } from './types'
 import { useAvailableDurations } from '@/shared/domain/filters'
@@ -15,29 +16,38 @@ import { TierTrendsEmptyState } from './empty-states/tier-trends-empty-state'
 import { useFieldFilter } from '@/features/settings/column-config/use-field-filter'
 import { useTierTrendsViewState } from './use-tier-trends-view-state'
 import type { TierTrendsFilters } from './types'
+import { usePersistedPageState } from '@/shared/persistence'
 
-type SortField = 'fieldName' | 'change'
-type SortDirection = 'asc' | 'desc'
+const PAGE_SCOPE = 'charts/tier-trends'
 
 export function TierTrendsAnalysis() {
   const { runs } = useData()
 
-  const [runTypeFilter, setRunTypeFilter] = useState<RunTypeFilter>(RunType.FARM)
-  
-  const availableTiers = useMemo(() => getAvailableTiersForTrends(runs, runTypeFilter), [runs, runTypeFilter])
-  
-  const { durations: rawDurations } = useAvailableDurations(runs)
-  const availableDurations = useMemo(
-    () => rawDurations.filter(d => d !== Duration.HOURLY),
-    [rawDurations]
+  const [runTypeFilter, setRunTypeFilter] = usePersistedPageState<RunTypeFilter>(
+    PAGE_SCOPE, 'runType', RunType.FARM
   )
 
-  const [filters, setFilters] = useState<TierTrendsFilters>({
-    tier: 0, // 0 = All tiers
-    duration: Duration.PER_RUN,
-    quantity: 4, // Default to 4 periods for better trending visibility
-    aggregationType: TrendsAggregation.AVERAGE
-  })
+  const availableTiers = useMemo(() => getAvailableTiersForTrends(runs, runTypeFilter), [runs, runTypeFilter])
+
+  const availableDurations = useAvailableDurations(runs).durations.filter(d => d !== Duration.HOURLY)
+
+  const [tier, setTier] = usePersistedPageState<number>(PAGE_SCOPE, 'tier', 0)
+  const [duration, setDuration] = usePersistedPageState<Duration>(PAGE_SCOPE, 'duration', Duration.PER_RUN)
+  const [quantity, setQuantity] = usePersistedPageState<number>(PAGE_SCOPE, 'quantity', 4)
+  const [aggregationType, setAggregationType] = usePersistedPageState<TrendsAggregation>(
+    PAGE_SCOPE, 'aggregationType', TrendsAggregation.AVERAGE
+  )
+
+  const filters = useMemo<TierTrendsFilters>(() => ({
+    tier, duration, quantity, aggregationType,
+  }), [tier, duration, quantity, aggregationType])
+
+  const setFilters = useCallback((newFilters: TierTrendsFilters) => {
+    setTier(newFilters.tier)
+    setDuration(newFilters.duration)
+    setQuantity(newFilters.quantity)
+    setAggregationType(newFilters.aggregationType ?? TrendsAggregation.AVERAGE)
+  }, [setTier, setDuration, setQuantity, setAggregationType])
 
   // Data-aware period count options
   const { options: periodCountOptions, label: periodCountLabel } =
@@ -47,70 +57,36 @@ export function TierTrendsAnalysis() {
   usePeriodCountFallback(
     filters.quantity,
     periodCountOptions,
-    (count) => { if (typeof count === 'number') setFilters(prev => ({ ...prev, quantity: count })) },
+    (count) => { if (typeof count === 'number') setQuantity(count) },
     'last-available'
   )
 
   // Auto-select first available tier when run type changes
   useEffect(() => {
     if (availableTiers.length > 0 && filters.tier !== 0 && !availableTiers.includes(filters.tier)) {
-      setFilters(prev => ({ ...prev, tier: availableTiers[0] }))
+      setTier(availableTiers[0])
     }
-  }, [availableTiers, filters.tier])
-  
-  const [sortField, setSortField] = useState<SortField>('change')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  }, [availableTiers, filters.tier, setTier])
+
+  const [sortField, setSortField] = usePersistedPageState<SortField>(PAGE_SCOPE, 'sortField', 'change')
+  const [sortDirection, setSortDirection] = usePersistedPageState<SortDirection>(PAGE_SCOPE, 'sortDirection', 'desc')
 
   // Derive view state using custom hook
   const viewState = useTierTrendsViewState(runs, filters, runTypeFilter, availableTiers)
 
   const sortedTrends = useMemo(() => {
     if (viewState.type !== 'ready' || !viewState.trendsData) return []
-
-    return [...viewState.trendsData.fieldTrends].sort((a, b) => {
-      let aValue: number | string
-      let bValue: number | string
-
-      switch (sortField) {
-        case 'fieldName':
-          aValue = a.displayName.toLowerCase()
-          bValue = b.displayName.toLowerCase()
-          break
-        case 'change':
-          aValue = Math.abs(a.change.percent)
-          bValue = Math.abs(b.change.percent)
-          break
-        default:
-          return 0
-      }
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue)
-      }
-
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
-      return 0
-    })
+    return sortFieldTrends(viewState.trendsData.fieldTrends, sortField, sortDirection)
   }, [viewState, sortField, sortDirection])
 
   // Field filtering with search
   const fieldFilterHook = useFieldFilter(sortedTrends, { debounceMs: 200 })
-  const {
-    searchTerm,
-    isSearchActive,
-    filteredTrends,
-    hasMatches
-  } = fieldFilterHook
 
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('desc')
-    }
-  }
+  const handleSort = useCallback((field: SortField) => {
+    const next = getNextSortState(field, sortField, sortDirection)
+    setSortField(next.sortField)
+    setSortDirection(next.sortDirection)
+  }, [sortField, sortDirection, setSortField, setSortDirection])
 
   return (
     <div className="space-y-4">
@@ -149,14 +125,14 @@ export function TierTrendsAnalysis() {
 
           {/* Trends Table */}
           <TierTrendsTable
-            trends={filteredTrends}
+            trends={fieldFilterHook.filteredTrends}
             comparisonColumns={viewState.trendsData.comparisonColumns}
             sortField={sortField}
             sortDirection={sortDirection}
             onSort={handleSort}
-            searchTerm={searchTerm}
-            isSearchActive={isSearchActive}
-            hasMatches={hasMatches}
+            searchTerm={fieldFilterHook.searchTerm}
+            isSearchActive={fieldFilterHook.isSearchActive}
+            hasMatches={fieldFilterHook.hasMatches}
             aggregationType={filters.aggregationType}
           />
         </div>

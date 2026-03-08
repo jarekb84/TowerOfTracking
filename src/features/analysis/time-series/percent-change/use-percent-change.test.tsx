@@ -1,46 +1,51 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { usePercentChange } from './use-percent-change'
+import { resetCache } from '@/shared/persistence/page-state-store'
+
+const STORAGE_KEY = 'tower-tracking-page-state'
+const PAGE_SCOPE = 'test/page'
 
 describe('usePercentChange', () => {
   beforeEach(() => {
     localStorage.clear()
+    resetCache()
   })
 
   describe('initial state', () => {
     it('returns false as default when no stored value exists', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
       expect(result.current.isEnabled).toBe(false)
     })
 
     it('loads persisted value on mount', () => {
       localStorage.setItem(
-        'tower-tracking-percent-change-config',
+        STORAGE_KEY,
         JSON.stringify({
-          coinsEarned: true,
+          [PAGE_SCOPE]: { 'percentChange:coinsEarned': true },
         })
       )
 
-      const { result } = renderHook(() => usePercentChange('coinsEarned'))
+      const { result } = renderHook(() => usePercentChange('coinsEarned', PAGE_SCOPE))
       expect(result.current.isEnabled).toBe(true)
     })
 
     it('returns false for unset metric when other metrics are stored', () => {
       localStorage.setItem(
-        'tower-tracking-percent-change-config',
+        STORAGE_KEY,
         JSON.stringify({
-          coinsEarned: true,
+          [PAGE_SCOPE]: { 'percentChange:coinsEarned': true },
         })
       )
 
-      const { result } = renderHook(() => usePercentChange('cellsEarned'))
+      const { result } = renderHook(() => usePercentChange('cellsEarned', PAGE_SCOPE))
       expect(result.current.isEnabled).toBe(false)
     })
   })
 
   describe('setEnabled', () => {
     it('updates isEnabled state to true', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.setEnabled(true)
@@ -50,7 +55,7 @@ describe('usePercentChange', () => {
     })
 
     it('updates isEnabled state to false', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.setEnabled(true)
@@ -64,18 +69,18 @@ describe('usePercentChange', () => {
     })
 
     it('persists true value to localStorage', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.setEnabled(true)
       })
 
-      const stored = localStorage.getItem('tower-tracking-percent-change-config')
-      expect(JSON.parse(stored!)).toEqual({ testMetric: true })
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+      expect(stored[PAGE_SCOPE]['percentChange:testMetric']).toBe(true)
     })
 
     it('persists false value to localStorage', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.setEnabled(true)
@@ -85,35 +90,14 @@ describe('usePercentChange', () => {
         result.current.setEnabled(false)
       })
 
-      const stored = localStorage.getItem('tower-tracking-percent-change-config')
-      expect(JSON.parse(stored!)).toEqual({ testMetric: false })
-    })
-
-    it('preserves other metric settings when updating', () => {
-      localStorage.setItem(
-        'tower-tracking-percent-change-config',
-        JSON.stringify({
-          existingMetric: true,
-        })
-      )
-
-      const { result } = renderHook(() => usePercentChange('newMetric'))
-
-      act(() => {
-        result.current.setEnabled(true)
-      })
-
-      const stored = localStorage.getItem('tower-tracking-percent-change-config')
-      expect(JSON.parse(stored!)).toEqual({
-        existingMetric: true,
-        newMetric: true,
-      })
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+      expect(stored[PAGE_SCOPE]['percentChange:testMetric']).toBe(false)
     })
   })
 
   describe('toggle', () => {
     it('toggles from false to true', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.toggle()
@@ -123,7 +107,7 @@ describe('usePercentChange', () => {
     })
 
     it('toggles from true to false', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.setEnabled(true)
@@ -137,29 +121,31 @@ describe('usePercentChange', () => {
     })
 
     it('persists toggled value to localStorage', () => {
-      const { result } = renderHook(() => usePercentChange('testMetric'))
+      const { result } = renderHook(() => usePercentChange('testMetric', PAGE_SCOPE))
 
       act(() => {
         result.current.toggle()
       })
 
-      const stored = localStorage.getItem('tower-tracking-percent-change-config')
-      expect(JSON.parse(stored!)).toEqual({ testMetric: true })
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!)
+      expect(stored[PAGE_SCOPE]['percentChange:testMetric']).toBe(true)
     })
   })
 
   describe('metric key changes', () => {
     it('loads new metric value when key changes', () => {
       localStorage.setItem(
-        'tower-tracking-percent-change-config',
+        STORAGE_KEY,
         JSON.stringify({
-          metricA: true,
-          metricB: false,
+          [PAGE_SCOPE]: {
+            'percentChange:metricA': true,
+            'percentChange:metricB': false,
+          },
         })
       )
 
       const { result, rerender } = renderHook(
-        ({ metric }) => usePercentChange(metric),
+        ({ metric }) => usePercentChange(metric, PAGE_SCOPE),
         { initialProps: { metric: 'metricA' } }
       )
 

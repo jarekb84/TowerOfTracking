@@ -1,8 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import {
-  loadPercentChangeEnabled,
-  savePercentChangeEnabled,
-} from './percent-change-persistence'
+import { useCallback } from 'react'
+import { usePersistedPageState } from '@/shared/persistence'
 
 interface UsePercentChangeResult {
   /** Whether percentage change overlay is enabled */
@@ -14,34 +11,24 @@ interface UsePercentChangeResult {
 }
 
 /**
- * Hook to manage percentage change toggle state with localStorage persistence.
- * Loads persisted value on mount and saves changes automatically.
- *
- * @param metricKey - Unique key to identify this chart's setting
- * @returns Percentage change state and setter functions
+ * Hook to manage percentage change toggle state with page-scoped localStorage persistence.
  */
-export function usePercentChange(metricKey: string): UsePercentChangeResult {
-  const [isEnabled, setIsEnabledState] = useState(false)
-
-  // Load persisted value on mount (SSR-safe)
-  useEffect(() => {
-    const savedEnabled = loadPercentChangeEnabled(metricKey)
-    setIsEnabledState(savedEnabled)
-  }, [metricKey])
-
-  // Handle enable/disable with persistence
-  const setEnabled = useCallback(
-    (enabled: boolean) => {
-      setIsEnabledState(enabled)
-      savePercentChangeEnabled(metricKey, enabled)
-    },
-    [metricKey]
+export function usePercentChange(
+  metricKey: string,
+  pageScope: string
+): UsePercentChangeResult {
+  const [isEnabled, setIsEnabled] = usePersistedPageState<boolean>(
+    pageScope, `percentChange:${metricKey}`, false
   )
 
-  // Convenience toggle
+  const setEnabled = useCallback(
+    (enabled: boolean) => setIsEnabled(enabled),
+    [setIsEnabled]
+  )
+
   const toggle = useCallback(() => {
-    setEnabled(!isEnabled)
-  }, [isEnabled, setEnabled])
+    setIsEnabled((prev) => !prev)
+  }, [setIsEnabled])
 
   return {
     isEnabled,

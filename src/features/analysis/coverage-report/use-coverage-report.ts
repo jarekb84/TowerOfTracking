@@ -26,10 +26,10 @@ import {
   Duration,
   getDefaultPeriodCount,
 } from '@/shared/domain/filters'
+import { usePersistedPageState } from '@/shared/persistence'
 
 interface UseCoverageReportOptions {
   runs: ParsedGameRun[]
-  initialFilters?: Partial<CoverageReportFilters>
 }
 
 interface UseCoverageReportReturn {
@@ -62,28 +62,43 @@ interface UseCoverageReportReturn {
   periodCountLabel: string
 }
 
+const PAGE_SCOPE = 'charts/coverage'
+
 /**
  * Main hook for Coverage Report view state
  */
 export function useCoverageReport({
   runs,
-  initialFilters = {},
 }: UseCoverageReportOptions): UseCoverageReportReturn {
-  // Filter state - merge defaults with initial filters
-  const [filters, setFilters] = useState<CoverageReportFilters>(() => ({
-    ...DEFAULT_COVERAGE_FILTERS,
-    ...initialFilters,
-    // Ensure selectedMetrics is a Set (in case initialFilters passed an array)
-    selectedMetrics: initialFilters.selectedMetrics instanceof Set
-      ? initialFilters.selectedMetrics
-      : DEFAULT_COVERAGE_FILTERS.selectedMetrics,
-  }))
 
-  // Cross-chart highlight state
+  // Persisted filter state
+  const [runType, setRunType] = usePersistedPageState<RunTypeFilter>(
+    PAGE_SCOPE, 'runType', DEFAULT_COVERAGE_FILTERS.runType
+  )
+  const [tier, setTier] = usePersistedPageState<number | 'all'>(
+    PAGE_SCOPE, 'tier', DEFAULT_COVERAGE_FILTERS.tier
+  )
+  const [duration, setDurationState] = usePersistedPageState<Duration>(
+    PAGE_SCOPE, 'duration', DEFAULT_COVERAGE_FILTERS.duration
+  )
+  const [periodCount, setPeriodCountState] = usePersistedPageState<PeriodCountFilter>(
+    PAGE_SCOPE, 'periodCount', DEFAULT_COVERAGE_FILTERS.periodCount
+  )
+  const [selectedMetricsArray, setSelectedMetricsArray] = usePersistedPageState<CoverageFieldName[]>(
+    PAGE_SCOPE, 'selectedMetrics', [...DEFAULT_COVERAGE_FILTERS.selectedMetrics]
+  )
+  const [useRelativeYAxis, setUseRelativeYAxis] = usePersistedPageState<boolean>(
+    PAGE_SCOPE, 'useRelativeYAxis', true
+  )
+
+  // Reconstruct filters object for downstream consumers
+  const filters = useMemo<CoverageReportFilters>(() => ({
+    runType, tier, duration, periodCount,
+    selectedMetrics: new Set(selectedMetricsArray),
+  }), [runType, tier, duration, periodCount, selectedMetricsArray])
+
+  // Cross-chart highlight state (ephemeral)
   const [highlightedMetric, setHighlightedMetric] = useState<string | null>(null)
-
-  // Y-axis scaling state - default to true for better data visibility
-  const [useRelativeYAxis, setUseRelativeYAxis] = useState(true)
 
   // Use unified hooks for available options
   const { tiers: availableTiers } = useAvailableTiers(runs, filters.runType)
@@ -95,17 +110,17 @@ export function useCoverageReport({
 
   // Auto-fallback when options change and current selection is no longer available
   usePeriodCountFallback(
-    filters.periodCount,
+    periodCount,
     periodCountOptions,
-    (periodCount) => setFilters(prev => ({ ...prev, periodCount }))
+    setPeriodCountState
   )
 
   // Auto-reset tier to 'all' when the selected tier is no longer available
   useEffect(() => {
-    if (filters.tier !== 'all' && !availableTiers.includes(filters.tier)) {
-      setFilters(prev => ({ ...prev, tier: 'all' }))
+    if (tier !== 'all' && !availableTiers.includes(tier)) {
+      setTier('all')
     }
-  }, [availableTiers, filters.tier])
+  }, [availableTiers, tier, setTier])
 
   // Calculate analysis data
   const analysisData = useMemo(() => {
@@ -117,42 +132,30 @@ export function useCoverageReport({
 
   // Toggle metric selection - prevents deselecting the last metric
   const toggleMetric = useCallback((fieldName: CoverageFieldName) => {
-    setFilters(prev => {
-      const newMetrics = new Set(prev.selectedMetrics)
+    setSelectedMetricsArray(prev => {
+      const currentSet = new Set(prev)
 
-      if (newMetrics.has(fieldName)) {
-        // Prevent deselecting the last metric
-        if (newMetrics.size === 1) {
-          return prev // No change
+      if (currentSet.has(fieldName)) {
+        if (currentSet.size === 1) {
+          return prev // Prevent deselecting the last metric
         }
-        newMetrics.delete(fieldName)
+        currentSet.delete(fieldName)
       } else {
-        newMetrics.add(fieldName)
+        currentSet.add(fieldName)
       }
 
-      return { ...prev, selectedMetrics: newMetrics }
+      return [...currentSet]
     })
-  }, [])
+  }, [setSelectedMetricsArray])
 
-  const setRunType = useCallback((runType: RunTypeFilter) => {
-    setFilters(prev => ({ ...prev, runType }))
-  }, [])
-
-  const setTier = useCallback((tier: number | 'all') => {
-    setFilters(prev => ({ ...prev, tier }))
-  }, [])
-
-  const setDuration = useCallback((duration: Duration) => {
-    const newPeriodCount = getDefaultPeriodCount(duration)
-    setFilters(prev => ({ ...prev, duration, periodCount: newPeriodCount }))
-  }, [])
+  const setDuration = useCallback((d: Duration) => {
+    setDurationState(d)
+    setPeriodCountState(getDefaultPeriodCount(d))
+  }, [setDurationState, setPeriodCountState])
 
   const setPeriodCount = useCallback((count: PeriodCountFilter) => {
-    setFilters(prev => ({
-      ...prev,
-      periodCount: clampPeriodCount(count),
-    }))
-  }, [])
+    setPeriodCountState(clampPeriodCount(count))
+  }, [setPeriodCountState])
 
   // Calculate Y-axis max based on data
   const yAxisMax = useMemo(
