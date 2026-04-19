@@ -1,3 +1,5 @@
+Status: superseded by EPIC-migration.md + EXPLORATION-architecture.md (April 2026). Retained for historical context — this epic described the original migration scope before the exploration that pivoted to the relationship-graph registry.
+
 # Epic: V28 Support & Data Resilience
 
 High-level outline of work needed to support The Tower v28, address the data loss risk introduced by the new export format, and make the app more resilient to future game format changes. Each line item below is a candidate story — this doc is for tracking the overall shape of the work, not detailed implementation plans.

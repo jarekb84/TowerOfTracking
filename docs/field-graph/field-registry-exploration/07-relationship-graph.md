@@ -1,3 +1,7 @@
+> **Status: historical reference.** This is the original monolithic architecture doc read by the author to commit to the relationship-graph approach. The working spec — split into per-section files for easier AI-agent context loading — lives at [`../architecture/`](../architecture/00-table-of-contents.md). Changes during implementation happen in the split files; this monolith is kept unchanged as a snapshot of the decision-time design.
+
+---
+
 # Approach 7: Relationship Graph / Node-Based Registry
 
 **Status:** Deep-dive · **Parent:** [EXPLORATION-field-registry-architecture.md](../EXPLORATION-field-registry-architecture.md)
