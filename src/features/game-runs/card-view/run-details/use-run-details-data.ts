@@ -59,14 +59,19 @@ export function useRunDetailsData(run: ParsedGameRun): RunDetailsData {
     const enemiesAffectedBy = calculateBreakdownGroup(run, ENEMIES_AFFECTED_BY_CONFIG)
     const otherEarnings = extractPlainFields(run, OTHER_EARNINGS_CONFIG)
 
-    // Add cells per hour as a computed field
-    const cellsPerHour = calculatePerHourRate(run.cellsEarned, run.realTime)
-    if (cellsPerHour > 0) {
-      otherEarnings.items.push({
-        fieldName: 'cellsPerHour',
-        displayName: 'Cells/Hour',
-        displayValue: formatLargeNumber(cellsPerHour),
-      })
+    // Add cells per hour as a computed fallback, but only if the V3 game
+    // field isn't already present (V28 exports emit `battleReport_cellsPerHour`
+    // directly; computing a duplicate synthetic item would render twice).
+    const hasGameCellsPerHour = !!run.fields.battleReport_cellsPerHour
+    if (!hasGameCellsPerHour) {
+      const cellsPerHour = calculatePerHourRate(run.cellsEarned, run.realTime)
+      if (cellsPerHour > 0) {
+        otherEarnings.items.push({
+          fieldName: 'cellsPerHour',
+          displayName: 'Cells/Hour',
+          displayValue: formatLargeNumber(cellsPerHour),
+        })
+      }
     }
 
     const economic = {

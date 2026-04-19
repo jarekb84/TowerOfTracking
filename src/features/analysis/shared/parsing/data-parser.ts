@@ -7,6 +7,8 @@ import type {
 import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
 import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
+import { parseV28SectionedEntries, looksLikeV28SectionedInput } from './section-aware-parser';
+import { remapV2FieldKeys } from '@/shared/domain/migrations/remap-v2-field-keys';
 import { determineRunType } from '../filtering/run-type-filter';
 import {
   validateBattleDate,
@@ -123,26 +125,33 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
   realTime: number;
   runType: RunTypeValue;
 } {
-  const tierStr = (fields.tier?.rawValue) || '';
+  // V3-first, V2-fallback field lookup (same shim as extractNumericStats).
+  const tierField = fields.battleReport_tier ?? fields.tier;
+  const waveField = fields.battleReport_wave ?? fields.wave;
+  const coinsField = fields.battleReport_coinsEarned ?? fields.coinsEarned;
+  const cellsField = fields.battleReport_cellsEarned ?? fields.cellsEarned;
+  const realTimeField = fields.battleReport_realTime ?? fields.realTime;
+
+  const tierStr = tierField?.rawValue || '';
   const runType: RunTypeValue = determineRunType(tierStr);
-  
+
   // Extract numeric tier value from both numeric fields and tournament strings like "8+"
   let tier: number;
-  if (fields.tier?.dataType === 'number') {
-    tier = fields.tier.value as number;
+  if (tierField?.dataType === 'number') {
+    tier = tierField.value as number;
   } else {
     // For tournament tiers like "8+", extract the numeric part
     const match = tierStr.match(/^(\d+)/);
     tier = match ? parseInt(match[1], 10) : 0;
   }
   tier = tier || 0;
-  
+
   return {
     tier,
-    wave: (fields.wave?.value as number) || 0,
-    coinsEarned: (fields.coinsEarned?.value as number) || 0,
-    cellsEarned: (fields.cellsEarned?.value as number) || 0,
-    realTime: (fields.realTime?.value as number) || 0,
+    wave: (waveField?.value as number) || 0,
+    coinsEarned: (coinsField?.value as number) || 0,
+    cellsEarned: (cellsField?.value as number) || 0,
+    realTime: (realTimeField?.value as number) || 0,
     runType
   };
 }
@@ -163,27 +172,47 @@ export function parseGameRun(
   importFormat?: ImportFormatSettings
 ): ParsedGameRun {
   try {
-    const clipboardData = parseTabDelimitedData(rawInput);
-
-    // Generate field-based structure
-    const fields: Record<string, GameRunField> = {};
+    // Two input shapes:
+    //   - V28 section-headered exports -> parseV28SectionedEntries emits
+    //     {key, label, value} triples. `key` is V3 canonical
+    //     `<sectionCamel>_<labelCamel>`; `label` is the raw display label
+    //     so createGameRunField can type-detect correctly ("Killed By" ->
+    //     string, "Real Time" -> duration) rather than seeing the
+    //     composite key and defaulting to number.
+    //   - Legacy flat clipboard format -> parseTabDelimitedData produces V2
+    //     camelCase keys that we then remap via V2_TO_V3_FIELD_MAP.
+    const isSectioned = looksLikeV28SectionedInput(rawInput);
     const dateFormat = importFormat?.dateFormat ?? 'month-first';
+    const rawFields: Record<string, GameRunField> = {};
 
-    for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
-      const camelKey = toCamelCase(originalKey);
-      const field = createGameRunField(originalKey, rawValue, importFormat);
-
-      fields[camelKey] = field;
+    if (isSectioned) {
+      for (const entry of parseV28SectionedEntries(rawInput)) {
+        rawFields[entry.key] = createGameRunField(entry.label, entry.value, importFormat);
+      }
+    } else {
+      const clipboardData = parseTabDelimitedData(rawInput);
+      for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
+        const fieldKey = toCamelCase(originalKey);
+        rawFields[fieldKey] = createGameRunField(originalKey, rawValue, importFormat);
+      }
     }
+
+    // Legacy flat input carries V2 field names; normalize to V3 canonical
+    // names so exports write `v3_<key>` correctly. Sectioned input already
+    // uses V3 keys and passes through remapV2FieldKeys unchanged.
+    const fields = isSectioned ? rawFields : remapV2FieldKeys(rawFields);
 
     // Determine timestamp using hierarchy: battle_date > customTimestamp > current time
     let timestamp: Date;
     let hasBattleDate = false;
     let dateValidationError: ParsedGameRun['dateValidationError'];
 
-    // Check for battle_date field (new game export format)
-    if (fields.battleDate) {
-      const validationResult = validateBattleDate(fields.battleDate.rawValue, {
+    // Check for battle_date field. Tolerate both V3 canonical
+    // (`battleReport_battleDate`) and legacy V2 (`battleDate`) keys so
+    // this works for both sectioned V28 paste and legacy flat paste.
+    const battleDateField = fields.battleReport_battleDate ?? fields.battleDate;
+    if (battleDateField) {
+      const validationResult = validateBattleDate(battleDateField.rawValue, {
         format: dateFormat,
         // Don't fail on future/old dates - just parse
         warnFutureDates: false,

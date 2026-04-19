@@ -103,7 +103,7 @@ describe('prepareRunForSave', () => {
     });
 
     expect(result.timestamp).toEqual(derivedDate);
-    expect(result.fields.battleDate).toBeDefined();
+    expect(result.fields.battleReport_battleDate).toBeDefined();
   });
 
   it('should not apply date fix when disabled', () => {

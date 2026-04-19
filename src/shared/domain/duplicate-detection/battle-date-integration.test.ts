@@ -16,10 +16,10 @@ describe('Battle Date Integration Tests', () => {
     expect(result).toBeDefined();
     expect(result.id).toBeDefined();
 
-    // Verify battle_date field exists and was parsed
-    expect(result.fields.battleDate).toBeDefined();
-    expect(result.fields.battleDate.rawValue).toBe('Oct 14, 2025 13:14');
-    expect(result.fields.battleDate.value).toBeInstanceOf(Date);
+    // Battle date is keyed under V3 canonical section_label after parsing
+    expect(result.fields.battleReport_battleDate).toBeDefined();
+    expect(result.fields.battleReport_battleDate.rawValue).toBe('Oct 14, 2025 13:14');
+    expect(result.fields.battleReport_battleDate.value).toBeInstanceOf(Date);
 
     // Verify derived _date and _time fields
     expect(result.fields._date).toBeDefined();
@@ -42,11 +42,11 @@ describe('Battle Date Integration Tests', () => {
     expect(result.cellsEarned).toBeGreaterThan(0);
     expect(result.realTime).toBeGreaterThan(0);
 
-    // Verify other game fields
-    expect(result.fields.gameTime).toBeDefined();
-    expect(result.fields.realTime).toBeDefined();
-    expect(result.fields.killedBy).toBeDefined();
-    expect(result.fields.killedBy.rawValue).toBe('Scatter');
+    // Verify other game fields (V3 section-aware keys after parsing)
+    expect(result.fields.battleReport_gameTime).toBeDefined();
+    expect(result.fields.battleReport_realTime).toBeDefined();
+    expect(result.fields.battleReport_killedBy).toBeDefined();
+    expect(result.fields.battleReport_killedBy.rawValue).toBe('Scatter');
 
     // Verify header rows were skipped
     expect(result.fields.battleReport).toBeUndefined();
@@ -115,8 +115,8 @@ Wave\t7639`;
 
     const result = parseGameRun(persistedData);
 
-    // Should have battle_date field (takes precedence)
-    expect(result.fields.battleDate).toBeDefined();
+    // Battle date is keyed under V3 canonical name after V2 remap
+    expect(result.fields.battleReport_battleDate).toBeDefined();
 
     // Should derive _date and _time from battle_date
     expect(result.fields._date).toBeDefined();

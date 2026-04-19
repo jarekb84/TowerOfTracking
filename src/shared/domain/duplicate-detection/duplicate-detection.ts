@@ -32,10 +32,12 @@ export function generateCompositeKey(run: ParsedGameRun): string {
   const tier = run.tier || 0;
   const wave = run.wave || 0;
 
-  // Check if battle_date field exists (new format)
-  if (run.fields.battleDate) {
+  // Check if battle_date field exists. Tolerate both V3 canonical
+  // (`battleReport_battleDate`) and legacy V2 (`battleDate`) keys.
+  const battleDateField = run.fields.battleReport_battleDate ?? run.fields.battleDate;
+  if (battleDateField) {
     // Use battle_date with minute precision
-    const battleDate = run.fields.battleDate.value;
+    const battleDate = battleDateField.value;
     if (battleDate instanceof Date) {
       const dateTimeKey = formatIsoDateTimeMinute(battleDate);
       return `${dateTimeKey}|${tier}|${wave}`;

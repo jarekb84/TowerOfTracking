@@ -1,0 +1,143 @@
+section,label,sectionCamel,labelCamel,proposedV3FieldName,Dissonance_Attack_2026-04-09,Dissonance_Defense_2026-04-09,Dissonance_UltimateWeapons_2026-04-09,Dissonance_Utility_2026-04-10,Farming_2026-04-11,Tournament_2026-04-10,presenceCount
+Battle Report,Battle Date,battleReport,battleDate,battleReportBattleDate,x,x,x,x,x,x,6
+Battle Report,Cells Earned,battleReport,cellsEarned,battleReportCellsEarned,x,x,x,x,x,x,6
+Battle Report,Cells Per Hour,battleReport,cellsPerHour,battleReportCellsPerHour,x,x,x,x,x,x,6
+Battle Report,Coins Earned,battleReport,coinsEarned,battleReportCoinsEarned,x,x,x,x,x,x,6
+Battle Report,Coins Per Hour,battleReport,coinsPerHour,battleReportCoinsPerHour,x,x,x,x,x,x,6
+Battle Report,Game Time,battleReport,gameTime,battleReportGameTime,x,x,x,x,x,x,6
+Battle Report,Killed By,battleReport,killedBy,battleReportKilledBy,x,x,x,x,x,x,6
+Battle Report,Real Time,battleReport,realTime,battleReportRealTime,x,x,x,x,x,x,6
+Battle Report,Tier,battleReport,tier,battleReportTier,x,x,x,x,x,x,6
+Battle Report,Wave,battleReport,wave,battleReportWave,x,x,x,x,x,x,6
+Bonus Health Gained,From Death Wave,bonusHealthGained,fromDeathWave,bonusHealthGainedFromDeathWave,x,x,x,x,x,x,6
+Cash,Cash Earned,cash,cashEarned,cashCashEarned,x,x,x,x,x,x,6
+Cash,Golden Tower,cash,goldenTower,cashGoldenTower,x,x,x,x,x,x,6
+Cash,Interest earned,cash,interestEarned,cashInterestEarned,x,x,x,x,x,x,6
+Coins,Black Hole,coins,blackHole,coinsBlackHole,x,x,x,x,x,x,6
+Coins,Bounty Coins,coins,bountyCoins,coinsBountyCoins,x,x,x,x,x,x,6
+Coins,Coin Bonus Upgrade,coins,coinBonusUpgrade,coinsCoinBonusUpgrade,x,x,x,x,x,x,6
+Coins,Coins / Wave,coins,coinsWave,coinsCoinsWave,x,x,x,x,x,x,6
+Coins,Coins Earned,coins,coinsEarned,coinsCoinsEarned,x,x,x,x,x,x,6
+Coins,Coins Fetched,coins,coinsFetched,coinsCoinsFetched,x,x,x,x,x,x,6
+Coins,Coins From Coin Bonuses,coins,coinsFromCoinBonuses,coinsCoinsFromCoinBonuses,x,x,x,x,x,x,6
+Coins,Critical Coin,coins,criticalCoin,coinsCriticalCoin,x,x,x,x,x,x,6
+Coins,Death Wave,coins,deathWave,coinsDeathWave,x,x,x,x,x,x,6
+Coins,Golden Bot,coins,goldenBot,coinsGoldenBot,x,x,x,x,x,x,6
+Coins,Golden Combo,coins,goldenCombo,coinsGoldenCombo,x,x,x,x,x,x,6
+Coins,Golden Tower,coins,goldenTower,coinsGoldenTower,x,x,x,x,x,x,6
+Coins,Orbs,coins,orbs,coinsOrbs,x,x,x,x,x,x,6
+Coins,Spotlight,coins,spotlight,coinsSpotlight,x,x,x,x,x,x,6
+Coins,Wave Skip,coins,waveSkip,coinsWaveSkip,x,x,x,x,x,x,6
+Counts,Death Defy,counts,deathDefy,countsDeathDefy,x,x,x,x,x,x,6
+Counts,Demon Mode,counts,demonMode,countsDemonMode,x,x,x,x,x,x,6
+Counts,Hits Absorbed By Energy Shield,counts,hitsAbsorbedByEnergyShield,countsHitsAbsorbedByEnergyShield,x,x,x,x,x,x,6
+Counts,Land Mines Spawned,counts,landMinesSpawned,countsLandMinesSpawned,x,x,x,x,x,x,6
+Counts,Nuke,counts,nuke,countsNuke,x,x,x,x,x,x,6
+Counts,Projectiles Count,counts,projectilesCount,countsProjectilesCount,x,x,x,x,x,x,6
+Counts,Second Wind,counts,secondWind,countsSecondWind,x,x,x,x,x,x,6
+Counts,Thunder Bot Stuns,counts,thunderBotStuns,countsThunderBotStuns,x,x,x,x,x,x,6
+Counts,Waves Skipped,counts,wavesSkipped,countsWavesSkipped,x,x,x,x,x,x,6
+Currencies,Ad Gems,currencies,adGems,currenciesAdGems,x,x,x,x,x,x,6
+Currencies,Armor Shards,currencies,armorShards,currenciesArmorShards,x,x,x,x,x,x,6
+Currencies,Cannon Shards,currencies,cannonShards,currenciesCannonShards,x,x,x,x,x,x,6
+Currencies,Cells Earned,currencies,cellsEarned,currenciesCellsEarned,x,x,x,x,x,x,6
+Currencies,Common Modules,currencies,commonModules,currenciesCommonModules,x,x,x,x,x,x,6
+Currencies,Core Shards,currencies,coreShards,currenciesCoreShards,x,x,x,x,x,x,6
+Currencies,Fetch Gems,currencies,fetchGems,currenciesFetchGems,x,x,x,x,x,x,6
+Currencies,Gem Blocks Tapped,currencies,gemBlocksTapped,currenciesGemBlocksTapped,x,x,x,x,x,x,6
+Currencies,Gems,currencies,gems,currenciesGems,x,x,x,x,x,x,6
+Currencies,Generator Shards,currencies,generatorShards,currenciesGeneratorShards,x,x,x,x,x,x,6
+Currencies,Medals,currencies,medals,currenciesMedals,x,x,x,x,x,x,6
+Currencies,Rare Modules,currencies,rareModules,currenciesRareModules,x,x,x,x,x,x,6
+Currencies,Reroll Shards Earned,currencies,rerollShardsEarned,currenciesRerollShardsEarned,x,x,x,x,x,x,6
+Currencies,Reroll Shards Fetched,currencies,rerollShardsFetched,currenciesRerollShardsFetched,x,x,x,x,x,x,6
+Damage,Attack Chip,damage,attackChip,damageAttackChip,x,x,x,x,x,x,6
+Damage,Black Hole,damage,blackHole,damageBlackHole,x,x,x,x,x,x,6
+Damage,Chain Lightning,damage,chainLightning,damageChainLightning,x,x,x,x,x,x,6
+Damage,Damage Dealt,damage,damageDealt,damageDamageDealt,x,x,x,x,x,x,6
+Damage,Death Ray,damage,deathRay,damageDeathRay,x,x,x,x,x,x,6
+Damage,Death Wave,damage,deathWave,damageDeathWave,x,x,x,x,x,x,6
+Damage,Electrons,damage,electrons,damageElectrons,x,x,x,x,x,x,6
+Damage,Flame Bot,damage,flameBot,damageFlameBot,x,x,x,x,x,x,6
+Damage,Inner Land Mines,damage,innerLandMines,damageInnerLandMines,x,x,x,x,x,x,6
+Damage,Land Mines,damage,landMines,damageLandMines,x,x,x,x,x,x,6
+Damage,Orbs,damage,orbs,damageOrbs,x,x,x,x,x,x,6
+Damage,Poison Swamp,damage,poisonSwamp,damagePoisonSwamp,x,x,x,x,x,x,6
+Damage,Projectiles,damage,projectiles,damageProjectiles,x,x,x,x,x,x,6
+Damage,Rend Armor,damage,rendArmor,damageRendArmor,x,x,x,x,x,x,6
+Damage,Smart Missiles,damage,smartMissiles,damageSmartMissiles,x,x,x,x,x,x,6
+Damage,Thorns,damage,thorns,damageThorns,x,x,x,x,x,x,6
+Damage Blocked,Chain Thunder,damageBlocked,chainThunder,damageBlockedChainThunder,x,x,x,x,x,x,6
+Damage Blocked,Chrono Field,damageBlocked,chronoField,damageBlockedChronoField,x,x,x,x,x,x,6
+Damage Blocked,Defense %,damageBlocked,defense,damageBlockedDefense,x,x,x,x,x,x,6
+Damage Blocked,Defense Absolute,damageBlocked,defenseAbsolute,damageBlockedDefenseAbsolute,x,x,x,x,x,x,6
+Damage Blocked,Flame Bot,damageBlocked,flameBot,damageBlockedFlameBot,x,x,x,x,x,x,6
+Damage Blocked,Negative Mass Projector,damageBlocked,negativeMassProjector,damageBlockedNegativeMassProjector,x,x,x,x,x,x,6
+Damage Blocked,Primordial Collapse,damageBlocked,primordialCollapse,damageBlockedPrimordialCollapse,x,x,x,x,x,x,6
+Damage Taken,Tower,damageTaken,tower,damageTakenTower,x,x,x,x,x,x,6
+Damage Taken,Wall,damageTaken,wall,damageTakenWall,x,x,x,x,x,x,6
+Enemies Destroyed By,Black Hole,enemiesDestroyedBy,blackHole,enemiesDestroyedByBlackHole,x,x,x,x,x,x,6
+Enemies Destroyed By,Chain Lightning,enemiesDestroyedBy,chainLightning,enemiesDestroyedByChainLightning,x,x,x,x,x,x,6
+Enemies Destroyed By,Death Ray,enemiesDestroyedBy,deathRay,enemiesDestroyedByDeathRay,x,x,x,x,x,x,6
+Enemies Destroyed By,Flame Bot,enemiesDestroyedBy,flameBot,enemiesDestroyedByFlameBot,x,x,x,x,x,x,6
+Enemies Destroyed By,Inner Land Mines,enemiesDestroyedBy,innerLandMines,enemiesDestroyedByInnerLandMines,x,x,x,x,x,x,6
+Enemies Destroyed By,Land Mines,enemiesDestroyedBy,landMines,enemiesDestroyedByLandMines,x,x,x,x,x,x,6
+Enemies Destroyed By,Orbs,enemiesDestroyedBy,orbs,enemiesDestroyedByOrbs,x,x,x,x,x,x,6
+Enemies Destroyed By,Other,enemiesDestroyedBy,other,enemiesDestroyedByOther,x,x,x,x,x,x,6
+Enemies Destroyed By,Poison Swamp,enemiesDestroyedBy,poisonSwamp,enemiesDestroyedByPoisonSwamp,x,x,x,x,x,x,6
+Enemies Destroyed By,Projectiles,enemiesDestroyedBy,projectiles,enemiesDestroyedByProjectiles,x,x,x,x,x,x,6
+Enemies Destroyed By,Smart Missiles,enemiesDestroyedBy,smartMissiles,enemiesDestroyedBySmartMissiles,x,x,x,x,x,x,6
+Enemies Destroyed By,Thorns,enemiesDestroyedBy,thorns,enemiesDestroyedByThorns,x,x,x,x,x,x,6
+Enemies Hit By,Attack Chip,enemiesHitBy,attackChip,enemiesHitByAttackChip,x,x,x,x,x,x,6
+Enemies Hit By,Black Hole,enemiesHitBy,blackHole,enemiesHitByBlackHole,x,x,x,x,x,x,6
+Enemies Hit By,Chain Lightning,enemiesHitBy,chainLightning,enemiesHitByChainLightning,x,x,x,x,x,x,6
+Enemies Hit By,Chrono Field,enemiesHitBy,chronoField,enemiesHitByChronoField,x,x,x,x,x,x,6
+Enemies Hit By,Death Ray,enemiesHitBy,deathRay,enemiesHitByDeathRay,x,x,x,x,x,x,6
+Enemies Hit By,Death Wave,enemiesHitBy,deathWave,enemiesHitByDeathWave,x,x,x,x,x,x,6
+Enemies Hit By,Flame Bot,enemiesHitBy,flameBot,enemiesHitByFlameBot,x,x,x,x,x,x,6
+Enemies Hit By,Inner Land Mines,enemiesHitBy,innerLandMines,enemiesHitByInnerLandMines,x,x,x,x,x,x,6
+Enemies Hit By,Land Mines,enemiesHitBy,landMines,enemiesHitByLandMines,x,x,x,x,x,x,6
+Enemies Hit By,Orbital Augment,enemiesHitBy,orbitalAugment,enemiesHitByOrbitalAugment,x,x,x,x,x,x,6
+Enemies Hit By,Orbs,enemiesHitBy,orbs,enemiesHitByOrbs,x,x,x,x,x,x,6
+Enemies Hit By,Poison Swamp,enemiesHitBy,poisonSwamp,enemiesHitByPoisonSwamp,x,x,x,x,x,x,6
+Enemies Hit By,Projectiles,enemiesHitBy,projectiles,enemiesHitByProjectiles,x,x,x,x,x,x,6
+Enemies Hit By,Smart Missiles,enemiesHitBy,smartMissiles,enemiesHitBySmartMissiles,x,x,x,x,x,x,6
+Enemies Hit By,Thorns,enemiesHitBy,thorns,enemiesHitByThorns,x,x,x,x,x,x,6
+Enemies Hit By,Thunder Bot,enemiesHitBy,thunderBot,enemiesHitByThunderBot,x,x,x,x,x,x,6
+Health Regenerated,Lifesteal,healthRegenerated,lifesteal,healthRegeneratedLifesteal,x,x,x,x,x,x,6
+Health Regenerated,Tower Health Regen,healthRegenerated,towerHealthRegen,healthRegeneratedTowerHealthRegen,x,x,x,x,x,x,6
+Health Regenerated,Wall Health Regen,healthRegenerated,wallHealthRegen,healthRegeneratedWallHealthRegen,x,x,x,x,x,x,6
+Killed With Effect Active,Amplify Bot,killedWithEffectActive,amplifyBot,killedWithEffectActiveAmplifyBot,x,x,x,x,x,x,6
+Killed With Effect Active,Death Penalty,killedWithEffectActive,deathPenalty,killedWithEffectActiveDeathPenalty,x,x,x,x,x,x,6
+Killed With Effect Active,Death Wave,killedWithEffectActive,deathWave,killedWithEffectActiveDeathWave,x,x,x,x,x,x,6
+Killed With Effect Active,Golden Bot,killedWithEffectActive,goldenBot,killedWithEffectActiveGoldenBot,x,x,x,x,x,x,6
+Killed With Effect Active,Golden Tower,killedWithEffectActive,goldenTower,killedWithEffectActiveGoldenTower,x,x,x,x,x,x,6
+Killed With Effect Active,Spotlight,killedWithEffectActive,spotlight,killedWithEffectActiveSpotlight,x,x,x,x,x,x,6
+Records,Highest Coins / Minute,records,highestCoinsMinute,recordsHighestCoinsMinute,x,x,x,x,x,x,6
+Records,Largest Golden Combo,records,largestGoldenCombo,recordsLargestGoldenCombo,x,x,x,x,x,x,6
+Records,Largest Inner Landmine Charge,records,largestInnerLandmineCharge,recordsLargestInnerLandmineCharge,x,x,x,x,x,x,6
+Records,Largest Smart Missile Stack,records,largestSmartMissileStack,recordsLargestSmartMissileStack,x,x,x,x,x,x,6
+Records,Largest Wave Skip,records,largestWaveSkip,recordsLargestWaveSkip,x,x,x,x,x,x,6
+Records,Most Cells From Wave Skip,records,mostCellsFromWaveSkip,recordsMostCellsFromWaveSkip,x,x,x,x,x,x,6
+Records,Most Coins From Golden Combo,records,mostCoinsFromGoldenCombo,recordsMostCoinsFromGoldenCombo,x,x,x,x,x,x,6
+Records,Most Coins From Wave Skip,records,mostCoinsFromWaveSkip,recordsMostCoinsFromWaveSkip,x,x,x,x,x,x,6
+Total Enemies,Basic,totalEnemies,basic,totalEnemiesBasic,x,x,x,x,x,x,6
+Total Enemies,Boss,totalEnemies,boss,totalEnemiesBoss,x,x,x,x,x,x,6
+Total Enemies,Commander,totalEnemies,commander,totalEnemiesCommander,x,x,x,x,x,x,6
+Total Enemies,Fast,totalEnemies,fast,totalEnemiesFast,x,x,x,x,x,x,6
+Total Enemies,Overcharge,totalEnemies,overcharge,totalEnemiesOvercharge,x,x,x,x,x,x,6
+Total Enemies,Protector,totalEnemies,protector,totalEnemiesProtector,x,x,x,x,x,x,6
+Total Enemies,Ranged,totalEnemies,ranged,totalEnemiesRanged,x,x,x,x,x,x,6
+Total Enemies,Rays,totalEnemies,rays,totalEnemiesRays,x,x,x,x,x,x,6
+Total Enemies,Saboteur,totalEnemies,saboteur,totalEnemiesSaboteur,x,x,x,x,x,x,6
+Total Enemies,Scatters,totalEnemies,scatters,totalEnemiesScatters,x,x,x,x,x,x,6
+Total Enemies,Summoned Enemies,totalEnemies,summonedEnemies,totalEnemiesSummonedEnemies,x,x,x,x,x,x,6
+Total Enemies,Tank,totalEnemies,tank,totalEnemiesTank,x,x,x,x,x,x,6
+Total Enemies,Total Enemies,totalEnemies,totalEnemies,totalEnemiesTotalEnemies,x,x,x,x,x,x,6
+Total Enemies,Vampires,totalEnemies,vampires,totalEnemiesVampires,x,x,x,x,x,x,6
+Utility,Enemy Attack Levels Skipped,utility,enemyAttackLevelsSkipped,utilityEnemyAttackLevelsSkipped,x,x,x,x,x,x,6
+Utility,Enemy Health Levels Skipped,utility,enemyHealthLevelsSkipped,utilityEnemyHealthLevelsSkipped,x,x,x,x,x,x,6
+Utility,Free Attack Upgrade,utility,freeAttackUpgrade,utilityFreeAttackUpgrade,x,x,x,x,x,x,6
+Utility,Free Defense Upgrade,utility,freeDefenseUpgrade,utilityFreeDefenseUpgrade,x,x,x,x,x,x,6
+Utility,Free Utility Upgrade,utility,freeUtilityUpgrade,utilityFreeUtilityUpgrade,x,x,x,x,x,x,6
+Utility,Recovery Packages,utility,recoveryPackages,utilityRecoveryPackages,x,x,x,x,x,x,6

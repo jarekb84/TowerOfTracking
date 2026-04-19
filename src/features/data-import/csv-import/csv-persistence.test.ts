@@ -131,10 +131,10 @@ describe('CSV Persistence', () => {
 
       console.log('Generated CSV:', csv);
 
-      expect(csv).toContain('Date'); // Should have date column
-      expect(csv).toContain('Time'); // Should have time column
-      expect(csv).toContain('Tier'); // Should have tier column
-      expect(csv).toContain('Wave'); // Should have wave column
+      expect(csv).toContain('_Date'); // Internal field keeps display header
+      expect(csv).toContain('_Time'); // Internal field keeps display header
+      expect(csv).toContain('v3_tier'); // Game fields carry v3_ prefix (PRD §9.1)
+      expect(csv).toContain('v3_wave');
       expect(csv).toContain('2024-01-15'); // Should have formatted date
       expect(csv).toContain('14:30:00'); // Should have formatted time
       expect(csv).toContain('10'); // Should have tier value

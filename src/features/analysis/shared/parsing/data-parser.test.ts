@@ -142,9 +142,9 @@ Cells Earned\t152.81K`;
     expect(result.timestamp.getHours()).toBe(13);
     expect(result.timestamp.getMinutes()).toBe(14);
 
-    // Should have battle_date field
-    expect(result.fields.battleDate).toBeDefined();
-    expect(result.fields.battleDate.rawValue).toBe('Oct 14, 2025 13:14');
+    // Battle date is normalized to V3 canonical key via remapV2FieldKeys
+    expect(result.fields.battleReport_battleDate).toBeDefined();
+    expect(result.fields.battleReport_battleDate.rawValue).toBe('Oct 14, 2025 13:14');
 
     // Should have derived _date and _time fields
     expect(result.fields._date).toBeDefined();
@@ -205,11 +205,14 @@ Waves Skipped\t1756`;
     expect(result.fields.combat).toBeUndefined();
     expect(result.fields.utility).toBeUndefined();
 
-    // Should have actual data fields
-    expect(result.fields.battleDate).toBeDefined();
-    expect(result.fields.gameTime).toBeDefined();
-    expect(result.fields.damageDealt).toBeDefined();
-    expect(result.fields.wavesSkipped).toBeDefined();
+    // Should have actual data fields (V3 section-aware keys for V28 sectioned paste)
+    expect(result.fields.battleReport_battleDate).toBeDefined();
+    expect(result.fields.battleReport_gameTime).toBeDefined();
+    // "Combat" is not a V28 section; labels under it fall through with the
+    // section name camel-cased. Assert the section-aware shape rather than
+    // the legacy flat key.
+    expect(result.fields.combat_damageDealt).toBeDefined();
+    expect(result.fields.utility_wavesSkipped).toBeDefined();
   });
 
   it('should handle notes field migration', () => {

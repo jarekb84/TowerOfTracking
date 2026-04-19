@@ -2,6 +2,20 @@ import type { GameRunField } from '@/shared/types/game-run.types';
 import { RunType, RunTypeValue } from './types';
 
 /**
+ * Look up a field by its V3 canonical key, falling back to the V2 key when
+ * the data hasn't been remapped yet (e.g. during the migration flow, or
+ * when tests supply legacy-shaped fixtures). Keeps stat extraction working
+ * across both schemas.
+ */
+function pickField(
+  fields: Record<string, GameRunField>,
+  v3Key: string,
+  v2Key: string
+): GameRunField | undefined {
+  return fields[v3Key] ?? fields[v2Key];
+}
+
+/**
  * Determines run type from CSV field data
  * Priority: Explicit run_type field > Tier string pattern detection
  */
@@ -16,7 +30,7 @@ export function detectRunTypeFromFields(fields: Record<string, GameRunField>): R
   }
 
   // Fallback to auto-detection from tier string
-  const tierStr = fields.tier?.rawValue || '';
+  const tierStr = pickField(fields, 'battleReport_tier', 'tier')?.rawValue || '';
   return /\+/.test(tierStr) ? RunType.TOURNAMENT : RunType.FARM;
 }
 
@@ -61,10 +75,12 @@ export function extractNumericStats(fields: Record<string, GameRunField>): {
   realTime: number;
 } {
   return {
-    tier: (fields.tier?.value as number) || 0,
-    wave: (fields.wave?.value as number) || 0,
-    coinsEarned: (fields.coinsEarned?.value as number) || 0,
-    cellsEarned: (fields.cellsEarned?.value as number) || 0,
-    realTime: (fields.realTime?.value as number) || 0,
+    tier: (pickField(fields, 'battleReport_tier', 'tier')?.value as number) || 0,
+    wave: (pickField(fields, 'battleReport_wave', 'wave')?.value as number) || 0,
+    coinsEarned:
+      (pickField(fields, 'battleReport_coinsEarned', 'coinsEarned')?.value as number) || 0,
+    cellsEarned:
+      (pickField(fields, 'battleReport_cellsEarned', 'cellsEarned')?.value as number) || 0,
+    realTime: (pickField(fields, 'battleReport_realTime', 'realTime')?.value as number) || 0,
   };
 }

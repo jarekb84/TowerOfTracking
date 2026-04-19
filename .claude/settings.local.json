@@ -42,7 +42,10 @@
       "Bash(npx vitest run --reporter=verbose)",
       "Bash(npx vitest run --reporter=dot)",
       "Bash(npx vitest run)",
-      "Bash(npx vitest run src/**)"      
+      "Bash(npx vitest run src/**)",
+      "Bash(node scripts/migration-data-prep/extract-v28-fields.mjs)",
+      "Bash(node scripts/migration-data-prep/extract-v2-fields.mjs)",
+      "Bash(node scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs)"
     ],
     "defaultMode": "acceptEdits"
   },

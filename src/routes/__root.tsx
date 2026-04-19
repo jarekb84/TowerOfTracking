@@ -6,6 +6,7 @@ import { DataProvider } from '../shared/domain/data-provider'
 import { GlobalDataInputProvider } from '../features/data-import/global-data-input-provider'
 import { NavigationProvider, AppLayout } from '../features/navigation'
 import { cleanupLegacyChartKeys } from '../shared/persistence'
+import { MigrationGate } from '../features/migration/migration-gate'
 
 import appCss from '../styles.css?url'
 
@@ -65,17 +66,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <PostHogClientProvider>
-          <DataProvider>
-            <GlobalDataInputProvider>
-              <NavigationProvider>
-                <AppLayout>
-                  {children}
-                </AppLayout>
-              </NavigationProvider>
-            </GlobalDataInputProvider>
-          </DataProvider>
-        </PostHogClientProvider>
+        <MigrationGate>
+          <PostHogClientProvider>
+            <DataProvider>
+              <GlobalDataInputProvider>
+                <NavigationProvider>
+                  <AppLayout>
+                    {children}
+                  </AppLayout>
+                </NavigationProvider>
+              </GlobalDataInputProvider>
+            </DataProvider>
+          </PostHogClientProvider>
+        </MigrationGate>
         <Scripts />
       </body>
     </html>

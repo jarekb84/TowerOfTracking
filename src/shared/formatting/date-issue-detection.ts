@@ -116,7 +116,11 @@ export function detectDateIssue(
   run: ParsedGameRun,
   userSelectedDate?: Date
 ): DateIssueInfo {
-  const hasBattleDateField = !!run.fields.battleDate;
+  // Tolerate both V3 canonical (`battleReport_battleDate`) and the legacy
+  // V2 `battleDate` key. Post-migration runs use V3; tests and any
+  // not-yet-remapped code path may still supply V2.
+  const hasBattleDateField =
+    !!run.fields.battleReport_battleDate || !!run.fields.battleDate;
   const hasValidationError = !!run.dateValidationError;
 
   // No issue if battleDate exists and is valid
@@ -198,13 +202,17 @@ export function applyDateFix(
 ): ParsedGameRun {
   const battleDateField = createBattleDateField(derivedDate);
 
+  // Write under the V3 canonical key. If a legacy `battleDate` key is
+  // present, drop it — the canonical form is the single source of truth.
+  const { battleDate: _legacy, ...rest } = run.fields;
+
   return {
     ...run,
     timestamp: derivedDate,
     dateValidationError: undefined,
     fields: {
-      ...run.fields,
-      battleDate: battleDateField,
+      ...rest,
+      battleReport_battleDate: battleDateField,
     },
   };
 }

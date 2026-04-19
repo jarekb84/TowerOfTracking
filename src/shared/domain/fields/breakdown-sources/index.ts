@@ -41,7 +41,7 @@ export const DAMAGE_DEALT_CATEGORY: FieldCategory = {
   id: 'damageDealt',
   name: 'Damage Dealt',
   description: 'Breakdown of damage dealt by source',
-  totalField: 'damageDealt',
+  totalField: 'damage_damageDealt',
   fields: DAMAGE_FIELDS,
 };
 
@@ -57,8 +57,8 @@ export const COINS_EARNED_CATEGORY: FieldCategory = {
   id: 'coinsEarned',
   name: 'Coins Earned',
   description: 'Breakdown of coins earned by source',
-  totalField: 'coinsEarned',
-  perHourField: 'coinsPerHour',
+  totalField: 'battleReport_coinsEarned',
+  perHourField: 'battleReport_coinsPerHour',
   fields: COIN_FIELDS,
 };
 

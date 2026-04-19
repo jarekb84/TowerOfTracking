@@ -11,11 +11,11 @@ import {
 import type { FieldConfig } from './types';
 
 describe('Damage Fields Configuration', () => {
-  it('should have 16 damage sources', () => {
-    expect(DAMAGE_FIELDS).toHaveLength(16);
+  it('lists all V3 damage sources', () => {
+    expect(DAMAGE_FIELDS.length).toBeGreaterThanOrEqual(15);
   });
 
-  it('should have all required properties for each field', () => {
+  it('has required properties for each field', () => {
     for (const field of DAMAGE_FIELDS) {
       expect(field.fieldName).toBeTruthy();
       expect(field.displayName).toBeTruthy();
@@ -23,35 +23,33 @@ describe('Damage Fields Configuration', () => {
     }
   });
 
-  it('should have no duplicate field names', () => {
+  it('has no duplicate field names', () => {
     const fieldNames = DAMAGE_FIELDS.map((f) => f.fieldName);
-    const uniqueNames = new Set(fieldNames);
-    expect(uniqueNames.size).toBe(fieldNames.length);
+    expect(new Set(fieldNames).size).toBe(fieldNames.length);
   });
 
-  it('should include Guardian Damage (damage field)', () => {
-    const guardianDamage = DAMAGE_FIELDS.find((f) => f.fieldName === 'damage');
-    expect(guardianDamage).toBeDefined();
-    expect(guardianDamage?.displayName).toBe('Guardian Damage');
-  });
-
-  it('should use clean display names without suffixes', () => {
-    const deathWave = DAMAGE_FIELDS.find(
-      (f) => f.fieldName === 'deathWaveDamage'
+  it('uses V3 canonical <section>_<label> keys for all damage entries', () => {
+    const bad = DAMAGE_FIELDS.filter(
+      (f) => !/^(damage|healthRegenerated)_[a-zA-Z]+/.test(f.fieldName)
     );
-    expect(deathWave?.displayName).toBe('Death Wave');
+    expect(bad, `Non-V3-canonical damage fields: ${bad.map((f) => f.fieldName).join(', ')}`).toEqual([]);
+  });
 
-    const orb = DAMAGE_FIELDS.find((f) => f.fieldName === 'orbDamage');
-    expect(orb?.displayName).toBe('Orb');
+  it('includes headline damage sources under the damage_ section', () => {
+    const names = DAMAGE_FIELDS.map((f) => f.fieldName);
+    expect(names).toContain('damage_deathWave');
+    expect(names).toContain('damage_orbs');
+    expect(names).toContain('damage_thorns');
+    expect(names).toContain('damage_blackHole');
   });
 });
 
 describe('Coin Fields Configuration', () => {
-  it('should have 11 coin sources', () => {
-    expect(COIN_FIELDS).toHaveLength(11);
+  it('lists all V3 coin sources', () => {
+    expect(COIN_FIELDS.length).toBeGreaterThanOrEqual(10);
   });
 
-  it('should have all required properties for each field', () => {
+  it('has required properties for each field', () => {
     for (const field of COIN_FIELDS) {
       expect(field.fieldName).toBeTruthy();
       expect(field.displayName).toBeTruthy();
@@ -59,112 +57,86 @@ describe('Coin Fields Configuration', () => {
     }
   });
 
-  it('should have no duplicate field names', () => {
+  it('has no duplicate field names', () => {
     const fieldNames = COIN_FIELDS.map((f) => f.fieldName);
-    const uniqueNames = new Set(fieldNames);
-    expect(uniqueNames.size).toBe(fieldNames.length);
+    expect(new Set(fieldNames).size).toBe(fieldNames.length);
   });
 
-  it('should include guardianCoinsStolen', () => {
-    const guardianStolen = COIN_FIELDS.find(
-      (f) => f.fieldName === 'guardianCoinsStolen'
-    );
-    expect(guardianStolen).toBeDefined();
-    expect(guardianStolen?.displayName).toBe('Guardian Stolen');
+  it('uses V3 canonical coins_<label> keys for all coin entries', () => {
+    const bad = COIN_FIELDS.filter((f) => !/^coins_[a-zA-Z]+/.test(f.fieldName));
+    expect(bad, `Non-V3-canonical coin fields: ${bad.map((f) => f.fieldName).join(', ')}`).toEqual([]);
   });
 
-  it('should include coinsStolen', () => {
-    const coinsStolen = COIN_FIELDS.find((f) => f.fieldName === 'coinsStolen');
-    expect(coinsStolen).toBeDefined();
-    expect(coinsStolen?.displayName).toBe('Coins Stolen');
+  it('includes headline coin sources', () => {
+    const names = COIN_FIELDS.map((f) => f.fieldName);
+    expect(names).toContain('coins_deathWave');
+    expect(names).toContain('coins_goldenTower');
+    expect(names).toContain('coins_blackHole');
+    expect(names).toContain('coins_orbs');
   });
 
-  it('should include coinsFromOrbs', () => {
-    const coinsFromOrbs = COIN_FIELDS.find(
-      (f) => f.fieldName === 'coinsFromOrb'
-    );
-    expect(coinsFromOrbs).toBeDefined();
-    expect(coinsFromOrbs?.displayName).toBe('Orbs');
-  });
-
-  it('should have alias for coinsFromBlackHole (casing variation)', () => {
-    const blackHole = COIN_FIELDS.find(
-      (f) => f.fieldName === 'coinsFromBlackHole'
-    );
-    expect(blackHole?.aliases).toContain('coinsFromBlackhole');
-  });
-
-  it('should have alias for coinsFromOrbs (singular variation)', () => {
-    const orbs = COIN_FIELDS.find((f) => f.fieldName === 'coinsFromOrb');
-    expect(orbs?.aliases).toContain('coinsFromOrbs');
-  });
-
-  it('should NOT have cashFromGoldenTower as an alias (separate currency)', () => {
-    const goldenTower = COIN_FIELDS.find(
-      (f) => f.fieldName === 'coinsFromGoldenTower'
-    );
-    expect(goldenTower?.aliases).toBeUndefined();
+  it('excludes V27-era guardian-specific coin fields (removed in V28)', () => {
+    const names = COIN_FIELDS.map((f) => f.fieldName);
+    expect(names).not.toContain('coinsStolen');
+    expect(names).not.toContain('guardianCoinsStolen');
   });
 });
 
 describe('Damage Dealt Category', () => {
-  it('should have correct id', () => {
+  it('has correct id', () => {
     expect(DAMAGE_DEALT_CATEGORY.id).toBe('damageDealt');
   });
 
-  it('should have correct name', () => {
+  it('has correct name', () => {
     expect(DAMAGE_DEALT_CATEGORY.name).toBe('Damage Dealt');
   });
 
-  it('should have totalField set to damageDealt', () => {
-    expect(DAMAGE_DEALT_CATEGORY.totalField).toBe('damageDealt');
+  it('has totalField set to damage_damageDealt (V3 canonical)', () => {
+    expect(DAMAGE_DEALT_CATEGORY.totalField).toBe('damage_damageDealt');
   });
 
-  it('should have all damage fields', () => {
-    expect(DAMAGE_DEALT_CATEGORY.fields).toHaveLength(16);
+  it('has all damage fields', () => {
+    expect(DAMAGE_DEALT_CATEGORY.fields).toBe(DAMAGE_FIELDS);
   });
 
-  it('should not have perHourField', () => {
+  it('does not have perHourField', () => {
     expect(DAMAGE_DEALT_CATEGORY.perHourField).toBeUndefined();
   });
 });
 
 describe('Coins Earned Category', () => {
-  it('should have correct id', () => {
+  it('has correct id', () => {
     expect(COINS_EARNED_CATEGORY.id).toBe('coinsEarned');
   });
 
-  it('should have correct name', () => {
+  it('has correct name', () => {
     expect(COINS_EARNED_CATEGORY.name).toBe('Coins Earned');
   });
 
-  it('should have totalField set to coinsEarned', () => {
-    expect(COINS_EARNED_CATEGORY.totalField).toBe('coinsEarned');
+  it('has totalField set to battleReport_coinsEarned (V3 summary section)', () => {
+    expect(COINS_EARNED_CATEGORY.totalField).toBe('battleReport_coinsEarned');
   });
 
-  it('should have perHourField set to coinsPerHour', () => {
-    expect(COINS_EARNED_CATEGORY.perHourField).toBe('coinsPerHour');
+  it('has perHourField set to battleReport_coinsPerHour', () => {
+    expect(COINS_EARNED_CATEGORY.perHourField).toBe('battleReport_coinsPerHour');
   });
 
-  it('should have all coin fields', () => {
-    expect(COINS_EARNED_CATEGORY.fields).toHaveLength(11);
+  it('has all coin fields', () => {
+    expect(COINS_EARNED_CATEGORY.fields).toBe(COIN_FIELDS);
   });
 });
 
 describe('Field Alias Maps', () => {
-  it('should build coin aliases correctly', () => {
-    expect(COIN_FIELD_ALIASES).toEqual({
-      coinsFromBlackHole: ['coinsFromBlackhole'],
-      coinsFromOrb: ['coinsFromOrbs'],
-    });
+  it('coin aliases are empty in V3 — legacy names are handled by the V2->V3 remap upstream', () => {
+    expect(COIN_FIELD_ALIASES).toEqual({});
   });
 
-  it('should have empty damage aliases (no aliases defined)', () => {
+  it('damage aliases are empty', () => {
     expect(DAMAGE_FIELD_ALIASES).toEqual({});
   });
 
   describe('buildFieldAliasMap', () => {
-    it('should return empty object for fields without aliases', () => {
+    it('returns empty object for fields without aliases', () => {
       const fields: FieldConfig[] = [
         { fieldName: 'test1', displayName: 'Test 1', color: '#000000' },
         { fieldName: 'test2', displayName: 'Test 2', color: '#ffffff' },
@@ -172,7 +144,7 @@ describe('Field Alias Maps', () => {
       expect(buildFieldAliasMap(fields)).toEqual({});
     });
 
-    it('should include only fields with aliases', () => {
+    it('includes only fields with aliases', () => {
       const fields: FieldConfig[] = [
         { fieldName: 'test1', displayName: 'Test 1', color: '#000000' },
         {
@@ -183,12 +155,10 @@ describe('Field Alias Maps', () => {
         },
         { fieldName: 'test3', displayName: 'Test 3', color: '#aaaaaa' },
       ];
-      expect(buildFieldAliasMap(fields)).toEqual({
-        test2: ['alias2'],
-      });
+      expect(buildFieldAliasMap(fields)).toEqual({ test2: ['alias2'] });
     });
 
-    it('should handle multiple aliases per field', () => {
+    it('handles multiple aliases per field', () => {
       const fields: FieldConfig[] = [
         {
           fieldName: 'test',

@@ -15,6 +15,8 @@ import { validateBattleDate, parseTimestampFromFields } from '@/shared/formattin
 import { tryDeriveFromInternalFields } from '@/shared/formatting/date-issue-detection';
 import { detectDelimiter } from './csv-helpers';
 import { createFieldMappingReport, extractKeyStatsFromFields } from './csv-field-mapping';
+import { remapV2FieldKeys } from '@/shared/domain/migrations/remap-v2-field-keys';
+import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
 // Load supported fields from JSON
@@ -51,8 +53,16 @@ function buildColumnToFieldMap(headers: string[]): Map<number, string> {
   headers.forEach((header, index) => {
     let camelCase: string;
 
-    // Handle underscore-prefixed headers (new format): "_Date" → "_date"
-    if (header.startsWith('_')) {
+    // V3 storage format: `<V3_COLUMN_PREFIX><sectionCamel>_<labelCamel>`
+    // game-field headers. Strip the prefix to recover the in-memory key.
+    if (header.startsWith(V3_COLUMN_PREFIX)) {
+      camelCase = header.substring(V3_COLUMN_PREFIX.length);
+    } else if (header.startsWith('unrecognizedField_')) {
+      // Preserve unrecognized columns under their own namespaced key so
+      // downstream code can still surface them in the mapping report.
+      camelCase = header;
+    } else if (header.startsWith('_')) {
+      // Internal fields (`_Date`, `_Time`, ...) keep the underscore prefix.
       const withoutUnderscore = header.substring(1);
       camelCase = '_' + toCamelCase(withoutUnderscore);
     } else {
@@ -73,10 +83,10 @@ function buildColumnToFieldMap(headers: string[]): Map<number, string> {
   return columnToFieldMap;
 }
 
-/** Find the column index for battleDate field */
+/** Find the column index for battleDate field (V3 or V2 shape). */
 function findBattleDateColumnIndex(columnToFieldMap: Map<number, string>): number | undefined {
   for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
-    if (fieldName === 'battleDate') {
+    if (fieldName === 'battleReport_battleDate' || fieldName === 'battleDate') {
       return columnIndex;
     }
   }
@@ -100,12 +110,15 @@ function extractNumericFieldValue(field: GameRunField | undefined): number | und
   return isNaN(num) ? undefined : num;
 }
 
-/** Create warning context from fields */
+/** Create warning context from fields (tolerates V3 and V2 shape). */
 function createWarningContext(fields: Record<string, GameRunField>): DateValidationWarning['context'] {
+  const tierField = fields.battleReport_tier ?? fields.tier;
+  const waveField = fields.battleReport_wave ?? fields.wave;
+  const realTimeField = fields.battleReport_realTime ?? fields.realTime;
   return {
-    tier: extractNumericFieldValue(fields.tier),
-    wave: extractNumericFieldValue(fields.wave),
-    duration: fields.realTime?.rawValue,
+    tier: extractNumericFieldValue(tierField),
+    wave: extractNumericFieldValue(waveField),
+    duration: realTimeField?.rawValue,
   };
 }
 
@@ -179,7 +192,7 @@ function processBattleDateField(
 /** Parse a single CSV row into a ParsedGameRun */
 function parseRow(context: RowParseContext): { run: ParsedGameRun; warning: DateValidationWarning | null } {
   const { values, headers, columnToFieldMap, importFormat } = context;
-  const fields: Record<string, GameRunField> = {};
+  const rawFields: Record<string, GameRunField> = {};
 
   // Process each column value
   for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
@@ -187,8 +200,14 @@ function parseRow(context: RowParseContext): { run: ParsedGameRun; warning: Date
     if (!rawValue) continue;
 
     const originalHeader = headers[columnIndex];
-    fields[fieldName] = createGameRunField(originalHeader, rawValue, importFormat);
+    rawFields[fieldName] = createGameRunField(originalHeader, rawValue, importFormat);
   }
+
+  // Normalize any V2-shaped legacy column keys to V3 canonical keys. V3
+  // columns (stripped from `v3_<name>` headers) and internal `_foo` keys
+  // pass through untouched. Unknown columns also pass through so the
+  // mapping report can still surface them in the import summary.
+  const fields = remapV2FieldKeys(rawFields);
 
   // Process battleDate and derive _date/_time
   const warning = processBattleDateField(fields, context);

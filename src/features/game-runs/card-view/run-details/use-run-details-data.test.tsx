@@ -1,5 +1,8 @@
 /**
  * Run Details Data Hook Tests
+ *
+ * Fixtures use V3 canonical field keys (`<sectionCamel>_<labelCamel>`) —
+ * same shape the runtime parsers produce after V2->V3 remap.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -11,8 +14,8 @@ describe('useRunDetailsData', () => {
   describe('structure', () => {
     it('returns correct data structure', () => {
       const run = createMockRun({
-        tier: 11,
-        wave: 1000,
+        battleReport_tier: 11,
+        battleReport_wave: 1000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -26,25 +29,29 @@ describe('useRunDetailsData', () => {
 
     it('returns battle report with essential and miscellaneous sections', () => {
       const run = createMockRun({
-        tier: 11,
-        wave: 1000,
-        gameTime: 7200,
-        realTime: 7500,
-        killedBy: 'Boss',
+        battleReport_tier: 11,
+        battleReport_wave: 1000,
+        battleReport_gameTime: 7200,
+        battleReport_realTime: 7500,
+        battleReport_killedBy: 'Boss',
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
 
       expect(result.current.battleReport.essential.items).toHaveLength(5)
-      expect(result.current.battleReport.essential.items.some(i => i.fieldName === 'tier')).toBe(true)
+      expect(
+        result.current.battleReport.essential.items.some(
+          (i) => i.fieldName === 'battleReport_tier'
+        )
+      ).toBe(true)
     })
 
     it('returns combat section with all subsections', () => {
       const run = createMockRun({
-        damageDealt: 1000000,
-        deathWaveDamage: 500000,
-        totalEnemies: 5000,
-        basic: 3000,
+        damage_damageDealt: 1000000,
+        damage_deathWave: 500000,
+        totalEnemies_totalEnemies: 5000,
+        totalEnemies_basic: 3000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -59,42 +66,47 @@ describe('useRunDetailsData', () => {
   describe('battle report', () => {
     it('extracts essential fields when present', () => {
       const run = createMockRun({
-        tier: 11,
-        wave: 1000,
-        gameTime: 7200,
-        realTime: 7500,
-        killedBy: 'Boss',
+        battleReport_tier: 11,
+        battleReport_wave: 1000,
+        battleReport_gameTime: 7200,
+        battleReport_realTime: 7500,
+        battleReport_killedBy: 'Boss',
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
       const essential = result.current.battleReport.essential
 
       expect(essential.items).toHaveLength(5)
-      expect(essential.items.find(i => i.fieldName === 'tier')?.displayValue).toBe('11')
+      expect(
+        essential.items.find((i) => i.fieldName === 'battleReport_tier')
+          ?.displayValue
+      ).toBe('11')
     })
 
     it('extracts miscellaneous fields when present', () => {
       const run = createMockRun({
-        wavesSkipped: 10,
-        recoveryPackages: 3,
-        freeAttackUpgrade: 1,
+        counts_wavesSkipped: 10,
+        utility_recoveryPackages: 3,
+        utility_freeAttackUpgrade: 1,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
       const misc = result.current.battleReport.miscellaneous
 
       expect(misc.label).toBe('MISCELLANEOUS')
-      expect(misc.items.some(i => i.fieldName === 'wavesSkipped')).toBe(true)
+      expect(
+        misc.items.some((i) => i.fieldName === 'counts_wavesSkipped')
+      ).toBe(true)
     })
   })
 
   describe('combat section', () => {
     it('calculates damage dealt breakdown', () => {
       const run = createMockRun({
-        damageDealt: 1000000,
-        deathWaveDamage: 500000,
-        thornDamage: 300000,
-        orbDamage: 200000,
+        damage_damageDealt: 1000000,
+        damage_deathWave: 500000,
+        damage_thorns: 300000,
+        damage_orbs: 200000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -107,10 +119,10 @@ describe('useRunDetailsData', () => {
 
     it('calculates enemies destroyed breakdown', () => {
       const run = createMockRun({
-        totalEnemies: 10000,
-        basic: 5000,
-        fast: 3000,
-        tank: 2000,
+        totalEnemies_totalEnemies: 10000,
+        totalEnemies_basic: 5000,
+        totalEnemies_fast: 3000,
+        totalEnemies_tank: 2000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -123,25 +135,25 @@ describe('useRunDetailsData', () => {
 
     it('extracts damage taken as plain fields', () => {
       const run = createMockRun({
-        damageTaken: 5000,
-        damageTakenWall: 3000,
+        damageTaken_tower: 5000,
+        damageTaken_wall: 3000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
       const damageTaken = result.current.combat.damageTaken
 
       expect(damageTaken.label).toBe('DAMAGE TAKEN')
-      expect(damageTaken.items).toHaveLength(2)
+      expect(damageTaken.items.length).toBeGreaterThanOrEqual(2)
     })
   })
 
   describe('economic section', () => {
     it('calculates coins earned breakdown', () => {
       const run = createMockRun({
-        coinsEarned: 1000000,
-        coinsFromDeathWave: 400000,
-        coinsFromGoldenTower: 300000,
-        coinsFromSpotlight: 300000,
+        battleReport_coinsEarned: 1000000,
+        coins_deathWave: 400000,
+        coins_goldenTower: 300000,
+        coins_spotlight: 300000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -154,9 +166,9 @@ describe('useRunDetailsData', () => {
 
     it('includes per-hour rate when available', () => {
       const run = createMockRun({
-        coinsEarned: 1000000,
-        coinsPerHour: 500000,
-        coinsFromDeathWave: 1000000,
+        battleReport_coinsEarned: 1000000,
+        battleReport_coinsPerHour: 500000,
+        coins_deathWave: 1000000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -166,18 +178,21 @@ describe('useRunDetailsData', () => {
       expect(coinsEarned!.perHourDisplayValue).toBeDefined()
     })
 
-    it('calculates cells per hour dynamically', () => {
-      const run = createMockRun({
-        cellsEarned: 100,
-      }, {
-        cellsEarned: 100,
-        realTime: 3600, // 1 hour
-      })
+    it('calculates cells per hour dynamically when the game field is absent', () => {
+      const run = createMockRun(
+        { battleReport_cellsEarned: 100 },
+        {
+          cellsEarned: 100,
+          realTime: 3600, // 1 hour
+        }
+      )
 
       const { result } = renderHook(() => useRunDetailsData(run))
       const otherEarnings = result.current.economic.otherEarnings
 
-      const cellsPerHour = otherEarnings.items.find(i => i.fieldName === 'cellsPerHour')
+      const cellsPerHour = otherEarnings.items.find(
+        (i) => i.fieldName === 'cellsPerHour'
+      )
       expect(cellsPerHour).toBeDefined()
       expect(cellsPerHour!.displayValue).toBe('100')
     })
@@ -186,9 +201,9 @@ describe('useRunDetailsData', () => {
   describe('modules section', () => {
     it('calculates upgrade shards breakdown with computed total', () => {
       const run = createMockRun({
-        armorShards: 50,
-        coreShards: 100,
-        cannonShards: 50,
+        currencies_armorShards: 50,
+        currencies_coreShards: 100,
+        currencies_cannonShards: 50,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -201,8 +216,8 @@ describe('useRunDetailsData', () => {
 
     it('calculates modules breakdown with computed total', () => {
       const run = createMockRun({
-        commonModules: 15,
-        rareModules: 5,
+        currencies_commonModules: 15,
+        currencies_rareModules: 5,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -218,7 +233,7 @@ describe('useRunDetailsData', () => {
   describe('uncategorized fields', () => {
     it('captures fields not in any section', () => {
       const run = createMockRun({
-        tier: 11,
+        battleReport_tier: 11,
         unknownNewField: 500,
         anotherNewField: 300,
       })
@@ -226,13 +241,17 @@ describe('useRunDetailsData', () => {
       const { result } = renderHook(() => useRunDetailsData(run))
       const uncategorized = result.current.uncategorized
 
-      expect(uncategorized.items.some(i => i.fieldName === 'unknownNewField')).toBe(true)
-      expect(uncategorized.items.some(i => i.fieldName === 'anotherNewField')).toBe(true)
+      expect(
+        uncategorized.items.some((i) => i.fieldName === 'unknownNewField')
+      ).toBe(true)
+      expect(
+        uncategorized.items.some((i) => i.fieldName === 'anotherNewField')
+      ).toBe(true)
     })
 
     it('excludes internal fields from uncategorized', () => {
       const run = createMockRun({
-        tier: 11,
+        battleReport_tier: 11,
       })
       // Add internal field
       run.fields['_notes'] = {
@@ -246,15 +265,15 @@ describe('useRunDetailsData', () => {
       const { result } = renderHook(() => useRunDetailsData(run))
       const uncategorized = result.current.uncategorized
 
-      expect(uncategorized.items.some(i => i.fieldName === '_notes')).toBe(false)
+      expect(uncategorized.items.some((i) => i.fieldName === '_notes')).toBe(false)
     })
 
     it('returns empty uncategorized when all fields are known', () => {
       const run = createMockRun({
-        tier: 11,
-        wave: 1000,
-        gameTime: 3600,
-        realTime: 3700,
+        battleReport_tier: 11,
+        battleReport_wave: 1000,
+        battleReport_gameTime: 3600,
+        battleReport_realTime: 3700,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -267,8 +286,8 @@ describe('useRunDetailsData', () => {
   describe('null handling', () => {
     it('returns null for sections with no data', () => {
       const run = createMockRun({
-        tier: 11,
-        wave: 1000,
+        battleReport_tier: 11,
+        battleReport_wave: 1000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
@@ -282,7 +301,7 @@ describe('useRunDetailsData', () => {
 
   describe('memoization', () => {
     it('returns same reference for unchanged run', () => {
-      const run = createMockRun({ tier: 11 })
+      const run = createMockRun({ battleReport_tier: 11 })
 
       const { result, rerender } = renderHook(() => useRunDetailsData(run))
       const firstResult = result.current

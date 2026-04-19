@@ -181,18 +181,18 @@ describe('detectDateIssue', () => {
 });
 
 describe('applyDateFix', () => {
-  it('should create battleDate field with correct format', () => {
+  it('should create battleReport_battleDate field with correct format', () => {
     const run = createTestRun({ fields: {} });
     const fixDate = new Date('2025-01-15T13:45:00');
 
     const fixedRun = applyDateFix(run, fixDate);
 
-    expect(fixedRun.fields.battleDate).toBeDefined();
-    expect(fixedRun.fields.battleDate.value).toEqual(fixDate);
-    expect(fixedRun.fields.battleDate.originalKey).toBe('Battle Date');
-    expect(fixedRun.fields.battleDate.dataType).toBe('date');
+    expect(fixedRun.fields.battleReport_battleDate).toBeDefined();
+    expect(fixedRun.fields.battleReport_battleDate.value).toEqual(fixDate);
+    expect(fixedRun.fields.battleReport_battleDate.originalKey).toBe('Battle Date');
+    expect(fixedRun.fields.battleReport_battleDate.dataType).toBe('date');
     // rawValue should be in canonical format
-    expect(fixedRun.fields.battleDate.rawValue).toContain('Jan');
+    expect(fixedRun.fields.battleReport_battleDate.rawValue).toContain('Jan');
   });
 
   it('should update timestamp to derived date', () => {
@@ -234,7 +234,7 @@ describe('applyDateFix', () => {
 
     expect(fixedRun.fields.tier).toEqual(run.fields.tier);
     expect(fixedRun.fields.wave).toEqual(run.fields.wave);
-    expect(fixedRun.fields.battleDate).toBeDefined();
+    expect(fixedRun.fields.battleReport_battleDate).toBeDefined();
   });
 
   it('should preserve run metadata', () => {

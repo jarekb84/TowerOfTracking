@@ -14,6 +14,7 @@ import {
   type InternalFieldName
 } from '@/shared/domain/fields/internal-field-config';
 import { encodeNotesForStorage } from '@/shared/domain/fields/notes-encoding';
+import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
 
 // Interface for field information
 interface FieldInfo {
@@ -299,8 +300,15 @@ export function exportToCsv(
   // Build CSV content
   const lines: string[] = [];
 
-  // Header row
-  const headers = fieldKeys.map(field => field.originalKey);
+  // Header row. Internal fields keep their display-name header (`_Date`,
+  // `_Time`, ...). EVERY non-internal column carries the `v3_` prefix
+  // (PRD §9.1 Option C), including unrecognized passthrough columns which
+  // become `v3_unrecognizedField_<name>`. Uniform prefixing lets the
+  // storage-version detector recognize V3 files from any single header.
+  const headers = fieldKeys.map(field => {
+    if (field.isAppGenerated) return field.originalKey;
+    return `${V3_COLUMN_PREFIX}${field.fieldName}`;
+  });
   lines.push(headers.join(delimiter));
 
   // Data rows
