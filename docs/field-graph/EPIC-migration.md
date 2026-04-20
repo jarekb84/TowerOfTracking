@@ -6,11 +6,11 @@
 
 ## If you are an AI picking up this work — read this first
 
-1. **Never mark a commit "done" yourself.** Status changes are the human's call after local verification. If you finish implementing a commit, tell the human what you finished and let them update the status.
+1. **Update this epic when you finish a commit.** Flip the checkbox to `[x]` and change **Status** from `TODO` to `DONE` in the same turn you report completion — the human is explicitly opting out of updating this manually. Don't try to record a commit hash: this edit is part of the commit you're about to make, so no SHA exists yet.
 2. **Only work on the commit you were told to work on.** If a prior commit is `TODO`, assume it's genuinely not done and flag the dependency instead of reaching ahead.
 3. **The authoritative spec lives in [`architecture/`](architecture/00-table-of-contents.md).** Do not re-derive the design from scratch. When the epic references a section (e.g. `architecture/14-key-lookup-and-renames.md`), read that section before implementing. The original monolithic write-up at [`field-registry-exploration/07-relationship-graph.md`](field-registry-exploration/07-relationship-graph.md) is kept as historical reference only.
 4. **Standing context for every graph-related prompt:** [`field-graph-for-ai.md`](field-graph-for-ai.md). Read it cold before touching anything in `src/features/field-graph/` or related directories.
-5. **Out-of-scope:** any change not described in the current commit's "Scope" line. If you notice something else worth fixing, write it in "Notes & Findings" at the end of this doc and leave it for a later commit.
+5. **Out-of-scope:** any change not described in the current commit's "Scope" line. If you notice something else worth fixing, append it to [`Notes-and-findings.md`](./Notes-and-findings.md) (date + commit number + note) and leave it for a later commit.
 6. **Tests must stay green.** Each commit lands with `npm run integration-precheck` passing. Migration-gate / E2E manual verification is deferred to the final commit per the epic's staging plan — that is the ONE exception.
 7. **Every escape hatch goes in the ledger.** If you need to silence a lint rule, skip a test, loosen Husky, or add an ESLint config override to keep `integration-precheck` green during an intermediate state, append a row to "Migration-era suppressions" in the same PR. Commit 16 drains that ledger; nothing on this epic ships with an undocumented workaround.
 
@@ -72,14 +72,14 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 
 ### Phase 1 — Foundation (dead code)
 
-- [ ] **Commit 1 — Graph engine core**
+- [x] **Commit 1 — Graph engine core**
   - **Scope:** `FieldGraph` class, `Node` / `Edge` discriminated unions, `Schema` / `Section` / `Category` / `View` / `Field` / `EnumValue` node kinds, the full edge-kind taxonomy, query API (`getField`, `resolveFieldByAnyKey`, `sourcesOf`, `fieldsInSection`, etc.), load-time invariants (dangling edge detection, cardinality check), `buildGraph()` entry point.
   - **Spec references:** [`architecture/01-abstract-and-motivation.md`](architecture/01-abstract-and-motivation.md) and [`02-how-it-works.md`](architecture/02-how-it-works.md) (mental model), [`08-clarifying-the-mental-model.md`](architecture/08-clarifying-the-mental-model.md) §8.1–8.2 (node/edge shapes), [`14-key-lookup-and-renames.md`](architecture/14-key-lookup-and-renames.md) (resolveFieldByAnyKey), [`15-multi-section-membership.md`](architecture/15-multi-section-membership.md) (cardinality), [`17-schema-as-a-first-class-graph-entity.md`](architecture/17-schema-as-a-first-class-graph-entity.md) (schema as first-class node).
   - **Files:** new `src/shared/domain/field-graph/` directory.
   - **DoD:** `npm run test` green; new unit tests against a hand-built toy graph (< 10 nodes / edges) cover happy path + each invariant's failure mode.
   - **Dependencies:** none.
   - **Out of scope:** any real field/edge declarations. No consumers wired yet.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `DONE`
 
 - [ ] **Commit 2 — Top-level catalog nodes**
   - **Scope:** Declare all Schema nodes (`schema:v1`, `schema:v2`, `schema:v3`), Section nodes (`section:battleReport`, `section:coins`, `section:damage`, ...), Category nodes (`category:combat`, `category:economic`, `category:modules`, ...), View nodes (`view:run-details:battle-report`, `view:charts:tier-stats`, ...). Still dead code.
@@ -87,7 +87,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files:** `src/shared/domain/field-graph/catalog/*.nodes.ts` (split by node kind for readability).
   - **DoD:** `npm run test` green; catalog is loaded by `buildGraph()`; invariant test asserts that every declared node has a unique id.
   - **Dependencies:** commit 1.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 3 — Field nodes**
   - **Scope:** Declare a `FieldNode` for every V3 canonical field from `sampleData/supportedFields.json` (≈147 fields) plus the 5 internal fields (`_date`, `_time`, `_notes`, `_runType`, `_rank`). No edges yet other than the minimum `kind: 'field'`; edge attribution starts in phase 2.
@@ -95,7 +95,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files:** `src/shared/domain/field-graph/catalog/fields.nodes.ts` (one big data file is fine for this commit).
   - **DoD:** Invariant test asserts `fieldNodes.length === supportedFields.length`; every field id matches a supportedFields entry.
   - **Dependencies:** commits 1, 2.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 ### Phase 2 — Vertical slices (each deletes imperative code)
 
@@ -105,7 +105,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** ~8–12 existing. Deletions: hardcoded enum duplications.
   - **DoD:** Run-type filter still works identically; test that adding a fake run-type value to the graph makes it show up in the filter without code changes.
   - **Dependencies:** commits 1–3.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 5 — `IS_INTERNAL_FIELD` + `HAS_CSV_HEADER` edges**
   - **Scope:** Declare `IS_INTERNAL_FIELD` edges for `_date`, `_time`, `_notes`, `_runType`, `_rank`. `HAS_CSV_HEADER` edges for their human-friendly headers (`_Date`, `_Time`, etc.). Rewrite `csv-exporter.ts` header logic and `internal-field-config.ts` to query the graph.
@@ -113,7 +113,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** ~5 existing. Deletes `INTERNAL_FIELD_MAPPINGS` / `INTERNAL_FIELD_ORDER` hand-authored arrays.
   - **DoD:** CSV round-trip tests still pass; header ordering identical.
   - **Dependencies:** commit 4 (shares the `_runType` enum pattern).
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 6 — `BELONGS_TO_SECTION` + `RENDERS_AS_IN_SECTION` edges**
   - **Scope:** Declare section membership for every field. Rewrite `section-config.ts` to query the graph — `BATTLE_REPORT_ESSENTIAL`, `DAMAGE_TAKEN_CONFIG`, etc. become graph queries. `RENDERS_AS_IN_SECTION` handles per-section display overrides (e.g. `battleReport_cellsEarned` showing under both battleReport and currencies).
@@ -121,7 +121,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `section-config.ts` (massive rewrite), `use-run-details-data.ts`, plus a few chart pages that reference section configs.
   - **DoD:** Run-details card renders identically to pre-commit state. Snapshot test of rendered sections against a fixture run.
   - **Dependencies:** commits 1–3.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 7 — `IS_SOURCE_OF` edges + breakdown-sources deletion**
   - **Scope:** Declare `IS_SOURCE_OF` edges from each coin / damage source to its total (`coins_goldenTower IS_SOURCE_OF battleReport_coinsEarned`, etc.). Delete `coin-sources.ts`, `damage-sources.ts`, `breakdown-sources/index.ts`. Breakdown components now call `graph.sourcesOf(totalField)`.
@@ -129,7 +129,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `coin-sources.ts` (delete), `damage-sources.ts` (delete), `breakdown-sources/index.ts` (delete or reduce to re-exports), `source-analysis/*` consumers.
   - **DoD:** Source-analysis charts render identically. The hand-enumerated color palette migrates to the field-node payloads.
   - **Dependencies:** commit 6.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 8 — `HAS_DATA_TYPE` edges + parser type-detector rewrite**
   - **Scope:** Declare the data type (`'number' | 'duration' | 'date' | 'string'`) for every field via `HAS_DATA_TYPE` edges. Rewrite `getFieldConfig` in `field-utils.ts` to query the graph instead of pattern-matching labels. Closes the "composite key vs label" class of bugs structurally.
@@ -137,7 +137,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `field-utils.ts`, `createGameRunField`, a handful of consumers that currently pattern-match field names.
   - **DoD:** `v28-sample-parse.invariant.test.ts` still passes; add a new invariant that every field node has exactly one `HAS_DATA_TYPE` edge.
   - **Dependencies:** commits 1–3.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 9 — `IS_DERIVED_FROM` edges + derivation cascade**
   - **Scope:** Express `_date` and `_time` deriving from `battleReport_battleDate` as `IS_DERIVED_FROM` edges. Implement `applyDerivations(fields, graph)` that walks the edges in topological order. Parser calls it; form updates call it; single derivation code path.
@@ -145,7 +145,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `data-parser.ts`, `csv-parser.ts`, `field-update-logic.ts`.
   - **DoD:** Existing battle-date derivation tests pass; add a test that editing `battleReport_battleDate` in the form cascades to `_date` / `_time`.
   - **Dependencies:** commits 1–3, 8.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 10 — `RENAMED_FROM` edges + `resolveFieldByAnyKey` cutover**
   - **Scope:** Turn `V2_TO_V3_FIELD_MAP` into `RENAMED_FROM` edges on each renamed field node. The migration adapter and bulk-import path call `graph.resolveFieldByAnyKey(rawKey)` instead of the hand-authored map. `remapV2FieldKeys` shrinks to one line.
@@ -153,7 +153,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `v2-to-v3-field-map.ts` (data moves to edges; file deleted or reduced to re-export), `remap-v2-field-keys.ts`, `csv-parser.ts`, `data-parser.ts`.
   - **DoD:** The 687-row V2 fixture still migrates end-to-end; new invariant test for RENAMED_FROM cycles.
   - **Dependencies:** commits 1–3.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 11 — Schema lifecycle edges (`SHIPPED_IN_SCHEMA`, `INTENTIONALLY_DROPPED_IN_SCHEMA`, `MIGRATED_TO_SCHEMA`)**
   - **Scope:** Declare schema lifecycle per field. `INTENTIONALLY_DROPPED_V2_FIELDS` becomes `INTENTIONALLY_DROPPED_IN_SCHEMA` edges. Every V3-canonical field gets `SHIPPED_IN_SCHEMA` to `schema:v3` (unless explicitly inherited from v2). The migration gate reads lifecycle from the graph.
@@ -161,7 +161,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `intentionally-dropped.ts` (deleted; data moves to edges), `commit-v3-migration.ts` (consumes graph for version resolution).
   - **DoD:** Lockstep invariant test: `V3_COLUMN_PREFIX_VERSION === graph.currentSchema().version`.
   - **Dependencies:** commits 1–3, 10.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 12 — `APPEARS_IN_VIEW` + `APPEARS_IN_FILTER` edges**
   - **Scope:** Declare which fields appear in which views (tier-stats, tier-trends, source-analysis, field-analytics, coverage, etc.) and filters. View components query `graph.fieldsInView(viewId)` instead of hardcoded arrays.
@@ -169,7 +169,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** each chart / analysis page component; filter bar components.
   - **DoD:** Adding a `APPEARS_IN_VIEW` edge to a new field auto-includes it in the relevant view (tested with a fixture field).
   - **Dependencies:** commit 6 (section membership established first).
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 13 — `CONDITIONAL_ON` edges**
   - **Scope:** Declare conditional visibility — `_rank CONDITIONAL_ON _runType=tournament`, `_dissonanceSubCategory CONDITIONAL_ON _runType=dissonance`. Form components query `graph.conditionallyVisibleFields(run)`. Replaces the scattered `if (runType !== 'tournament') setRank('')` pattern at `use-data-input-form.ts:180` and similar sites.
@@ -177,7 +177,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `use-data-input-form.ts`, `rank-field-logic.ts`.
   - **DoD:** Rank field hides/clears automatically when run type changes away from tournament.
   - **Dependencies:** commits 4, 12.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 - [ ] **Commit 14 — `IS_REQUIRED_IN` + `PARTICIPATES_IN_COMPOSITE_KEY` edges**
   - **Scope:** `battleReport_battleDate IS_REQUIRED_IN import:manual-entry`. `battleReport_tier`, `battleReport_wave`, `battleReport_battleDate PARTICIPATES_IN_COMPOSITE_KEY`. Validation and duplicate-detection code query the graph.
@@ -185,7 +185,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** `use-data-input-form.ts`, `duplicate-detection.ts`, `date-issue-detection.ts`.
   - **DoD:** Existing required-validation tests pass; composite key stays backward-compatible with V2 data via `RENAMED_FROM` transitive lookup.
   - **Dependencies:** commits 9, 10.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 ### Phase 3 — First new feature on the graph
 
@@ -195,7 +195,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** one new field-node declaration, ~5 edge additions, parser filename-detection branch. No filter / form code touched — auto-discovered via graph.
   - **DoD:** Import a dissonance sample; subcategory detected; filter shows on analytics pages; run-details renders the subcategory.
   - **Dependencies:** commits 4, 12, 13.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 ### Phase 3.5 — Cleanup (revert all migration-era escape hatches)
 
@@ -215,7 +215,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
     - Grep queries from steps 2–3 return the same set of pre-existing matches that existed at the epic base — no net new suppressions.
   - **Dependencies:** commits 1–15. This is the last code commit before manual verification.
   - **Out of scope:** any product fix. If a skipped test still fails after the relevant earlier commit shipped, file a follow-up issue and document it under "Migration-era suppressions" rather than patching here.
-  - **Status:** `TODO` · **PR/SHA:** —
+  - **Status:** `TODO`
 
 ### Phase 4 — Manual verification (not a code commit)
 
@@ -228,8 +228,6 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - Bulk export → re-import → round-trip equivalence.
   - **Only after this passes**: bump package version, draft release notes, push to main.
 
-## Notes & Findings (filled in during implementation)
+## Notes & Findings
 
-Use the `Notes-and-findings.md` doc with your findings to capture cross-commit learnings, scope adjustments, or deferred work. Each entry: date + commit number + note.
-
-- [YYYY-MM-DD] [commit N] — ...
+Moved to [`Notes-and-findings.md`](./Notes-and-findings.md). Append cross-commit learnings, scope adjustments, and deferred work there (date + commit number + note).
