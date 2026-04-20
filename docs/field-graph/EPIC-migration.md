@@ -81,13 +81,13 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Out of scope:** any real field/edge declarations. No consumers wired yet.
   - **Status:** `DONE`
 
-- [ ] **Commit 2 — Top-level catalog nodes**
+- [x] **Commit 2 — Top-level catalog nodes**
   - **Scope:** Declare all Schema nodes (`schema:v1`, `schema:v2`, `schema:v3`), Section nodes (`section:battleReport`, `section:coins`, `section:damage`, ...), Category nodes (`category:combat`, `category:economic`, `category:modules`, ...), View nodes (`view:run-details:battle-report`, `view:charts:tier-stats`, ...). Still dead code.
   - **Spec references:** [`architecture/17-schema-as-a-first-class-graph-entity.md`](architecture/17-schema-as-a-first-class-graph-entity.md) (schema taxonomy), existing `section-config.ts` and chart / analysis pages for section + view inventory.
   - **Files:** `src/shared/domain/field-graph/catalog/*.nodes.ts` (split by node kind for readability).
   - **DoD:** `npm run test` green; catalog is loaded by `buildGraph()`; invariant test asserts that every declared node has a unique id.
   - **Dependencies:** commit 1.
-  - **Status:** `TODO`
+  - **Status:** `DONE`
 
 - [ ] **Commit 3 — Field nodes**
   - **Scope:** Declare a `FieldNode` for every V3 canonical field from `sampleData/supportedFields.json` (≈147 fields) plus the 5 internal fields (`_date`, `_time`, `_notes`, `_runType`, `_rank`). No edges yet other than the minimum `kind: 'field'`; edge attribution starts in phase 2.

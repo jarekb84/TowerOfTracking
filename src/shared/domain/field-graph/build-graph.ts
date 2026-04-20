@@ -1,12 +1,13 @@
 import type { Edge, Node } from './types';
 import { FieldGraph } from './field-graph';
+import { CATALOG_NODES } from './catalog';
 
-// Entry point for constructing the application's field graph. Catalogs of
-// real nodes and edges are added in later epic commits (see
-// `docs/field-graph/EPIC-migration.md`, commits 2+). For commit 1 this
-// returns an empty graph — the engine is wired, the catalogs are not.
+// Entry point for constructing the application's field graph. Commit 2 adds
+// the top-level catalog (Schema / Section / Category / View nodes). Field
+// nodes and edge declarations arrive in later epic commits (see
+// `docs/field-graph/EPIC-migration.md`).
 
-const NODES: readonly Node[] = [];
+const NODES: readonly Node[] = CATALOG_NODES;
 const EDGES: readonly Edge[] = [];
 
 export function buildGraph(): FieldGraph {
