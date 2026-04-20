@@ -16,7 +16,7 @@ import { BACKUP_KEY, DATA_KEY } from './storage-keys';
  * V2 CSV bytes preserved under BACKUP_KEY.
  */
 
-export type BackupOutcome = 'written' | 'already-existed' | 'no-legacy-data' | 'ssr';
+type BackupOutcome = 'written' | 'already-existed' | 'no-legacy-data' | 'ssr';
 
 export function ensurePreMigrationBackupWritten(): BackupOutcome {
   if (typeof window === 'undefined') return 'ssr';

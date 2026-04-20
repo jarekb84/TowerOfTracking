@@ -76,7 +76,7 @@ export const DAMAGE_TAKEN_CONFIG: PlainFieldsConfig = {
   ],
 }
 
-export const DAMAGE_BLOCKED_CONFIG: PlainFieldsConfig = {
+const DAMAGE_BLOCKED_CONFIG: PlainFieldsConfig = {
   label: 'DAMAGE BLOCKED',
   fields: [
     { fieldName: 'damageBlocked_defense', displayName: 'Defense %' },
@@ -117,7 +117,7 @@ export const ENEMIES_DESTROYED_CONFIG: BreakdownConfig = {
   ],
 }
 
-export const ENEMIES_HIT_BY_CONFIG: BreakdownConfig = {
+const ENEMIES_HIT_BY_CONFIG: BreakdownConfig = {
   totalField: 'totalEnemies_totalEnemies',
   label: 'ENEMIES HIT BY',
   skipDiscrepancy: true,
@@ -141,7 +141,7 @@ export const ENEMIES_HIT_BY_CONFIG: BreakdownConfig = {
   ],
 }
 
-export const ENEMIES_DESTROYED_BY_CONFIG: BreakdownConfig = {
+const ENEMIES_DESTROYED_BY_CONFIG: BreakdownConfig = {
   totalField: 'totalEnemies_totalEnemies',
   label: 'ENEMIES DESTROYED BY',
   skipDiscrepancy: true,
@@ -190,7 +190,7 @@ export const ENEMIES_AFFECTED_BY_CONFIG: BreakdownConfig = {
 // Records Section
 // =============================================================================
 
-export const RECORDS_CONFIG: PlainFieldsConfig = {
+const RECORDS_CONFIG: PlainFieldsConfig = {
   label: 'RECORDS',
   fields: [
     { fieldName: 'records_highestCoinsMinute', displayName: 'Highest Coins / Minute' },

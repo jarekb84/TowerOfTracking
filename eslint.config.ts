@@ -37,6 +37,7 @@ export default defineConfig([
       "@typescript-eslint/no-unused-vars": ["error", {
         "args": "after-used",
         "caughtErrors": "none",
+        "varsIgnorePattern": "^_",
         "destructuredArrayIgnorePattern": "^_"
       }],
       "max-lines": ["error", {
@@ -74,6 +75,26 @@ export default defineConfig([
       "max-nested-callbacks": ["error", { "max": 5 }],
       "max-lines-per-function": "off",
       "max-statements": "off",
+    }
+  },
+  // Node-runtime scripts (one-shot data-prep tools). They use `process`,
+  // `console`, and large procedural `main()` functions by nature.
+  {
+    files: ["scripts/**/*.{js,mjs,cjs,ts}"],
+    languageOptions: { globals: globals.node },
+    rules: {
+      "max-statements": "off",
+      "max-lines-per-function": "off",
+    }
+  },
+  // Field-graph engine is being introduced in stages (see
+  // docs/field-graph/EPIC-migration.md). Early commits intentionally land
+  // dead exports / placeholder catalogs that downstream commits will wire
+  // up; relax unused-vars here until phase 2 starts consuming them.
+  {
+    files: ["src/shared/domain/field-graph/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
     }
   }
 ]);

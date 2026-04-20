@@ -16,7 +16,7 @@ import { DATA_KEY, VERSION_KEY, V3_COLUMN_PREFIX_VERSION } from './storage-keys'
  * `v3_` header prefix, not by VERSION_KEY.
  */
 
-export const V3_DATA_VERSION = V3_COLUMN_PREFIX_VERSION;
+const V3_DATA_VERSION = V3_COLUMN_PREFIX_VERSION;
 
 export function commitV3Migration(v3Csv: string): void {
   if (typeof window === 'undefined') return;

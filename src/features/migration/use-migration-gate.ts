@@ -6,9 +6,9 @@ import {
 import { ensurePreMigrationBackupWritten } from '@/shared/domain/migrations/write-pre-migration-backup';
 import { DATA_KEY } from '@/shared/domain/migrations/storage-keys';
 
-export type MigrationGateStatus = 'pass' | 'blocked';
+type MigrationGateStatus = 'pass' | 'blocked';
 
-export interface MigrationGateState {
+interface MigrationGateState {
   status: MigrationGateStatus;
   version: StorageVersion;
 }

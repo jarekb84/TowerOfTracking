@@ -15,7 +15,7 @@ import {
   triggerBackupDownload,
 } from './trigger-backup-download';
 
-export type TakeoverPhase =
+type TakeoverPhase =
   | 'awaiting-backup'
   | 'awaiting-migration'
   | 'migrating'

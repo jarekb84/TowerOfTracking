@@ -18,7 +18,7 @@ function stripSpecialChars(input: string): string {
  * "Real Time" -> duration). The `key` is the V3 canonical
  * `<sectionCamel>_<labelCamel>` form used as the in-memory field key.
  */
-export interface SectionedEntry {
+interface SectionedEntry {
   /** `<sectionCamel>_<labelCamel>` — the ParsedGameRun.fields key. */
   key: string;
   /** Raw display label from the game export, e.g. "Killed By". */

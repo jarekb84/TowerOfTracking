@@ -31,7 +31,7 @@ import { V3_COLUMN_PREFIX } from './storage-keys';
  * V2 storage intact.
  */
 
-export interface MigrationSuccess {
+interface MigrationSuccess {
   kind: 'success';
   v3Csv: string;
   runCount: number;
@@ -39,7 +39,7 @@ export interface MigrationSuccess {
   droppedFields: string[];
 }
 
-export interface MigrationError {
+interface MigrationError {
   kind: 'error';
   rowIndex: number;
   message: string;

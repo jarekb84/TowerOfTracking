@@ -12,6 +12,7 @@
 4. **Standing context for every graph-related prompt:** [`field-graph-for-ai.md`](field-graph-for-ai.md). Read it cold before touching anything in `src/features/field-graph/` or related directories.
 5. **Out-of-scope:** any change not described in the current commit's "Scope" line. If you notice something else worth fixing, write it in "Notes & Findings" at the end of this doc and leave it for a later commit.
 6. **Tests must stay green.** Each commit lands with `npm run integration-precheck` passing. Migration-gate / E2E manual verification is deferred to the final commit per the epic's staging plan — that is the ONE exception.
+7. **Every escape hatch goes in the ledger.** If you need to silence a lint rule, skip a test, loosen Husky, or add an ESLint config override to keep `integration-precheck` green during an intermediate state, append a row to "Migration-era suppressions" in the same PR. Commit 16 drains that ledger; nothing on this epic ships with an undocumented workaround.
 
 ---
 
@@ -39,6 +40,23 @@ This epic delivers the **relationship-graph field registry** specified in [`arch
 - ✅ Transitional UI rewrites (`coin-sources.ts`, `damage-sources.ts`, `section-config.ts`) to V3 keys — will be deleted in commits 6–7
 - ✅ Bug fixes: `battleReport_killedBy` type detection, `detectDateIssue` V3 key support, `V3_COLUMN_PREFIX` centralization
 - ✅ Invariant tests: v28-sample-parse, ui-coverage, v2-v3-schema-inverse-check
+
+## Migration-era suppressions (drained by commit 16)
+
+Whenever a commit on this epic introduces a temporary escape hatch — `eslint-disable`, ESLint config override, `test.skip`, deferred fixture, loosened Husky rule, etc. — add a row here in the same PR. **Commit 16 ("Cleanup") deletes everything in this list and verifies the section is empty.** If a row cannot be removed by then, convert it into a follow-up issue link before merging.
+
+Format: `- [ ] [commit N] <file:line> — <kind> — <one-line reason> — unblocked by: <commit M> / <follow-up issue>`
+
+- [ ] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `scripts/**/*.{js,mjs,cjs,ts}` override — Node globals + relaxed `max-statements` / `max-lines-per-function` for one-shot data-prep `main()` functions — unblocked by: keep (these are legitimate Node scripts) **or** decide to delete the scripts post-migration.
+- [ ] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `src/shared/domain/field-graph/**` override — disables `@typescript-eslint/no-unused-vars` so phase-1 dead exports don't trip lint — unblocked by: commit 4+ (consumers start importing the engine).
+- [ ] [pre-epic] [`knip.json`](../../knip.json) `ignore: src/shared/domain/field-graph/**` — knip's pre-commit `--fix-type files,exports,types` was auto-deleting phase-1 engine exports (`buildGraph`, `EDGE_META`, `EdgeTargetKind`, etc.) before consumers in commits 4+ could import them — unblocked by: commit 4+ (real consumers anchor every export and knip can resume managing this directory).
+- [ ] [pre-epic] [`knip.json`](../../knip.json) `ignore: src/shared/domain/migrations/v2-to-v3-field-map.generated.ts` — generated scaffold output (see [`scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs`](../../scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs)) consumed only by the hand-edited `v2-to-v3-field-map.ts` for diffing, so knip flags it as unused — unblocked by: commit 10 (RENAMED_FROM edges absorb the map; both files can be deleted).
+- [ ] [pre-epic] [`src/shared/formatting/date-issue-detection.ts:115`](../../src/shared/formatting/date-issue-detection.ts) `// eslint-disable-next-line complexity` — V2/V3 dual-key tolerance bumps complexity to 11 — unblocked by: commit 10 (RENAMED_FROM edges collapse the dual-key check back to a single graph lookup).
+- [ ] [pre-epic] [`e2e/features/analytics/tier-stats.spec.ts`](../../e2e/features/analytics/tier-stats.spec.ts) `test.skip` — persisted column config invalidated by V2→V3 rename — unblocked by: commit 6 (BELONGS_TO_SECTION).
+- [ ] [pre-epic] [`e2e/features/analytics/tier-trends.spec.ts`](../../e2e/features/analytics/tier-trends.spec.ts) `test.skip` — field-search resolution still references V2 labels — unblocked by: commit 12 (APPEARS_IN_VIEW).
+- [ ] [pre-epic] [`e2e/features/analytics/coverage-report.spec.ts`](../../e2e/features/analytics/coverage-report.spec.ts) `test.skip` — tooltip references V2 field labels — unblocked by: commit 6 (BELONGS_TO_SECTION).
+- [ ] [pre-epic] [`e2e/features/analytics/field-analytics.spec.ts`](../../e2e/features/analytics/field-analytics.spec.ts) `test.skip` — default-field selection doesn't traverse V2→V3 rename — unblocked by: commit 10 (RENAMED_FROM).
+- [ ] [pre-epic] [`e2e/features/data-import/bulk-export.spec.ts`](../../e2e/features/data-import/bulk-export.spec.ts) `test.skip` — fixture `expected-bulk-export.csv` still uses V2-era display labels; current export emits `v3_`-prefixed canonical keys — unblocked by: commit 5 (HAS_CSV_HEADER) **and** fixture regeneration.
 
 ## Staging plan
 
@@ -177,6 +195,26 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** one new field-node declaration, ~5 edge additions, parser filename-detection branch. No filter / form code touched — auto-discovered via graph.
   - **DoD:** Import a dissonance sample; subcategory detected; filter shows on analytics pages; run-details renders the subcategory.
   - **Dependencies:** commits 4, 12, 13.
+  - **Status:** `TODO` · **PR/SHA:** —
+
+### Phase 3.5 — Cleanup (revert all migration-era escape hatches)
+
+- [ ] **Commit 16 — Remove temporary suppressions and re-enable deferred tests**
+  - **Scope:** This epic accumulates short-lived workarounds across earlier commits — `eslint-disable` comments, ESLint config overrides, `test.skip` markers, deferred fixtures, and any Husky / pre-commit allowances added to keep `integration-precheck` green during intermediate states. This commit deletes them all and confirms the underlying fixes have actually landed in commits 1–15. Nothing new is *added* here; it is a closing audit + revert pass.
+  - **Pre-work checklist** (run before opening the PR):
+    1. `git log <epic-base>..HEAD --pretty=format:'%h %s' | grep -iE 'skip|disable|override|temporary|defer'` — surface anything tagged as temporary in commit messages.
+    2. `rg -n 'eslint-disable|@ts-expect-error|@ts-ignore' src/` — diff against the same query at the epic base; anything new is a candidate.
+    3. `rg -n 'test\.skip|test\.fixme|describe\.skip|xit\(|xdescribe\(' e2e/ src/` — every match added during the epic must come back to life.
+    4. Diff `eslint.config.ts` against the epic base; any new `files:` override block tagged "field-graph", "migration", or "scripts/migration-data-prep" must be re-evaluated.
+    5. Check `package.json` (Husky / lint-staged sections) for any rule that was loosened mid-epic.
+    6. Read the **Migration-era suppressions** section near the top of this doc — it should match the diff from steps 1–5. If they disagree, the doc has drifted and needs reconciling first.
+  - **Files touched:** purely deletions / reverts. No new product code.
+  - **DoD:**
+    - `npm run integration-precheck` green with **zero** skipped tests added by this epic.
+    - The "Migration-era suppressions" section below is empty (or contains only items explicitly deferred to a follow-up issue, with link).
+    - Grep queries from steps 2–3 return the same set of pre-existing matches that existed at the epic base — no net new suppressions.
+  - **Dependencies:** commits 1–15. This is the last code commit before manual verification.
+  - **Out of scope:** any product fix. If a skipped test still fails after the relevant earlier commit shipped, file a follow-up issue and document it under "Migration-era suppressions" rather than patching here.
   - **Status:** `TODO` · **PR/SHA:** —
 
 ### Phase 4 — Manual verification (not a code commit)

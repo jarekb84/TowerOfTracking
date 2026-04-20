@@ -112,6 +112,7 @@ export function tryDeriveFromInternalFields(
  *   // Show auto-fix toggle to user
  * }
  */
+// eslint-disable-next-line complexity -- V2/V3 dual-key tolerance bumps this to 11; collapses back once commit 10 (RENAMED_FROM edges) lands per docs/field-graph/EPIC-migration.md.
 export function detectDateIssue(
   run: ParsedGameRun,
   userSelectedDate?: Date
