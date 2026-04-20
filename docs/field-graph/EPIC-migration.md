@@ -57,6 +57,7 @@ Format: `- [ ] [commit N] <file:line> — <kind> — <one-line reason> — unblo
 - [ ] [pre-epic] [`e2e/features/analytics/coverage-report.spec.ts`](../../e2e/features/analytics/coverage-report.spec.ts) `test.skip` — tooltip references V2 field labels — unblocked by: commit 6 (BELONGS_TO_SECTION).
 - [ ] [pre-epic] [`e2e/features/analytics/field-analytics.spec.ts`](../../e2e/features/analytics/field-analytics.spec.ts) `test.skip` — default-field selection doesn't traverse V2→V3 rename — unblocked by: commit 10 (RENAMED_FROM).
 - [ ] [pre-epic] [`e2e/features/data-import/bulk-export.spec.ts`](../../e2e/features/data-import/bulk-export.spec.ts) `test.skip` — fixture `expected-bulk-export.csv` still uses V2-era display labels; current export emits `v3_`-prefixed canonical keys — unblocked by: commit 5 (HAS_CSV_HEADER) **and** fixture regeneration.
+- [ ] [commit 3] [`src/shared/domain/field-graph/types.ts`](../../src/shared/domain/field-graph/types.ts) `APPEARS_IN_VIEW` cardinality downgraded from `'at-least-one'` to `'many'` — Field nodes declared in commit 3 have no outgoing edges until commit 12, so the stricter invariant would reject every Field at build time. Paired `test.skip` in [`src/shared/domain/field-graph/field-graph.test.ts`](../../src/shared/domain/field-graph/field-graph.test.ts) ("cardinality 'at-least-one' is violated when a Field has no APPEARS_IN_VIEW"). Commit 12 must either restore `'at-least-one'` *or* document why it stays `'many'` (e.g. compound-only sources, non-UI internal fields that legitimately never render) — unblocked by: commit 12.
 
 ## Staging plan
 
@@ -89,13 +90,13 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Dependencies:** commit 1.
   - **Status:** `DONE`
 
-- [ ] **Commit 3 — Field nodes**
+- [x] **Commit 3 — Field nodes**
   - **Scope:** Declare a `FieldNode` for every V3 canonical field from `sampleData/supportedFields.json` (≈147 fields) plus the 5 internal fields (`_date`, `_time`, `_notes`, `_runType`, `_rank`). No edges yet other than the minimum `kind: 'field'`; edge attribution starts in phase 2.
   - **Spec references:** [`architecture/08-clarifying-the-mental-model.md`](architecture/08-clarifying-the-mental-model.md) (node shapes), [`11-internal-app-fields.md`](architecture/11-internal-app-fields.md) (internal fields).
   - **Files:** `src/shared/domain/field-graph/catalog/fields.nodes.ts` (one big data file is fine for this commit).
   - **DoD:** Invariant test asserts `fieldNodes.length === supportedFields.length`; every field id matches a supportedFields entry.
   - **Dependencies:** commits 1, 2.
-  - **Status:** `TODO`
+  - **Status:** `DONE`
 
 ### Phase 2 — Vertical slices (each deletes imperative code)
 
@@ -168,6 +169,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Spec references:** [`architecture/09-cross-cutting-concerns.md`](architecture/09-cross-cutting-concerns.md) §9.4 (new-view walkthrough), [`12-extending-with-a-new-run-type-and-sub-category.md`](architecture/12-extending-with-a-new-run-type-and-sub-category.md) (filter auto-discovery for dissonance).
   - **Files touched:** each chart / analysis page component; filter bar components.
   - **DoD:** Adding a `APPEARS_IN_VIEW` edge to a new field auto-includes it in the relevant view (tested with a fixture field).
+  - **Cardinality decision required:** Commit 3 temporarily downgraded `APPEARS_IN_VIEW` from `'at-least-one'` to `'many'`. Before closing this commit, decide whether to restore `'at-least-one'` (every field must render somewhere) or keep it `'many'` (some fields — compound-only sources, non-UI internal metadata — legitimately have no view). If restoring, un-skip the paired test in `field-graph.test.ts`; if keeping, delete that test and update the ledger row accordingly.
   - **Dependencies:** commit 6 (section membership established first).
   - **Status:** `TODO`
 

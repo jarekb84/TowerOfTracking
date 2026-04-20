@@ -182,9 +182,12 @@ describe('FieldGraph invariants', () => {
     )).toThrow(/BELONGS_TO_CATEGORY cardinality 'one' violated.*section:coins.*2 edges/);
   });
 
-  it("cardinality 'at-least-one' is violated when a Field has no APPEARS_IN_VIEW", () => {
-    // Field 'lonely' is valid structurally (BELONGS_TO_SECTION is 'many', no
-    // minimum) but must still have >=1 APPEARS_IN_VIEW per the cardinality table.
+  it.skip("cardinality 'at-least-one' is violated when a Field has no APPEARS_IN_VIEW", () => {
+    // Suspended during the field-graph migration. APPEARS_IN_VIEW's cardinality
+    // is temporarily relaxed to 'many' until commit 12 wires the edges; see
+    // `docs/field-graph/EPIC-migration.md` Migration-era suppressions. Commit 12
+    // either restores 'at-least-one' (re-enabling this test) or permanently
+    // downgrades the rule if fields can legitimately have no view.
     expect(() => new FieldGraph(
       [fieldNode('lonely'), sectionNode('section:s')],
       [edge('lonely', 'BELONGS_TO_SECTION', 'section:s')],

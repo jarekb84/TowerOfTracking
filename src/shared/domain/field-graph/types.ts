@@ -72,7 +72,14 @@ export const EDGE_META: Readonly<Record<EdgeType, EdgeMeta>> = {
   BELONGS_TO_CATEGORY: { sourceKind: 'Section', targetKind: 'Category', cardinality: 'one' },
   IS_SOURCE_OF: { sourceKind: 'Field', targetKind: 'Field', cardinality: 'many' },
   IS_DERIVED_FROM: { sourceKind: 'Field', targetKind: 'Field', cardinality: 'many' },
-  APPEARS_IN_VIEW: { sourceKind: 'Field', targetKind: 'View', cardinality: 'at-least-one' },
+  // Cardinality temporarily relaxed from 'at-least-one' to 'many' during the
+  // field-graph migration. Phase 1 (commits 1–3) declares Field nodes without
+  // any edges; the original invariant would reject every Field until commit 12
+  // wires APPEARS_IN_VIEW edges. Commit 12 restores the stricter cardinality
+  // (or downgrades it permanently if we decide some fields legitimately have
+  // no view — compound-only sources, non-UI internal fields). Tracked in
+  // `docs/field-graph/EPIC-migration.md` Migration-era suppressions.
+  APPEARS_IN_VIEW: { sourceKind: 'Field', targetKind: 'View', cardinality: 'many' },
   APPEARS_IN_FILTER: { sourceKind: 'Field', targetKind: 'View', cardinality: 'many' },
   SHARES_LABEL_WITH: { sourceKind: 'Field', targetKind: 'Field', cardinality: 'many', symmetric: true },
   PARTICIPATES_IN_COMPOSITE_KEY: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'many' },
