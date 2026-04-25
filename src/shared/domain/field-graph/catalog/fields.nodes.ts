@@ -8,9 +8,11 @@ import { fieldNode } from '../builders';
 // `docs/field-graph/architecture/08-clarifying-the-mental-model.md` §8.1 for
 // the node shape.
 //
-// Internal fields carry the `'internal'` tag (spec §11.1). They are `Field`
-// nodes, not a separate node kind — the tag + an `IS_INTERNAL_FIELD` edge
-// (declared in commit 5) together express their distinct role.
+// Internal fields are `Field` nodes (not a separate node kind). Their distinct
+// role as app-managed metadata is declared structurally via the
+// `IS_INTERNAL_FIELD` edge in `internal-fields.edges.ts`. See
+// `EXPLORATION-tag-vs-edge.md` for why the parallel `Node.tags` axis was
+// retired in commit 5b.
 //
 // Naming convention: `<SECTION>__<FIELD>_NODE` (double-underscore section/
 // field separator). Internal fields preserve their leading `_`. See
@@ -22,11 +24,11 @@ import { fieldNode } from '../builders';
 // ─── Internal app-fields ─────────────────────────────────────────────────
 // See architecture/11-internal-app-fields.md.
 
-export const _DATE_NODE = fieldNode('_date', { tags: ['internal'] });
-export const _TIME_NODE = fieldNode('_time', { tags: ['internal'] });
-export const _NOTES_NODE = fieldNode('_notes', { tags: ['internal'] });
-export const _RUN_TYPE_NODE = fieldNode('_runType', { tags: ['internal'] });
-export const _RANK_NODE = fieldNode('_rank', { tags: ['internal'] });
+export const _DATE_NODE = fieldNode('_date');
+export const _TIME_NODE = fieldNode('_time');
+export const _NOTES_NODE = fieldNode('_notes');
+export const _RUN_TYPE_NODE = fieldNode('_runType');
+export const _RANK_NODE = fieldNode('_rank');
 
 // ─── battleReport — primary run metadata ─────────────────────────────────
 

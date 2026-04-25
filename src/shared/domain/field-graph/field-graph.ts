@@ -9,18 +9,22 @@ import {
   type RenamedFromPayload,
 } from './types';
 
-// A reference to a field-graph node. Public query methods accept either a
-// raw string id (parser-boundary, migration-era) or a `Node` handle imported
-// from the catalog (`_RUN_TYPE_NODE`, `BATTLE_REPORT__COINS_EARNED_NODE`,
-// …). Returns stay `readonly string[]` — see EXPLORATION-node-identity-abc-
-// deep-dive.md §4 for the rationale.
+// A reference to a field-graph node. Accepts either a raw string id (parser
+// boundary) or a `Node` handle imported from the catalog. Returns from query
+// functions stay `readonly string[]` — pass them through `getField` if you
+// need the Node back.
 export type FieldRef = string | Node;
 
-// FieldGraph is a frozen, indexed view over a set of Node and Edge records.
-// The constructor runs all structural invariants; once built, every query is
-// an O(1) map lookup plus an O(matching-edges) filter. See the spec at
-// `docs/field-graph/architecture/08-clarifying-the-mental-model.md` §8.3 for
-// the invariants enforced here.
+// Indexed view over a set of Node and Edge records. The constructor runs all
+// structural invariants; once built, every primitive lookup is O(1) on the
+// indexes plus O(matching-edges) for the filter. Spec:
+// `docs/field-graph/architecture/08-clarifying-the-mental-model.md` §8.3.
+//
+// This class exposes only parser-boundary lookups (`getField`,
+// `resolveFieldByAnyKey`) and indexed primitives. Domain queries
+// (`csvHeaderOf`, `sourcesOf`, etc.) live in
+// `catalog/edges/<concept>/<concept>.queries.ts` — see that directory's
+// `PATTERN.md` for how to add or extend queries.
 
 export class FieldGraph {
   private readonly nodes: readonly Node[];
@@ -203,12 +207,12 @@ export class FieldGraph {
     }
   }
 
-  // ---- Query API ----
+  // ---- Parser-boundary lookups (string-only) ----
+  //
+  // Accept raw keys from storage / clipboard / URL params; resolve to canonical
+  // Node handles. Distinct from the FieldRef-polymorphic primitives below,
+  // which assume callers have already crossed the boundary.
 
-  // String-in lookups: parser/import boundary and direct id resolution. These
-  // intentionally do not accept a Node — their job is to convert a raw key
-  // (storage, clipboard, URL param) or a previously-returned id back into a
-  // Node handle.
   getField(id: string): Node | null {
     const n = this.byId.get(id);
     return n && n.kind === 'Field' ? n : null;
@@ -221,29 +225,17 @@ export class FieldGraph {
     return canonical ? this.getField(canonical) : null;
   }
 
-  // Polymorphic input: `string | Node`. Build-time consumers pass an imported
-  // `*_NODE` handle; migration-era consumers pass a raw id string. Unknown
-  // ids fall through to empty arrays — orphan refs do not throw.
-  private toId(ref: FieldRef): string {
+  // ---- Indexed primitives (FieldRef-polymorphic) ----
+
+  toId(ref: FieldRef): string {
     return typeof ref === 'string' ? ref : ref.id;
   }
 
-  sourcesOf(totalField: FieldRef): readonly string[] {
-    return (this.edgesToIdx.get(this.toId(totalField)) ?? [])
-      .filter((e) => e.type === 'IS_SOURCE_OF')
-      .map((e) => e.from);
-  }
-
-  fieldsInSection(section: FieldRef): readonly string[] {
-    return (this.edgesToIdx.get(this.toId(section)) ?? [])
-      .filter((e) => e.type === 'BELONGS_TO_SECTION')
-      .map((e) => e.from);
-  }
-
-  sectionsOf(field: FieldRef): readonly string[] {
-    return (this.edgesFromIdx.get(this.toId(field)) ?? [])
-      .filter((e) => e.type === 'BELONGS_TO_SECTION')
-      .map((e) => e.to as string);
+  // For a node with a `cardinality: 'one'` terminal-target edge of `type`,
+  // returns the terminal string; undefined when no such edge exists.
+  terminalOf(node: FieldRef, type: EdgeType): string | undefined {
+    const match = (this.edgesFromIdx.get(this.toId(node)) ?? []).find((e) => e.type === type);
+    return match?.to;
   }
 
   edgesFrom(node: FieldRef, type?: EdgeType): readonly Edge[] {
@@ -256,140 +248,11 @@ export class FieldGraph {
     return type ? all.filter((e) => e.type === type) : all;
   }
 
-  nodesOfKind(kind: NodeKind): readonly Node[] {
-    return this.byKind.get(kind) ?? [];
-  }
-
   edgesOfType(type: EdgeType): readonly Edge[] {
     return this.edgesByType.get(type) ?? [];
   }
 
-  // ---- Enum-value queries ----
-  //
-  // Consumer-facing single-call helpers. Prefer these over raw `edgesFrom`
-  // walks — the latter stays available for invariant tests and engine
-  // internals. Each helper answers one specific consumer question:
-  //
-  //   acceptedValuesFor  — "what wire values does this field accept?"
-  //   isAcceptedValue    — "is this raw string one of them?" (type predicate)
-  //   matchAcceptedValue — "canonicalize or reject this raw string"
-  //   enumValueMeta      — "give me the full metadata for this wire value"
-  //
-  // Matching is EXACT-STRING. Callers that need case-insensitive or whitespace-
-  // tolerant matching normalize the input before calling in; the graph does
-  // not second-guess wire values.
-
-  enumValuesOf(field: FieldRef): readonly string[] {
-    return (this.edgesFromIdx.get(this.toId(field)) ?? [])
-      .filter((e) => e.type === 'ACCEPTS_VALUE')
-      .map((e) => e.to as string);
-  }
-
-  /**
-   * All wire values accepted by this field (e.g. `['farm', 'tournament', 'milestone']`).
-   * Returns an empty array when the field has no ACCEPTS_VALUE edges (or the
-   * field ref is unknown) — callers can treat "no enum values" uniformly
-   * without branching on existence.
-   */
-  acceptedValuesFor(field: FieldRef): readonly string[] {
-    const values: string[] = [];
-    for (const enumId of this.enumValuesOf(field)) {
-      const wireValue = this.terminalOf(enumId, 'HAS_STRING_VALUE');
-      if (wireValue !== undefined) values.push(wireValue);
-    }
-    return values;
-  }
-
-  /** Type predicate — is `raw` one of this field's accepted wire values? Exact match. */
-  isAcceptedValue(field: FieldRef, raw: string): boolean {
-    return this.acceptedValuesFor(field).includes(raw);
-  }
-
-  /**
-   * Returns the canonical wire value when `raw` exactly matches an accepted
-   * value, else null. Today this is just `raw` itself on match — kept as a
-   * named method so future "case-tolerant" or "alias" behavior has one place
-   * to land, and so consumers read as intent (canonicalize) rather than
-   * mechanics (includes).
-   */
-  matchAcceptedValue(field: FieldRef, raw: string): string | null {
-    return this.isAcceptedValue(field, raw) ? raw : null;
-  }
-
-  /**
-   * Full metadata for a declared accepted value. Returns null when the wire
-   * value is not declared for the field. `displayName` and `color` come from
-   * the corresponding terminal edges on the enum-value node and are omitted
-   * when not declared so consumers can rely on optional-chaining + nullish
-   * fallbacks (`meta?.color ?? FALLBACK`).
-   */
-  enumValueMeta(
-    field: FieldRef,
-    wireValue: string,
-  ): {
-    readonly id: string;
-    readonly wireValue: string;
-    readonly displayName?: string;
-    readonly color?: string;
-  } | null {
-    for (const enumId of this.enumValuesOf(field)) {
-      if (this.terminalOf(enumId, 'HAS_STRING_VALUE') === wireValue) {
-        const displayName = this.terminalOf(enumId, 'HAS_DISPLAY_NAME');
-        const color = this.terminalOf(enumId, 'HAS_COLOR');
-        return {
-          id: enumId,
-          wireValue,
-          ...(displayName === undefined ? {} : { displayName }),
-          ...(color === undefined ? {} : { color }),
-        };
-      }
-    }
-    return null;
-  }
-
-  displayNameOf(node: FieldRef): string | undefined {
-    return this.terminalOf(this.toId(node), 'HAS_DISPLAY_NAME');
-  }
-
-  colorOf(node: FieldRef): string | undefined {
-    return this.terminalOf(this.toId(node), 'HAS_COLOR');
-  }
-
-  // ---- Internal-field queries ----
-  //
-  // `_date`, `_time`, `_notes`, `_runType`, `_rank` are app-managed metadata
-  // distinct from V3 game fields. The graph identifies them via an
-  // IS_INTERNAL_FIELD marker edge. Per-field CSV headers (`_Date`, `_Run Type`,
-  // …) live as HAS_CSV_HEADER terminal edges so the exporter does not have to
-  // special-case internal fields.
-
-  /**
-   * Field ids carrying an IS_INTERNAL_FIELD edge, in declaration order. Used
-   * by the CSV exporter to place internal-field columns first in canonical
-   * order.
-   */
-  internalFields(): readonly string[] {
-    return (this.edgesByType.get('IS_INTERNAL_FIELD') ?? []).map((e) => e.from);
-  }
-
-  /** True when `field` carries an IS_INTERNAL_FIELD marker edge. */
-  isInternalField(field: FieldRef): boolean {
-    return (this.edgesFromIdx.get(this.toId(field)) ?? []).some(
-      (e) => e.type === 'IS_INTERNAL_FIELD',
-    );
-  }
-
-  /**
-   * Custom CSV header for `field` (e.g. `_Date` for `_date`). Returns
-   * undefined when the field has no override; callers fall back to their own
-   * default-header derivation.
-   */
-  csvHeaderOf(field: FieldRef): string | undefined {
-    return this.terminalOf(this.toId(field), 'HAS_CSV_HEADER');
-  }
-
-  private terminalOf(nodeId: string, type: EdgeType): string | undefined {
-    const match = (this.edgesFromIdx.get(nodeId) ?? []).find((e) => e.type === type);
-    return match?.to;
+  nodesOfKind(kind: NodeKind): readonly Node[] {
+    return this.byKind.get(kind) ?? [];
   }
 }

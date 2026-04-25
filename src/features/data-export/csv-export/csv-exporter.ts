@@ -8,7 +8,7 @@ import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from '../../../s
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
 import { encodeNotesForStorage } from '@/shared/domain/fields/notes-encoding';
 import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
-import { appGraph } from '@/shared/domain/field-graph';
+import { csvHeaderOf, internalFields } from '@/shared/domain/field-graph';
 import {
   _DATE_NODE,
   _NOTES_NODE,
@@ -67,8 +67,7 @@ export interface CsvExportResult {
  * Orders fields: internal fields first (_date, _time, _notes, _runType, _rank), then battle_date, then alphabetically
  */
 function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
-  const graph = appGraph();
-  const internalFieldOrder = graph.internalFields();
+  const internalFieldOrder = internalFields();
   const internalFieldRank = new Map(internalFieldOrder.map((id, idx) => [id, idx]));
 
   const fieldMap = new Map<string, FieldInfo>();
@@ -81,7 +80,7 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
     if (hasField) {
       fieldMap.set(fieldName, {
         fieldName,
-        originalKey: graph.csvHeaderOf(fieldName) ?? fieldName,
+        originalKey: csvHeaderOf(fieldName) ?? fieldName,
         isAppGenerated: true
       });
     }

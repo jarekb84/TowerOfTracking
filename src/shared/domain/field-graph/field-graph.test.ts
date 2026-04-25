@@ -14,7 +14,13 @@ import {
   type Node,
 } from './index';
 
-// A 5-node / 5-edge toy graph that exercises the common happy-path queries:
+// Tests for the engine itself: indexing, validation invariants, symmetric-
+// edge handling, and the indexed primitives that domain queries build on.
+// Domain query tests live next to each `*.queries.ts` under
+// `catalog/edges/<concept>/`.
+
+// A 5-node / 5-edge toy graph that exercises the common happy-path
+// primitives:
 //   Section 'section:coins'       (UI grouping)
 //   Schema  'schema:v3'           (for RENAMED_FROM.atSchema)
 //   View    'view:rd'             (target of APPEARS_IN_VIEW)
@@ -38,7 +44,7 @@ function buildHappyPathGraph(): FieldGraph {
   return new FieldGraph(nodes, edges);
 }
 
-describe('FieldGraph (happy path)', () => {
+describe('FieldGraph parser-boundary lookups', () => {
   const graph = buildHappyPathGraph();
 
   it('getField returns the Field node for its canonical id', () => {
@@ -66,19 +72,17 @@ describe('FieldGraph (happy path)', () => {
   it('resolveFieldByAnyKey: miss returns null', () => {
     expect(graph.resolveFieldByAnyKey('unknown')).toBeNull();
   });
+});
 
-  it('sourcesOf returns fields contributing to a total', () => {
-    expect(graph.sourcesOf('total')).toEqual(['a']);
-    expect(graph.sourcesOf('a')).toEqual([]);
+describe('FieldGraph indexed primitives', () => {
+  const graph = buildHappyPathGraph();
+
+  it('toId normalizes a string ref through unchanged', () => {
+    expect(graph.toId('a')).toBe('a');
   });
 
-  it('fieldsInSection returns fields whose BELONGS_TO_SECTION points here', () => {
-    expect(graph.fieldsInSection('section:coins')).toEqual(['a']);
-  });
-
-  it('sectionsOf returns all sections a field belongs to', () => {
-    expect(graph.sectionsOf('a')).toEqual(['section:coins']);
-    expect(graph.sectionsOf('total')).toEqual([]);
+  it('toId extracts the id from a Node handle', () => {
+    expect(graph.toId(fieldNode('a'))).toBe('a');
   });
 
   it('nodesOfKind enumerates nodes of a given kind', () => {
@@ -99,6 +103,19 @@ describe('FieldGraph (happy path)', () => {
   it('edgesTo filters by node id and optional type', () => {
     expect(graph.edgesTo('total', 'IS_SOURCE_OF')).toHaveLength(1);
     expect(graph.edgesTo('view:rd', 'APPEARS_IN_VIEW')).toHaveLength(2);
+  });
+
+  it('terminalOf returns the terminal string for a single-edge type', () => {
+    const g = new FieldGraph(
+      [fieldNode('x')],
+      [edge('x', 'HAS_DISPLAY_NAME', 'X Field')],
+    );
+    expect(g.terminalOf('x', 'HAS_DISPLAY_NAME')).toBe('X Field');
+  });
+
+  it('terminalOf returns undefined when no edge of that type exists', () => {
+    const g = new FieldGraph([fieldNode('x')], []);
+    expect(g.terminalOf('x', 'HAS_DISPLAY_NAME')).toBeUndefined();
   });
 });
 
@@ -194,6 +211,26 @@ describe('FieldGraph invariants', () => {
     )).toThrow(/APPEARS_IN_VIEW cardinality 'at-least-one' violated.*'lonely'/);
   });
 
+  it('IS_INTERNAL_FIELD has cardinality one — duplicate edges throw', () => {
+    expect(() => new FieldGraph(
+      [fieldNode('_date')],
+      [
+        edge('_date', 'IS_INTERNAL_FIELD'),
+        edge('_date', 'IS_INTERNAL_FIELD'),
+      ],
+    )).toThrow(/IS_INTERNAL_FIELD cardinality 'one' violated.*'_date'.*2 edges/);
+  });
+
+  it('HAS_CSV_HEADER has cardinality one — duplicate edges throw', () => {
+    expect(() => new FieldGraph(
+      [fieldNode('_date')],
+      [
+        edge('_date', 'HAS_CSV_HEADER', '_Date'),
+        edge('_date', 'HAS_CSV_HEADER', '_DateAlt'),
+      ],
+    )).toThrow(/HAS_CSV_HEADER cardinality 'one' violated.*'_date'.*2 edges/);
+  });
+
   it('RENAMED_FROM requires a payload with legacyKey and atSchema', () => {
     expect(() => new FieldGraph(
       [fieldNode('a')],
@@ -258,8 +295,9 @@ describe('FieldGraph invariants', () => {
         edge('enum:farm', 'HAS_STRING_VALUE', 'farm'),
       ],
     );
-    expect(graph.displayNameOf('enum:farm')).toBe('Farm');
-    expect(graph.colorOf('enum:farm')).toBe('#10b981');
+    expect(graph.terminalOf('enum:farm', 'HAS_DISPLAY_NAME')).toBe('Farm');
+    expect(graph.terminalOf('enum:farm', 'HAS_COLOR')).toBe('#10b981');
+    expect(graph.terminalOf('enum:farm', 'HAS_STRING_VALUE')).toBe('farm');
   });
 
   it('rejects HAS_STRING_VALUE from a non-EnumValue source', () => {
@@ -278,154 +316,3 @@ describe('FieldGraph invariants', () => {
     }
   });
 });
-
-describe('FieldGraph enum-value consumer API', () => {
-  function buildRunTypeLikeGraph(): FieldGraph {
-    return new FieldGraph(
-      [
-        fieldNode('_runType'),
-        fieldNode('plainField'),
-        enumValueNode('enum:farm'),
-        enumValueNode('enum:tournament'),
-      ],
-      [
-        edge('_runType', 'ACCEPTS_VALUE', 'enum:farm'),
-        edge('_runType', 'ACCEPTS_VALUE', 'enum:tournament'),
-        edge('enum:farm', 'HAS_STRING_VALUE', 'farm'),
-        edge('enum:farm', 'HAS_DISPLAY_NAME', 'Farm'),
-        edge('enum:tournament', 'HAS_STRING_VALUE', 'tournament'),
-        // intentionally no HAS_DISPLAY_NAME on enum:tournament — meta should
-        // omit the optional field rather than return a blank string
-      ],
-    );
-  }
-
-  it('acceptedValuesFor returns every declared wire value', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect([...graph.acceptedValuesFor('_runType')].sort()).toEqual(['farm', 'tournament']);
-  });
-
-  it('acceptedValuesFor returns [] for a non-enum field', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.acceptedValuesFor('plainField')).toEqual([]);
-  });
-
-  it('acceptedValuesFor returns [] for a missing fieldId', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.acceptedValuesFor('nope')).toEqual([]);
-  });
-
-  it('isAcceptedValue returns true only for an exact declared wire value', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.isAcceptedValue('_runType', 'farm')).toBe(true);
-    expect(graph.isAcceptedValue('_runType', 'tournament')).toBe(true);
-    expect(graph.isAcceptedValue('_runType', 'milestone')).toBe(false);
-  });
-
-  it('isAcceptedValue is case-sensitive (exact match only)', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.isAcceptedValue('_runType', 'FARM')).toBe(false);
-    expect(graph.isAcceptedValue('_runType', 'Farm')).toBe(false);
-  });
-
-  it('isAcceptedValue returns false for empty string and non-enum / missing fieldId', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.isAcceptedValue('_runType', '')).toBe(false);
-    expect(graph.isAcceptedValue('plainField', 'farm')).toBe(false);
-    expect(graph.isAcceptedValue('nope', 'farm')).toBe(false);
-  });
-
-  it('matchAcceptedValue returns the wire value on match, else null', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.matchAcceptedValue('_runType', 'farm')).toBe('farm');
-    expect(graph.matchAcceptedValue('_runType', 'FARM')).toBeNull();
-    expect(graph.matchAcceptedValue('_runType', 'nope')).toBeNull();
-    expect(graph.matchAcceptedValue('_runType', '')).toBeNull();
-    expect(graph.matchAcceptedValue('plainField', 'farm')).toBeNull();
-    expect(graph.matchAcceptedValue('nope', 'farm')).toBeNull();
-  });
-
-  it('enumValueMeta returns id, wireValue, and displayName when declared', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.enumValueMeta('_runType', 'farm')).toEqual({
-      id: 'enum:farm',
-      wireValue: 'farm',
-      displayName: 'Farm',
-    });
-  });
-
-  it('enumValueMeta omits displayName when the enum value has no HAS_DISPLAY_NAME', () => {
-    const graph = buildRunTypeLikeGraph();
-    const meta = graph.enumValueMeta('_runType', 'tournament');
-    expect(meta).toEqual({ id: 'enum:tournament', wireValue: 'tournament' });
-    expect(meta && 'displayName' in meta).toBe(false);
-  });
-
-  it('enumValueMeta returns null for unknown wire value / non-enum / missing fieldId', () => {
-    const graph = buildRunTypeLikeGraph();
-    expect(graph.enumValueMeta('_runType', 'milestone')).toBeNull();
-    expect(graph.enumValueMeta('_runType', '')).toBeNull();
-    expect(graph.enumValueMeta('plainField', 'farm')).toBeNull();
-    expect(graph.enumValueMeta('nope', 'farm')).toBeNull();
-  });
-});
-
-describe('FieldGraph internal-field consumer API', () => {
-  function buildInternalFieldGraph(): FieldGraph {
-    return new FieldGraph(
-      [
-        fieldNode('_date'),
-        fieldNode('_time'),
-        fieldNode('plainField'),
-      ],
-      [
-        edge('_date', 'IS_INTERNAL_FIELD'),
-        edge('_date', 'HAS_CSV_HEADER', '_Date'),
-        edge('_time', 'IS_INTERNAL_FIELD'),
-        edge('_time', 'HAS_CSV_HEADER', '_Time'),
-      ],
-    );
-  }
-
-  it('internalFields returns ids in declaration order', () => {
-    const graph = buildInternalFieldGraph();
-    expect(graph.internalFields()).toEqual(['_date', '_time']);
-  });
-
-  it('isInternalField is true for marked fields and false otherwise', () => {
-    const graph = buildInternalFieldGraph();
-    expect(graph.isInternalField('_date')).toBe(true);
-    expect(graph.isInternalField('_time')).toBe(true);
-    expect(graph.isInternalField('plainField')).toBe(false);
-    expect(graph.isInternalField('missing')).toBe(false);
-  });
-
-  it('csvHeaderOf returns the declared header or undefined', () => {
-    const graph = buildInternalFieldGraph();
-    expect(graph.csvHeaderOf('_date')).toBe('_Date');
-    expect(graph.csvHeaderOf('_time')).toBe('_Time');
-    expect(graph.csvHeaderOf('plainField')).toBeUndefined();
-    expect(graph.csvHeaderOf('missing')).toBeUndefined();
-  });
-
-  it('IS_INTERNAL_FIELD has cardinality one — duplicate edges throw', () => {
-    expect(() => new FieldGraph(
-      [fieldNode('_date')],
-      [
-        edge('_date', 'IS_INTERNAL_FIELD'),
-        edge('_date', 'IS_INTERNAL_FIELD'),
-      ],
-    )).toThrow(/IS_INTERNAL_FIELD cardinality 'one' violated.*'_date'.*2 edges/);
-  });
-
-  it('HAS_CSV_HEADER has cardinality one — duplicate edges throw', () => {
-    expect(() => new FieldGraph(
-      [fieldNode('_date')],
-      [
-        edge('_date', 'HAS_CSV_HEADER', '_Date'),
-        edge('_date', 'HAS_CSV_HEADER', '_DateAlt'),
-      ],
-    )).toThrow(/HAS_CSV_HEADER cardinality 'one' violated.*'_date'.*2 edges/);
-  });
-});
-

@@ -6,7 +6,6 @@ import type { Edge, EdgeType, Node, NodeKind, RenamedFromPayload } from './types
 // as a Field once consumers narrow on `kind`.
 
 interface NodeOptions {
-  readonly tags?: readonly string[];
   readonly payload?: Readonly<Record<string, unknown>>;
 }
 

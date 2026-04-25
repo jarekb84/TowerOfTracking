@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { appGraph } from './app-graph';
+import { acceptedValuesFor } from './index';
 import { _RUN_TYPE_NODE } from './catalog/fields.nodes';
 import { RUN_TYPE_VALUES } from '../run-types/types';
 
@@ -15,8 +15,7 @@ import { RUN_TYPE_VALUES } from '../run-types/types';
 
 describe('enum graph <-> TS source-of-truth sync', () => {
   it('_runType ACCEPTS_VALUE edges match RUN_TYPE_VALUES exactly', () => {
-    const graph = appGraph();
-    const fromGraph = [...graph.acceptedValuesFor(_RUN_TYPE_NODE)].sort();
+    const fromGraph = [...acceptedValuesFor(_RUN_TYPE_NODE)].sort();
     const fromTs = [...RUN_TYPE_VALUES].sort();
     expect(fromGraph).toEqual(fromTs);
   });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import supportedFields from '../../../../../sampleData/supportedFields.json';
-import { buildGraph } from '../build-graph';
+import { appGraph, isInternalField } from '../index';
 import * as fieldNodes from './fields.nodes';
 import type { Node } from '../types';
 
@@ -53,22 +53,26 @@ describe('field-graph field nodes (commit 3)', () => {
     expect(wrongKind.map((n) => `${n.id} (kind=${n.kind})`)).toEqual([]);
   });
 
-  it('internal fields (underscore-prefixed) carry the "internal" tag', () => {
-    const misTagged = FIELD_NODES.filter((n) => n.id.startsWith('_'))
-      .filter((n) => !n.tags?.includes('internal'))
+  // Underscore-prefix and IS_INTERNAL_FIELD edge agree in both directions.
+  // The parallel `'internal'` tag axis was retired in commit 5b — see
+  // `EXPLORATION-tag-vs-edge.md`. Edges are now the single structural
+  // contract for "this field is app-managed metadata."
+
+  it('every underscore-prefixed field has an IS_INTERNAL_FIELD edge', () => {
+    const missing = FIELD_NODES.filter((n) => n.id.startsWith('_'))
+      .filter((n) => !isInternalField(n))
       .map((n) => n.id);
-    expect(misTagged).toEqual([]);
+    expect(missing).toEqual([]);
   });
 
-  it('non-internal fields do not carry the "internal" tag', () => {
-    const misTagged = FIELD_NODES.filter((n) => !n.id.startsWith('_'))
-      .filter((n) => n.tags?.includes('internal'))
+  it('only underscore-prefixed fields have an IS_INTERNAL_FIELD edge', () => {
+    const wrong = FIELD_NODES.filter((n) => !n.id.startsWith('_'))
+      .filter((n) => isInternalField(n))
       .map((n) => n.id);
-    expect(misTagged).toEqual([]);
+    expect(wrong).toEqual([]);
   });
 
-  it('buildGraph() exposes every field node via nodesOfKind("Field")', () => {
-    const graph = buildGraph();
-    expect(graph.nodesOfKind('Field').length).toBe(FIELD_NODES.length);
+  it('appGraph() exposes every field node via nodesOfKind("Field")', () => {
+    expect(appGraph().nodesOfKind('Field').length).toBe(FIELD_NODES.length);
   });
 });

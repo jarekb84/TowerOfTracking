@@ -101,42 +101,78 @@ Consumer code that referenced the old name is either:
 
 ### Operation 3: Querying the graph
 
-Consumers call `appGraph()` from `@/shared/domain/field-graph` to get the
-shared singleton. Methods accept either a `string` id or a `Node` handle
-(see "Polymorphic input" under "Critical invariants" below). Pass node
-handles when you have an import; pass strings at the parser/import boundary
-or when chaining results from another graph call.
+Import named query functions from `@/shared/domain/field-graph` and call
+them directly. Each takes a `FieldRef` (string id or `*_NODE` handle).
 
-- "All fields in the Coins section": `graph.fieldsInSection(SECTION_COINS_NODE)`
-- "All sources of the coins-earned total": `graph.sourcesOf(BATTLE_REPORT__COINS_EARNED_NODE)`
-- "Fields derived from battleDate": `graph.fieldsDerivedFrom(BATTLE_REPORT__BATTLE_DATE_NODE)` *(commit 9)*
-- "What accepts which enum values": `graph.acceptedValuesFor(_RUN_TYPE_NODE)`
-- "Full metadata for one accepted value": `graph.enumValueMeta(_RUN_TYPE_NODE, 'farm')`
-  → `{ id, wireValue, displayName?, color? }` in one call
+```ts
+import {
+  fieldsInSection, sourcesOf, acceptedValuesFor, enumValueMeta,
+  csvHeaderOf, isInternalField,
+} from '@/shared/domain/field-graph';
+import {
+  SECTION_COINS_NODE, BATTLE_REPORT__COINS_EARNED_NODE, _RUN_TYPE_NODE, _DATE_NODE,
+} from '@/shared/domain/field-graph/catalog/fields.nodes';
 
-Query methods live on `FieldGraph` in `src/shared/domain/field-graph/field-graph.ts`.
-Adding a new query method is a few lines of index walking plus a unit test
-in `field-graph.test.ts` against a hand-built toy graph. Follow the
-"engine-method-per-consumer-pattern" rule: every consumer-facing usage
-gets a named method — don't expose raw `edgesFrom`/`edgesTo` to consumers.
+fieldsInSection(SECTION_COINS_NODE);                // ['coins_blackHole', ...]
+sourcesOf(BATTLE_REPORT__COINS_EARNED_NODE);        // every IS_SOURCE_OF source
+acceptedValuesFor(_RUN_TYPE_NODE);                  // ['farm', 'tournament', 'milestone']
+enumValueMeta(_RUN_TYPE_NODE, 'farm');              // { id, wireValue, displayName?, color? }
+csvHeaderOf(_DATE_NODE);                            // '_Date'
+isInternalField(_DATE_NODE);                        // true
+```
+
+#### Cold-start query index
+
+Every available query function. Imported from `@/shared/domain/field-graph`.
+All take a `FieldRef` (string or Node) unless noted.
+
+| Query | Returns | Use when |
+|---|---|---|
+| `getField(id)` | `Node \| null` | Resolve a canonical id at the parser boundary. **String only.** |
+| `resolveFieldByAnyKey(rawKey)` | `Node \| null` | Resolve a raw key (canonical OR legacy) at the parser/import boundary. **String only.** |
+| `fieldsInSection(section)` | `readonly string[]` | "What fields belong to this UI section?" |
+| `sectionsOf(field)` | `readonly string[]` | "Which sections does this field belong to?" (multi-section allowed) |
+| `sourcesOf(totalField)` | `readonly string[]` | "What fields sum into this total?" (e.g. coin / damage breakdowns) |
+| `enumValuesOf(field)` | `readonly string[]` | "What enum-value node ids does this field reference?" (lower-level than `acceptedValuesFor`) |
+| `acceptedValuesFor(field)` | `readonly string[]` | "What enum wire values does this field accept?" |
+| `isAcceptedValue(field, raw)` | `boolean` | "Is `raw` one of this field's accepted wire values?" Exact match. |
+| `matchAcceptedValue(field, raw)` | `string \| null` | Canonicalize-or-reject — returns the wire value on match, else null. |
+| `enumValueMeta(field, wireValue)` | `EnumValueMeta \| null` | Full metadata for a declared accepted value: `{ id, wireValue, displayName?, color? }` |
+| `internalFields()` | `readonly string[]` | All internal app-fields in canonical order (`_date`, `_time`, `_notes`, `_runType`, `_rank`). **No args.** |
+| `isInternalField(field)` | `boolean` | "Is this an app-managed metadata field?" |
+| `csvHeaderOf(field)` | `string \| undefined` | Custom CSV header (e.g. `_Date` for `_date`); undefined when no override. |
+| `displayNameOf(node)` | `string \| undefined` | Human-readable display name; works for both Field and EnumValue sources. |
+| `colorOf(node)` | `string \| undefined` | Hex color; works for both Field and EnumValue sources. |
+
+To **add a new query**, **add a new edge type**, or **add a new concept
+folder** under `catalog/edges/`, follow
+[`src/shared/domain/field-graph/catalog/edges/PATTERN.md`](../../src/shared/domain/field-graph/catalog/edges/PATTERN.md).
+That file is the single source of truth for the per-concept-directory
+pattern; this guide stays focused on usage.
 
 ### Operation 4: Debugging a missing value
 
 If a field's value is unexpectedly 0 / missing / mis-rendered:
 
-1. Open the relevant `catalog/*.edges.ts` files and grep for the field id.
-   Look for: missing BELONGS_TO_SECTION, wrong HAS_DATA_TYPE, missing
+1. Grep `catalog/edges/**/*.edges.ts` for the field id. Look for:
+   missing BELONGS_TO_SECTION, wrong HAS_DATA_TYPE, missing
    RENAMED_FROM if the value is in old storage format.
 
-2. Check `catalog/renames.edges.ts` (commit 10) for the rename chain if the
-   issue is V2 storage not being remapped to V3 canonical.
+2. Check `catalog/edges/renames/renames.edges.ts` (commit 10) for the
+   rename chain if the issue is V2 storage not being remapped to V3
+   canonical.
 
-3. Run `npm test src/shared/domain/field-graph` — the catalog and invariant
-   tests name the exact field and constraint violated on failure.
+3. Run `npm test src/shared/domain/field-graph` — the catalog
+   `*.invariants.test.ts` files name the exact field and constraint
+   violated on failure. Behavior failures point at the related
+   `*.queries.test.ts`.
 
 4. *Future (post-epic):* a CLI surface (`graph:describe`, `graph:explain`,
    `graph:orphans`) is planned to make these inspections one-line, but
-   isn't built yet — for now use grep + the test output.
+   isn't built yet — for now use grep + the test output. Available
+   queries are listed in the cold-start index in Operation 3 above; if
+   a question requires a query not in that index, add it per "Adding a
+   new query" before consuming.
 
 ## Critical invariants (never violate)
 
@@ -146,21 +182,32 @@ If a field's value is unexpectedly 0 / missing / mis-rendered:
 - **Never declare an edge pointing at a node that doesn't exist.** The builder
   fails loud; this is usually a typo.
 - **Never add a node without at least one BELONGS_TO_SECTION edge.** Orphan
-  fields are silent bugs. (Exception: nodes tagged `'dropped'` or
-  `'pending_classification'` can skip this.)
+  fields are silent bugs. (Exception: orphan-classification carve-outs are
+  declared structurally — e.g. as a marker edge — not via free-form node
+  metadata.)
 - **Never call `resolveFieldByAnyKey` outside the parser / import boundary.**
   That function accepts legacy keys; calling it from UI or aggregators lets
   legacy keys leak into app state. Use `getField` (or pass a `*_NODE` handle
   through any other query method) everywhere else.
+- **Never introduce `Node.tags`. Facts about a node are edges.** The `tags`
+  axis was retired in commit 5b (see [`EXPLORATION-tag-vs-edge.md`](./EXPLORATION-tag-vs-edge.md)).
+  Every facet of a field — "is internal," "is tournament-only," "is user
+  text," "uses an empty-string null sentinel" — is encoded as a marker edge
+  (binary, no payload), a terminal-string edge (carries a value), or a
+  between-nodes edge (relates one thing to another). Tags are unenforced,
+  untyped, and cannot evolve. If a tag feels right, the question is "which
+  edge type expresses this?", not "which tag string?" Node-local debug
+  metadata that no consumer queries belongs in `Node.payload`, not a tag.
 
 ### Polymorphic input — `string | Node`
 
-Every query method on `FieldGraph` (except `getField` and `resolveFieldByAnyKey`)
-accepts either a string node id or a `Node` handle. Use whichever you have:
+Every query function (except `getField` and `resolveFieldByAnyKey`,
+which are parser-boundary string-only lookups) accepts either a string
+node id or a `Node` handle. Use whichever you have:
 
 ```ts
-graph.sourcesOf(BATTLE_REPORT__COINS_EARNED_NODE)   // typical: import the node
-graph.sourcesOf(rawId)                              // chained from another query
+sourcesOf(BATTLE_REPORT__COINS_EARNED_NODE)   // typical: import the node
+sourcesOf(rawId)                              // chained from another query
 ```
 
 Permissive on unknown ids — `sourcesOf('not_a_real_field')` returns `[]`.
@@ -171,51 +218,21 @@ the catalog).
 
 ## CLAUDE.md-style checklist for field edits
 
-When asked to add a new field, always:
-1. Declare the named `*_NODE` export in `catalog/fields.nodes.ts`, in the
-   right section block, following `SECTION__FIELD_NODE` convention.
-2. Declare its BELONGS_TO_SECTION edge in `catalog/section-membership.edges.ts`.
-3. Declare its HAS_DATA_TYPE edge in `catalog/data-types.edges.ts`.
-4. Declare its HAS_DISPLAY_NAME edge (unless the default-derivation pattern
-   covers it — capitalize(camelSplit(id.after('_')))).
-5. Declare its HAS_COLOR edge (for summable numeric fields that appear in
-   charts).
-6. Declare its IS_SOURCE_OF edge(s) if it contributes to a total, in
-   `catalog/sources.edges.ts`.
-7. Run `npm test src/shared/domain/field-graph` — invariants catch any
-   dangling edges or missing required relations.
-8. Do NOT modify consumer files; they query the graph.
+**Adding a new field, renaming a field, or adding a new edge type:**
+follow [`src/shared/domain/field-graph/catalog/edges/PATTERN.md`](../../src/shared/domain/field-graph/catalog/edges/PATTERN.md).
+The "How to" sections there cover concept folders, file naming, and the
+extension checklists. This guide intentionally doesn't duplicate that
+content — keep both files in sync by editing PATTERN.md and pointing here.
 
-When asked to rename a field, always:
-1. Rename the `*_NODE` export name and the underlying string id in
-   `catalog/fields.nodes.ts`. IDE rename on the const propagates through
-   every consumer that imports it.
-2. Add ONE RENAMED_FROM edge in `catalog/renames.edges.ts` with
-   legacyKey = old id, atSchema = the schema that adopted the rename.
-3. Do NOT add a node for the legacy key.
-4. Run `npm test src/shared/domain/field-graph`.
-
-When asked to add a new relationship type:
-1. Add the case to the `EdgeType` union in `types.ts`.
-2. Add its row to `EDGE_META` (sourceKind, targetKind, cardinality,
-   optional `symmetric`).
-3. Add 2-3 invariant tests in `field-graph.test.ts`:
-   - Shape: what node kinds are valid endpoints?
-   - Cardinality: one-per-source? many? at-least-one?
-   - Semantics: any cross-edge constraint?
-4. Add a query method to `FieldGraph` (with memoization where appropriate).
-   Take `FieldRef` (`string | Node`) for any node-id parameter.
-5. Add 2-3 unit tests for the query method against a seeded small graph.
-
-When asked to add a new closed-enum value to an existing enum field:
+**Adding a new closed-enum value to an existing enum field:**
 1. Append the value to the authoritative `as const` tuple in
    `src/shared/domain/<domain>/types.ts` (e.g. `RUN_TYPE_VALUES`).
 2. Add the per-value display name + color to the matching presentation
-   record in `catalog/<enum>.edges.ts`.
+   record in `catalog/edges/enum-values/enum-values.edges.ts`.
 3. The graph catalog auto-derives the EnumValue node + ACCEPTS_VALUE +
    metadata edges. The `enum-sync.invariant.test.ts` test catches drift.
-4. Run `npm test`. Selectors, filters, validators, and CSV export all
-   pick up the new value automatically.
+4. Run `npm test`. Selectors, filters, validators, and CSV export pick up
+   the new value automatically.
 
 ## Writing consumers
 

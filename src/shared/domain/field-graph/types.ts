@@ -14,7 +14,6 @@ export type NodeKind =
 export interface Node {
   readonly id: string;
   readonly kind: NodeKind;
-  readonly tags?: readonly string[];
   readonly payload?: Readonly<Record<string, unknown>>;
 }
 

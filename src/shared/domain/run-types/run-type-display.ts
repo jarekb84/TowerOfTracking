@@ -1,4 +1,4 @@
-import { appGraph } from '../field-graph'
+import { enumValueMeta } from '../field-graph'
 import { _RUN_TYPE_NODE } from '../field-graph/catalog/fields.nodes'
 import { RunTypeValue } from './types'
 
@@ -11,7 +11,7 @@ const FALLBACK_COLOR = '#6b7280'
  * declared.
  */
 export function getRunTypeColor(runType: RunTypeValue): string {
-  return appGraph().enumValueMeta(_RUN_TYPE_NODE, runType)?.color ?? FALLBACK_COLOR
+  return enumValueMeta(_RUN_TYPE_NODE, runType)?.color ?? FALLBACK_COLOR
 }
 
 /**

@@ -1,15 +1,13 @@
-import { RUN_TYPE_VALUES, type RunTypeValue } from '../../run-types/types';
-import { edge } from '../builders';
-import type { Edge } from '../types';
-import { _RUN_TYPE_NODE } from './fields.nodes';
-import { runTypeEnumNodeId } from './enum-values.nodes';
+import { RUN_TYPE_VALUES, type RunTypeValue } from '../../../../run-types/types';
+import { edge } from '../../../builders';
+import type { Edge } from '../../../types';
+import { _RUN_TYPE_NODE } from '../../fields.nodes';
+import { runTypeEnumNodeId } from '../../enum-values.nodes';
 
-// Edges for enum-valued fields. `_runType`'s accepted values are derived from
-// `RUN_TYPE_VALUES` — the TS source of truth — so adding a new run type is a
-// one-line edit in `run-types/types.ts` that flows through to the graph
-// automatically. Per-value presentation (display name, color) lives in a
-// small local map below; add a row when you add a value. The
-// `enum-sync.invariant.test.ts` test catches drift between the two sides.
+// Edges derive from `RUN_TYPE_VALUES` (the TS source of truth in
+// `run-types/types.ts`) so adding a new run type is a one-line edit there.
+// When adding a value, also add its row to `RUN_TYPE_PRESENTATION` below.
+// `enum-sync.invariant.test.ts` enforces sync.
 
 interface RunTypePresentation {
   readonly displayName: string;
