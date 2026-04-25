@@ -1,5 +1,6 @@
-export { FieldGraph } from './field-graph';
+export { FieldGraph, type FieldRef } from './field-graph';
 export { buildGraph } from './build-graph';
+export { appGraph, setAppGraphForTesting } from './app-graph';
 export {
   fieldNode,
   sectionNode,

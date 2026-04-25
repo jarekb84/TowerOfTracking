@@ -166,6 +166,70 @@ When asked to add a new relationship type:
 4. Add a query method to `FieldGraph` (with memoization where appropriate).
 5. Add 2-3 unit tests for the query method against a seeded small graph.
 
+## Writing consumers
+
+Rules that surfaced during the first vertical slice (commit 4). Follow these
+when adding code that reads from the graph.
+
+### Don't duplicate TypeScript enums into the graph
+
+When a field's value set is already expressed as a TS `as const` tuple plus
+a union type (e.g. `RUN_TYPE_VALUES` + `RunTypeValue` in
+`src/shared/domain/run-types/types.ts`), keep TS authoritative and have the
+graph catalog READ from the same const:
+
+```ts
+// graph catalog file
+import { RUN_TYPE_VALUES } from '@/shared/domain/run-types/types';
+export const ENUM_VALUE_NODES = RUN_TYPE_VALUES.map((v) => enumValueNode(...));
+export const ENUM_VALUE_EDGES = RUN_TYPE_VALUES.flatMap((v) => [
+  edge('_runType', 'ACCEPTS_VALUE', idFor(v)),
+  // ...per-value metadata edges
+]);
+```
+
+Adding a new value is one edit in the TS const; both systems pick it up. An
+invariant test (`enum-sync.invariant.test.ts`) enforces the sync.
+
+### Graph calls are for dynamic discovery, not static dispatch
+
+A 3-case switch over a closed enum doesn't need a graph call. Examples of
+code that stays TS-only:
+
+```ts
+// mapping a URL param to a closed enum: TS predicate, not a graph call
+return isRunTypeValue(urlType) ? urlType : RunType.FARM;
+```
+
+Graph queries earn their keep when the consumer needs to:
+- Iterate over values without hardcoding them (filter dropdowns that must
+  auto-pick-up new values at runtime).
+- Consume attached metadata (display name, color, CSV header, data type)
+  that lives on graph nodes — even a closed enum benefits when the metadata
+  is per-value and already declared in the graph.
+
+If your consumer is a 3-line switch and has no metadata to look up, leave it
+as a switch.
+
+### Don't copy architecture prose into consumer code
+
+One-liner comments that describe what the consumer does stay. Comments that
+explain how the graph works, link to architecture docs, or teach the reader
+about node/edge semantics get deleted — that knowledge lives in this file and
+in the graph engine's source, not in every call site.
+
+Bad (repeats architecture):
+```ts
+// Queries the field graph so adding a new `_runType` enum value makes the
+// corresponding URL work without touching this file. See
+// `docs/field-graph/architecture/11-internal-app-fields.md` §11.2.
+```
+
+Good (describes consumer semantics):
+```ts
+// URL params get canonicalized to RunTypeValue; unknown inputs default to FARM.
+```
+
 ## When NOT to use the graph
 
 - Math. Aggregations still compute sums/means/groupings the same way; the

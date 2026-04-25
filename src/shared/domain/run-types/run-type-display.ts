@@ -1,21 +1,17 @@
-import { RunType, RunTypeValue } from './types'
+import { appGraph } from '../field-graph'
+import { _RUN_TYPE_NODE } from '../field-graph/catalog/fields.nodes'
+import { RunTypeValue } from './types'
+
+const FALLBACK_COLOR = '#6b7280'
 
 /**
- * Run type color mappings for visual consistency
- * These colors are used for selection indicators, tabs, and preview displays
- */
-const RUN_TYPE_COLORS: Record<RunTypeValue, string> = {
-  [RunType.FARM]: '#10b981',      // Green
-  [RunType.TOURNAMENT]: '#f59e0b', // Amber
-  [RunType.MILESTONE]: '#8b5cf6',  // Purple
-}
-
-/**
- * Get the hex color code for a run type
- * Returns the color for visual indicators (dots, borders, backgrounds)
+ * Get the hex color code for a run type. Sourced from the graph's metadata on
+ * the matching `_runType` enum-value node — the single declaration that also
+ * drives display labels. Falls back to neutral gray if the wire value isn't
+ * declared.
  */
 export function getRunTypeColor(runType: RunTypeValue): string {
-  return RUN_TYPE_COLORS[runType]
+  return appGraph().enumValueMeta(_RUN_TYPE_NODE, runType)?.color ?? FALLBACK_COLOR
 }
 
 /**

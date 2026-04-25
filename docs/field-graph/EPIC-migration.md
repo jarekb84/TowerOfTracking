@@ -48,7 +48,7 @@ Whenever a commit on this epic introduces a temporary escape hatch — `eslint-d
 Format: `- [ ] [commit N] <file:line> — <kind> — <one-line reason> — unblocked by: <commit M> / <follow-up issue>`
 
 - [ ] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `scripts/**/*.{js,mjs,cjs,ts}` override — Node globals + relaxed `max-statements` / `max-lines-per-function` for one-shot data-prep `main()` functions — unblocked by: keep (these are legitimate Node scripts) **or** decide to delete the scripts post-migration.
-- [ ] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `src/shared/domain/field-graph/**` override — disables `@typescript-eslint/no-unused-vars` so phase-1 dead exports don't trip lint — unblocked by: commit 4+ (consumers start importing the engine).
+- [x] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `src/shared/domain/field-graph/**` override — disables `@typescript-eslint/no-unused-vars` so phase-1 dead exports don't trip lint — unblocked by: commit 4+ (consumers start importing the engine). **Removed in commit 4**: real consumers anchor every export, no unused-vars violations surface.
 - [ ] [pre-epic] [`knip.json`](../../knip.json) `ignore: src/shared/domain/field-graph/**` — knip's pre-commit `--fix-type files,exports,types` was auto-deleting phase-1 engine exports (`buildGraph`, `EDGE_META`, `EdgeTargetKind`, etc.) before consumers in commits 4+ could import them — unblocked by: commit 4+ (real consumers anchor every export and knip can resume managing this directory).
 - [ ] [pre-epic] [`knip.json`](../../knip.json) `ignore: src/shared/domain/migrations/v2-to-v3-field-map.generated.ts` — generated scaffold output (see [`scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs`](../../scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs)) consumed only by the hand-edited `v2-to-v3-field-map.ts` for diffing, so knip flags it as unused — unblocked by: commit 10 (RENAMED_FROM edges absorb the map; both files can be deleted).
 - [ ] [pre-epic] [`src/shared/formatting/date-issue-detection.ts:115`](../../src/shared/formatting/date-issue-detection.ts) `// eslint-disable-next-line complexity` — V2/V3 dual-key tolerance bumps complexity to 11 — unblocked by: commit 10 (RENAMED_FROM edges collapse the dual-key check back to a single graph lookup).
@@ -100,7 +100,7 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 
 ### Phase 2 — Vertical slices (each deletes imperative code)
 
-- [ ] **Commit 4 — `ACCEPTS_VALUE` edges + `_runType` cutover**
+- [x] **Commit 4 — `ACCEPTS_VALUE` edges + `_runType` cutover**
   - **Scope:** Declare `ACCEPTS_VALUE` edges for `_runType` (`farm`, `tournament`, `milestone`). Rewrite `run-type-detection.ts` and `run-type-selector-options.ts` to query the graph. Replace hardcoded `RunTypeValue` literals in filter components with `graph.enumValuesOf('_runType')`.
   - **Spec references:** [`architecture/11-internal-app-fields.md`](architecture/11-internal-app-fields.md) §11.2 (enum expressiveness), [`12-extending-with-a-new-run-type-and-sub-category.md`](architecture/12-extending-with-a-new-run-type-and-sub-category.md) (dissonance uses this same pattern), [`18-write-path.md`](architecture/18-write-path.md) §18.2 (validation via graph).
   - **Files touched:** ~8–12 existing. Deletions: hardcoded enum duplications.

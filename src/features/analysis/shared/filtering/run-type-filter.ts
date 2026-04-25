@@ -1,3 +1,5 @@
+import { appGraph } from '@/shared/domain/field-graph'
+import { _RUN_TYPE_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes'
 import { ParsedGameRun } from '@/shared/types/game-run.types'
 import { RunType, RunTypeValue } from '@/shared/domain/run-types/types'
 
@@ -12,19 +14,11 @@ export function determineRunType(tierRawValue: string): RunTypeValue {
 }
 
 /**
- * Get display label for run type
+ * Get display label for a run type. Declared on the matching `_runType`
+ * enum-value node; falls back to 'Unknown' when no declaration is found.
  */
 export function getRunTypeDisplayLabel(runType: RunTypeValue): string {
-  switch (runType) {
-    case RunType.TOURNAMENT:
-      return 'Tournament'
-    case RunType.FARM:
-      return 'Farm'
-    case RunType.MILESTONE:
-      return 'Milestone'
-    default:
-      return 'Unknown'
-  }
+  return appGraph().enumValueMeta(_RUN_TYPE_NODE, runType)?.displayName ?? 'Unknown'
 }
 
 /**

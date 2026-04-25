@@ -4,7 +4,7 @@ import { getFieldValue, getFieldRaw } from '@/features/analysis/shared/parsing/f
 import { formatDisplayDateTime } from '@/shared/formatting/date-formatters';
 import { capitalizeFirst } from '../../../shared/formatting/string-formatters';
 import { ParsedGameRun } from '@/shared/types/game-run.types';
-import { RunType } from '@/shared/domain/run-types/types';
+import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import { RunTypeIndicator } from '@/shared/domain/run-types/run-type-indicator';
 
 interface DataInputPreviewProps {
@@ -29,7 +29,7 @@ export function DataInputPreview({ previewData, selectedRunType }: DataInputPrev
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground/70">Type:</span>
                 <div className="flex items-center gap-2">
-                  <RunTypeIndicator runType={selectedRunType as RunType} size="md" />
+                  <RunTypeIndicator runType={selectedRunType as RunTypeValue} size="md" />
                   <span className="text-foreground">{capitalizeFirst(selectedRunType)}</span>
                 </div>
               </div>

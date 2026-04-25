@@ -43,6 +43,7 @@ export type EdgeType =
   | 'HAS_COLOR'
   | 'HAS_DATA_TYPE'
   | 'HAS_CSV_HEADER'
+  | 'HAS_STRING_VALUE'
   // Payload-only (legacy key lives in payload.legacyKey; `to` is absent)
   | 'RENAMED_FROM';
 
@@ -59,7 +60,10 @@ export type EdgeTargetKind = NodeKind | 'terminal' | 'none';
 export type Cardinality = 'one' | 'at-least-one' | 'many';
 
 export interface EdgeMeta {
-  readonly sourceKind: NodeKind;
+  // Some edges (HAS_DISPLAY_NAME, HAS_COLOR) are declared on multiple source
+  // kinds — e.g. both Fields and EnumValues carry a display name. Accept a
+  // single kind or an array; validation normalizes.
+  readonly sourceKind: NodeKind | readonly NodeKind[];
   readonly targetKind: EdgeTargetKind;
   readonly cardinality: Cardinality;
   // Symmetric edges (SHARES_LABEL_WITH, IS_CORRELATED_WITH) are indexed in
@@ -93,10 +97,11 @@ export const EDGE_META: Readonly<Record<EdgeType, EdgeMeta>> = {
   CONDITIONAL_ON: { sourceKind: 'Field', targetKind: 'EnumValue', cardinality: 'many' },
   ACCEPTS_VALUE: { sourceKind: 'Field', targetKind: 'EnumValue', cardinality: 'many' },
   IS_INTERNAL_FIELD: { sourceKind: 'Field', targetKind: 'none', cardinality: 'one' },
-  HAS_DISPLAY_NAME: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
-  HAS_COLOR: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
+  HAS_DISPLAY_NAME: { sourceKind: ['Field', 'EnumValue'], targetKind: 'terminal', cardinality: 'one' },
+  HAS_COLOR: { sourceKind: ['Field', 'EnumValue'], targetKind: 'terminal', cardinality: 'one' },
   HAS_DATA_TYPE: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
   HAS_CSV_HEADER: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
+  HAS_STRING_VALUE: { sourceKind: 'EnumValue', targetKind: 'terminal', cardinality: 'one' },
   RENAMED_FROM: { sourceKind: 'Field', targetKind: 'none', cardinality: 'many' },
 };
 

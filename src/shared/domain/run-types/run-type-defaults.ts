@@ -1,33 +1,25 @@
-import { RunType, RunTypeValue } from './types'
+import { RunType, RunTypeValue, isRunTypeValue } from './types'
 import { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 /**
- * Maps URL parameter values to internal run type values
- * Normalizes URL params to match RunType enum values
+ * Maps URL parameter values to internal run type values. Unknown inputs
+ * (including `undefined`, empty string, and legacy values like `'farming'`)
+ * default to FARM, preserving prior behavior.
  */
 export function mapUrlTypeToRunType(urlType: string | undefined): RunTypeValue {
-  switch (urlType) {
-    case RunType.FARM:
-      return RunType.FARM
-    case RunType.TOURNAMENT:
-      return RunType.TOURNAMENT
-    case RunType.MILESTONE:
-      return RunType.MILESTONE
-    default:
-      return RunType.FARM // Default fallback
-  }
+  if (!urlType) return RunType.FARM
+  return isRunTypeValue(urlType) ? urlType : RunType.FARM
 }
 
 /**
- * Validates and normalizes run type filter values to internal run type values
- * Delegates to mapUrlTypeToRunType for consistent mapping logic
- * Returns 'farm' for invalid or 'all' values
+ * Validates and normalizes run type filter values to internal run type values.
+ * Delegates to `mapUrlTypeToRunType` for consistent mapping logic. Returns
+ * FARM for the `'all'` marker and for any invalid input.
  */
 export function normalizeRunTypeFilter(filterValue: RunTypeFilter): RunTypeValue {
   if (filterValue === 'all') {
     return RunType.FARM
   }
 
-  // Delegate to the canonical URL-to-RunType mapper for consistency
   return mapUrlTypeToRunType(filterValue)
 }

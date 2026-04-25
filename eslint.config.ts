@@ -87,14 +87,4 @@ export default defineConfig([
       "max-lines-per-function": "off",
     }
   },
-  // Field-graph engine is being introduced in stages (see
-  // docs/field-graph/EPIC-migration.md). Early commits intentionally land
-  // dead exports / placeholder catalogs that downstream commits will wire
-  // up; relax unused-vars here until phase 2 starts consuming them.
-  {
-    files: ["src/shared/domain/field-graph/**/*.{ts,tsx}"],
-    rules: {
-      "@typescript-eslint/no-unused-vars": "off",
-    }
-  }
 ]);

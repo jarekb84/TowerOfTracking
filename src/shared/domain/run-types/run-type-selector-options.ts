@@ -1,5 +1,5 @@
 import type { SelectionOption } from '@/components/ui'
-import { RunType, RunTypeValue } from './types'
+import { RUN_TYPE_VALUES, RunType, RunTypeValue } from './types'
 import { RunTypeFilter, getRunTypeDisplayLabel } from '@/features/analysis/shared/filtering/run-type-filter'
 import { getRunTypeColor } from './run-type-display'
 
@@ -58,11 +58,9 @@ export function getOptionsForMode(
   mode: RunTypeSelectorMode,
   counts?: RunTypeCounts
 ): Array<SelectionOption<RunTypeFilter>> {
-  const options: Array<SelectionOption<RunTypeFilter>> = [
-    buildRunTypeOption(RunType.FARM, counts),
-    buildRunTypeOption(RunType.TOURNAMENT, counts),
-    buildRunTypeOption(RunType.MILESTONE, counts)
-  ]
+  const options: Array<SelectionOption<RunTypeFilter>> = RUN_TYPE_VALUES.map((v) =>
+    buildRunTypeOption(v, counts)
+  )
 
   if (mode === 'filter') {
     options.push(buildAllTypesOption(counts))

@@ -1,5 +1,5 @@
 import type { GameRunField } from '@/shared/types/game-run.types';
-import { RunType, RunTypeValue } from './types';
+import { RunType, RunTypeValue, isRunTypeValue } from './types';
 
 /**
  * Look up a field by its V3 canonical key, falling back to the V2 key when
@@ -44,24 +44,15 @@ export function hasExplicitRunType(fields: Record<string, GameRunField>): boolea
     return false;
   }
 
-  const explicitType = mapExplicitRunType(runTypeField);
-  return explicitType !== null;
+  return mapExplicitRunType(runTypeField) !== null;
 }
 
 /**
- * Maps explicit run type string to RunType enum
+ * Canonicalize a lowercased explicit run-type string. Returns the value when
+ * it matches one of the declared `RunTypeValue`s, else null.
  */
 function mapExplicitRunType(runTypeValue: string): RunTypeValue | null {
-  switch (runTypeValue) {
-    case 'milestone':
-      return RunType.MILESTONE;
-    case 'tournament':
-      return RunType.TOURNAMENT;
-    case 'farm':
-      return RunType.FARM;
-    default:
-      return null;
-  }
+  return isRunTypeValue(runTypeValue) ? runTypeValue : null;
 }
 
 /**

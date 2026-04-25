@@ -248,6 +248,27 @@ describe('FieldGraph invariants', () => {
     expect(graph.edgesFrom('_runType', 'ACCEPTS_VALUE')).toHaveLength(2);
   });
 
+  it('accepts EnumValue sources for HAS_DISPLAY_NAME / HAS_COLOR / HAS_STRING_VALUE', () => {
+    const graph = new FieldGraph(
+      [fieldNode('_runType'), enumValueNode('enum:farm')],
+      [
+        edge('_runType', 'ACCEPTS_VALUE', 'enum:farm'),
+        edge('enum:farm', 'HAS_DISPLAY_NAME', 'Farm'),
+        edge('enum:farm', 'HAS_COLOR', '#10b981'),
+        edge('enum:farm', 'HAS_STRING_VALUE', 'farm'),
+      ],
+    );
+    expect(graph.displayNameOf('enum:farm')).toBe('Farm');
+    expect(graph.colorOf('enum:farm')).toBe('#10b981');
+  });
+
+  it('rejects HAS_STRING_VALUE from a non-EnumValue source', () => {
+    expect(() => new FieldGraph(
+      [fieldNode('_runType')],
+      [edge('_runType', 'HAS_STRING_VALUE', 'farm')],
+    )).toThrow(/HAS_STRING_VALUE.*must be a EnumValue node.*got Field/);
+  });
+
   it('build errors carry the FieldGraphBuildError name for catch filters', () => {
     try {
       new FieldGraph([fieldNode('x'), fieldNode('x')], []);
@@ -255,6 +276,97 @@ describe('FieldGraph invariants', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(FieldGraphBuildError);
     }
+  });
+});
+
+describe('FieldGraph enum-value consumer API', () => {
+  function buildRunTypeLikeGraph(): FieldGraph {
+    return new FieldGraph(
+      [
+        fieldNode('_runType'),
+        fieldNode('plainField'),
+        enumValueNode('enum:farm'),
+        enumValueNode('enum:tournament'),
+      ],
+      [
+        edge('_runType', 'ACCEPTS_VALUE', 'enum:farm'),
+        edge('_runType', 'ACCEPTS_VALUE', 'enum:tournament'),
+        edge('enum:farm', 'HAS_STRING_VALUE', 'farm'),
+        edge('enum:farm', 'HAS_DISPLAY_NAME', 'Farm'),
+        edge('enum:tournament', 'HAS_STRING_VALUE', 'tournament'),
+        // intentionally no HAS_DISPLAY_NAME on enum:tournament — meta should
+        // omit the optional field rather than return a blank string
+      ],
+    );
+  }
+
+  it('acceptedValuesFor returns every declared wire value', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect([...graph.acceptedValuesFor('_runType')].sort()).toEqual(['farm', 'tournament']);
+  });
+
+  it('acceptedValuesFor returns [] for a non-enum field', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.acceptedValuesFor('plainField')).toEqual([]);
+  });
+
+  it('acceptedValuesFor returns [] for a missing fieldId', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.acceptedValuesFor('nope')).toEqual([]);
+  });
+
+  it('isAcceptedValue returns true only for an exact declared wire value', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.isAcceptedValue('_runType', 'farm')).toBe(true);
+    expect(graph.isAcceptedValue('_runType', 'tournament')).toBe(true);
+    expect(graph.isAcceptedValue('_runType', 'milestone')).toBe(false);
+  });
+
+  it('isAcceptedValue is case-sensitive (exact match only)', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.isAcceptedValue('_runType', 'FARM')).toBe(false);
+    expect(graph.isAcceptedValue('_runType', 'Farm')).toBe(false);
+  });
+
+  it('isAcceptedValue returns false for empty string and non-enum / missing fieldId', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.isAcceptedValue('_runType', '')).toBe(false);
+    expect(graph.isAcceptedValue('plainField', 'farm')).toBe(false);
+    expect(graph.isAcceptedValue('nope', 'farm')).toBe(false);
+  });
+
+  it('matchAcceptedValue returns the wire value on match, else null', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.matchAcceptedValue('_runType', 'farm')).toBe('farm');
+    expect(graph.matchAcceptedValue('_runType', 'FARM')).toBeNull();
+    expect(graph.matchAcceptedValue('_runType', 'nope')).toBeNull();
+    expect(graph.matchAcceptedValue('_runType', '')).toBeNull();
+    expect(graph.matchAcceptedValue('plainField', 'farm')).toBeNull();
+    expect(graph.matchAcceptedValue('nope', 'farm')).toBeNull();
+  });
+
+  it('enumValueMeta returns id, wireValue, and displayName when declared', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.enumValueMeta('_runType', 'farm')).toEqual({
+      id: 'enum:farm',
+      wireValue: 'farm',
+      displayName: 'Farm',
+    });
+  });
+
+  it('enumValueMeta omits displayName when the enum value has no HAS_DISPLAY_NAME', () => {
+    const graph = buildRunTypeLikeGraph();
+    const meta = graph.enumValueMeta('_runType', 'tournament');
+    expect(meta).toEqual({ id: 'enum:tournament', wireValue: 'tournament' });
+    expect(meta && 'displayName' in meta).toBe(false);
+  });
+
+  it('enumValueMeta returns null for unknown wire value / non-enum / missing fieldId', () => {
+    const graph = buildRunTypeLikeGraph();
+    expect(graph.enumValueMeta('_runType', 'milestone')).toBeNull();
+    expect(graph.enumValueMeta('_runType', '')).toBeNull();
+    expect(graph.enumValueMeta('plainField', 'farm')).toBeNull();
+    expect(graph.enumValueMeta('nope', 'farm')).toBeNull();
   });
 });
 

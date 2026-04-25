@@ -1,19 +1,52 @@
-import type { Node } from '../types';
-import { CATEGORY_NODES } from './categories.nodes';
-import { FIELD_NODES } from './fields.nodes';
-import { SCHEMA_NODES } from './schemas.nodes';
-import { SECTION_NODES } from './sections.nodes';
-import { VIEW_NODES } from './views.nodes';
+import type { Edge, Node } from '../types';
+import * as categoryNodes from './categories.nodes';
+import * as enumValueNodes from './enum-values.nodes';
+import { ENUM_VALUE_EDGES } from './enum-values.edges';
+import * as fieldNodes from './fields.nodes';
+import * as schemaNodes from './schemas.nodes';
+import * as sectionNodes from './sections.nodes';
+import * as viewNodes from './views.nodes';
+
+// Filter a `*.nodes.ts` module's exports down to the actual `Node` values.
+// Each per-kind module may legally export non-node helpers alongside the
+// node handles (e.g. `runTypeEnumNodeId`, `RUN_TYPE_ENUM_NODES` lookup
+// record) — those don't match `Node`'s shape and get dropped here.
+function nodesOf(mod: Record<string, unknown>): Node[] {
+  return Object.values(mod).filter(
+    (v): v is Node =>
+      typeof v === 'object' &&
+      v !== null &&
+      'id' in v &&
+      'kind' in v &&
+      typeof (v as { id: unknown }).id === 'string' &&
+      typeof (v as { kind: unknown }).kind === 'string',
+  );
+}
 
 // Aggregate of every declared catalog node (Schema / Section / Category /
-// View / Field). Order of concatenation is arbitrary — graph invariants
-// enforce uniqueness across the whole set.
+// View / Field / EnumValue). Order of concatenation is arbitrary — graph
+// invariants enforce uniqueness across the whole set.
 export const CATALOG_NODES: readonly Node[] = [
-  ...SCHEMA_NODES,
-  ...SECTION_NODES,
-  ...CATEGORY_NODES,
-  ...VIEW_NODES,
-  ...FIELD_NODES,
+  ...nodesOf(schemaNodes),
+  ...nodesOf(sectionNodes),
+  ...nodesOf(categoryNodes),
+  ...nodesOf(viewNodes),
+  ...nodesOf(fieldNodes),
+  ...nodesOf(enumValueNodes),
 ];
 
-export { SCHEMA_NODES, SECTION_NODES, CATEGORY_NODES, VIEW_NODES, FIELD_NODES };
+// Aggregate of every declared catalog edge. Introduced in commit 4
+// (ACCEPTS_VALUE for _runType) and extended by each subsequent phase-2
+// commit.
+export const CATALOG_EDGES: readonly Edge[] = [...ENUM_VALUE_EDGES];
+
+// Re-export the per-kind module namespaces so the rest of the codebase has
+// one canonical import path for node handles. `RUN_TYPE_ENUM_NODES` and
+// `runTypeEnumNodeId` (helpers, not nodes) bleed through harmlessly.
+export * from './fields.nodes';
+export * from './sections.nodes';
+export * from './categories.nodes';
+export * from './views.nodes';
+export * from './schemas.nodes';
+export * from './enum-values.nodes';
+export * from './enum-values.edges';

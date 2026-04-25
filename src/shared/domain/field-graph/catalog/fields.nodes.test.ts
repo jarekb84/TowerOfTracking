@@ -1,14 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import supportedFields from '../../../../../sampleData/supportedFields.json';
 import { buildGraph } from '../build-graph';
-import { FIELD_NODES } from './fields.nodes';
+import * as fieldNodes from './fields.nodes';
+import type { Node } from '../types';
 
-// Field-node catalog invariants (commit 3). The supportedFields.json file is
-// the authoritative V3 schema snapshot — every canonical game field plus the
-// five internal app-fields. The field graph must declare exactly that set.
+// Field-node catalog invariants (commit 3, updated commit 4 for named-export
+// node identity). The supportedFields.json file is the authoritative V3
+// schema snapshot — every canonical game field plus the five internal
+// app-fields. The field graph must declare exactly that set.
+//
 // A node missing here would cause later commits (BELONGS_TO_SECTION,
 // HAS_DATA_TYPE, …) to fail with dangling-edge errors; a node present here
 // but absent from the schema would pollute queries with ghost fields.
+//
+// Drift protection: a `fieldNode(...)` call that forgets `export const`
+// disappears from `Object.values(fieldNodes)` and trips the bijection test
+// below.
+
+const FIELD_NODES: readonly Node[] = Object.values(fieldNodes).filter(
+  (v): v is Node =>
+    typeof v === 'object' &&
+    v !== null &&
+    'id' in v &&
+    'kind' in v,
+);
 
 describe('field-graph field nodes (commit 3)', () => {
   it('declares one Field node per supportedFields.json entry', () => {
