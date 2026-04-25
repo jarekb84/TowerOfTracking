@@ -12,7 +12,14 @@
 4. **Standing context for every graph-related prompt:** [`field-graph-for-ai.md`](field-graph-for-ai.md). Read it cold before touching anything in `src/features/field-graph/` or related directories.
 5. **Out-of-scope:** any change not described in the current commit's "Scope" line. If you notice something else worth fixing, append it to [`Notes-and-findings.md`](./Notes-and-findings.md) (date + commit number + note) and leave it for a later commit.
 6. **Tests must stay green.** Each commit lands with `npm run integration-precheck` passing. Migration-gate / E2E manual verification is deferred to the final commit per the epic's staging plan — that is the ONE exception.
-7. **Every escape hatch goes in the ledger.** If you need to silence a lint rule, skip a test, loosen Husky, or add an ESLint config override to keep `integration-precheck` green during an intermediate state, append a row to "Migration-era suppressions" in the same PR. Commit 16 drains that ledger; nothing on this epic ships with an undocumented workaround.
+7. **Every escape hatch goes in the ledger.** If you need to silence a lint rule, skip a test, loosen Husky, or add an ESLint config override to keep `integration-precheck` green during an intermediate state, append a row to [`Migration-era-suppressions.md`](./Migration-era-suppressions.md) in the same PR. Commit 16 drains that ledger; nothing on this epic ships with an undocumented workaround.
+8. **Conventions locked by commits 1–4 (apply to every phase-2/3 commit).** These are defaults, not options. The locked design is in [`EXPLORATION-node-identity-abc-deep-dive.md`](./EXPLORATION-node-identity-abc-deep-dive.md); read it before deviating.
+   - **Named `*_NODE` exports** for every node declaration (`BATTLE_REPORT__TIER_NODE`, `_RUN_TYPE_NODE`, `SECTION_COINS_NODE`, `VIEW_CHARTS__TIER_STATS_NODE`, `ENUM_RUN_TYPE__FARM_NODE`). Edge declaration files use `<NAME>_NODE.id` rather than raw string literals — refactor-safe at scale.
+   - **Wildcard catalog aggregation.** New per-kind node files get added via `import * as` in `catalog/index.ts`'s `nodesOf` filter. New edge files get added via named imports concatenated into `CATALOG_EDGES`.
+   - **`FieldRef = string | Node` polymorphic input.** Every new query method accepts both forms; return types stay `readonly string[]` (node ids). `getField` and `resolveFieldByAnyKey` are the explicit string-only carve-out at the parser/import boundary.
+   - **TS-as-source-of-truth for closed enums.** When a field's accepted values exist as a TS `as const` tuple (today: `RUN_TYPE_VALUES`), the graph catalog *derives* its enum-value nodes and ACCEPTS_VALUE edges from the tuple. `enum-sync.invariant.test.ts` enforces. The same template applies to `_dissonanceSubCategory` in commit 15.
+   - **Engine-method-per-consumer-pattern.** Every consumer-facing usage gets a named method on `FieldGraph` (`acceptedValuesFor`, `isAcceptedValue`, `matchAcceptedValue`, `enumValueMeta`, `csvHeaderOf`, `dataTypeOf`, …). Raw `edgesFrom`/`edgesTo`/`nodesOfKind` are reserved for invariant tests and engine internals.
+   - **`appGraph()` singleton + `setAppGraphForTesting`.** Already exposed by `@/shared/domain/field-graph`. Consumers call `appGraph()`; tests inject a custom `FieldGraph` via the override and restore in `afterEach`.
 
 ---
 
@@ -43,21 +50,7 @@ This epic delivers the **relationship-graph field registry** specified in [`arch
 
 ## Migration-era suppressions (drained by commit 16)
 
-Whenever a commit on this epic introduces a temporary escape hatch — `eslint-disable`, ESLint config override, `test.skip`, deferred fixture, loosened Husky rule, etc. — add a row here in the same PR. **Commit 16 ("Cleanup") deletes everything in this list and verifies the section is empty.** If a row cannot be removed by then, convert it into a follow-up issue link before merging.
-
-Format: `- [ ] [commit N] <file:line> — <kind> — <one-line reason> — unblocked by: <commit M> / <follow-up issue>`
-
-- [ ] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `scripts/**/*.{js,mjs,cjs,ts}` override — Node globals + relaxed `max-statements` / `max-lines-per-function` for one-shot data-prep `main()` functions — unblocked by: keep (these are legitimate Node scripts) **or** decide to delete the scripts post-migration.
-- [x] [pre-epic] [`eslint.config.ts`](../../eslint.config.ts) `src/shared/domain/field-graph/**` override — disables `@typescript-eslint/no-unused-vars` so phase-1 dead exports don't trip lint — unblocked by: commit 4+ (consumers start importing the engine). **Removed in commit 4**: real consumers anchor every export, no unused-vars violations surface.
-- [ ] [pre-epic] [`knip.json`](../../knip.json) `ignore: src/shared/domain/field-graph/**` — knip's pre-commit `--fix-type files,exports,types` was auto-deleting phase-1 engine exports (`buildGraph`, `EDGE_META`, `EdgeTargetKind`, etc.) before consumers in commits 4+ could import them — unblocked by: commit 4+ (real consumers anchor every export and knip can resume managing this directory).
-- [ ] [pre-epic] [`knip.json`](../../knip.json) `ignore: src/shared/domain/migrations/v2-to-v3-field-map.generated.ts` — generated scaffold output (see [`scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs`](../../scripts/migration-data-prep/scaffold-v2-to-v3-map.mjs)) consumed only by the hand-edited `v2-to-v3-field-map.ts` for diffing, so knip flags it as unused — unblocked by: commit 10 (RENAMED_FROM edges absorb the map; both files can be deleted).
-- [ ] [pre-epic] [`src/shared/formatting/date-issue-detection.ts:115`](../../src/shared/formatting/date-issue-detection.ts) `// eslint-disable-next-line complexity` — V2/V3 dual-key tolerance bumps complexity to 11 — unblocked by: commit 10 (RENAMED_FROM edges collapse the dual-key check back to a single graph lookup).
-- [ ] [pre-epic] [`e2e/features/analytics/tier-stats.spec.ts`](../../e2e/features/analytics/tier-stats.spec.ts) `test.skip` — persisted column config invalidated by V2→V3 rename — unblocked by: commit 6 (BELONGS_TO_SECTION).
-- [ ] [pre-epic] [`e2e/features/analytics/tier-trends.spec.ts`](../../e2e/features/analytics/tier-trends.spec.ts) `test.skip` — field-search resolution still references V2 labels — unblocked by: commit 12 (APPEARS_IN_VIEW).
-- [ ] [pre-epic] [`e2e/features/analytics/coverage-report.spec.ts`](../../e2e/features/analytics/coverage-report.spec.ts) `test.skip` — tooltip references V2 field labels — unblocked by: commit 6 (BELONGS_TO_SECTION).
-- [ ] [pre-epic] [`e2e/features/analytics/field-analytics.spec.ts`](../../e2e/features/analytics/field-analytics.spec.ts) `test.skip` — default-field selection doesn't traverse V2→V3 rename — unblocked by: commit 10 (RENAMED_FROM).
-- [ ] [pre-epic] [`e2e/features/data-import/bulk-export.spec.ts`](../../e2e/features/data-import/bulk-export.spec.ts) `test.skip` — fixture `expected-bulk-export.csv` still uses V2-era display labels; current export emits `v3_`-prefixed canonical keys — unblocked by: commit 5 (HAS_CSV_HEADER) **and** fixture regeneration.
-- [ ] [commit 3] [`src/shared/domain/field-graph/types.ts`](../../src/shared/domain/field-graph/types.ts) `APPEARS_IN_VIEW` cardinality downgraded from `'at-least-one'` to `'many'` — Field nodes declared in commit 3 have no outgoing edges until commit 12, so the stricter invariant would reject every Field at build time. Paired `test.skip` in [`src/shared/domain/field-graph/field-graph.test.ts`](../../src/shared/domain/field-graph/field-graph.test.ts) ("cardinality 'at-least-one' is violated when a Field has no APPEARS_IN_VIEW"). Commit 12 must either restore `'at-least-one'` *or* document why it stays `'many'` (e.g. compound-only sources, non-UI internal fields that legitimately never render) — unblocked by: commit 12.
+The full ledger lives in [`Migration-era-suppressions.md`](./Migration-era-suppressions.md). Add new entries there in the same PR that introduces the workaround. Commit 16 audits the file and must leave it empty (or with explicit follow-up-issue links).
 
 ## Staging plan
 
@@ -106,20 +99,23 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
   - **Files touched:** ~8–12 existing. Deletions: hardcoded enum duplications.
   - **DoD:** Run-type filter still works identically; test that adding a fake run-type value to the graph makes it show up in the filter without code changes.
   - **Dependencies:** commits 1–3.
-  - **Status:** `TODO`
+  - **Bundled:** the node-identity refactor from [`EXPLORATION-node-identity-abc-deep-dive.md`](./EXPLORATION-node-identity-abc-deep-dive.md) (named `*_NODE` exports, wildcard catalog aggregation, `FieldRef = string | Node` polymorphic API, enriched `enumValueMeta`) folded in. These conventions now apply to every subsequent vertical slice.
+  - **Status:** `DONE`
 
 - [ ] **Commit 5 — `IS_INTERNAL_FIELD` + `HAS_CSV_HEADER` edges**
   - **Scope:** Declare `IS_INTERNAL_FIELD` edges for `_date`, `_time`, `_notes`, `_runType`, `_rank`. `HAS_CSV_HEADER` edges for their human-friendly headers (`_Date`, `_Time`, etc.). Rewrite `csv-exporter.ts` header logic and `internal-field-config.ts` to query the graph.
   - **Spec references:** [`architecture/11-internal-app-fields.md`](architecture/11-internal-app-fields.md) §11.1 (internal field representation), §11.4 (gotchas).
-  - **Files touched:** ~5 existing. Deletes `INTERNAL_FIELD_MAPPINGS` / `INTERNAL_FIELD_ORDER` hand-authored arrays.
-  - **DoD:** CSV round-trip tests still pass; header ordering identical.
+  - **Files touched:** ~5 existing. Deletes `INTERNAL_FIELD_MAPPINGS` / `INTERNAL_FIELD_ORDER` hand-authored arrays. New: `catalog/internal-fields.edges.ts`.
+  - **Conventions (per preamble §8):** use `_DATE_NODE`, `_TIME_NODE`, `_NOTES_NODE`, `_RUN_TYPE_NODE`, `_RANK_NODE` (already declared); do not re-declare. Add engine helper `csvHeaderOf(fieldRef): string | undefined` per the engine-method-per-consumer-pattern rule.
+  - **DoD:** CSV round-trip tests still pass; header ordering identical (preserved via edge declaration order or an explicit ordering tag).
   - **Dependencies:** commit 4 (shares the `_runType` enum pattern).
   - **Status:** `TODO`
 
 - [ ] **Commit 6 — `BELONGS_TO_SECTION` + `RENDERS_AS_IN_SECTION` edges**
   - **Scope:** Declare section membership for every field. Rewrite `section-config.ts` to query the graph — `BATTLE_REPORT_ESSENTIAL`, `DAMAGE_TAKEN_CONFIG`, etc. become graph queries. `RENDERS_AS_IN_SECTION` handles per-section display overrides (e.g. `battleReport_cellsEarned` showing under both battleReport and currencies).
   - **Spec references:** [`architecture/15-multi-section-membership.md`](architecture/15-multi-section-membership.md) (multi-section cardinality), [`11-internal-app-fields.md`](architecture/11-internal-app-fields.md) §11.4 (render override).
-  - **Files touched:** `section-config.ts` (massive rewrite), `use-run-details-data.ts`, plus a few chart pages that reference section configs.
+  - **Files touched:** `section-config.ts` (massive rewrite), `use-run-details-data.ts`, plus a few chart pages that reference section configs. New: `catalog/section-membership.edges.ts` (~150 entries).
+  - **Conventions (per preamble §8):** edge declarations reference `BATTLE_REPORT__TIER_NODE.id` etc., not raw strings — this is the highest-volume edges file in the epic and the named-export refactor-safety pays off here. `fieldsInSection(sectionRef)` and `sectionsOf(fieldRef)` already polymorphic from commit 4. Add engine helper `rendersAsIn(fieldRef, sectionRef)` for the override case.
   - **DoD:** Run-details card renders identically to pre-commit state. Snapshot test of rendered sections against a fixture run.
   - **Dependencies:** commits 1–3.
   - **Status:** `TODO`
@@ -127,7 +123,8 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 7 — `IS_SOURCE_OF` edges + breakdown-sources deletion**
   - **Scope:** Declare `IS_SOURCE_OF` edges from each coin / damage source to its total (`coins_goldenTower IS_SOURCE_OF battleReport_coinsEarned`, etc.). Delete `coin-sources.ts`, `damage-sources.ts`, `breakdown-sources/index.ts`. Breakdown components now call `graph.sourcesOf(totalField)`.
   - **Spec references:** [`architecture/09-cross-cutting-concerns.md`](architecture/09-cross-cutting-concerns.md) §9.1 (aggregation impact), [`03b-renaming-a-field-v28-to-v29.md`](architecture/03b-renaming-a-field-v28-to-v29.md) (source example).
-  - **Files touched:** `coin-sources.ts` (delete), `damage-sources.ts` (delete), `breakdown-sources/index.ts` (delete or reduce to re-exports), `source-analysis/*` consumers.
+  - **Files touched:** `coin-sources.ts` (delete), `damage-sources.ts` (delete), `breakdown-sources/index.ts` (delete or reduce to re-exports), `source-analysis/*` consumers. New: `catalog/sources.edges.ts`.
+  - **Conventions (per preamble §8):** color migration emits `HAS_COLOR` edges on field nodes (commit 4 already broadened `HAS_COLOR.sourceKind` to accept Field as well as EnumValue). `sourcesOf(fieldRef)` already polymorphic.
   - **DoD:** Source-analysis charts render identically. The hand-enumerated color palette migrates to the field-node payloads.
   - **Dependencies:** commit 6.
   - **Status:** `TODO`
@@ -135,7 +132,8 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 8 — `HAS_DATA_TYPE` edges + parser type-detector rewrite**
   - **Scope:** Declare the data type (`'number' | 'duration' | 'date' | 'string'`) for every field via `HAS_DATA_TYPE` edges. Rewrite `getFieldConfig` in `field-utils.ts` to query the graph instead of pattern-matching labels. Closes the "composite key vs label" class of bugs structurally.
   - **Spec references:** [`architecture/11-internal-app-fields.md`](architecture/11-internal-app-fields.md) §11.1, [`09-cross-cutting-concerns.md`](architecture/09-cross-cutting-concerns.md) §9.5 (runtime type-mismatch).
-  - **Files touched:** `field-utils.ts`, `createGameRunField`, a handful of consumers that currently pattern-match field names.
+  - **Files touched:** `field-utils.ts`, `createGameRunField`, a handful of consumers that currently pattern-match field names. New: `catalog/data-types.edges.ts` (~150 entries).
+  - **Conventions (per preamble §8):** lift `DATA_TYPES = ['number', 'duration', 'date', 'string'] as const` to a TS source-of-truth file (`shared/domain/field-graph/data-types.ts` or similar). Add engine helper `dataTypeOf(fieldRef): DataType | undefined`. Edge declarations reference `<NAME>_NODE.id` per the named-export rule.
   - **DoD:** `v28-sample-parse.invariant.test.ts` still passes; add a new invariant that every field node has exactly one `HAS_DATA_TYPE` edge.
   - **Dependencies:** commits 1–3.
   - **Status:** `TODO`
@@ -143,7 +141,8 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 9 — `IS_DERIVED_FROM` edges + derivation cascade**
   - **Scope:** Express `_date` and `_time` deriving from `battleReport_battleDate` as `IS_DERIVED_FROM` edges. Implement `applyDerivations(fields, graph)` that walks the edges in topological order. Parser calls it; form updates call it; single derivation code path.
   - **Spec references:** [`architecture/11-internal-app-fields.md`](architecture/11-internal-app-fields.md) §11.3 (derivation edges), [`18-write-path.md`](architecture/18-write-path.md) §18.4 (update cascade).
-  - **Files touched:** `data-parser.ts`, `csv-parser.ts`, `field-update-logic.ts`.
+  - **Files touched:** `data-parser.ts`, `csv-parser.ts`, `field-update-logic.ts`. New: `catalog/derivations.edges.ts`, `field-graph/derivers.ts` (DERIVERS registry per spec §11.3), `field-graph/apply-derivations.ts`.
+  - **Conventions (per preamble §8):** engine helpers — `fieldsDerivedFrom(fieldRef): readonly string[]` (forward direction, edges *from* fieldRef), `derivationsOf(fieldRef): readonly Edge[]` (the inputs feeding fieldRef), and a private `topologicallyOrderDerivations()` for the cascade walker.
   - **DoD:** Existing battle-date derivation tests pass; add a test that editing `battleReport_battleDate` in the form cascades to `_date` / `_time`.
   - **Dependencies:** commits 1–3, 8.
   - **Status:** `TODO`
@@ -151,7 +150,8 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 10 — `RENAMED_FROM` edges + `resolveFieldByAnyKey` cutover**
   - **Scope:** Turn `V2_TO_V3_FIELD_MAP` into `RENAMED_FROM` edges on each renamed field node. The migration adapter and bulk-import path call `graph.resolveFieldByAnyKey(rawKey)` instead of the hand-authored map. `remapV2FieldKeys` shrinks to one line.
   - **Spec references:** [`architecture/14-key-lookup-and-renames.md`](architecture/14-key-lookup-and-renames.md) (full resolution model), [`17-schema-as-a-first-class-graph-entity.md`](architecture/17-schema-as-a-first-class-graph-entity.md) §17.3 (schema evolution).
-  - **Files touched:** `v2-to-v3-field-map.ts` (data moves to edges; file deleted or reduced to re-export), `remap-v2-field-keys.ts`, `csv-parser.ts`, `data-parser.ts`.
+  - **Files touched:** `v2-to-v3-field-map.ts` (data moves to edges; file deleted or reduced to re-export), `remap-v2-field-keys.ts`, `csv-parser.ts`, `data-parser.ts`. New: `catalog/renames.edges.ts`.
+  - **Conventions (per preamble §8):** `resolveFieldByAnyKey` is the explicit string-only carve-out — it accepts raw legacy / V3 keys at the parser/import boundary and stays `string`-typed (no polymorphic `FieldRef`). All other consumers go through canonical-key APIs.
   - **DoD:** The 687-row V2 fixture still migrates end-to-end; new invariant test for RENAMED_FROM cycles.
   - **Dependencies:** commits 1–3.
   - **Status:** `TODO`
@@ -159,7 +159,8 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 11 — Schema lifecycle edges (`SHIPPED_IN_SCHEMA`, `INTENTIONALLY_DROPPED_IN_SCHEMA`, `MIGRATED_TO_SCHEMA`)**
   - **Scope:** Declare schema lifecycle per field. `INTENTIONALLY_DROPPED_V2_FIELDS` becomes `INTENTIONALLY_DROPPED_IN_SCHEMA` edges. Every V3-canonical field gets `SHIPPED_IN_SCHEMA` to `schema:v3` (unless explicitly inherited from v2). The migration gate reads lifecycle from the graph.
   - **Spec references:** [`architecture/17-schema-as-a-first-class-graph-entity.md`](architecture/17-schema-as-a-first-class-graph-entity.md) (schema taxonomy), [`09-cross-cutting-concerns.md`](architecture/09-cross-cutting-concerns.md) §9.2 (lifecycle diagram).
-  - **Files touched:** `intentionally-dropped.ts` (deleted; data moves to edges), `commit-v3-migration.ts` (consumes graph for version resolution).
+  - **Files touched:** `intentionally-dropped.ts` (deleted; data moves to edges), `commit-v3-migration.ts` (consumes graph for version resolution). New: `catalog/schema-lifecycle.edges.ts`.
+  - **Conventions (per preamble §8):** add engine helpers `currentSchema()`, `schemaOf(fieldRef): SchemaNode | undefined`, `fieldsShippedIn(schemaRef)`, `fieldsDroppedIn(schemaRef)`. `SCHEMA_V1_NODE` / `SCHEMA_V2_NODE` / `SCHEMA_V3_NODE` named exports already exist.
   - **DoD:** Lockstep invariant test: `V3_COLUMN_PREFIX_VERSION === graph.currentSchema().version`.
   - **Dependencies:** commits 1–3, 10.
   - **Status:** `TODO`
@@ -167,16 +168,18 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 12 — `APPEARS_IN_VIEW` + `APPEARS_IN_FILTER` edges**
   - **Scope:** Declare which fields appear in which views (tier-stats, tier-trends, source-analysis, field-analytics, coverage, etc.) and filters. View components query `graph.fieldsInView(viewId)` instead of hardcoded arrays.
   - **Spec references:** [`architecture/09-cross-cutting-concerns.md`](architecture/09-cross-cutting-concerns.md) §9.4 (new-view walkthrough), [`12-extending-with-a-new-run-type-and-sub-category.md`](architecture/12-extending-with-a-new-run-type-and-sub-category.md) (filter auto-discovery for dissonance).
-  - **Files touched:** each chart / analysis page component; filter bar components.
+  - **Files touched:** each chart / analysis page component; filter bar components. New: `catalog/views.edges.ts` and `catalog/filter-views.edges.ts`.
+  - **Conventions (per preamble §8):** add engine helpers `fieldsInView(viewRef)`, `fieldsInFilter(viewRef)`, `viewsOf(fieldRef)`, `filtersOf(fieldRef)` — all polymorphic. `VIEW_RUN_DETAILS__BATTLE_REPORT_NODE` / `VIEW_CHARTS__TIER_STATS_NODE` etc. named exports already exist from commit 4.
   - **DoD:** Adding a `APPEARS_IN_VIEW` edge to a new field auto-includes it in the relevant view (tested with a fixture field).
   - **Cardinality decision required:** Commit 3 temporarily downgraded `APPEARS_IN_VIEW` from `'at-least-one'` to `'many'`. Before closing this commit, decide whether to restore `'at-least-one'` (every field must render somewhere) or keep it `'many'` (some fields — compound-only sources, non-UI internal metadata — legitimately have no view). If restoring, un-skip the paired test in `field-graph.test.ts`; if keeping, delete that test and update the ledger row accordingly.
   - **Dependencies:** commit 6 (section membership established first).
   - **Status:** `TODO`
 
 - [ ] **Commit 13 — `CONDITIONAL_ON` edges**
-  - **Scope:** Declare conditional visibility — `_rank CONDITIONAL_ON _runType=tournament`, `_dissonanceSubCategory CONDITIONAL_ON _runType=dissonance`. Form components query `graph.conditionallyVisibleFields(run)`. Replaces the scattered `if (runType !== 'tournament') setRank('')` pattern at `use-data-input-form.ts:180` and similar sites.
+  - **Scope:** Declare conditional visibility — `_rank CONDITIONAL_ON enum:runType.tournament`. Form components query `graph.conditionallyVisibleFields(run)`. Replaces the scattered `if (runType !== 'tournament') setRank('')` pattern at `use-data-input-form.ts:180` and similar sites. (The `_dissonanceSubCategory CONDITIONAL_ON enum:runType.dissonance` edge ships in commit 15 alongside the field that depends on it.)
   - **Spec references:** [`architecture/18-write-path.md`](architecture/18-write-path.md) §18.3 (conditional visibility).
-  - **Files touched:** `use-data-input-form.ts`, `rank-field-logic.ts`.
+  - **Files touched:** `use-data-input-form.ts`, `rank-field-logic.ts`. New: `catalog/conditional.edges.ts`.
+  - **Conventions (per preamble §8):** edge target is `ENUM_RUN_TYPE__TOURNAMENT_NODE.id` (named export from commit 4); source is `_RANK_NODE.id`. Add engine helpers `conditionalOn(fieldRef): readonly Edge[]` and `conditionallyVisibleFields(formState)` per the spec §18.3 / §12.4 semantics.
   - **DoD:** Rank field hides/clears automatically when run type changes away from tournament.
   - **Dependencies:** commits 4, 12.
   - **Status:** `TODO`
@@ -184,7 +187,8 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 - [ ] **Commit 14 — `IS_REQUIRED_IN` + `PARTICIPATES_IN_COMPOSITE_KEY` edges**
   - **Scope:** `battleReport_battleDate IS_REQUIRED_IN import:manual-entry`. `battleReport_tier`, `battleReport_wave`, `battleReport_battleDate PARTICIPATES_IN_COMPOSITE_KEY`. Validation and duplicate-detection code query the graph.
   - **Spec references:** [`architecture/09-cross-cutting-concerns.md`](architecture/09-cross-cutting-concerns.md) §9.6 (specific-field references), [`18-write-path.md`](architecture/18-write-path.md) §18.2 (validation).
-  - **Files touched:** `use-data-input-form.ts`, `duplicate-detection.ts`, `date-issue-detection.ts`.
+  - **Files touched:** `use-data-input-form.ts`, `duplicate-detection.ts`, `date-issue-detection.ts`. New: `catalog/required-fields.edges.ts`, `catalog/composite-key.edges.ts`.
+  - **Conventions (per preamble §8):** add engine helpers `isRequiredIn(fieldRef, viewRef): boolean`, `requiredFieldsIn(viewRef): readonly string[]`, `participatesInCompositeKey(fieldRef, scope?): boolean`, `compositeKeyFieldsFor(scope): readonly string[]`. Edges reference `BATTLE_REPORT__BATTLE_DATE_NODE` etc.
   - **DoD:** Existing required-validation tests pass; composite key stays backward-compatible with V2 data via `RENAMED_FROM` transitive lookup.
   - **Dependencies:** commits 9, 10.
   - **Status:** `TODO`
@@ -192,11 +196,20 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
 ### Phase 3 — First new feature on the graph
 
 - [ ] **Commit 15 — Dissonance run-type + subcategory**
-  - **Scope:** Add `'dissonance'` to `_runType` via a new `ACCEPTS_VALUE` edge. New field node `_dissonanceSubCategory` with its own `ACCEPTS_VALUE` edges (`attack`, `defense`, `ultimate-weapons`, `utility`). `CONDITIONAL_ON _runType=dissonance`. Parser detection from filename regex (`Dissonance_(Attack|Defense|UltimateWeapons|Utility)_*.txt`). Filter auto-appears on analytics pages via `APPEARS_IN_FILTER`.
-  - **Spec references:** [`architecture/12-extending-with-a-new-run-type-and-sub-category.md`](architecture/12-extending-with-a-new-run-type-and-sub-category.md) (full worked example), [`18-write-path.md`](architecture/18-write-path.md) (form integration).
-  - **Files touched:** one new field-node declaration, ~5 edge additions, parser filename-detection branch. No filter / form code touched — auto-discovered via graph.
-  - **DoD:** Import a dissonance sample; subcategory detected; filter shows on analytics pages; run-details renders the subcategory.
-  - **Dependencies:** commits 4, 12, 13.
+  - **Scope (revised post-commit-4 to follow locked patterns):**
+    1. Append `'dissonance'` to `RUN_TYPE_VALUES` in `src/shared/domain/run-types/types.ts`. The graph catalog auto-derives the new EnumValue node + ACCEPTS_VALUE edge per commit 4's TS-as-source-of-truth pattern.
+    2. Add per-value display name + color for `'dissonance'` to `RUN_TYPE_PRESENTATION` in `catalog/enum-values.edges.ts`.
+    3. Declare the new field node `_DISSONANCE_SUB_CATEGORY_NODE` in `catalog/fields.nodes.ts`.
+    4. Add `DISSONANCE_SUB_CATEGORY_VALUES = ['attack', 'defense', 'ultimate-weapons', 'utility'] as const` (probably in a new `dissonance/types.ts` or appended to an internal-fields types module). Mirror the `RUN_TYPE_*` shape.
+    5. New file `catalog/dissonance-sub-category.edges.ts` with `flatMap` derivation analogous to `enum-values.edges.ts`. Per-value presentation map for display name + color.
+    6. Add `_DISSONANCE_SUB_CATEGORY_NODE CONDITIONAL_ON ENUM_RUN_TYPE__DISSONANCE_NODE` to `catalog/conditional.edges.ts` (the edge that originally lived in commit 13's scope, moved here because it depends on the new field).
+    7. Extend `enum-sync.invariant.test.ts` to enforce `_dissonanceSubCategory ACCEPTS_VALUE` matches `DISSONANCE_SUB_CATEGORY_VALUES`.
+    8. Parser filename detection branch — `Dissonance_(Attack|Defense|UltimateWeapons|Utility)_*.txt` → populates `_dissonanceSubCategory`. Implemented as a deriver registered in `DERIVERS` (commit 9 infrastructure).
+    9. APPEARS_IN_FILTER edges for the new field across analytics views (commit 12 infrastructure). Filter auto-appears via the graph; no filter component code changes.
+  - **Spec references:** [`architecture/12-extending-with-a-new-run-type-and-sub-category.md`](architecture/12-extending-with-a-new-run-type-and-sub-category.md) (full worked example — note this section was written before commit 4's TS-as-source-of-truth pattern, so its raw `enumValueNode(...)` declarations are illustrative; follow the derivation pattern instead), [`18-write-path.md`](architecture/18-write-path.md) (form integration).
+  - **Files touched:** one new field-node declaration, one new `as const` tuple, two new presentation-record entries, one new edges file (`dissonance-sub-category.edges.ts`), one CONDITIONAL_ON edge, parser filename-detection deriver. No filter / form code touched — auto-discovered via graph.
+  - **DoD:** Import a dissonance sample; subcategory detected; filter shows on analytics pages; run-details renders the subcategory. **After declaring the edges, run the parser against each `Dissonance_*.txt` sample in `sampleData/v28/` and report the resulting `ParsedGameRun.fields._dissonanceSubCategory` values.**
+  - **Dependencies:** commits 4, 9 (DERIVERS registry), 12, 13.
   - **Status:** `TODO`
 
 ### Phase 3.5 — Cleanup (revert all migration-era escape hatches)
@@ -209,11 +222,11 @@ Legend: `[ ]` TODO · `[~]` IN PROGRESS · `[x]` DONE
     3. `rg -n 'test\.skip|test\.fixme|describe\.skip|xit\(|xdescribe\(' e2e/ src/` — every match added during the epic must come back to life.
     4. Diff `eslint.config.ts` against the epic base; any new `files:` override block tagged "field-graph", "migration", or "scripts/migration-data-prep" must be re-evaluated.
     5. Check `package.json` (Husky / lint-staged sections) for any rule that was loosened mid-epic.
-    6. Read the **Migration-era suppressions** section near the top of this doc — it should match the diff from steps 1–5. If they disagree, the doc has drifted and needs reconciling first.
+    6. Read [`Migration-era-suppressions.md`](./Migration-era-suppressions.md) — its active entries should match the diff from steps 1–5. If they disagree, the file has drifted and needs reconciling first.
   - **Files touched:** purely deletions / reverts. No new product code.
   - **DoD:**
     - `npm run integration-precheck` green with **zero** skipped tests added by this epic.
-    - The "Migration-era suppressions" section below is empty (or contains only items explicitly deferred to a follow-up issue, with link).
+    - [`Migration-era-suppressions.md`](./Migration-era-suppressions.md) has zero un-checked active entries (or contains only items explicitly deferred to a follow-up issue, with link).
     - Grep queries from steps 2–3 return the same set of pre-existing matches that existed at the epic base — no net new suppressions.
   - **Dependencies:** commits 1–15. This is the last code commit before manual verification.
   - **Out of scope:** any product fix. If a skipped test still fails after the relevant earlier commit shipped, file a follow-up issue and document it under "Migration-era suppressions" rather than patching here.

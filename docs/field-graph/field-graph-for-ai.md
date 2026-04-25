@@ -32,27 +32,34 @@ Invariants (tested in CI):
 
 When asked to add a new field (e.g., `coins_dragonBreath`):
 
-1. Declare the node in `src/shared/domain/field-graph/nodes/fields.ts`:
+1. Declare the node in `src/shared/domain/field-graph/catalog/fields.nodes.ts`
+   as a named `*_NODE` export grouped under the right section comment-bar
+   (`SECTION__FIELD_NODE` convention; double-underscore between section and
+   field; internal fields keep their leading `_`):
    ```typescript
-   fieldNode('coins_dragonBreath'),
+   export const COINS__DRAGON_BREATH_NODE = fieldNode('coins_dragonBreath');
    ```
 
-2. Declare its required edges in the matching `edges/*.ts` files:
+2. Declare its required edges in the matching `catalog/*.edges.ts` files
+   (one file per concern: `section-membership.edges.ts`,
+   `data-types.edges.ts`, `sources.edges.ts`, …). Reference the node via
+   `<NAME>_NODE.id` — never raw strings — so renames stay refactor-safe:
    ```typescript
-   edge('coins_dragonBreath', 'BELONGS_TO_SECTION', 'section:coins'),
-   edge('coins_dragonBreath', 'HAS_DATA_TYPE', 'number'),
-   edge('coins_dragonBreath', 'HAS_DISPLAY_NAME', 'Dragon Breath'),
-   edge('coins_dragonBreath', 'HAS_COLOR', '#7dd3fc'),
-   edge('coins_dragonBreath', 'IS_SOURCE_OF', 'battleReport_coinsEarned'),
+   edge(COINS__DRAGON_BREATH_NODE.id, 'BELONGS_TO_SECTION', SECTION_COINS_NODE.id),
+   edge(COINS__DRAGON_BREATH_NODE.id, 'HAS_DATA_TYPE', 'number'),
+   edge(COINS__DRAGON_BREATH_NODE.id, 'HAS_DISPLAY_NAME', 'Dragon Breath'),
+   edge(COINS__DRAGON_BREATH_NODE.id, 'HAS_COLOR', '#7dd3fc'),
+   edge(COINS__DRAGON_BREATH_NODE.id, 'IS_SOURCE_OF', BATTLE_REPORT__COINS_EARNED_NODE.id),
    ```
 
 3. If this is a field introduced by a game version or schema bump, add:
    ```typescript
-   edge('coins_dragonBreath', 'SHIPPED_IN_SCHEMA', 'schema:v4',
+   edge(COINS__DRAGON_BREATH_NODE.id, 'SHIPPED_IN_SCHEMA', SCHEMA_V4_NODE.id,
         { driver: 'game-version', gameVersion: 'V29' }),
    ```
 
-4. Run `npm run graph:check`. Invariants catch anything missing.
+4. Run `npm test` (specifically the field-graph + invariant tests). The
+   builder fails loud on dangling edges and cardinality violations.
 
 DO NOT touch `supportedFields.json`, `coin-sources.ts`, `section-config.ts`,
 or any consumer file. Consumers query the graph; they pick up the new field
@@ -63,63 +70,73 @@ automatically.
 When asked to rename an existing field (e.g., `coins_spotlight` to
 `coins_spotlightBeam`):
 
-1. Rename the node id in the field declaration:
+1. Rename the named export and the underlying string id in
+   `catalog/fields.nodes.ts`:
    ```typescript
-   fieldNode('coins_spotlightBeam'),   // was 'coins_spotlight'
+   export const COINS__SPOTLIGHT_BEAM_NODE = fieldNode('coins_spotlightBeam'); // was COINS__SPOTLIGHT_NODE
    ```
+   IDE rename on the `*_NODE` constant propagates through every consumer
+   import; the string id only lives in this one file.
 
-2. Rename the node id in every edge that mentions it (mechanical edit; all
-   in the `field-graph/` tree).
-
-3. Add a RENAMED_FROM edge capturing the rename:
+2. Add a RENAMED_FROM edge capturing the rename. (Today this is in
+   `catalog/renames.edges.ts` once commit 10 lands; until then,
+   `V2_TO_V3_FIELD_MAP` carries renames):
    ```typescript
-   edge('coins_spotlightBeam', 'RENAMED_FROM',
-        { legacyKey: 'coins_spotlight', atSchema: 'schema:v4',
+   renamedFromEdge(COINS__SPOTLIGHT_BEAM_NODE.id,
+        { legacyKey: 'coins_spotlight', atSchema: SCHEMA_V4_NODE.id,
           reason: 'V29 naming convention' }),
    ```
 
-4. DO NOT add a node for `coins_spotlight`. The legacy key lives as a
+3. DO NOT add a node for `coins_spotlight`. The legacy key lives as a
    payload string on the RENAMED_FROM edge. Declaring a node for it is wrong
    and will fail the `every legacyKey is unique` invariant.
 
-5. Run `npm run graph:check`.
+4. Run `npm test`.
 
-Consumer code that referenced `coins_spotlight` is either:
+Consumer code that referenced the old name is either:
 - Already in graph queries — picks up the new name automatically.
-- Still hardcoded — fix it by replacing the hardcoded string with a graph
-  query (`graph.sourcesOf` or similar).
+- Importing the `*_NODE` constant — IDE rename followed it.
+- Still hardcoded as a raw string somewhere unusual — fix it by replacing
+  the hardcoded string with a node import (`COINS__SPOTLIGHT_BEAM_NODE`).
 
 ### Operation 3: Querying the graph
 
-When asked to find fields by relationship:
+Consumers call `appGraph()` from `@/shared/domain/field-graph` to get the
+shared singleton. Methods accept either a `string` id or a `Node` handle
+(see "Polymorphic input" under "Critical invariants" below). Pass node
+handles when you have an import; pass strings at the parser/import boundary
+or when chaining results from another graph call.
 
-- "All fields in the Coins section": `graph.fieldsInSection('section:coins')`
-- "All sources of the coins-earned total": `graph.sourcesOf('battleReport_coinsEarned')`
-- "Every rename ever applied to a field": `graph.describe(fieldKey).renamedFrom`
-- "Fields derived from battleDate": `graph.fieldsDerivedFrom('battleReport_battleDate')`
-- "What accepts which enum values": `graph.acceptedValuesFor('_runType')`
+- "All fields in the Coins section": `graph.fieldsInSection(SECTION_COINS_NODE)`
+- "All sources of the coins-earned total": `graph.sourcesOf(BATTLE_REPORT__COINS_EARNED_NODE)`
+- "Fields derived from battleDate": `graph.fieldsDerivedFrom(BATTLE_REPORT__BATTLE_DATE_NODE)` *(commit 9)*
+- "What accepts which enum values": `graph.acceptedValuesFor(_RUN_TYPE_NODE)`
+- "Full metadata for one accepted value": `graph.enumValueMeta(_RUN_TYPE_NODE, 'farm')`
+  → `{ id, wireValue, displayName?, color? }` in one call
 
-If the query you need doesn't exist, check `src/shared/domain/field-graph/query.ts`
-for similar patterns. Adding a new query method is a few lines of index walking
-plus a unit test.
+Query methods live on `FieldGraph` in `src/shared/domain/field-graph/field-graph.ts`.
+Adding a new query method is a few lines of index walking plus a unit test
+in `field-graph.test.ts` against a hand-built toy graph. Follow the
+"engine-method-per-consumer-pattern" rule: every consumer-facing usage
+gets a named method — don't expose raw `edgesFrom`/`edgesTo` to consumers.
 
 ### Operation 4: Debugging a missing value
 
 If a field's value is unexpectedly 0 / missing / mis-rendered:
 
-1. Run `npm run graph:describe <fieldKey>` — shows every edge of that field.
+1. Open the relevant `catalog/*.edges.ts` files and grep for the field id.
    Look for: missing BELONGS_TO_SECTION, wrong HAS_DATA_TYPE, missing
    RENAMED_FROM if the value is in old storage format.
 
-2. Run `npm run graph:explain <legacyKey> <canonicalKey>` — shows the rename
-   chain if the issue is V2 storage not being remapped to V3 canonical.
+2. Check `catalog/renames.edges.ts` (commit 10) for the rename chain if the
+   issue is V2 storage not being remapped to V3 canonical.
 
-3. Run `npm run graph:orphans` — surfaces fields with no views, missing edges,
-   or `pending_classification` tags. Common cause of "field imported but not
-   shown anywhere."
+3. Run `npm test src/shared/domain/field-graph` — the catalog and invariant
+   tests name the exact field and constraint violated on failure.
 
-4. Check the invariant test output: `npm run test graph-invariants`. Each
-   failure names the exact field and constraint violated.
+4. *Future (post-epic):* a CLI surface (`graph:describe`, `graph:explain`,
+   `graph:orphans`) is planned to make these inspections one-line, but
+   isn't built yet — for now use grep + the test output.
 
 ## Critical invariants (never violate)
 
@@ -133,38 +150,72 @@ If a field's value is unexpectedly 0 / missing / mis-rendered:
   `'pending_classification'` can skip this.)
 - **Never call `resolveFieldByAnyKey` outside the parser / import boundary.**
   That function accepts legacy keys; calling it from UI or aggregators lets
-  legacy keys leak into app state. Use `getField` everywhere else.
+  legacy keys leak into app state. Use `getField` (or pass a `*_NODE` handle
+  through any other query method) everywhere else.
+
+### Polymorphic input — `string | Node`
+
+Every query method on `FieldGraph` (except `getField` and `resolveFieldByAnyKey`)
+accepts either a string node id or a `Node` handle. Use whichever you have:
+
+```ts
+graph.sourcesOf(BATTLE_REPORT__COINS_EARNED_NODE)   // typical: import the node
+graph.sourcesOf(rawId)                              // chained from another query
+```
+
+Permissive on unknown ids — `sourcesOf('not_a_real_field')` returns `[]`.
+Build-time invariants catch declarations that *reference* missing nodes
+(dangling edges); consumer queries against undeclared ids silently miss,
+which is the right surface for orphan discovery (V29 fields not yet in
+the catalog).
 
 ## CLAUDE.md-style checklist for field edits
 
 When asked to add a new field, always:
-1. Declare the node in `nodes/fields.ts`.
-2. Declare its BELONGS_TO_SECTION edge.
-3. Declare its HAS_DATA_TYPE edge.
+1. Declare the named `*_NODE` export in `catalog/fields.nodes.ts`, in the
+   right section block, following `SECTION__FIELD_NODE` convention.
+2. Declare its BELONGS_TO_SECTION edge in `catalog/section-membership.edges.ts`.
+3. Declare its HAS_DATA_TYPE edge in `catalog/data-types.edges.ts`.
 4. Declare its HAS_DISPLAY_NAME edge (unless the default-derivation pattern
    covers it — capitalize(camelSplit(id.after('_')))).
 5. Declare its HAS_COLOR edge (for summable numeric fields that appear in
    charts).
-6. Declare its IS_SOURCE_OF edge(s) if it contributes to a total.
-7. Run `npm run graph:check`.
+6. Declare its IS_SOURCE_OF edge(s) if it contributes to a total, in
+   `catalog/sources.edges.ts`.
+7. Run `npm test src/shared/domain/field-graph` — invariants catch any
+   dangling edges or missing required relations.
 8. Do NOT modify consumer files; they query the graph.
 
 When asked to rename a field, always:
-1. Rename the node id in `nodes/fields.ts` and every referring edge file.
-2. Add ONE RENAMED_FROM edge with legacyKey = old id, atSchema = the schema
-   that adopted the rename.
+1. Rename the `*_NODE` export name and the underlying string id in
+   `catalog/fields.nodes.ts`. IDE rename on the const propagates through
+   every consumer that imports it.
+2. Add ONE RENAMED_FROM edge in `catalog/renames.edges.ts` with
+   legacyKey = old id, atSchema = the schema that adopted the rename.
 3. Do NOT add a node for the legacy key.
-4. Run `npm run graph:check`.
+4. Run `npm test src/shared/domain/field-graph`.
 
 When asked to add a new relationship type:
-1. Add the case to the `Edge` discriminated union in `types.ts`.
-2. Add its cardinality to `EDGE_CARDINALITY`.
-3. Add 2-3 invariant tests in `graph-invariants.test.ts`:
+1. Add the case to the `EdgeType` union in `types.ts`.
+2. Add its row to `EDGE_META` (sourceKind, targetKind, cardinality,
+   optional `symmetric`).
+3. Add 2-3 invariant tests in `field-graph.test.ts`:
    - Shape: what node kinds are valid endpoints?
    - Cardinality: one-per-source? many? at-least-one?
    - Semantics: any cross-edge constraint?
 4. Add a query method to `FieldGraph` (with memoization where appropriate).
+   Take `FieldRef` (`string | Node`) for any node-id parameter.
 5. Add 2-3 unit tests for the query method against a seeded small graph.
+
+When asked to add a new closed-enum value to an existing enum field:
+1. Append the value to the authoritative `as const` tuple in
+   `src/shared/domain/<domain>/types.ts` (e.g. `RUN_TYPE_VALUES`).
+2. Add the per-value display name + color to the matching presentation
+   record in `catalog/<enum>.edges.ts`.
+3. The graph catalog auto-derives the EnumValue node + ACCEPTS_VALUE +
+   metadata edges. The `enum-sync.invariant.test.ts` test catches drift.
+4. Run `npm test`. Selectors, filters, validators, and CSV export all
+   pick up the new value automatically.
 
 ## Writing consumers
 

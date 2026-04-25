@@ -19,6 +19,7 @@ Constraints:
 - `npm run integration-precheck` must pass before the commit lands.
 - If a prior commit's work turns out to be incomplete, STOP and flag it; do not silently fix it.
 - Never mark the commit DONE in the epic yourself — tell me what you finished and I will update status after local verification.
+- If you introduce any temporary suppression (`eslint-disable`, `test.skip`, ESLint config override, deferred fixture, loosened lint-staged rule, `@ts-expect-error`, etc.), append a row to [`Migration-era-suppressions.md`](./Migration-era-suppressions.md) in the same PR. Commit 16 audits this file; nothing ships without a row.
 
 Before reporting back:
 1. Edit docs/field-graph/EPIC-migration.md — scroll to the "Notes & Findings" section near the bottom and APPEND entries for anything unexpected, deferred, or that later commits need to know about. Use the format `- [YYYY-MM-DD] [commit N] — <note>`. One bullet per observation. Do this in the epic file itself, not just in your report below.
@@ -41,6 +42,6 @@ Then report back:
 
 _(update this line each time you mark a commit DONE.)_
 
-- Last updated: 2026-04-19
-- Commits DONE: 0 / 15
+- Last updated: 2026-04-25
+- Commits DONE: 4 / 16 (commits 1–4)
 - Currently in progress: none
