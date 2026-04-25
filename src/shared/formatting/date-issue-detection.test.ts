@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { detectDateIssue, applyDateFix, tryDeriveFromInternalFields } from './date-issue-detection';
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
-import { INTERNAL_FIELD_NAMES } from '@/shared/domain/fields/internal-field-config';
+import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 
 // Helper to create a minimal test run
 function createTestRun(overrides: Partial<ParsedGameRun> = {}): ParsedGameRun {
@@ -68,8 +68,8 @@ describe('detectDateIssue', () => {
     it('should detect missing battleDate but fixable from internal fields', () => {
       const run = createTestRun({
         fields: {
-          [INTERNAL_FIELD_NAMES.DATE]: createField('2025-01-15'),
-          [INTERNAL_FIELD_NAMES.TIME]: createField('13:45:00'),
+          [_DATE_NODE.id]: createField('2025-01-15'),
+          [_TIME_NODE.id]: createField('13:45:00'),
         },
       });
 
@@ -127,8 +127,8 @@ describe('detectDateIssue', () => {
       const run = createTestRun({
         fields: {
           battleDate: createField('invalid-date'),
-          [INTERNAL_FIELD_NAMES.DATE]: createField('2025-02-10'),
-          [INTERNAL_FIELD_NAMES.TIME]: createField('09:30:00'),
+          [_DATE_NODE.id]: createField('2025-02-10'),
+          [_TIME_NODE.id]: createField('09:30:00'),
         },
         dateValidationError: {
           code: 'invalid-format',
@@ -151,8 +151,8 @@ describe('detectDateIssue', () => {
     it('should prefer internal fields over user-selected date', () => {
       const run = createTestRun({
         fields: {
-          [INTERNAL_FIELD_NAMES.DATE]: createField('2025-01-15'),
-          [INTERNAL_FIELD_NAMES.TIME]: createField('13:45:00'),
+          [_DATE_NODE.id]: createField('2025-01-15'),
+          [_TIME_NODE.id]: createField('13:45:00'),
         },
       });
       const userDate = new Date('2025-03-20T14:30:00');
@@ -166,7 +166,7 @@ describe('detectDateIssue', () => {
     it('should fall back to user-selected when internal fields incomplete', () => {
       const run = createTestRun({
         fields: {
-          [INTERNAL_FIELD_NAMES.DATE]: createField('2025-01-15'),
+          [_DATE_NODE.id]: createField('2025-01-15'),
           // Missing _time field
         },
       });
@@ -258,8 +258,8 @@ describe('applyDateFix', () => {
 describe('tryDeriveFromInternalFields', () => {
   it('should return success when both _date and _time fields are present and valid', () => {
     const fields: Record<string, GameRunField> = {
-      [INTERNAL_FIELD_NAMES.DATE]: createField('2025-01-15'),
-      [INTERNAL_FIELD_NAMES.TIME]: createField('13:45:00'),
+      [_DATE_NODE.id]: createField('2025-01-15'),
+      [_TIME_NODE.id]: createField('13:45:00'),
     };
 
     const result = tryDeriveFromInternalFields(fields);
@@ -277,7 +277,7 @@ describe('tryDeriveFromInternalFields', () => {
 
   it('should return failure when _date field is missing', () => {
     const fields: Record<string, GameRunField> = {
-      [INTERNAL_FIELD_NAMES.TIME]: createField('13:45:00'),
+      [_TIME_NODE.id]: createField('13:45:00'),
     };
 
     const result = tryDeriveFromInternalFields(fields);
@@ -290,7 +290,7 @@ describe('tryDeriveFromInternalFields', () => {
 
   it('should return failure when _time field is missing', () => {
     const fields: Record<string, GameRunField> = {
-      [INTERNAL_FIELD_NAMES.DATE]: createField('2025-01-15'),
+      [_DATE_NODE.id]: createField('2025-01-15'),
     };
 
     const result = tryDeriveFromInternalFields(fields);
@@ -314,8 +314,8 @@ describe('tryDeriveFromInternalFields', () => {
 
   it('should return failure when date format is invalid', () => {
     const fields: Record<string, GameRunField> = {
-      [INTERNAL_FIELD_NAMES.DATE]: createField('invalid-date'),
-      [INTERNAL_FIELD_NAMES.TIME]: createField('13:45:00'),
+      [_DATE_NODE.id]: createField('invalid-date'),
+      [_TIME_NODE.id]: createField('13:45:00'),
     };
 
     const result = tryDeriveFromInternalFields(fields);

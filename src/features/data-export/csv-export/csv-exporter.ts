@@ -6,15 +6,16 @@ import { getImportFormat, getDisplayLocale } from '@/shared/locale/locale-store'
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
 import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from '../../../shared/formatting/date-formatters';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
-import {
-  INTERNAL_FIELD_MAPPINGS,
-  INTERNAL_FIELD_ORDER,
-  INTERNAL_FIELD_NAMES,
-  isInternalField,
-  type InternalFieldName
-} from '@/shared/domain/fields/internal-field-config';
 import { encodeNotesForStorage } from '@/shared/domain/fields/notes-encoding';
 import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
+import { appGraph } from '@/shared/domain/field-graph';
+import {
+  _DATE_NODE,
+  _NOTES_NODE,
+  _RANK_NODE,
+  _RUN_TYPE_NODE,
+  _TIME_NODE,
+} from '@/shared/domain/field-graph/catalog/fields.nodes';
 
 // Interface for field information
 interface FieldInfo {
@@ -63,19 +64,24 @@ export interface CsvExportResult {
 
 /**
  * Get all unique field keys from runs with their original keys
- * Orders fields: internal fields first (_date, _time, _notes, _runType), then battle_date, then alphabetically
+ * Orders fields: internal fields first (_date, _time, _notes, _runType, _rank), then battle_date, then alphabetically
  */
 function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
+  const graph = appGraph();
+  const internalFieldOrder = graph.internalFields();
+  const internalFieldRank = new Map(internalFieldOrder.map((id, idx) => [id, idx]));
+
   const fieldMap = new Map<string, FieldInfo>();
 
-  // Add internal fields if they exist in any run
-  for (const [fieldName, originalKey] of Object.entries(INTERNAL_FIELD_MAPPINGS)) {
-    // Check if any run has this internal field
+  // Add internal fields (in graph-declared order) if they exist in any run.
+  // CSV header comes from HAS_CSV_HEADER; if the override is missing the
+  // canonical id is the safest fallback.
+  for (const fieldName of internalFieldOrder) {
     const hasField = runs.some(run => run.fields[fieldName]);
     if (hasField) {
       fieldMap.set(fieldName, {
         fieldName,
-        originalKey,
+        originalKey: graph.csvHeaderOf(fieldName) ?? fieldName,
         isAppGenerated: true
       });
     }
@@ -84,8 +90,9 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
   // Collect all fields from runs (including battle_date and other game fields)
   for (const run of runs) {
     for (const [fieldName, field] of Object.entries(run.fields)) {
-      // Skip internal fields (already added above)
-      if (isInternalField(fieldName)) continue;
+      // Skip internal fields (already added above) — rank map doubles as the
+      // membership check, so the graph stays the single source of truth.
+      if (internalFieldRank.has(fieldName)) continue;
 
       if (!fieldMap.has(fieldName)) {
         fieldMap.set(fieldName, {
@@ -98,16 +105,12 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
   }
 
   return Array.from(fieldMap.values()).sort((a, b) => {
-    // Sort internal fields first in specific order
-    const aIsInternal = isInternalField(a.fieldName);
-    const bIsInternal = isInternalField(b.fieldName);
+    const aRank = internalFieldRank.get(a.fieldName);
+    const bRank = internalFieldRank.get(b.fieldName);
 
-    if (aIsInternal && !bIsInternal) return -1;
-    if (!aIsInternal && bIsInternal) return 1;
-
-    if (aIsInternal && bIsInternal) {
-      return INTERNAL_FIELD_ORDER.indexOf(a.fieldName as InternalFieldName) - INTERNAL_FIELD_ORDER.indexOf(b.fieldName as InternalFieldName);
-    }
+    if (aRank !== undefined && bRank !== undefined) return aRank - bRank;
+    if (aRank !== undefined) return -1;
+    if (bRank !== undefined) return 1;
 
     // battle_date comes first among game fields
     if (a.fieldName === 'battleDate' && b.fieldName !== 'battleDate') return -1;
@@ -138,19 +141,19 @@ function detectDelimiterConflicts(
       
       if (fieldInfo.isAppGenerated) {
         // Handle internal app-generated fields
-        if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.DATE) {
-          const dateField = run.fields[INTERNAL_FIELD_NAMES.DATE];
+        if (fieldInfo.fieldName === _DATE_NODE.id) {
+          const dateField = run.fields[_DATE_NODE.id];
           value = dateField?.rawValue || formatIsoDate(run.timestamp);
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.TIME) {
-          const timeField = run.fields[INTERNAL_FIELD_NAMES.TIME];
+        } else if (fieldInfo.fieldName === _TIME_NODE.id) {
+          const timeField = run.fields[_TIME_NODE.id];
           value = timeField?.rawValue || formatIsoTime(run.timestamp);
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.NOTES) {
+        } else if (fieldInfo.fieldName === _NOTES_NODE.id) {
           // Encode notes to escape tabs/newlines that would break CSV format
-          value = encodeNotesForStorage(run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '');
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
-          value = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RANK) {
-          value = run.fields[INTERNAL_FIELD_NAMES.RANK]?.rawValue || '';
+          value = encodeNotesForStorage(run.fields[_NOTES_NODE.id]?.rawValue || '');
+        } else if (fieldInfo.fieldName === _RUN_TYPE_NODE.id) {
+          value = run.fields[_RUN_TYPE_NODE.id]?.rawValue || run.runType;
+        } else if (fieldInfo.fieldName === _RANK_NODE.id) {
+          value = run.fields[_RANK_NODE.id]?.rawValue || '';
         }
       } else {
         // Handle regular game fields (including battle_date)
@@ -320,19 +323,19 @@ export function exportToCsv(
 
       if (fieldInfo.isAppGenerated) {
         // Handle internal app-generated fields (non-numeric, use rawValue)
-        if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.DATE) {
-          const dateField = run.fields[INTERNAL_FIELD_NAMES.DATE];
+        if (fieldInfo.fieldName === _DATE_NODE.id) {
+          const dateField = run.fields[_DATE_NODE.id];
           value = dateField?.rawValue || formatIsoDate(run.timestamp);
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.TIME) {
-          const timeField = run.fields[INTERNAL_FIELD_NAMES.TIME];
+        } else if (fieldInfo.fieldName === _TIME_NODE.id) {
+          const timeField = run.fields[_TIME_NODE.id];
           value = timeField?.rawValue || formatIsoTime(run.timestamp);
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.NOTES) {
+        } else if (fieldInfo.fieldName === _NOTES_NODE.id) {
           // Encode notes to escape tabs/newlines that would break CSV format
-          value = encodeNotesForStorage(run.fields[INTERNAL_FIELD_NAMES.NOTES]?.rawValue || '');
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RUN_TYPE) {
-          value = run.fields[INTERNAL_FIELD_NAMES.RUN_TYPE]?.rawValue || run.runType;
-        } else if (fieldInfo.fieldName === INTERNAL_FIELD_NAMES.RANK) {
-          value = run.fields[INTERNAL_FIELD_NAMES.RANK]?.rawValue || '';
+          value = encodeNotesForStorage(run.fields[_NOTES_NODE.id]?.rawValue || '');
+        } else if (fieldInfo.fieldName === _RUN_TYPE_NODE.id) {
+          value = run.fields[_RUN_TYPE_NODE.id]?.rawValue || run.runType;
+        } else if (fieldInfo.fieldName === _RANK_NODE.id) {
+          value = run.fields[_RANK_NODE.id]?.rawValue || '';
         }
       } else {
         // Handle regular game fields (including battle_date)

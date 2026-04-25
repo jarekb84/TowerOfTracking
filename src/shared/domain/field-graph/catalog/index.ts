@@ -3,6 +3,7 @@ import * as categoryNodes from './categories.nodes';
 import * as enumValueNodes from './enum-values.nodes';
 import { ENUM_VALUE_EDGES } from './enum-values.edges';
 import * as fieldNodes from './fields.nodes';
+import { INTERNAL_FIELD_EDGES } from './internal-fields.edges';
 import * as schemaNodes from './schemas.nodes';
 import * as sectionNodes from './sections.nodes';
 import * as viewNodes from './views.nodes';
@@ -38,7 +39,10 @@ export const CATALOG_NODES: readonly Node[] = [
 // Aggregate of every declared catalog edge. Introduced in commit 4
 // (ACCEPTS_VALUE for _runType) and extended by each subsequent phase-2
 // commit.
-export const CATALOG_EDGES: readonly Edge[] = [...ENUM_VALUE_EDGES];
+export const CATALOG_EDGES: readonly Edge[] = [
+  ...ENUM_VALUE_EDGES,
+  ...INTERNAL_FIELD_EDGES,
+];
 
 // Re-export the per-kind module namespaces so the rest of the codebase has
 // one canonical import path for node handles. `RUN_TYPE_ENUM_NODES` and
@@ -50,3 +54,4 @@ export * from './views.nodes';
 export * from './schemas.nodes';
 export * from './enum-values.nodes';
 export * from './enum-values.edges';
+export * from './internal-fields.edges';

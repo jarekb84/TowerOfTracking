@@ -3,7 +3,7 @@
 > **Revised 2026-04-19 based on author feedback.** This revision overwrites the
 > prior pass. Decisions below reflect the author's current position.
 >
-> **Decision summary (30-second read):**
+> **Recommendation summary (30-second read):**
 > - **Option B** — named `*_NODE` exports, one per `fieldNode(...)` call, all
 >   in one file (`catalog/fields.nodes.ts`) grouped by section with
 >   comment-bar headers.
@@ -25,6 +25,42 @@
 > Partner doc to [`EXPLORATION-node-identity.md`](./EXPLORATION-node-identity.md)
 > (A–G enumeration and tentative B+C recommendation). Read first:
 > [`field-graph-for-ai.md`](./field-graph-for-ai.md) §critical invariants.
+
+---
+
+## Human decision
+
+> **This section was added retroactively on 2026-04-25** as the "Human decision"
+> convention was not yet established when this doc landed. Content reconstructed
+> from the doc itself + the EPIC's commit-4 status + the rules in the EPIC's
+> preamble §10 ("Conventions locked by commits 1–4").
+
+**Decided 2026-04-19 by Jarek (project owner):**
+
+Adopt the recommendation summary above wholesale. Specifically:
+
+- **Option B** for node identity — named `*_NODE` exports per `fieldNode(...)` call, all in one file per kind (`catalog/fields.nodes.ts`, `catalog/sections.nodes.ts`, etc.).
+- **Option C polymorphism** — `FieldRef = string | Node` on every query method. Returns stay `readonly string[]`.
+- **Catalog aggregation via `import * as` + structural `Object.values` filter** — non-node helpers (lookup records, helper fns) coexist with node handles in the same module.
+- **Variable naming: `SECTION__FIELD_NODE`** with double-underscore separator. Internal fields preserve their leading `_` (`_DATE_NODE`).
+- **Compile-time `readonly` only** — no `Object.freeze`.
+- **`enumValueMeta` returns enriched metadata** — `id`, `wireValue`, optional `displayName`, optional `color` — collapsing two-step lookup chains.
+
+**Reasoning (the human's words at the time):**
+
+The recommendation aligned with the project's existing conventions (single-file per kind, `import * as` aggregation pattern already used elsewhere) and minimized churn against in-flight commit-4 work. The polymorphic `FieldRef` won out over string-only because consumers that already hold a `*_NODE` handle gain refactor-safety; consumers at the parser boundary (raw strings from clipboard / storage) are explicitly carved out via `getField` and `resolveFieldByAnyKey`. Compile-time `readonly` chosen over `Object.freeze` because the build-time invariants in `FieldGraph`'s constructor catch every concrete way nodes get mis-shaped at this scale; runtime freezing is a tax for protection nothing currently needs.
+
+**Scope of decision (which commits implement it):**
+
+- **Commit 4** absorbed all six bullets above. The implementation shipped alongside commit 4's `_runType` enum cutover.
+- **Locked into the EPIC preamble §10** as "Conventions locked by commits 1–4" — every subsequent phase-2/3 commit follows these defaults; deviation requires explicit justification.
+- **`field-graph-for-ai.md` updated** with the polymorphic-input guidance, the named-export rename pattern, and the `enumValueMeta` shape.
+
+**Status:** Accepted; implemented in commit 4 (2026-04-25); locked as a project convention.
+
+**Future revisit triggers:**
+
+If the field count grows past ~500 (5× current), Option F (codegen) starts earning its keep — the named-export file would become unwieldy by hand. Revisit at that point. If a real performance issue emerges from Map lookups on the graph singleton, Option D (OOP with closures) becomes worth re-examining; today the indexed lookups are O(1) and unmeasured-but-fine.
 
 ---
 

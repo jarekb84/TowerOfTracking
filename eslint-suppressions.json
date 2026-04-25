@@ -112,7 +112,7 @@
   },
   "src/features/data-export/csv-export/csv-exporter.ts": {
     "complexity": {
-      "count": 3
+      "count": 2
     },
     "max-statements": {
       "count": 3

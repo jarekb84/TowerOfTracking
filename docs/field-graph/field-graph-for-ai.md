@@ -289,3 +289,17 @@ Good (describes consumer semantics):
   don't manufacture graph edges for throwaway toggles.
 - Runtime-only state (filter selections, sort order, UI toggles). The graph
   is the catalog; transient UI state is component state.
+
+## Exploration docs (when you're spinning up a side investigation)
+
+If a commit raises an architectural question worth a deep-dive, capture it as
+`docs/field-graph/EXPLORATION-<topic>.md`. Every exploration doc carries a
+`## Human decision` section near the top — the model writes the recommendation;
+the human fills in the decision, reasoning (preserved as a direct quote where
+possible), deviations from the recommendation, scope, status, and revisit
+triggers. Lightweight ADR pattern, no separate tracker. See
+[`prompt-skeleton.md`](./prompt-skeleton.md) §"Exploration-doc convention" for
+the full template, and existing docs (e.g.
+[`EXPLORATION-tag-vs-edge.md`](./EXPLORATION-tag-vs-edge.md),
+[`EXPLORATION-node-identity-abc-deep-dive.md`](./EXPLORATION-node-identity-abc-deep-dive.md))
+for the format.

@@ -370,3 +370,62 @@ describe('FieldGraph enum-value consumer API', () => {
   });
 });
 
+describe('FieldGraph internal-field consumer API', () => {
+  function buildInternalFieldGraph(): FieldGraph {
+    return new FieldGraph(
+      [
+        fieldNode('_date'),
+        fieldNode('_time'),
+        fieldNode('plainField'),
+      ],
+      [
+        edge('_date', 'IS_INTERNAL_FIELD'),
+        edge('_date', 'HAS_CSV_HEADER', '_Date'),
+        edge('_time', 'IS_INTERNAL_FIELD'),
+        edge('_time', 'HAS_CSV_HEADER', '_Time'),
+      ],
+    );
+  }
+
+  it('internalFields returns ids in declaration order', () => {
+    const graph = buildInternalFieldGraph();
+    expect(graph.internalFields()).toEqual(['_date', '_time']);
+  });
+
+  it('isInternalField is true for marked fields and false otherwise', () => {
+    const graph = buildInternalFieldGraph();
+    expect(graph.isInternalField('_date')).toBe(true);
+    expect(graph.isInternalField('_time')).toBe(true);
+    expect(graph.isInternalField('plainField')).toBe(false);
+    expect(graph.isInternalField('missing')).toBe(false);
+  });
+
+  it('csvHeaderOf returns the declared header or undefined', () => {
+    const graph = buildInternalFieldGraph();
+    expect(graph.csvHeaderOf('_date')).toBe('_Date');
+    expect(graph.csvHeaderOf('_time')).toBe('_Time');
+    expect(graph.csvHeaderOf('plainField')).toBeUndefined();
+    expect(graph.csvHeaderOf('missing')).toBeUndefined();
+  });
+
+  it('IS_INTERNAL_FIELD has cardinality one — duplicate edges throw', () => {
+    expect(() => new FieldGraph(
+      [fieldNode('_date')],
+      [
+        edge('_date', 'IS_INTERNAL_FIELD'),
+        edge('_date', 'IS_INTERNAL_FIELD'),
+      ],
+    )).toThrow(/IS_INTERNAL_FIELD cardinality 'one' violated.*'_date'.*2 edges/);
+  });
+
+  it('HAS_CSV_HEADER has cardinality one — duplicate edges throw', () => {
+    expect(() => new FieldGraph(
+      [fieldNode('_date')],
+      [
+        edge('_date', 'HAS_CSV_HEADER', '_Date'),
+        edge('_date', 'HAS_CSV_HEADER', '_DateAlt'),
+      ],
+    )).toThrow(/HAS_CSV_HEADER cardinality 'one' violated.*'_date'.*2 edges/);
+  });
+});
+

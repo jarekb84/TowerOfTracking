@@ -17,10 +17,10 @@ import {
   formatIsoTime
 } from '@/shared/formatting/date-formatters';
 import {
-  INTERNAL_FIELD_NAMES,
   isLegacyField,
   getMigratedFieldName
 } from '@/shared/domain/fields/internal-field-config';
+import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 
 /**
  * Derive _date and _time fields from battle_date
@@ -226,8 +226,8 @@ export function parseGameRun(
         const derived = deriveDateTimeFromBattleDate(validationResult.date);
 
         // Add derived internal fields (these won't be in the original game export)
-        fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
-        fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
+        fields[_DATE_NODE.id] = createInternalField('Date', derived.date);
+        fields[_TIME_NODE.id] = createInternalField('Time', derived.time);
       } else {
         // battle_date parsing failed - capture error and fall back to customTimestamp or current time
         dateValidationError = validationResult.error;

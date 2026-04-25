@@ -10,7 +10,8 @@ import type {
 } from './types';
 import { createGameRunField, createInternalField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 import { deriveDateTimeFromBattleDate } from '@/features/analysis/shared/parsing/data-parser';
-import { INTERNAL_FIELD_NAMES, isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
+import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
+import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 import { validateBattleDate, parseTimestampFromFields } from '@/shared/formatting/date-formatters';
 import { tryDeriveFromInternalFields } from '@/shared/formatting/date-issue-detection';
 import { detectDelimiter } from './csv-helpers';
@@ -126,7 +127,7 @@ function createWarningContext(fields: Record<string, GameRunField>): DateValidat
 function shouldDeriveDateTimeFields(
   fields: Record<string, GameRunField>
 ): boolean {
-  const hasExistingDateFields = !!(fields[INTERNAL_FIELD_NAMES.DATE] && fields[INTERNAL_FIELD_NAMES.TIME]);
+  const hasExistingDateFields = !!(fields[_DATE_NODE.id] && fields[_TIME_NODE.id]);
   return !hasExistingDateFields;
 }
 
@@ -167,8 +168,8 @@ function processBattleDateField(
     // Only derive _date/_time if they don't already exist in the data
     if (shouldDeriveDateTimeFields(fields)) {
       const derived = deriveDateTimeFromBattleDate(validationResult.date);
-      fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
-      fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
+      fields[_DATE_NODE.id] = createInternalField('Date', derived.date);
+      fields[_TIME_NODE.id] = createInternalField('Time', derived.time);
     }
     return null;
   }

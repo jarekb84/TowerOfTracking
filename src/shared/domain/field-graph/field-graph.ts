@@ -355,6 +355,39 @@ export class FieldGraph {
     return this.terminalOf(this.toId(node), 'HAS_COLOR');
   }
 
+  // ---- Internal-field queries ----
+  //
+  // `_date`, `_time`, `_notes`, `_runType`, `_rank` are app-managed metadata
+  // distinct from V3 game fields. The graph identifies them via an
+  // IS_INTERNAL_FIELD marker edge. Per-field CSV headers (`_Date`, `_Run Type`,
+  // …) live as HAS_CSV_HEADER terminal edges so the exporter does not have to
+  // special-case internal fields.
+
+  /**
+   * Field ids carrying an IS_INTERNAL_FIELD edge, in declaration order. Used
+   * by the CSV exporter to place internal-field columns first in canonical
+   * order.
+   */
+  internalFields(): readonly string[] {
+    return (this.edgesByType.get('IS_INTERNAL_FIELD') ?? []).map((e) => e.from);
+  }
+
+  /** True when `field` carries an IS_INTERNAL_FIELD marker edge. */
+  isInternalField(field: FieldRef): boolean {
+    return (this.edgesFromIdx.get(this.toId(field)) ?? []).some(
+      (e) => e.type === 'IS_INTERNAL_FIELD',
+    );
+  }
+
+  /**
+   * Custom CSV header for `field` (e.g. `_Date` for `_date`). Returns
+   * undefined when the field has no override; callers fall back to their own
+   * default-header derivation.
+   */
+  csvHeaderOf(field: FieldRef): string | undefined {
+    return this.terminalOf(this.toId(field), 'HAS_CSV_HEADER');
+  }
+
   private terminalOf(nodeId: string, type: EdgeType): string | undefined {
     const match = (this.edgesFromIdx.get(nodeId) ?? []).find((e) => e.type === type);
     return match?.to;

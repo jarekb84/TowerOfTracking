@@ -7,7 +7,7 @@
 
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
 import type { BattleDateValidationError } from './date-validation.types';
-import { INTERNAL_FIELD_NAMES } from '@/shared/domain/fields/internal-field-config';
+import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 import { constructDate, createBattleDateField } from './date-formatters';
 
 /**
@@ -70,8 +70,8 @@ interface DateDerivationResult {
 export function tryDeriveFromInternalFields(
   fields: Record<string, GameRunField>
 ): DateDerivationResult {
-  const dateField = fields[INTERNAL_FIELD_NAMES.DATE];
-  const timeField = fields[INTERNAL_FIELD_NAMES.TIME];
+  const dateField = fields[_DATE_NODE.id];
+  const timeField = fields[_TIME_NODE.id];
 
   const dateValue = dateField?.rawValue;
   const timeValue = timeField?.rawValue;

@@ -11,7 +11,12 @@
  */
 
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
-import { INTERNAL_FIELD_NAMES } from './fields/internal-field-config';
+import {
+  _DATE_NODE,
+  _NOTES_NODE,
+  _RUN_TYPE_NODE,
+  _TIME_NODE,
+} from './field-graph/catalog/fields.nodes';
 import { detectDelimiter } from '@/features/data-import/csv-import/csv-helpers';
 
 // Storage keys
@@ -23,10 +28,10 @@ export const CURRENT_DATA_VERSION = 2;
 
 // Legacy field names that need migration
 const LEGACY_FIELD_MIGRATIONS: Record<string, string> = {
-  'date': INTERNAL_FIELD_NAMES.DATE,
-  'time': INTERNAL_FIELD_NAMES.TIME,
-  'notes': INTERNAL_FIELD_NAMES.NOTES,
-  'runType': INTERNAL_FIELD_NAMES.RUN_TYPE
+  'date': _DATE_NODE.id,
+  'time': _TIME_NODE.id,
+  'notes': _NOTES_NODE.id,
+  'runType': _RUN_TYPE_NODE.id
 };
 
 /**
