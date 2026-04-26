@@ -40,8 +40,8 @@ export type EdgeType =
   // Terminal-target (to is a plain string, not a node id)
   | 'HAS_DISPLAY_NAME'
   | 'HAS_COLOR'
-  | 'HAS_DATA_TYPE'
   | 'HAS_CSV_HEADER'
+  | 'IS_OF_TYPE'
   | 'HAS_STRING_VALUE'
   // Payload-only (legacy key lives in payload.legacyKey; `to` is absent)
   | 'RENAMED_FROM';
@@ -98,7 +98,14 @@ export const EDGE_META: Readonly<Record<EdgeType, EdgeMeta>> = {
   IS_INTERNAL_FIELD: { sourceKind: 'Field', targetKind: 'none', cardinality: 'one' },
   HAS_DISPLAY_NAME: { sourceKind: ['Field', 'EnumValue'], targetKind: 'terminal', cardinality: 'one' },
   HAS_COLOR: { sourceKind: ['Field', 'EnumValue'], targetKind: 'terminal', cardinality: 'one' },
-  HAS_DATA_TYPE: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
+  // Cardinality is `'one'` (max-one), not `'at-least-one'`. The production-
+  // catalog universality is enforced by the explicit invariant test in
+  // `catalog/edges/data-types/data-types.invariants.test.ts`. Per the
+  // engine's cardinality semantics, `'at-least-one'` would also fail
+  // fixture-graph builds across the test suite (every test that uses a
+  // Field node would have to declare its type). The invariant-test
+  // approach gives the same production guarantee without the fixture tax.
+  IS_OF_TYPE: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
   HAS_CSV_HEADER: { sourceKind: 'Field', targetKind: 'terminal', cardinality: 'one' },
   HAS_STRING_VALUE: { sourceKind: 'EnumValue', targetKind: 'terminal', cardinality: 'one' },
   RENAMED_FROM: { sourceKind: 'Field', targetKind: 'none', cardinality: 'many' },

@@ -5,38 +5,36 @@ import {
   formatLargeNumber
 } from '../../../../shared/formatting/number-scale';
 import { decodeNotesFromStorage } from '@/shared/domain/fields/notes-encoding';
+import { dataTypeOf, type DataType } from '@/shared/domain/field-graph';
 
 // Field configuration for processing rules
 interface FieldConfig {
-  type: 'number' | 'duration' | 'string' | 'date';
+  type: DataType;
 }
 
-// Exact match field configurations - O(1) lookup instead of if-chain
-const EXACT_FIELD_CONFIGS: Record<string, FieldConfig> = {
-  // Internal fields (prefixed with underscore)
-  '_date': { type: 'date' },
-  'date': { type: 'date' },
-  '_time': { type: 'date' },
-  'time': { type: 'date' },
-  '_notes': { type: 'string' },
-  'notes': { type: 'string' },
-  '_runtype': { type: 'string' },
-  'runtype': { type: 'string' },
-  '_run_type': { type: 'string' },
-  'run_type': { type: 'string' },
-  // Battle date variants
-  'battle date': { type: 'date' },
-  'battledate': { type: 'date' },
-  'battle_date': { type: 'date' },
-  // Other string fields
-  'killed by': { type: 'string' },
-};
+// V2-display-label fallbacks for type detection. Catches the cases where the
+// display label doesn't trivially derive to the V3 canonical id (e.g. 'Real
+// Time' → 'realTime' but the graph node is 'battleReport_realTime'). Commit
+// 10 (RENAMED_FROM edges) closes this gap by letting `dataTypeOf` resolve
+// the V3 canonical from the legacy key — at which point this entire helper
+// + its callers can disappear.
+function legacyTypeFallback(key: string, rawValue?: string): DataType {
+  const lower = key.toLowerCase();
 
-// Pattern-based field detection (order matters - first match wins)
-const PATTERN_FIELD_CONFIGS: Array<{ pattern: string; config: FieldConfig }> = [
-  { pattern: 'time', config: { type: 'duration' } },
-  { pattern: 'date', config: { type: 'date' } },
-];
+  // Tier with '+' suffix (e.g., "10+") is a string indicator for tournament.
+  if (lower === 'tier' && rawValue?.includes('+')) return 'string';
+
+  // V2 'Killed By' display label — game string, not numeric. Becomes a
+  // RENAMED_FROM edge to `battleReport_killedBy` in commit 10.
+  if (lower === 'killed by') return 'string';
+
+  // Substring patterns catch V2 labels like 'Real Time' (duration), 'Battle
+  // Date' (date) that haven't been folded into the graph as RENAMED_FROM yet.
+  if (lower.includes('time')) return 'duration';
+  if (lower.includes('date')) return 'date';
+
+  return 'number';
+}
 
 // Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
 function parseDuration(duration: string): number {
@@ -71,23 +69,25 @@ function formatDuration(seconds: number): string {
   return parts.join(' ') || '0s';
 }
 
-function getFieldConfig(key: string, rawValue?: string): FieldConfig {
-  const lowerKey = key.toLowerCase();
-
-  // 1. Check exact match first (O(1) lookup)
-  const exactMatch = EXACT_FIELD_CONFIGS[lowerKey];
-  if (exactMatch) return exactMatch;
-
-  // 2. Special case: tier with '+' suffix (e.g., "10+") is a string
-  if (lowerKey === 'tier' && rawValue?.includes('+')) return { type: 'string' };
-
-  // 3. Check pattern-based matches
-  for (const { pattern, config } of PATTERN_FIELD_CONFIGS) {
-    if (lowerKey.includes(pattern)) return config;
+// Derive a candidate canonical field id from a CSV / clipboard column label.
+// `_Run Type` → `_runType`; `Battle Date` → `battleDate`; `Tier` → `tier`.
+// V3 canonical ids that match a graph node land via the first lookup in
+// `getFieldConfig`; V2 labels that don't yet have a `RENAMED_FROM` edge fall
+// through to `legacyTypeFallback`.
+function deriveCanonicalKey(originalKey: string): string {
+  if (originalKey.startsWith('_')) {
+    return '_' + toCamelCase(originalKey.slice(1));
   }
+  return toCamelCase(originalKey);
+}
 
-  // 4. Default to number
-  return { type: 'number' };
+// Resolve a field's data type. Graph wins; legacy V2 display-label heuristics
+// only run when the graph has no opinion (passthrough fields, V2-only labels
+// not yet declared as RENAMED_FROM).
+function getFieldConfig(originalKey: string, rawValue?: string): FieldConfig {
+  const declared = dataTypeOf(deriveCanonicalKey(originalKey));
+  if (declared) return { type: declared };
+  return { type: legacyTypeFallback(originalKey, rawValue) };
 }
 
 /**
@@ -217,21 +217,26 @@ export function extractTimestampFromFields(fields: Record<string, GameRunField>)
 }
 
 /**
- * Create an internal field (app-generated metadata) with string data type
+ * Create an internal field (app-generated metadata) — display-label
+ * passthrough, with `dataType` resolved from the graph.
  *
- * Internal fields are application-controlled metadata (notes, run type, etc.)
- * and always use string data type with simple value pass-through.
+ * The graph (`IS_OF_TYPE` edges in `data-types.edges.ts`) is authoritative.
+ * `_rank` resolves to `'number'`; `_date` to `'date'`; `_notes` / `_runType`
+ * / `_time` to `'string'`. The `'string'` fallback only fires for
+ * unrecognized internal-shaped keys (test fixtures, future fields not yet
+ * in the catalog).
  *
  * @param originalKey - Display name for the field (e.g., "Notes", "Run Type")
  * @param value - The string value to store
- * @returns GameRunField with string data type
+ * @returns GameRunField with graph-driven dataType
  */
 export function createInternalField(originalKey: string, value: string): GameRunField {
+  const dataType = dataTypeOf(deriveCanonicalKey(originalKey)) ?? 'string';
   return {
     value,
     rawValue: value,
     displayValue: value,
     originalKey,
-    dataType: 'string' as const
+    dataType,
   };
 }

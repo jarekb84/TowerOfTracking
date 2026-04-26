@@ -10,7 +10,7 @@ import type { Node } from '../types';
 // app-fields. The field graph must declare exactly that set.
 //
 // A node missing here would cause later commits (BELONGS_TO_SECTION,
-// HAS_DATA_TYPE, …) to fail with dangling-edge errors; a node present here
+// IS_OF_TYPE, …) to fail with dangling-edge errors; a node present here
 // but absent from the schema would pollute queries with ghost fields.
 //
 // Drift protection: a `fieldNode(...)` call that forgets `export const`

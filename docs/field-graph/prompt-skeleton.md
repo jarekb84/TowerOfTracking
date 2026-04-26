@@ -21,7 +21,7 @@ Constraints:
 - Follow the React separation and code-org rules in CLAUDE.md.
 - `npm run integration-precheck` must pass before the commit lands.
 - If a prior commit's work turns out to be incomplete, STOP and flag it; do not silently fix it.
-- Never mark the commit DONE in the epic yourself — tell me what you finished and I will update status after local verification.
+- **Mark the commit DONE in the epic at the end of your initial implementation pass.** Flip its checkbox `[ ]` → `[x]` and change `Status: TODO` → `Status: DONE` in `EPIC-migration.md`. The user reviews the diff and pushes back if they disagree — that's cheaper than them having to update it manually every time. **Exception:** if your "Smells & questions" report-back surfaces a *material* architectural question that might restructure the commit (not a minor polish concern — a "should this commit even exist in this shape" question), DO NOT mark it done. Surface the question, leave the marker `[ ]`, and say explicitly in your report "not marking done because <question>." The user's decision drives whether to mark, revert, or restructure.
 - If you introduce any temporary suppression (`eslint-disable`, `test.skip`, ESLint config override, deferred fixture, loosened lint-staged rule, `@ts-expect-error`, etc.), append a row to [`Migration-era-suppressions.md`](./Migration-era-suppressions.md) in the same PR. Commit 16 audits this file; nothing ships without a row.
 
 Mid-implementation self-check (run these BEFORE you finalize the commit):
@@ -33,7 +33,7 @@ Mid-implementation self-check (run these BEFORE you finalize the commit):
 
 Before reporting back:
 1. Edit docs/field-graph/Notes-and-findings.md and APPEND entries for anything unexpected, deferred, or that later commits need to know about. Use the format `- [YYYY-MM-DD] [commit N] — <note>`. One bullet per observation. The Notes file is the running architectural log; future commits read it.
-2. Do NOT change the commit's status marker (`[ ]` → `[~]` or `[x]`) in the epic. That's the human's call after local verification.
+2. **Mark the commit DONE** in the epic — checkbox `[ ]` → `[x]` and `Status: TODO` → `Status: DONE`. Skip ONLY if a material architectural question is open (per the constraints section above); in that case leave the marker `[ ]` and call it out in your report.
 3. If you updated any later-commit scopes in the epic (per the epic-evolution check above), call that out explicitly in your report so I can sanity-check.
 
 Then report back:
@@ -107,11 +107,11 @@ If during this commit you (or a side agent you spawn) produce an exploration doc
 _(update this line each time you mark a commit DONE.)_
 
 - Last updated: 2026-04-25
-- Commits DONE: 4 / 17 (commits 1–4) — total grew from 16 to 17 with addition of commit 5c.
-- Currently in progress: commit 5
+- Commits DONE: 7 / 16 (commits 1, 2, 3, 4, 5, 5b, 8). Commit 5c was proposed as a separate slot then retired/folded into commit 8 mid-implementation; net commit count is back to 16.
+- Currently in progress: none — commit 8 just landed. Next up: any of commits 6, 7, 9, 10 (their dependencies are met).
 - Recent epic edits:
-  - Commits 6–14 got "Cutover requirement" lines.
-  - Commit 5b expanded to include `Node.tags` removal (per `EXPLORATION-tag-vs-edge.md` recommendation).
-  - **Commit 5c added** — field-aware export extractors (`HAS_CSV_EXTRACTOR` + registry). Eliminates the per-internal-field switch ladder in csv-exporter that commit 5 left intact.
-  - Commit 10 absorbed the legacy-internal-field rename helpers (`internal-field-config.ts` deletion).
-  - Prompt skeleton gained a "conditional-logic elimination" self-check + report-back section after commit 5 surfaced a variable-swap-not-cutover gap.
+  - **Commit 5c retired → folded into commit 8.** Originally a `HAS_CSV_EXTRACTOR` + registry to eliminate the csv-exporter switch ladder. User review surfaced that the underlying axis was data type, not extractors. Redesigned per [`EXPLORATION-data-type-edge-vs-property.md`](./EXPLORATION-data-type-edge-vs-property.md) — every Field declares `IS_OF_TYPE` (renamed from `HAS_DATA_TYPE`), parser becomes graph-driven, csv-exporter ladder collapses naturally via uniform `formatFieldValue` dispatch.
+  - **Commit 8 expanded** to include the `IS_OF_TYPE` rename + the catalog-level [`PATTERN.md`](../../src/shared/domain/field-graph/catalog/PATTERN.md) (four-question litmus for edge-vs-node-property) + the csv-exporter cutover that 5c originally targeted.
+  - **Commit 9 absorbed** the deletion of csv-exporter's transitional `withPopulatedAppFields` preprocessor. Once the IS_DERIVED_FROM cascade ensures `_date` / `_time` / `_runType` are populated at parse time, the preprocessor disappears.
+  - **Commit 16 absorbed** a litmus retrospective + a TypeScript-vs-graph trade-off audit (revisit triggers from the data-type-edge-vs-property ADR).
+  - **Prior:** Commits 6–14 got "Cutover requirement" lines (commit 5 era); commit 5b expanded to include `Node.tags` removal (per `EXPLORATION-tag-vs-edge.md`); commit 10 absorbed the legacy-internal-field rename helpers; prompt skeleton gained a "conditional-logic elimination" self-check + the "mark commit DONE on initial pass with material-question exception" rule.

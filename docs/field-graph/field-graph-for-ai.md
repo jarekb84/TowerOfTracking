@@ -46,7 +46,7 @@ When asked to add a new field (e.g., `coins_dragonBreath`):
    `<NAME>_NODE.id` — never raw strings — so renames stay refactor-safe:
    ```typescript
    edge(COINS__DRAGON_BREATH_NODE.id, 'BELONGS_TO_SECTION', SECTION_COINS_NODE.id),
-   edge(COINS__DRAGON_BREATH_NODE.id, 'HAS_DATA_TYPE', 'number'),
+   edge(COINS__DRAGON_BREATH_NODE.id, 'IS_OF_TYPE', 'number'),
    edge(COINS__DRAGON_BREATH_NODE.id, 'HAS_DISPLAY_NAME', 'Dragon Breath'),
    edge(COINS__DRAGON_BREATH_NODE.id, 'HAS_COLOR', '#7dd3fc'),
    edge(COINS__DRAGON_BREATH_NODE.id, 'IS_SOURCE_OF', BATTLE_REPORT__COINS_EARNED_NODE.id),
@@ -141,6 +141,7 @@ All take a `FieldRef` (string or Node) unless noted.
 | `internalFields()` | `readonly string[]` | All internal app-fields in canonical order (`_date`, `_time`, `_notes`, `_runType`, `_rank`). **No args.** |
 | `isInternalField(field)` | `boolean` | "Is this an app-managed metadata field?" |
 | `csvHeaderOf(field)` | `string \| undefined` | Custom CSV header (e.g. `_Date` for `_date`); undefined when no override. |
+| `dataTypeOf(field)` | `DataType \| undefined` | Declared data type (`'number' \| 'duration' \| 'date' \| 'string'`); reads the `IS_OF_TYPE` edge. Undefined only for undeclared / passthrough fields at the parser boundary. Drives parser + CSV-exporter dispatch. |
 | `displayNameOf(node)` | `string \| undefined` | Human-readable display name; works for both Field and EnumValue sources. |
 | `colorOf(node)` | `string \| undefined` | Hex color; works for both Field and EnumValue sources. |
 
@@ -149,6 +150,27 @@ folder** under `catalog/edges/`, follow
 [`src/shared/domain/field-graph/catalog/edges/PATTERN.md`](../../src/shared/domain/field-graph/catalog/edges/PATTERN.md).
 That file is the single source of truth for the per-concept-directory
 pattern; this guide stays focused on usage.
+
+If you're adding a new *fact about a field* and aren't sure whether it
+should be an edge, a `Node.payload` entry, or a new `Node` property,
+read [`src/shared/domain/field-graph/catalog/PATTERN.md`](../../src/shared/domain/field-graph/catalog/PATTERN.md)
+**before declaring anything**. It contains the four-question litmus
+that the field-graph migration epic locked in via
+[`EXPLORATION-data-type-edge-vs-property.md`](./EXPLORATION-data-type-edge-vs-property.md).
+Short version: edges almost always win — `Node.payload` is the carve-out
+for facts no consumer queries (currently zero such facts exist).
+
+#### The four-question litmus (edge vs node property)
+
+Pass any one → edge. Fail all four → candidate for `Node.payload`.
+
+1. Does any consumer query "find me every node where this fact is X"?
+2. Is the fact the relationship to another named node?
+3. Does the fact drive consumer behavior (parser / formatter / validator / UI)?
+4. Would absence of an explicit declaration constitute a bug?
+
+Worked applications and the doctrine in full live in
+[`catalog/PATTERN.md`](../../src/shared/domain/field-graph/catalog/PATTERN.md).
 
 ### Operation 4: Debugging a missing value
 

@@ -1,10 +1,10 @@
-import type { ParsedGameRun } from '@/shared/types/game-run.types';
+import type { GameRunField, ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
 import { CANONICAL_STORAGE_FORMAT } from '@/shared/locale/types';
 import { getImportFormat, getDisplayLocale } from '@/shared/locale/locale-store';
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
-import { formatIsoDate, formatIsoTime, formatFilenameDateTime } from '../../../shared/formatting/date-formatters';
+import { formatFilenameDateTime, formatIsoDate, formatIsoTime } from '../../../shared/formatting/date-formatters';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
 import { encodeNotesForStorage } from '@/shared/domain/fields/notes-encoding';
 import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
@@ -12,7 +12,6 @@ import { csvHeaderOf, internalFields } from '@/shared/domain/field-graph';
 import {
   _DATE_NODE,
   _NOTES_NODE,
-  _RANK_NODE,
   _RUN_TYPE_NODE,
   _TIME_NODE,
 } from '@/shared/domain/field-graph/catalog/fields.nodes';
@@ -121,44 +120,65 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
 }
 
 /**
+ * Build a string-typed field record. Used by the export preprocessor to
+ * synthesize internal-field rows from cached `ParsedGameRun` properties when
+ * the row didn't carry the field in `fields`.
+ */
+function stringField(rawValue: string): GameRunField {
+  return { value: rawValue, rawValue, displayValue: rawValue, originalKey: '', dataType: 'string' };
+}
+
+/**
+ * Transitional preprocessor: ensures the three internal fields with cached-
+ * property fallbacks (`_date`, `_time`, `_runType`) are populated, and pre-
+ * encodes `_notes` for tab-delimited storage.
+ *
+ * After commit 9 wires `IS_DERIVED_FROM` + a derivation cascade, the parser
+ * will guarantee these fields are populated by the time export runs and the
+ * cached-property branches in this function disappear. Notes encoding moves
+ * to a dedicated edge (or `'user-text'` data-type variant) at the same time.
+ *
+ * Until then, this is the single place where the exporter carries per-field
+ * knowledge — no other site of csv-exporter reads field ids directly.
+ */
+function withPopulatedAppFields(run: ParsedGameRun): ParsedGameRun {
+  const fields = { ...run.fields };
+
+  if (!fields[_DATE_NODE.id]?.rawValue) {
+    fields[_DATE_NODE.id] = stringField(formatIsoDate(run.timestamp));
+  }
+  if (!fields[_TIME_NODE.id]?.rawValue) {
+    fields[_TIME_NODE.id] = stringField(formatIsoTime(run.timestamp));
+  }
+  if (!fields[_RUN_TYPE_NODE.id]?.rawValue) {
+    fields[_RUN_TYPE_NODE.id] = stringField(run.runType);
+  }
+
+  const notesField = fields[_NOTES_NODE.id];
+  if (notesField) {
+    fields[_NOTES_NODE.id] = { ...notesField, rawValue: encodeNotesForStorage(notesField.rawValue) };
+  }
+
+  return { ...run, fields };
+}
+
+/**
  * Detect delimiter conflicts in the data
  */
 function detectDelimiterConflicts(
-  runs: ParsedGameRun[], 
+  runs: ParsedGameRun[],
   delimiter: string,
   includeAppFields: boolean = true
 ): DelimiterConflict[] {
   const conflicts: Map<string, DelimiterConflict> = new Map();
   const fieldKeys = getAllFieldKeys(runs);
-  
-  for (const run of runs) {
+
+  for (const rawRun of runs) {
+    const run = withPopulatedAppFields(rawRun);
     for (const fieldInfo of fieldKeys) {
-      // Skip app fields if not included
       if (fieldInfo.isAppGenerated && !includeAppFields) continue;
-      
-      let value = '';
-      
-      if (fieldInfo.isAppGenerated) {
-        // Handle internal app-generated fields
-        if (fieldInfo.fieldName === _DATE_NODE.id) {
-          const dateField = run.fields[_DATE_NODE.id];
-          value = dateField?.rawValue || formatIsoDate(run.timestamp);
-        } else if (fieldInfo.fieldName === _TIME_NODE.id) {
-          const timeField = run.fields[_TIME_NODE.id];
-          value = timeField?.rawValue || formatIsoTime(run.timestamp);
-        } else if (fieldInfo.fieldName === _NOTES_NODE.id) {
-          // Encode notes to escape tabs/newlines that would break CSV format
-          value = encodeNotesForStorage(run.fields[_NOTES_NODE.id]?.rawValue || '');
-        } else if (fieldInfo.fieldName === _RUN_TYPE_NODE.id) {
-          value = run.fields[_RUN_TYPE_NODE.id]?.rawValue || run.runType;
-        } else if (fieldInfo.fieldName === _RANK_NODE.id) {
-          value = run.fields[_RANK_NODE.id]?.rawValue || '';
-        }
-      } else {
-        // Handle regular game fields (including battle_date)
-        const field = run.fields[fieldInfo.fieldName];
-        value = field?.rawValue || '';
-      }
+
+      const value = run.fields[fieldInfo.fieldName]?.rawValue ?? '';
 
       // Check if value contains delimiter
       if (value.includes(delimiter)) {
@@ -313,36 +333,15 @@ export function exportToCsv(
   });
   lines.push(headers.join(delimiter));
 
-  // Data rows
-  for (const run of runs) {
+  // Data rows. The preprocessor populates internal fields with cached-
+  // property fallbacks and pre-encodes notes; from here on, app + game
+  // fields share one extraction path keyed off `field.dataType`.
+  for (const rawRun of runs) {
+    const run = withPopulatedAppFields(rawRun);
     const values: string[] = [];
 
     for (const fieldInfo of fieldKeys) {
-      let value = '';
-
-      if (fieldInfo.isAppGenerated) {
-        // Handle internal app-generated fields (non-numeric, use rawValue)
-        if (fieldInfo.fieldName === _DATE_NODE.id) {
-          const dateField = run.fields[_DATE_NODE.id];
-          value = dateField?.rawValue || formatIsoDate(run.timestamp);
-        } else if (fieldInfo.fieldName === _TIME_NODE.id) {
-          const timeField = run.fields[_TIME_NODE.id];
-          value = timeField?.rawValue || formatIsoTime(run.timestamp);
-        } else if (fieldInfo.fieldName === _NOTES_NODE.id) {
-          // Encode notes to escape tabs/newlines that would break CSV format
-          value = encodeNotesForStorage(run.fields[_NOTES_NODE.id]?.rawValue || '');
-        } else if (fieldInfo.fieldName === _RUN_TYPE_NODE.id) {
-          value = run.fields[_RUN_TYPE_NODE.id]?.rawValue || run.runType;
-        } else if (fieldInfo.fieldName === _RANK_NODE.id) {
-          value = run.fields[_RANK_NODE.id]?.rawValue || '';
-        }
-      } else {
-        // Handle regular game fields (including battle_date)
-        // Apply number formatting if outputFormat is specified
-        const field = run.fields[fieldInfo.fieldName];
-        value = formatFieldValue(field, formatSettings, config.outputFormat);
-      }
-
+      const value = formatFieldValue(run.fields[fieldInfo.fieldName], formatSettings, config.outputFormat);
       values.push(value);
     }
 

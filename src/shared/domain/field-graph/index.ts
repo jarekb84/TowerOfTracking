@@ -1,5 +1,6 @@
 import { appGraph } from './app-graph';
 import type { FieldRef } from './field-graph';
+import * as dataTypesQ from './catalog/edges/data-types/data-types.queries';
 import * as enumValuesQ from './catalog/edges/enum-values/enum-values.queries';
 import * as internalFieldsQ from './catalog/edges/internal-fields/internal-fields.queries';
 import * as presentationQ from './catalog/edges/presentation/presentation.queries';
@@ -53,6 +54,9 @@ export const enumValueMeta = (field: FieldRef, wireValue: string) =>
 export const internalFields = () => internalFieldsQ.internalFields(appGraph());
 export const isInternalField = (field: FieldRef) => internalFieldsQ.isInternalField(appGraph(), field);
 export const csvHeaderOf = (field: FieldRef) => internalFieldsQ.csvHeaderOf(appGraph(), field);
+
+export const dataTypeOf = (field: FieldRef) => dataTypesQ.dataTypeOf(appGraph(), field);
+export { DATA_TYPES, isDataType, type DataType } from './catalog/edges/data-types/data-types.constants';
 
 export const fieldsInSection = (section: FieldRef) => sectionsQ.fieldsInSection(appGraph(), section);
 export const sectionsOf = (field: FieldRef) => sectionsQ.sectionsOf(appGraph(), field);
