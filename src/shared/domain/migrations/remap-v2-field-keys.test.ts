@@ -13,7 +13,7 @@ function field(raw: string): GameRunField {
 }
 
 describe('remapV2FieldKeys', () => {
-  it('renames v2 keys to v3 keys per V2_TO_V3_FIELD_MAP', () => {
+  it('renames v2 keys to v3 canonical via the graph RENAMED_FROM edges', () => {
     const result = remapV2FieldKeys({
       tier: field('12'),
       coinsEarned: field('228T'),

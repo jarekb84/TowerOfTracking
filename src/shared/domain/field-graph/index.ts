@@ -65,3 +65,11 @@ export const sourcesOf = (totalField: FieldRef) => sourcesQ.sourcesOf(appGraph()
 
 export const displayNameOf = (node: FieldRef) => presentationQ.displayNameOf(appGraph(), node);
 export const colorOf = (node: FieldRef) => presentationQ.colorOf(appGraph(), node);
+
+// Parser/import-boundary lookups (string-only). Accept raw keys from
+// storage / clipboard / CSV; resolve to canonical Field nodes via direct hit
+// or RENAMED_FROM reverse-index lookup. Never call from UI / aggregation
+// code — use `getField` (or pass a `*_NODE` handle through a polymorphic
+// query) everywhere downstream.
+export const getField = (id: string) => appGraph().getField(id);
+export const resolveFieldByAnyKey = (rawKey: string) => appGraph().resolveFieldByAnyKey(rawKey);

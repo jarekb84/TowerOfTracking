@@ -4,8 +4,9 @@
  * All coin source fields with their display names, colors, and aliases.
  * Merged from both Run Details and Source Analysis configurations.
  *
- * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see
- * src/shared/domain/migrations/v2-to-v3-field-map.ts.
+ * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see the
+ * `RENAMED_FROM` edges in
+ * `src/shared/domain/field-graph/catalog/edges/renames/renames.edges.ts`.
  *
  * Note: Cash income sources (`cash_*`) are a separate currency and are
  * NOT included here. This is strictly coin-related income.

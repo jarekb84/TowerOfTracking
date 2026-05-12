@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { V2_TO_V3_FIELD_MAP } from './v2-to-v3-field-map';
+import { appGraph } from '@/shared/domain/field-graph/app-graph';
 import { INTENTIONALLY_DROPPED_V2_FIELDS } from './intentionally-dropped';
 import supportedFields from '../../../../sampleData/supportedFields.json';
 
@@ -48,33 +48,46 @@ function loadCsv(path: string): { header: string[]; rows: Record<string, string>
   return { header, rows };
 }
 
-describe('v2 -> v3 schema inverse-check', () => {
+describe('v2 -> v3 schema inverse-check (graph-driven)', () => {
   const supportedSet = new Set<string>(supportedFields as string[]);
+  const graph = appGraph();
 
-  it('every target key in V2_TO_V3_FIELD_MAP exists in supportedFields.json', () => {
-    const orphans: Array<{ v2: string; v3: string }> = [];
-    for (const [v2, v3] of Object.entries(V2_TO_V3_FIELD_MAP)) {
-      if (!supportedSet.has(v3)) {
-        orphans.push({ v2, v3 });
+  it('every RENAMED_FROM target Field exists in supportedFields.json (or is an internal app-field)', () => {
+    const orphans: Array<{ legacyKey: string; canonical: string }> = [];
+    for (const e of graph.edgesOfType('RENAMED_FROM')) {
+      const payload = e.payload as { legacyKey: string };
+      // Internal fields use underscore prefix and aren't in supportedFields.json (V3 game fields only).
+      if (e.from.startsWith('_')) continue;
+      if (!supportedSet.has(e.from)) {
+        orphans.push({ legacyKey: payload.legacyKey, canonical: e.from });
       }
     }
-    expect(orphans, `Orphaned V3 targets:\n${orphans.map((o) => `  ${o.v2} -> ${o.v3}`).join('\n')}`).toEqual([]);
+    expect(
+      orphans,
+      `Orphaned V3 targets:\n${orphans.map((o) => `  ${o.legacyKey} -> ${o.canonical}`).join('\n')}`,
+    ).toEqual([]);
   });
 
-  it('every v2 game field is either mapped or intentionally dropped', () => {
+  it('every v2 game field is either resolved by the graph or intentionally dropped', () => {
     const { rows } = loadCsv(V2_FIELD_LIST);
     const gameFields = rows.filter((r) => r.kind === 'gameOrCustom').map((r) => r.camelCase);
-    const mapKeys = new Set(Object.keys(V2_TO_V3_FIELD_MAP));
     const droppedKeys = new Set(Object.keys(INTENTIONALLY_DROPPED_V2_FIELDS));
 
-    const unresolved = gameFields.filter((f) => !mapKeys.has(f) && !droppedKeys.has(f));
-    expect(unresolved, `Unresolved V2 fields (add to map or intentionally-dropped):\n${unresolved.map((f) => `  ${f}`).join('\n')}`).toEqual([]);
+    const unresolved = gameFields.filter(
+      (f) => !graph.resolveFieldByAnyKey(f) && !droppedKeys.has(f),
+    );
+    expect(
+      unresolved,
+      `Unresolved V2 fields (declare a RENAMED_FROM edge or add to intentionally-dropped):\n${unresolved.map((f) => `  ${f}`).join('\n')}`,
+    ).toEqual([]);
   });
 
-  it('no v2 field is in both the map and intentionally-dropped', () => {
-    const mapKeys = Object.keys(V2_TO_V3_FIELD_MAP);
+  it('no v2 field is both intentionally-dropped and a declared legacy key', () => {
     const droppedKeys = new Set(Object.keys(INTENTIONALLY_DROPPED_V2_FIELDS));
-    const conflicts = mapKeys.filter((k) => droppedKeys.has(k));
+    const legacyKeys = new Set<string>(
+      graph.edgesOfType('RENAMED_FROM').map((e) => (e.payload as { legacyKey: string }).legacyKey),
+    );
+    const conflicts = [...droppedKeys].filter((k) => legacyKeys.has(k));
     expect(conflicts).toEqual([]);
   });
 

@@ -8,15 +8,18 @@
  * - v1 (legacy): Fields without underscore (date, time, notes, runType)
  * - v2 (current): Internal fields with underscore (_date, _time, _notes, _runType)
  *                 Added battleDate support
+ *
+ * TRANSITIONAL — `migrateRunsV1ToV2` and `migrateCsvOnImport` are exported
+ * but only consumed by their own tests; commit 16 (suppression / dead-code
+ * sweep) drains them. The remaining `migrateDataIfNeeded` + `migrateV1ToV2`
+ * (CSV header text-rewrite for users still on data version 1) stay — they
+ * are storage-format upgrade scheduling, not field-resolution logic. Commit
+ * 11 (`SHIPPED_IN_SCHEMA` edges) wires `CURRENT_DATA_VERSION` to
+ * `graph.currentSchema()` so the version constant stops being hand-maintained.
  */
 
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
-import {
-  _DATE_NODE,
-  _NOTES_NODE,
-  _RUN_TYPE_NODE,
-  _TIME_NODE,
-} from './field-graph/catalog/fields.nodes';
+import { resolveFieldByAnyKey } from './field-graph';
 import { detectDelimiter } from '@/features/data-import/csv-import/csv-helpers';
 
 // Storage keys
@@ -25,14 +28,6 @@ const DATA_KEY = 'tower-tracking-csv-data';
 
 // Current data version
 export const CURRENT_DATA_VERSION = 2;
-
-// Legacy field names that need migration
-const LEGACY_FIELD_MIGRATIONS: Record<string, string> = {
-  'date': _DATE_NODE.id,
-  'time': _TIME_NODE.id,
-  'notes': _NOTES_NODE.id,
-  'runType': _RUN_TYPE_NODE.id
-};
 
 /**
  * Get the current data version from localStorage
@@ -131,28 +126,19 @@ function migrateV1ToV2(csvData: string, delimiter: string = '\t'): string {
 
 /**
  * Migrate runs data structure (in-memory)
- * Converts legacy field names to new internal field names
+ *
+ * Converts V1 internal-field names (`date`, `runType`, ...) to canonical
+ * V2 underscore form (`_date`, `_runType`, ...) by resolving each field
+ * key through the field graph's `RENAMED_FROM` edges.
  */
 export function migrateRunsV1ToV2(runs: ParsedGameRun[]): ParsedGameRun[] {
   return runs.map(run => {
     const newFields: Record<string, GameRunField> = {};
-
-    // Migrate fields
     for (const [fieldName, field] of Object.entries(run.fields)) {
-      const migratedName = LEGACY_FIELD_MIGRATIONS[fieldName];
-      if (migratedName) {
-        // This is a legacy field, migrate it
-        newFields[migratedName] = field;
-      } else {
-        // Keep as-is
-        newFields[fieldName] = field;
-      }
+      const canonical = resolveFieldByAnyKey(fieldName)?.id ?? fieldName;
+      newFields[canonical] = field;
     }
-
-    return {
-      ...run,
-      fields: newFields
-    };
+    return { ...run, fields: newFields };
   });
 }
 

@@ -37,9 +37,6 @@
     "complexity": {
       "count": 4
     },
-    "max-depth": {
-      "count": 1
-    },
     "max-statements": {
       "count": 2
     }

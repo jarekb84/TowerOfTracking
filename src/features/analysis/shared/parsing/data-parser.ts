@@ -16,10 +16,6 @@ import {
   formatIsoDate,
   formatIsoTime
 } from '@/shared/formatting/date-formatters';
-import {
-  isLegacyField,
-  getMigratedFieldName
-} from '@/shared/domain/fields/internal-field-config';
 import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 
 /**
@@ -135,16 +131,11 @@ function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
   const tierStr = tierField?.rawValue || '';
   const runType: RunTypeValue = determineRunType(tierStr);
 
-  // Extract numeric tier value from both numeric fields and tournament strings like "8+"
-  let tier: number;
-  if (tierField?.dataType === 'number') {
-    tier = tierField.value as number;
-  } else {
-    // For tournament tiers like "8+", extract the numeric part
-    const match = tierStr.match(/^(\d+)/);
-    tier = match ? parseInt(match[1], 10) : 0;
-  }
-  tier = tier || 0;
+  // TRANSITIONAL — duplicated in `run-type-detection.ts:extractNumericStats`.
+  // Commit 9 (derivations) absorbs tier-`+` parsing as either a dedicated
+  // data-type or a self-deriver; both call sites collapse to a graph call.
+  const tierMatch = tierStr.match(/^(\d+)/);
+  const tier = tierMatch ? parseInt(tierMatch[1], 10) : 0;
 
   return {
     tier,
@@ -180,7 +171,8 @@ export function parseGameRun(
     //     string, "Real Time" -> duration) rather than seeing the
     //     composite key and defaulting to number.
     //   - Legacy flat clipboard format -> parseTabDelimitedData produces V2
-    //     camelCase keys that we then remap via V2_TO_V3_FIELD_MAP.
+    //     camelCase keys that we then remap to V3 canonical via the field
+    //     graph's RENAMED_FROM edges (`remapV2FieldKeys` is graph-driven).
     const isSectioned = looksLikeV28SectionedInput(rawInput);
     const dateFormat = importFormat?.dateFormat ?? 'month-first';
     const rawFields: Record<string, GameRunField> = {};
@@ -204,7 +196,6 @@ export function parseGameRun(
 
     // Determine timestamp using hierarchy: battle_date > customTimestamp > current time
     let timestamp: Date;
-    let hasBattleDate = false;
     let dateValidationError: ParsedGameRun['dateValidationError'];
 
     // Check for battle_date field. Tolerate both V3 canonical
@@ -220,7 +211,6 @@ export function parseGameRun(
 
       if (validationResult.success) {
         timestamp = validationResult.date;
-        hasBattleDate = true;
 
         // Derive _date and _time from battle_date
         const derived = deriveDateTimeFromBattleDate(validationResult.date);
@@ -236,26 +226,6 @@ export function parseGameRun(
     } else {
       // No battle_date - use customTimestamp or current time
       timestamp = customTimestamp || new Date();
-    }
-
-    // Handle legacy data migration: fields without underscore prefix
-    // Migrate legacy field names to new internal field names
-    for (const [fieldName, field] of Object.entries(fields)) {
-      if (isLegacyField(fieldName)) {
-        const migratedName = getMigratedFieldName(fieldName);
-        if (migratedName) {
-          // Special handling for date/time fields with battle_date present
-          if (hasBattleDate && (fieldName === 'date' || fieldName === 'time')) {
-            // Skip migration if battle_date is present (we already derived from battle_date)
-            delete fields[fieldName];
-            continue;
-          }
-
-          // Migrate field to internal name
-          fields[migratedName] = { ...field };
-          delete fields[fieldName];
-        }
-      }
     }
 
     // Extract key stats from field structure

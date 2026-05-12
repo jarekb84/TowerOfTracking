@@ -106,12 +106,21 @@ If during this commit you (or a side agent you spawn) produce an exploration doc
 
 _(update this line each time you mark a commit DONE.)_
 
-- Last updated: 2026-04-25
-- Commits DONE: 7 / 16 (commits 1, 2, 3, 4, 5, 5b, 8). Commit 5c was proposed as a separate slot then retired/folded into commit 8 mid-implementation; net commit count is back to 16.
-- Currently in progress: none — commit 8 just landed. Next up: any of commits 6, 7, 9, 10 (their dependencies are met).
+- Last updated: 2026-05-03
+- Commits DONE: 8 / 16 (commits 1, 2, 3, 4, 5, 5b, 8, 10). Net commit count is now 18 with two new tooling commits (17, 18) added in phase 3.6, plus 11b which is `TODO` with locked shape.
+- Currently in progress: none. Next up: commits 6, 7, 9, 11 (any order; their dependencies are met). 11b is shape-locked but depends on commit 11 for `currentSchema()`.
 - Recent epic edits:
+  - **Commit 10 DONE.** RENAMED_FROM edges + cutover shipped per spec.
+  - **Three explorations resolved in commit-10 follow-up rounds:**
+    - [`EXPLORATION-tier-handling.md`](./EXPLORATION-tier-handling.md) — Decision T2 (dedicated `'tier'` data type). Implements in commit 9.
+    - [`EXPLORATION-option-d-deep-dive.md`](./EXPLORATION-option-d-deep-dive.md) — Decision: D-α resolver, no categories, explicit form-as-edge, build-time collisions, app-schema only. Implements in commit 11b.
+    - [`EXPLORATION-parser-boundary-resolution.md`](./EXPLORATION-parser-boundary-resolution.md) — RESOLVED via the deep-dive successor.
+  - **Two tooling commits added (Phase 3.6):** commit 17 (field-graph-enforcer agent) and commit 18 (exploration-doc-generator agent). Pending their own exploration-doc decisions.
+  - **Commit 11b shape locked.** Per the deep-dive: D-α resolver with hard-coded edge-type lookups (canonical id → RENAMED_FROM → HAS_CSV_HEADER → V3-storage-prefix), explicit declaration of every recognized form as an edge (no auto-derivation, no `toCamelCase`), build-time collision error policy, `atSchema` app-schema axis only. Rename `resolveFieldByAnyKey` to a cleaner name during the refactor.
+  - **Commit 9 scope locked for tier:** T2 dedicated `'tier'` data type + the separately-tracked `_runType IS_DERIVED_FROM battleReport_tier` deriver. Both in commit 9.
+  - **Deferred grab-bag** (open architectural concerns that aren't currently blocking): edge categories, auto-derivation of edges from canonical-id, game-version axis on edges, `+`-suffix sunset for tier. Each captured in the relevant exploration doc's "Future revisit triggers" section.
   - **Commit 5c retired → folded into commit 8.** Originally a `HAS_CSV_EXTRACTOR` + registry to eliminate the csv-exporter switch ladder. User review surfaced that the underlying axis was data type, not extractors. Redesigned per [`EXPLORATION-data-type-edge-vs-property.md`](./EXPLORATION-data-type-edge-vs-property.md) — every Field declares `IS_OF_TYPE` (renamed from `HAS_DATA_TYPE`), parser becomes graph-driven, csv-exporter ladder collapses naturally via uniform `formatFieldValue` dispatch.
   - **Commit 8 expanded** to include the `IS_OF_TYPE` rename + the catalog-level [`PATTERN.md`](../../src/shared/domain/field-graph/catalog/PATTERN.md) (four-question litmus for edge-vs-node-property) + the csv-exporter cutover that 5c originally targeted.
   - **Commit 9 absorbed** the deletion of csv-exporter's transitional `withPopulatedAppFields` preprocessor. Once the IS_DERIVED_FROM cascade ensures `_date` / `_time` / `_runType` are populated at parse time, the preprocessor disappears.
-  - **Commit 16 absorbed** a litmus retrospective + a TypeScript-vs-graph trade-off audit (revisit triggers from the data-type-edge-vs-property ADR).
+  - **Commit 16 absorbed** a litmus retrospective + a TypeScript-vs-graph trade-off audit (revisit triggers from the data-type-edge-vs-property ADR), and (new from commit 10) the `extractTimestampFromFields` / `migrateCsvOnImport` / test-only-export drain.
   - **Prior:** Commits 6–14 got "Cutover requirement" lines (commit 5 era); commit 5b expanded to include `Node.tags` removal (per `EXPLORATION-tag-vs-edge.md`); commit 10 absorbed the legacy-internal-field rename helpers; prompt skeleton gained a "conditional-logic elimination" self-check + the "mark commit DONE on initial pass with material-question exception" rule.

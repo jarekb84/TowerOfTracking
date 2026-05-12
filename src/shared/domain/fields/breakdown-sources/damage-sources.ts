@@ -3,8 +3,9 @@
  *
  * All damage source fields with their display names and colors.
  *
- * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see
- * src/shared/domain/migrations/v2-to-v3-field-map.ts.
+ * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see the
+ * `RENAMED_FROM` edges in
+ * `src/shared/domain/field-graph/catalog/edges/renames/renames.edges.ts`.
  */
 
 import type { FieldConfig } from './types';

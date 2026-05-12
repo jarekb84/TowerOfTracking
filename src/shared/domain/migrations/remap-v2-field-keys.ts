@@ -1,56 +1,48 @@
 import type { GameRunField } from '@/shared/types/game-run.types';
-import { V2_TO_V3_FIELD_MAP } from './v2-to-v3-field-map';
+import { resolveFieldByAnyKey } from '@/shared/domain/field-graph';
 import { INTENTIONALLY_DROPPED_V2_FIELDS } from './intentionally-dropped';
 
 /**
  * Rename V2-shaped field keys to V3 canonical keys on an in-memory
  * `ParsedGameRun.fields` map. Used at every V2-era entry point (legacy
- * clipboard paste, V2 CSV import) so runs land in storage under their V3
- * names and match the exporter's `v3_` header prefix.
+ * clipboard paste, V2 CSV import, V1→V2 in-memory migration) so runs land in
+ * storage under their V3 names and match the exporter's `v3_` header prefix.
  *
- * - V2 keys present in V2_TO_V3_FIELD_MAP are renamed.
+ * - Legacy keys with a `RENAMED_FROM` edge in the graph (V2→V3 game-field
+ *   renames AND V1→V2 internal-field renames) are remapped to canonical.
+ * - Keys already canonical (`battleReport_tier`, `_date`, ...) pass through.
  * - V2 keys in INTENTIONALLY_DROPPED_V2_FIELDS are discarded.
- * - Internal fields (leading underscore) pass through unchanged.
  * - Unknown keys pass through unchanged so the caller can emit them under
  *   `unrecognizedField_` if desired.
- * - Keys already shaped as V3 (`<section>_<label>` with an underscore in
- *   position 2+ and no leading underscore) pass through unchanged.
  *
  * When multiple V2 keys map to the same V3 key (duplicate legacy spellings
  * like `coinsFromOrb` + `coinsFromOrbs`), the LAST non-empty source wins.
+ *
+ * TRANSITIONAL — the `INTENTIONALLY_DROPPED_V2_FIELDS` membership check
+ * collapses to a graph query in commit 11 (`INTENTIONALLY_DROPPED_IN_SCHEMA`
+ * edges). After commit 11, the function reduces to a one-liner:
+ * `Object.fromEntries(Object.entries(fields).flatMap(([k, v]) => { const r =
+ * resolveFieldByAnyKey(k); return r ? [[r.id, v]] : []; }))`.
  */
 export function remapV2FieldKeys(
-  fields: Record<string, GameRunField>
+  fields: Record<string, GameRunField>,
 ): Record<string, GameRunField> {
   const result: Record<string, GameRunField> = {};
 
   for (const [key, field] of Object.entries(fields)) {
-    if (key.startsWith('_')) {
-      result[key] = field;
+    if (INTENTIONALLY_DROPPED_V2_FIELDS[key] !== undefined) continue;
+
+    const node = resolveFieldByAnyKey(key);
+    const targetKey = node?.id ?? key;
+
+    const existing = result[targetKey];
+    if (!existing) {
+      result[targetKey] = field;
       continue;
     }
 
-    if (INTENTIONALLY_DROPPED_V2_FIELDS[key] !== undefined) {
-      continue;
-    }
-
-    const v3Key = V2_TO_V3_FIELD_MAP[key];
-    if (v3Key !== undefined) {
-      const existing = result[v3Key];
-      if (!existing || !field.rawValue) {
-        // No existing value or the incoming is empty — prefer the existing.
-        // If no existing yet, take this one.
-        if (!existing) result[v3Key] = field;
-        // else: keep existing non-empty value; drop this empty one.
-      } else {
-        // Duplicate target with two non-empty candidates. Last wins.
-        result[v3Key] = field;
-      }
-      continue;
-    }
-
-    // Unknown key. Pass through.
-    result[key] = field;
+    // Two V2 keys collapsed to the same canonical. Last non-empty wins.
+    if (field.rawValue) result[targetKey] = field;
   }
 
   return result;

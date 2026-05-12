@@ -5,35 +5,12 @@ import {
   formatLargeNumber
 } from '../../../../shared/formatting/number-scale';
 import { decodeNotesFromStorage } from '@/shared/domain/fields/notes-encoding';
-import { dataTypeOf, type DataType } from '@/shared/domain/field-graph';
+import { dataTypeOf, resolveFieldByAnyKey, type DataType } from '@/shared/domain/field-graph';
+import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
 
 // Field configuration for processing rules
 interface FieldConfig {
   type: DataType;
-}
-
-// V2-display-label fallbacks for type detection. Catches the cases where the
-// display label doesn't trivially derive to the V3 canonical id (e.g. 'Real
-// Time' → 'realTime' but the graph node is 'battleReport_realTime'). Commit
-// 10 (RENAMED_FROM edges) closes this gap by letting `dataTypeOf` resolve
-// the V3 canonical from the legacy key — at which point this entire helper
-// + its callers can disappear.
-function legacyTypeFallback(key: string, rawValue?: string): DataType {
-  const lower = key.toLowerCase();
-
-  // Tier with '+' suffix (e.g., "10+") is a string indicator for tournament.
-  if (lower === 'tier' && rawValue?.includes('+')) return 'string';
-
-  // V2 'Killed By' display label — game string, not numeric. Becomes a
-  // RENAMED_FROM edge to `battleReport_killedBy` in commit 10.
-  if (lower === 'killed by') return 'string';
-
-  // Substring patterns catch V2 labels like 'Real Time' (duration), 'Battle
-  // Date' (date) that haven't been folded into the graph as RENAMED_FROM yet.
-  if (lower.includes('time')) return 'duration';
-  if (lower.includes('date')) return 'date';
-
-  return 'number';
 }
 
 // Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
@@ -69,25 +46,32 @@ function formatDuration(seconds: number): string {
   return parts.join(' ') || '0s';
 }
 
-// Derive a candidate canonical field id from a CSV / clipboard column label.
-// `_Run Type` → `_runType`; `Battle Date` → `battleDate`; `Tier` → `tier`.
-// V3 canonical ids that match a graph node land via the first lookup in
-// `getFieldConfig`; V2 labels that don't yet have a `RENAMED_FROM` edge fall
-// through to `legacyTypeFallback`.
+// TRANSITIONAL — deleted by commit 11b (parser-boundary resolver
+// centralization). Same input-shape normalization lives in three other
+// files (`csv-parser.ts:buildColumnToFieldMap`, `csv-field-mapping.ts`,
+// `v2-to-v3-migrator.ts:classifyV2Header`); commit 11b collapses all four
+// into a single `resolveFieldByAnyKey(rawString)` call. Decision shape
+// is captured in
+// `docs/field-graph/EXPLORATION-parser-boundary-resolution.md`.
 function deriveCanonicalKey(originalKey: string): string {
+  if (originalKey.startsWith(V3_COLUMN_PREFIX)) {
+    return originalKey.slice(V3_COLUMN_PREFIX.length);
+  }
   if (originalKey.startsWith('_')) {
     return '_' + toCamelCase(originalKey.slice(1));
   }
   return toCamelCase(originalKey);
 }
 
-// Resolve a field's data type. Graph wins; legacy V2 display-label heuristics
-// only run when the graph has no opinion (passthrough fields, V2-only labels
-// not yet declared as RENAMED_FROM).
-function getFieldConfig(originalKey: string, rawValue?: string): FieldConfig {
-  const declared = dataTypeOf(deriveCanonicalKey(originalKey));
-  if (declared) return { type: declared };
-  return { type: legacyTypeFallback(originalKey, rawValue) };
+// Resolve a field's data type via the graph. The graph is authoritative for
+// every declared Field and every legacy key (RENAMED_FROM edges resolve V2
+// display labels like 'Real Time' / 'Killed By' through to their V3
+// canonical's IS_OF_TYPE). Unknown columns default to 'number' — the modal
+// case for game-export stats.
+function getFieldConfig(originalKey: string): FieldConfig {
+  const camel = deriveCanonicalKey(originalKey);
+  const canonicalId = resolveFieldByAnyKey(camel)?.id ?? camel;
+  return { type: dataTypeOf(canonicalId) ?? 'number' };
 }
 
 /**
@@ -112,7 +96,7 @@ export function createGameRunField(
   rawValue: string,
   importFormat?: ImportFormatSettings
 ): GameRunField {
-  const fieldConfig = getFieldConfig(originalKey, rawValue);
+  const fieldConfig = getFieldConfig(originalKey);
 
   let processedValue: number | string | Date;
   let displayValue: string;

@@ -3,7 +3,8 @@
 // These columns existed in some V2 exports but have no V28 counterpart
 // (removed feature, merged into an aggregate, or too ambiguous to resolve
 // without losing data integrity). The inverse-check test requires every V2
-// field to either appear in V2_TO_V3_FIELD_MAP or here — if a V2 field is
+// field to either resolve through the field graph (RENAMED_FROM) or here —
+// if a V2 field is
 // in neither, the test fails.
 
 export const INTENTIONALLY_DROPPED_V2_FIELDS: Record<string, string> = {

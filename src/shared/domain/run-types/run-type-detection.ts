@@ -65,8 +65,22 @@ export function extractNumericStats(fields: Record<string, GameRunField>): {
   cellsEarned: number;
   realTime: number;
 } {
+  // Tournament tiers carry a '+' suffix (e.g. "8+") that breaks naive numeric
+  // parsing. Extract the leading integer from rawValue so V2 tournament
+  // pastes and V28 plain numbers both resolve to the same number.
+  //
+  // TRANSITIONAL — same logic is duplicated in
+  // `data-parser.ts:extractKeyStatsFromFields`. Commit 9 (derivations) absorbs
+  // both per the spec §11.3 / §11.4 gotcha 4: tier parsing becomes either a
+  // dedicated data-type or a self-deriver, and `_runType IS_DERIVED_FROM
+  // battleReport_tier { deriver: 'runTypeFromTier' }` removes the
+  // `/\+/.test(tierStr)` branch from `detectRunTypeFromFields` below.
+  const tierStr = pickField(fields, 'battleReport_tier', 'tier')?.rawValue ?? '';
+  const tierMatch = tierStr.match(/^(\d+)/);
+  const tier = tierMatch ? parseInt(tierMatch[1], 10) : 0;
+
   return {
-    tier: (pickField(fields, 'battleReport_tier', 'tier')?.value as number) || 0,
+    tier,
     wave: (pickField(fields, 'battleReport_wave', 'wave')?.value as number) || 0,
     coinsEarned:
       (pickField(fields, 'battleReport_coinsEarned', 'coinsEarned')?.value as number) || 0,

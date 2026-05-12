@@ -4,10 +4,20 @@
  * Purpose-based field groupings for run details display.
  * Fields are organized by what users want to understand, not by game export structure.
  *
- * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see
- * src/shared/domain/migrations/v2-to-v3-field-map.ts. Anything keyed under
- * a legacy V2 name will now fall into the uncategorized "Miscellaneous"
- * bucket because the V2 remap runs at import time.
+ * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see the
+ * `RENAMED_FROM` edges in
+ * `src/shared/domain/field-graph/catalog/edges/renames/renames.edges.ts`.
+ * Anything keyed under a legacy V2 name falls into the uncategorized
+ * "Miscellaneous" bucket because the V2→V3 remap runs at import time via
+ * the field graph's reverse-key index.
+ *
+ * TRANSITIONAL — this entire file is deleted by commit 6
+ * (`BELONGS_TO_SECTION` + `RENDERS_AS_IN_SECTION` edges). All exported
+ * configs (`BATTLE_REPORT_ESSENTIAL`, `DAMAGE_TAKEN_CONFIG`, ...) become
+ * `graph.fieldsInSection(...)` queries; per-field display names + colors
+ * are already in the graph (commit 7's `IS_SOURCE_OF` + `HAS_DISPLAY_NAME`
+ * + `HAS_COLOR` edges). Consumers move to graph queries; no parallel
+ * config survives.
  */
 
 import type {

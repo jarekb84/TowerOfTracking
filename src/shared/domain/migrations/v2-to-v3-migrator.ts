@@ -1,5 +1,5 @@
 import { toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
-import { V2_TO_V3_FIELD_MAP } from './v2-to-v3-field-map';
+import { resolveFieldByAnyKey } from '@/shared/domain/field-graph';
 import { INTENTIONALLY_DROPPED_V2_FIELDS } from './intentionally-dropped';
 import { V3_COLUMN_PREFIX } from './storage-keys';
 
@@ -12,7 +12,8 @@ import { V3_COLUMN_PREFIX } from './storage-keys';
  * Output: tab-delimited V3 CSV where:
  *   - Internal field columns (`_Date`, `_Time`, `_Notes`, `_Run Type`,
  *     `_Rank`) are preserved verbatim.
- *   - Game-field columns are renamed via V2_TO_V3_FIELD_MAP and emitted
+ *   - Game-field columns are renamed via the field graph's RENAMED_FROM
+ *     reverse-key index (`resolveFieldByAnyKey`) and emitted
  *     with the `v3_` prefix (per PRD §9.1 Option C). When multiple V2
  *     columns map to the same V3 target, the LAST non-empty value in the
  *     row wins.
@@ -57,6 +58,13 @@ interface ColumnPlan {
 const INTERNAL_HEADER_PREFIX = '_';
 const STORAGE_DELIMITER = '\t';
 
+// TRANSITIONAL — the underscore + camelCase normalization here collapses to
+// a one-line graph call in commit 11b (parser-boundary resolver
+// centralization), alongside the analogous code in `csv-parser.ts`,
+// `csv-field-mapping.ts`, and `field-utils.ts`. Decision shape captured in
+// `docs/field-graph/EXPLORATION-parser-boundary-resolution.md`.
+// INTENTIONALLY_DROPPED_V2_FIELDS itself becomes graph-queried via
+// `INTENTIONALLY_DROPPED_IN_SCHEMA` edges in commit 11.
 function classifyV2Header(rawHeader: string): ColumnPlan {
   const trimmed = rawHeader.trim();
 
@@ -72,9 +80,9 @@ function classifyV2Header(rawHeader: string): ColumnPlan {
     return { v3Header: '', dropped: true };
   }
 
-  const mappedTarget = V2_TO_V3_FIELD_MAP[camel];
-  if (mappedTarget !== undefined) {
-    return { v3Header: `${V3_COLUMN_PREFIX}${mappedTarget}`, dropped: false };
+  const node = resolveFieldByAnyKey(camel);
+  if (node) {
+    return { v3Header: `${V3_COLUMN_PREFIX}${node.id}`, dropped: false };
   }
 
   // Unknown column — preserve value under the reserved namespace so it is

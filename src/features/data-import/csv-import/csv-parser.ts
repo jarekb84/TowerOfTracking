@@ -10,7 +10,6 @@ import type {
 } from './types';
 import { createGameRunField, createInternalField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 import { deriveDateTimeFromBattleDate } from '@/features/analysis/shared/parsing/data-parser';
-import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
 import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 import { validateBattleDate, parseTimestampFromFields } from '@/shared/formatting/date-formatters';
 import { tryDeriveFromInternalFields } from '@/shared/formatting/date-issue-detection';
@@ -47,7 +46,19 @@ function createEmptyResult(): CsvParseResult {
   };
 }
 
-/** Build mapping from CSV column index to camelCase field name */
+/** Build mapping from CSV column index to camelCase field name.
+ *
+ * Legacy V1 / V2 column headers (`Date`, `tier`, `Coins From Black Hole`)
+ * are normalized to camelCase here; the canonical-key remap lives in
+ * `remapV2FieldKeys` (graph-driven), which runs once per row downstream.
+ *
+ * TRANSITIONAL — collapses to a one-line graph call in commit 11b
+ * (parser-boundary resolver centralization). The same per-shape
+ * normalization lives in `field-utils.ts:deriveCanonicalKey`,
+ * `csv-field-mapping.ts`, and `v2-to-v3-migrator.ts:classifyV2Header`;
+ * commit 11b consolidates all four. Decision shape captured in
+ * `docs/field-graph/EXPLORATION-parser-boundary-resolution.md`.
+ */
 function buildColumnToFieldMap(headers: string[]): Map<number, string> {
   const columnToFieldMap = new Map<number, string>();
 
@@ -68,14 +79,6 @@ function buildColumnToFieldMap(headers: string[]): Map<number, string> {
       camelCase = '_' + toCamelCase(withoutUnderscore);
     } else {
       camelCase = toCamelCase(header);
-
-      // Apply legacy field migration for old headers
-      if (isLegacyField(camelCase)) {
-        const migratedName = getMigratedFieldName(camelCase);
-        if (migratedName) {
-          camelCase = migratedName;
-        }
-      }
     }
 
     columnToFieldMap.set(index, camelCase);
