@@ -10,6 +10,7 @@ import {
   BATTLE_REPORT__GAME_TIME_NODE,
   BATTLE_REPORT__KILLED_BY_NODE,
   BATTLE_REPORT__REAL_TIME_NODE,
+  BATTLE_REPORT__TIER_NODE,
 } from '../../fields.nodes';
 
 // Production-catalog shape for IS_OF_TYPE. The cardinality `'at-least-one'`
@@ -34,12 +35,13 @@ describe('data-types catalog invariants', () => {
     expect(dataTypeOf(_RANK_NODE)).toBe('number');
   });
 
-  // Spot-check the four non-number game fields. Everything else falls
-  // through to the modal `'number'` default in `data-types.edges.ts`.
+  // Spot-check the non-number game fields. Everything else falls through to
+  // the modal `'number'` default in `data-types.edges.ts`.
   it('non-number game fields are explicitly typed', () => {
     expect(dataTypeOf(BATTLE_REPORT__BATTLE_DATE_NODE)).toBe('date');
     expect(dataTypeOf(BATTLE_REPORT__GAME_TIME_NODE)).toBe('duration');
     expect(dataTypeOf(BATTLE_REPORT__REAL_TIME_NODE)).toBe('duration');
     expect(dataTypeOf(BATTLE_REPORT__KILLED_BY_NODE)).toBe('string');
+    expect(dataTypeOf(BATTLE_REPORT__TIER_NODE)).toBe('tier');
   });
 });

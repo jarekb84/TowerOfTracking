@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  deriveDateTimeFromBattleDate,
   constructDateFromLegacyFields,
   parseGameRun
 } from '../parsing/data-parser';
@@ -56,40 +55,6 @@ describe('parseBattleDate', () => {
     expect(parseBattleDate(undefined as any)).toBeNull();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(parseBattleDate(123 as any)).toBeNull();
-  });
-});
-
-describe('deriveDateTimeFromBattleDate', () => {
-  it('should derive correct date and time strings', () => {
-    const battleDate = new Date('2025-10-14T13:14:00');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-10-14');
-    expect(result.time).toBe('13:14:00');
-  });
-
-  it('should handle single-digit months and days with zero padding', () => {
-    const battleDate = new Date('2025-01-05T08:05:03');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-01-05');
-    expect(result.time).toBe('08:05:03');
-  });
-
-  it('should handle midnight correctly', () => {
-    const battleDate = new Date('2025-12-31T00:00:00');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-12-31');
-    expect(result.time).toBe('00:00:00');
-  });
-
-  it('should handle end of day correctly', () => {
-    const battleDate = new Date('2025-06-15T23:59:59');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-06-15');
-    expect(result.time).toBe('23:59:59');
   });
 });
 

@@ -8,14 +8,12 @@ import type {
   CsvDelimiter,
   DateValidationWarning,
 } from './types';
-import { createGameRunField, createInternalField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
-import { deriveDateTimeFromBattleDate } from '@/features/analysis/shared/parsing/data-parser';
-import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
+import { createGameRunField, toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
+import { hydrateRun } from '@/shared/domain/field-graph';
 import { validateBattleDate, parseTimestampFromFields } from '@/shared/formatting/date-formatters';
 import { tryDeriveFromInternalFields } from '@/shared/formatting/date-issue-detection';
 import { detectDelimiter } from './csv-helpers';
-import { createFieldMappingReport, extractKeyStatsFromFields } from './csv-field-mapping';
-import { remapV2FieldKeys } from '@/shared/domain/migrations/remap-v2-field-keys';
+import { createFieldMappingReport } from './csv-field-mapping';
 import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
 import supportedFieldsData from '../../../../sampleData/supportedFields.json';
 
@@ -126,14 +124,6 @@ function createWarningContext(fields: Record<string, GameRunField>): DateValidat
   };
 }
 
-/** Check if we should derive _date/_time from battleDate */
-function shouldDeriveDateTimeFields(
-  fields: Record<string, GameRunField>
-): boolean {
-  const hasExistingDateFields = !!(fields[_DATE_NODE.id] && fields[_TIME_NODE.id]);
-  return !hasExistingDateFields;
-}
-
 /** Check if row can be fixed by deriving battleDate from _date/_time fields */
 function detectFixability(
   fields: Record<string, GameRunField>
@@ -149,33 +139,21 @@ function detectFixability(
   };
 }
 
-/** Process battleDate field: validate and derive _date/_time if needed */
+/** Validate the battleDate column when present; emit a warning on failure. */
 function processBattleDateField(
   fields: Record<string, GameRunField>,
   context: RowParseContext
 ): DateValidationWarning | null {
   const { values, battleDateColumnIndex, importFormat, rowNumber } = context;
 
-  // No battleDate column - nothing to validate
-  if (battleDateColumnIndex === undefined) {
-    return null;
-  }
+  if (battleDateColumnIndex === undefined) return null;
 
   const battleDateValue = values[battleDateColumnIndex] || '';
   const validationResult = validateBattleDate(battleDateValue, {
     format: importFormat?.dateFormat,
     warnFutureDates: false,
   });
-
-  if (validationResult.success) {
-    // Only derive _date/_time if they don't already exist in the data
-    if (shouldDeriveDateTimeFields(fields)) {
-      const derived = deriveDateTimeFromBattleDate(validationResult.date);
-      fields[_DATE_NODE.id] = createInternalField('Date', derived.date);
-      fields[_TIME_NODE.id] = createInternalField('Time', derived.time);
-    }
-    return null;
-  }
+  if (validationResult.success) return null;
 
   // BattleDate validation failed - check if we can derive from _date/_time
   const fixability = detectFixability(fields);
@@ -198,32 +176,24 @@ function parseRow(context: RowParseContext): { run: ParsedGameRun; warning: Date
   const { values, headers, columnToFieldMap, importFormat } = context;
   const rawFields: Record<string, GameRunField> = {};
 
-  // Process each column value
   for (const [columnIndex, fieldName] of columnToFieldMap.entries()) {
     const rawValue = values[columnIndex] || '';
     if (!rawValue) continue;
-
     const originalHeader = headers[columnIndex];
     rawFields[fieldName] = createGameRunField(originalHeader, rawValue, importFormat);
   }
 
-  // Normalize any V2-shaped legacy column keys to V3 canonical keys. V3
-  // columns (stripped from `v3_<name>` headers) and internal `_foo` keys
-  // pass through untouched. Unknown columns also pass through so the
-  // mapping report can still surface them in the import summary.
-  const fields = remapV2FieldKeys(rawFields);
+  const hydrated = hydrateRun(rawFields, { importFormat });
 
-  // Process battleDate and derive _date/_time
-  const warning = processBattleDateField(fields, context);
+  // CSV-specific timestamp refinement: legacy V2 CSVs may carry `_date` /
+  // `_time` without a battleReport_battleDate column. `parseTimestampFromFields`
+  // walks that fallback chain after hydration. For modern V3 storage this is
+  // a no-op (battleDate present → already used by hydrateRun).
+  const timestamp = parseTimestampFromFields(hydrated.fields, hydrated.timestamp);
+  const run: ParsedGameRun = { ...hydrated, timestamp };
 
-  const parsedRun: ParsedGameRun = {
-    id: crypto.randomUUID(),
-    timestamp: parseTimestampFromFields(fields),
-    fields,
-    ...extractKeyStatsFromFields(fields),
-  };
-
-  return { run: parsedRun, warning };
+  const warning = processBattleDateField(run.fields, context);
+  return { run, warning };
 }
 
 /** Context for CSV parsing operation */

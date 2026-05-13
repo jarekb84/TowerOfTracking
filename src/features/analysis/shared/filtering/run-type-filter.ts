@@ -5,13 +5,6 @@ import { RunType, RunTypeValue } from '@/shared/domain/run-types/types'
 
 export type RunTypeFilter = RunTypeValue | 'all'
 
-/**
- * Centralized function to determine run type from tier string
- * This is the single source of truth for run type detection
- */
-export function determineRunType(tierRawValue: string): RunTypeValue {
-  return /\+/.test(tierRawValue) ? RunType.TOURNAMENT : RunType.FARM
-}
 
 /**
  * Get display label for a run type. Declared on the matching `_runType`

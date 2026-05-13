@@ -4,8 +4,13 @@
 //
 // Mirrors `GameRunField.dataType` in `src/shared/types/game-run.types.ts` —
 // commit 8 (game-fields rollout) lifts that inline union to import from here.
+//
+// `'tier'` is a semantic kind, not a parsing strategy — a tier value is
+// numeric but never the operand of arithmetic (no summing or averaging
+// across tiers). Tracked in `EXPLORATION-tier-handling.md`; declared on
+// `battleReport_tier` only.
 
-export const DATA_TYPES = ['number', 'duration', 'date', 'string'] as const;
+export const DATA_TYPES = ['number', 'duration', 'date', 'string', 'tier'] as const;
 
 export type DataType = typeof DATA_TYPES[number];
 

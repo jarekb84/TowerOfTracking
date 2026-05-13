@@ -7,11 +7,11 @@ describe('Run Type Detection', () => {
   describe('detectRunTypeFromFields', () => {
     it('should detect milestone from explicit run_type field', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'milestone',
           rawValue: 'milestone',
           displayValue: 'Milestone',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -22,11 +22,11 @@ describe('Run Type Detection', () => {
 
     it('should detect tournament from explicit run_type field', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'tournament',
           rawValue: 'tournament',
           displayValue: 'Tournament',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -37,11 +37,11 @@ describe('Run Type Detection', () => {
 
     it('should detect farm from explicit run_type field', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'farm',
           rawValue: 'farm',
           displayValue: 'Farm',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -52,11 +52,11 @@ describe('Run Type Detection', () => {
 
     it('should be case insensitive for explicit run_type field', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'MILESTONE',
           rawValue: 'MILESTONE',
           displayValue: 'MILESTONE',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -65,51 +65,19 @@ describe('Run Type Detection', () => {
       expect(result).toBe(RunType.MILESTONE);
     });
 
-    it('should fallback to tier string detection when run_type is invalid', () => {
-      const fields: Record<string, GameRunField> = {
-        runType: {
-          value: 'invalid',
-          rawValue: 'invalid',
-          displayValue: 'Invalid',
-          originalKey: 'Run Type',
-          dataType: 'string'
-        },
-        tier: {
-          value: 10,
-          rawValue: '10+',
-          displayValue: 'Tier 10+',
-          originalKey: 'Tier',
-          dataType: 'number'
-        }
-      };
-
-      const result = detectRunTypeFromFields(fields);
-      expect(result).toBe(RunType.TOURNAMENT);
-    });
-
-    it('should detect tournament from tier string with + sign', () => {
-      const fields: Record<string, GameRunField> = {
-        tier: {
-          value: 10,
-          rawValue: '10+',
-          displayValue: 'Tier 10+',
-          originalKey: 'Tier',
-          dataType: 'number'
-        }
-      };
-
-      const result = detectRunTypeFromFields(fields);
-      expect(result).toBe(RunType.TOURNAMENT);
-    });
+    // Tier-`+` derivation behavior (and "invalid `_runType` falls back to tier")
+    // is exercised in `apply-derivations.test.ts` — these helpers now assume
+    // fields have already been hydrated, so they only test "what does
+    // already-populated `_runType` resolve to?"
 
     it('should detect farm from tier string without + sign', () => {
       const fields: Record<string, GameRunField> = {
-        tier: {
+        battleReport_tier: {
           value: 10,
           rawValue: '10',
           displayValue: 'Tier 10',
           originalKey: 'Tier',
-          dataType: 'number'
+          dataType: 'tier'
         }
       };
 
@@ -213,11 +181,11 @@ describe('Run Type Detection', () => {
   describe('hasExplicitRunType', () => {
     it('should return true when run_type field contains valid milestone value', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'milestone',
           rawValue: 'milestone',
           displayValue: 'Milestone',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -227,11 +195,11 @@ describe('Run Type Detection', () => {
 
     it('should return true when run_type field contains valid tournament value', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'tournament',
           rawValue: 'tournament',
           displayValue: 'Tournament',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -241,11 +209,11 @@ describe('Run Type Detection', () => {
 
     it('should return true when run_type field contains valid farm value', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'farm',
           rawValue: 'farm',
           displayValue: 'Farm',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -255,11 +223,11 @@ describe('Run Type Detection', () => {
 
     it('should be case insensitive', () => {
       const fields: Record<string, GameRunField> = {
-        runType: {
+        _runType: {
           value: 'MILESTONE',
           rawValue: 'MILESTONE',
           displayValue: 'MILESTONE',
-          originalKey: 'Run Type',
+          originalKey: '_runType',
           dataType: 'string'
         }
       };
@@ -267,14 +235,18 @@ describe('Run Type Detection', () => {
       expect(hasExplicitRunType(fields)).toBe(true);
     });
 
-    it('should return false when run_type field is missing', () => {
+    // Tier-`+` → implicit-tournament-signal coverage lives in
+    // `apply-derivations.test.ts`. Post-hydration, `hasExplicitRunType`
+    // simply reads `_runType` directly.
+
+    it('should return false for a plain (non-tournament) tier when no _runType present', () => {
       const fields: Record<string, GameRunField> = {
-        tier: {
+        battleReport_tier: {
           value: 10,
-          rawValue: '10+',
-          displayValue: 'Tier 10+',
+          rawValue: '10',
+          displayValue: 'Tier 10',
           originalKey: 'Tier',
-          dataType: 'number'
+          dataType: 'tier'
         }
       };
 

@@ -5,13 +5,11 @@
  * field mapping reports with similarity detection.
  */
 
-import type { GameRunField } from '@/shared/types/game-run.types';
 import type { FieldMappingReport } from './types';
 import { toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
 import { resolveFieldByAnyKey } from '@/shared/domain/field-graph';
 import { extractFieldNamesFromStorage } from '@/shared/domain/fields/field-discovery';
 import { classifyFields } from '@/shared/domain/fields/field-similarity';
-import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
 
 /**
  * Create enhanced field mapping report with similarity detection
@@ -107,30 +105,3 @@ export function createFieldMappingReport(
   };
 }
 
-/**
- * Extract key statistics from fields for cached properties
- */
-export function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number;
-  runType: 'farm' | 'tournament' | 'milestone';
-} {
-  const numericStats = extractNumericStats(fields);
-
-  // Check if _runType field exists (from CSV), otherwise detect from tier
-  let runType: 'farm' | 'tournament' | 'milestone';
-  const runTypeField = fields._runType;
-  if (runTypeField && runTypeField.rawValue) {
-    runType = runTypeField.rawValue as 'farm' | 'tournament' | 'milestone';
-  } else {
-    runType = detectRunTypeFromFields(fields);
-  }
-
-  return {
-    ...numericStats,
-    runType,
-  };
-}

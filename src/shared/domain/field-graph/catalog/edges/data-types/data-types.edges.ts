@@ -35,6 +35,11 @@ const NON_NUMBER_TYPES: ReadonlyMap<string, DataType> = new Map<string, DataType
   [fieldNodes.BATTLE_REPORT__GAME_TIME_NODE.id, 'duration'],
   [fieldNodes.BATTLE_REPORT__REAL_TIME_NODE.id, 'duration'],
   [fieldNodes.BATTLE_REPORT__KILLED_BY_NODE.id, 'string'], // Enemy name — pre-graph code mistyped this as 'number'; corrected here
+  // Tier is a semantic kind, not a number — see `EXPLORATION-tier-handling.md`.
+  // Carries a leading integer plus optional tournament-`+` suffix; consumers
+  // read `.value` (the parsed leading int) and `.rawValue` ("10+" when
+  // tournament).
+  [fieldNodes.BATTLE_REPORT__TIER_NODE.id, 'tier'],
 ]);
 
 const ALL_FIELD_NODES: readonly Node[] = Object.values(fieldNodes).filter(

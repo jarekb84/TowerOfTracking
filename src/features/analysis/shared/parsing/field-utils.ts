@@ -91,66 +91,70 @@ function processStringField(originalKey: string, rawValue: string): string {
  * @param importFormat - Optional import format settings (defaults to store's import format)
  * @returns GameRunField with processed value, raw value, and display value
  */
+interface ProcessedField {
+  value: number | string | Date;
+  rawValue: string;
+  displayValue: string;
+  dataType: DataType;
+}
+
+function processByDataType(
+  type: DataType,
+  originalKey: string,
+  rawValue: string,
+  importFormat?: ImportFormatSettings,
+): ProcessedField {
+  switch (type) {
+    case 'duration': {
+      const value = parseDuration(rawValue);
+      return { value, rawValue, displayValue: formatDuration(value), dataType: 'duration' };
+    }
+    case 'date': {
+      try {
+        return { value: new Date(rawValue), rawValue, displayValue: rawValue, dataType: 'date' };
+      } catch {
+        return { value: rawValue, rawValue, displayValue: rawValue, dataType: 'string' };
+      }
+    }
+    case 'number': {
+      const value = parseShorthandNumber(rawValue, importFormat);
+      return { value, rawValue, displayValue: formatLargeNumber(value), dataType: 'number' };
+    }
+    case 'string': {
+      const decoded = processStringField(originalKey, rawValue);
+      // Store decoded value so exports re-encode correctly
+      return { value: decoded, rawValue: decoded, displayValue: decoded, dataType: 'string' };
+    }
+    case 'tier': {
+      // Tournament tiers carry a `'+'` suffix (e.g. `"10+"`). Keep the raw
+      // string verbatim so the suffix survives round-trip; expose the leading
+      // integer as `.value` so consumers don't re-run the regex.
+      const m = rawValue.match(/^(\d+)/);
+      return {
+        value: m ? parseInt(m[1], 10) : 0,
+        rawValue,
+        displayValue: rawValue,
+        dataType: 'tier',
+      };
+    }
+    default:
+      return { value: rawValue, rawValue, displayValue: rawValue, dataType: 'string' };
+  }
+}
+
 export function createGameRunField(
   originalKey: string,
   rawValue: string,
   importFormat?: ImportFormatSettings
 ): GameRunField {
   const fieldConfig = getFieldConfig(originalKey);
-
-  let processedValue: number | string | Date;
-  let displayValue: string;
-  let dataType: GameRunField['dataType'];
-  let finalRawValue = rawValue; // Track if we need to decode rawValue
-
-  switch (fieldConfig.type) {
-    case 'duration':
-      processedValue = parseDuration(rawValue);
-      displayValue = formatDuration(processedValue as number);
-      dataType = 'duration';
-      break;
-
-    case 'date':
-      try {
-        processedValue = new Date(rawValue);
-        displayValue = rawValue;
-        dataType = 'date';
-      } catch {
-        processedValue = rawValue;
-        displayValue = rawValue;
-        dataType = 'string';
-      }
-      break;
-
-    case 'number':
-      // parseShorthandNumber uses store's import format if not explicitly provided
-      processedValue = parseShorthandNumber(rawValue, importFormat);
-      // formatLargeNumber uses store's display locale
-      displayValue = formatLargeNumber(processedValue as number);
-      dataType = 'number';
-      break;
-
-    case 'string': {
-      const decodedValue = processStringField(originalKey, rawValue);
-      processedValue = decodedValue;
-      displayValue = decodedValue;
-      finalRawValue = decodedValue; // Store decoded value so exports re-encode correctly
-      dataType = 'string';
-      break;
-    }
-
-    default:
-      processedValue = rawValue;
-      displayValue = rawValue;
-      dataType = 'string';
-  }
-
+  const processed = processByDataType(fieldConfig.type, originalKey, rawValue, importFormat);
   return {
-    value: processedValue,
-    rawValue: finalRawValue,
-    displayValue,
+    value: processed.value,
+    rawValue: processed.rawValue,
+    displayValue: processed.displayValue,
     originalKey,
-    dataType,
+    dataType: processed.dataType,
   };
 }
 

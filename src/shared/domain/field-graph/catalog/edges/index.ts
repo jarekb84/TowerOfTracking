@@ -1,6 +1,7 @@
 import type { Edge } from '../../types';
 import { BREAKDOWN_EDGES } from './breakdowns/breakdowns.edges';
 import { DATA_TYPE_EDGES } from './data-types/data-types.edges';
+import { DERIVATION_EDGES } from './derivations/derivations.edges';
 import { ENUM_VALUE_EDGES } from './enum-values/enum-values.edges';
 import { INTERNAL_FIELD_EDGES } from './internal-fields/internal-fields.edges';
 import { MEASUREMENT_EDGES } from './measurements/measurements.edges';
@@ -15,6 +16,7 @@ import { SOURCE_EDGES } from './sources/sources.edges';
 export const CATALOG_EDGES: readonly Edge[] = [
   ...BREAKDOWN_EDGES,
   ...DATA_TYPE_EDGES,
+  ...DERIVATION_EDGES,
   ...ENUM_VALUE_EDGES,
   ...INTERNAL_FIELD_EDGES,
   ...MEASUREMENT_EDGES,
@@ -26,6 +28,7 @@ export const CATALOG_EDGES: readonly Edge[] = [
 
 export { BREAKDOWN_EDGES } from './breakdowns/breakdowns.edges';
 export { DATA_TYPE_EDGES } from './data-types/data-types.edges';
+export { DERIVATION_EDGES } from './derivations/derivations.edges';
 export { ENUM_VALUE_EDGES } from './enum-values/enum-values.edges';
 export { INTERNAL_FIELD_EDGES } from './internal-fields/internal-fields.edges';
 export { MEASUREMENT_EDGES } from './measurements/measurements.edges';

@@ -141,9 +141,20 @@ All take a `FieldRef` (string or Node) unless noted.
 | `internalFields()` | `readonly string[]` | All internal app-fields in canonical order (`_date`, `_time`, `_notes`, `_runType`, `_rank`). **No args.** |
 | `isInternalField(field)` | `boolean` | "Is this an app-managed metadata field?" |
 | `csvHeaderOf(field)` | `string \| undefined` | Custom CSV header (e.g. `_Date` for `_date`); undefined when no override. |
-| `dataTypeOf(field)` | `DataType \| undefined` | Declared data type (`'number' \| 'duration' \| 'date' \| 'string'`); reads the `IS_OF_TYPE` edge. Undefined only for undeclared / passthrough fields at the parser boundary. Drives parser + CSV-exporter dispatch. |
+| `dataTypeOf(field)` | `DataType \| undefined` | Declared data type (`'number' \| 'duration' \| 'date' \| 'string' \| 'tier'`); reads the `IS_OF_TYPE` edge. Undefined only for undeclared / passthrough fields at the parser boundary. Drives parser + CSV-exporter dispatch. |
 | `displayNameOf(node)` | `string \| undefined` | Human-readable display name; works for both Field and EnumValue sources. |
 | `colorOf(node)` | `string \| undefined` | Hex color; works for both Field and EnumValue sources. |
+| `derivationsOf(field)` | `readonly Edge[]` | Outbound `IS_DERIVED_FROM` edges from `field` (the inputs it depends on); each edge carries a `{ deriver }` payload. |
+| `fieldsDerivedFrom(field)` | `readonly string[]` | "Which fields derive *from* `field`?" Inverse direction — used by the edit-time cascade. |
+
+#### Lifecycle methods
+
+Distinct from per-edge query methods above. These orchestrate construction and mutation of a full `ParsedGameRun` and hide the derivation cascade from consumers. Parser-time and write-time entry points. Per [`EXPLORATION-derivation-invocation-model.md`](../docs/field-graph/EXPLORATION-derivation-invocation-model.md).
+
+| Lifecycle method | Returns | Use when |
+|---|---|---|
+| `hydrateRun(rawFields, ctx?)` | `ParsedGameRun` | Parse-time. Takes a raw `Record<string, GameRunField>` from a parser, runs V2-key remap + derivation cascade + timestamp resolution + cached-stat extraction, returns a fully-assembled `ParsedGameRun`. `ctx` accepts `customTimestamp` and `importFormat`. Called by `parseGameRun` and `parseRow`. |
+| `updateField(run, fieldId, newField)` | `ParsedGameRun` | Edit-time. Applies a single-field update and runs the cascade for any fields derived from it. Returns a new `ParsedGameRun`. Used by `applyDateFix` and `prepareRunForSave`; future write-path consumers (form edits, in-place row edits) should call this rather than mutating `run.fields` directly. |
 
 To **add a new query**, **add a new edge type**, or **add a new concept
 folder** under `catalog/edges/`, follow

@@ -7,7 +7,12 @@
 
 import type { ParsedGameRun, GameRunField } from '@/shared/types/game-run.types';
 import type { BattleDateValidationError } from './date-validation.types';
-import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
+import {
+  _DATE_NODE,
+  _TIME_NODE,
+  BATTLE_REPORT__BATTLE_DATE_NODE,
+} from '@/shared/domain/field-graph/catalog/fields.nodes';
+import { updateField } from '@/shared/domain/field-graph';
 import { constructDate, createBattleDateField } from './date-formatters';
 
 /**
@@ -201,19 +206,15 @@ export function applyDateFix(
   run: ParsedGameRun,
   derivedDate: Date
 ): ParsedGameRun {
-  const battleDateField = createBattleDateField(derivedDate);
-
-  // Write under the V3 canonical key. If a legacy `battleDate` key is
-  // present, drop it — the canonical form is the single source of truth.
+  // Drop the legacy V2 `battleDate` key when present — the V3 canonical
+  // form is the single source of truth.
   const { battleDate: _legacy, ...rest } = run.fields;
-
-  return {
+  const cleaned: ParsedGameRun = {
     ...run,
     timestamp: derivedDate,
     dateValidationError: undefined,
-    fields: {
-      ...rest,
-      battleReport_battleDate: battleDateField,
-    },
+    fields: rest as Record<string, GameRunField>,
   };
+
+  return updateField(cleaned, BATTLE_REPORT__BATTLE_DATE_NODE.id, createBattleDateField(derivedDate));
 }

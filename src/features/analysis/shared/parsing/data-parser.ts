@@ -4,30 +4,11 @@ import type {
   RawClipboardData,
   GameRunField
 } from '@/shared/types/game-run.types';
-import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
-import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
+import { createGameRunField, toCamelCase } from './field-utils';
 import { parseV28SectionedEntries, looksLikeV28SectionedInput } from './section-aware-parser';
-import { remapV2FieldKeys } from '@/shared/domain/migrations/remap-v2-field-keys';
-import { determineRunType } from '../filtering/run-type-filter';
-import {
-  validateBattleDate,
-  constructDate,
-  formatIsoDate,
-  formatIsoTime
-} from '@/shared/formatting/date-formatters';
-import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
-
-/**
- * Derive _date and _time fields from battle_date
- * Returns { date: 'yyyy-MM-dd', time: 'HH:mm:ss' }
- */
-export function deriveDateTimeFromBattleDate(battleDate: Date): { date: string; time: string } {
-  return {
-    date: formatIsoDate(battleDate),
-    time: formatIsoTime(battleDate)
-  };
-}
+import { hydrateRun } from '@/shared/domain/field-graph';
+import { constructDate } from '@/shared/formatting/date-formatters';
 
 /**
  * Construct Date from legacy _date and _time fields
@@ -113,40 +94,6 @@ function parseTabDelimitedData(rawData: string): RawClipboardData {
   return parsed;
 }
 
-function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number;
-  runType: RunTypeValue;
-} {
-  // V3-first, V2-fallback field lookup (same shim as extractNumericStats).
-  const tierField = fields.battleReport_tier ?? fields.tier;
-  const waveField = fields.battleReport_wave ?? fields.wave;
-  const coinsField = fields.battleReport_coinsEarned ?? fields.coinsEarned;
-  const cellsField = fields.battleReport_cellsEarned ?? fields.cellsEarned;
-  const realTimeField = fields.battleReport_realTime ?? fields.realTime;
-
-  const tierStr = tierField?.rawValue || '';
-  const runType: RunTypeValue = determineRunType(tierStr);
-
-  // TRANSITIONAL — duplicated in `run-type-detection.ts:extractNumericStats`.
-  // Commit 9 (derivations) absorbs tier-`+` parsing as either a dedicated
-  // data-type or a self-deriver; both call sites collapse to a graph call.
-  const tierMatch = tierStr.match(/^(\d+)/);
-  const tier = tierMatch ? parseInt(tierMatch[1], 10) : 0;
-
-  return {
-    tier,
-    wave: (waveField?.value as number) || 0,
-    coinsEarned: (coinsField?.value as number) || 0,
-    cellsEarned: (cellsField?.value as number) || 0,
-    realTime: (realTimeField?.value as number) || 0,
-    runType
-  };
-}
-
 // Calculate value per hour
 export function calculatePerHour(value: number, durationInSeconds: number): number {
   if (durationInSeconds === 0) {
@@ -156,92 +103,43 @@ export function calculatePerHour(value: number, durationInSeconds: number): numb
   return value / hours;
 }
 
-// Main parsing function with enhanced field structure and battle_date support
+// Parses tab-delimited clipboard text (V28 sectioned or V2 flat) into a raw
+// fields map, then hands off to `hydrateRun` which owns V2-key remap, the
+// derivation cascade, timestamp resolution, and cached-stat extraction.
 export function parseGameRun(
   rawInput: string,
   customTimestamp?: Date,
   importFormat?: ImportFormatSettings
 ): ParsedGameRun {
   try {
-    // Two input shapes:
-    //   - V28 section-headered exports -> parseV28SectionedEntries emits
-    //     {key, label, value} triples. `key` is V3 canonical
-    //     `<sectionCamel>_<labelCamel>`; `label` is the raw display label
-    //     so createGameRunField can type-detect correctly ("Killed By" ->
-    //     string, "Real Time" -> duration) rather than seeing the
-    //     composite key and defaulting to number.
-    //   - Legacy flat clipboard format -> parseTabDelimitedData produces V2
-    //     camelCase keys that we then remap to V3 canonical via the field
-    //     graph's RENAMED_FROM edges (`remapV2FieldKeys` is graph-driven).
-    const isSectioned = looksLikeV28SectionedInput(rawInput);
-    const dateFormat = importFormat?.dateFormat ?? 'month-first';
-    const rawFields: Record<string, GameRunField> = {};
-
-    if (isSectioned) {
-      for (const entry of parseV28SectionedEntries(rawInput)) {
-        rawFields[entry.key] = createGameRunField(entry.label, entry.value, importFormat);
-      }
-    } else {
-      const clipboardData = parseTabDelimitedData(rawInput);
-      for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
-        const fieldKey = toCamelCase(originalKey);
-        rawFields[fieldKey] = createGameRunField(originalKey, rawValue, importFormat);
-      }
-    }
-
-    // Legacy flat input carries V2 field names; normalize to V3 canonical
-    // names so exports write `v3_<key>` correctly. Sectioned input already
-    // uses V3 keys and passes through remapV2FieldKeys unchanged.
-    const fields = isSectioned ? rawFields : remapV2FieldKeys(rawFields);
-
-    // Determine timestamp using hierarchy: battle_date > customTimestamp > current time
-    let timestamp: Date;
-    let dateValidationError: ParsedGameRun['dateValidationError'];
-
-    // Check for battle_date field. Tolerate both V3 canonical
-    // (`battleReport_battleDate`) and legacy V2 (`battleDate`) keys so
-    // this works for both sectioned V28 paste and legacy flat paste.
-    const battleDateField = fields.battleReport_battleDate ?? fields.battleDate;
-    if (battleDateField) {
-      const validationResult = validateBattleDate(battleDateField.rawValue, {
-        format: dateFormat,
-        // Don't fail on future/old dates - just parse
-        warnFutureDates: false,
-      });
-
-      if (validationResult.success) {
-        timestamp = validationResult.date;
-
-        // Derive _date and _time from battle_date
-        const derived = deriveDateTimeFromBattleDate(validationResult.date);
-
-        // Add derived internal fields (these won't be in the original game export)
-        fields[_DATE_NODE.id] = createInternalField('Date', derived.date);
-        fields[_TIME_NODE.id] = createInternalField('Time', derived.time);
-      } else {
-        // battle_date parsing failed - capture error and fall back to customTimestamp or current time
-        dateValidationError = validationResult.error;
-        timestamp = customTimestamp || new Date();
-      }
-    } else {
-      // No battle_date - use customTimestamp or current time
-      timestamp = customTimestamp || new Date();
-    }
-
-    // Extract key stats from field structure
-    const fieldKeyStats = extractKeyStatsFromFields(fields);
-
-    return {
-      id: crypto.randomUUID(),
-      timestamp,
-      fields,
-      ...fieldKeyStats,
-      ...(dateValidationError && { dateValidationError }),
-    };
+    const rawFields = parseToRawFields(rawInput, importFormat);
+    return hydrateRun(rawFields, { customTimestamp, importFormat });
   } catch (error) {
     console.error('Error parsing game run:', error);
     throw error;
   }
+}
+
+function parseToRawFields(
+  rawInput: string,
+  importFormat: ImportFormatSettings | undefined,
+): Record<string, GameRunField> {
+  // Two input shapes: V28 sectioned exports emit `{key, label, value}` triples
+  // with V3-canonical composite keys; V2 flat clipboard emits whatever keys
+  // were typed and gets canonicalized inside `hydrateRun` via remap.
+  const rawFields: Record<string, GameRunField> = {};
+  if (looksLikeV28SectionedInput(rawInput)) {
+    for (const entry of parseV28SectionedEntries(rawInput)) {
+      rawFields[entry.key] = createGameRunField(entry.label, entry.value, importFormat);
+    }
+    return rawFields;
+  }
+  const clipboardData = parseTabDelimitedData(rawInput);
+  for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
+    const fieldKey = toCamelCase(originalKey);
+    rawFields[fieldKey] = createGameRunField(originalKey, rawValue, importFormat);
+  }
+  return rawFields;
 }
 
 // Map tournament tier (with '+') to league label

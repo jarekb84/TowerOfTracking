@@ -1,20 +1,15 @@
-import type { GameRunField, ParsedGameRun } from '@/shared/types/game-run.types';
+import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CsvDelimiter } from '@/features/data-import/csv-import/types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
 import { CANONICAL_STORAGE_FORMAT } from '@/shared/locale/types';
 import { getImportFormat, getDisplayLocale } from '@/shared/locale/locale-store';
 import { getDelimiterString } from '../../data-import/csv-import/csv-parser';
-import { formatFilenameDateTime, formatIsoDate, formatIsoTime } from '../../../shared/formatting/date-formatters';
+import { formatFilenameDateTime } from '../../../shared/formatting/date-formatters';
 import { formatLargeNumber } from '@/shared/formatting/number-scale';
 import { encodeNotesForStorage } from '@/shared/domain/fields/notes-encoding';
 import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
 import { csvHeaderOf, internalFields } from '@/shared/domain/field-graph';
-import {
-  _DATE_NODE,
-  _NOTES_NODE,
-  _RUN_TYPE_NODE,
-  _TIME_NODE,
-} from '@/shared/domain/field-graph/catalog/fields.nodes';
+import { _NOTES_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 
 // Interface for field information
 interface FieldInfo {
@@ -120,46 +115,25 @@ function getAllFieldKeys(runs: ParsedGameRun[]): FieldInfo[] {
 }
 
 /**
- * Build a string-typed field record. Used by the export preprocessor to
- * synthesize internal-field rows from cached `ParsedGameRun` properties when
- * the row didn't carry the field in `fields`.
- */
-function stringField(rawValue: string): GameRunField {
-  return { value: rawValue, rawValue, displayValue: rawValue, originalKey: '', dataType: 'string' };
-}
-
-/**
- * Transitional preprocessor: ensures the three internal fields with cached-
- * property fallbacks (`_date`, `_time`, `_runType`) are populated, and pre-
- * encodes `_notes` for tab-delimited storage.
+ * Pre-encode `_notes` for tab-delimited storage. The parser's derivation
+ * cascade populates `_date` / `_time` / `_runType` at import time, so no
+ * cached-property fallback is needed here — notes is the one remaining
+ * per-field concern because tab/newline escaping is an export-time choice,
+ * not a field-shape one.
  *
- * After commit 9 wires `IS_DERIVED_FROM` + a derivation cascade, the parser
- * will guarantee these fields are populated by the time export runs and the
- * cached-property branches in this function disappear. Notes encoding moves
- * to a dedicated edge (or `'user-text'` data-type variant) at the same time.
- *
- * Until then, this is the single place where the exporter carries per-field
- * knowledge — no other site of csv-exporter reads field ids directly.
+ * Sunset candidate: when notes encoding moves to a dedicated edge or a
+ * `'user-text'` data-type variant, this preprocessor disappears.
  */
-function withPopulatedAppFields(run: ParsedGameRun): ParsedGameRun {
-  const fields = { ...run.fields };
-
-  if (!fields[_DATE_NODE.id]?.rawValue) {
-    fields[_DATE_NODE.id] = stringField(formatIsoDate(run.timestamp));
-  }
-  if (!fields[_TIME_NODE.id]?.rawValue) {
-    fields[_TIME_NODE.id] = stringField(formatIsoTime(run.timestamp));
-  }
-  if (!fields[_RUN_TYPE_NODE.id]?.rawValue) {
-    fields[_RUN_TYPE_NODE.id] = stringField(run.runType);
-  }
-
-  const notesField = fields[_NOTES_NODE.id];
-  if (notesField) {
-    fields[_NOTES_NODE.id] = { ...notesField, rawValue: encodeNotesForStorage(notesField.rawValue) };
-  }
-
-  return { ...run, fields };
+function withEncodedNotes(run: ParsedGameRun): ParsedGameRun {
+  const notesField = run.fields[_NOTES_NODE.id];
+  if (!notesField) return run;
+  return {
+    ...run,
+    fields: {
+      ...run.fields,
+      [_NOTES_NODE.id]: { ...notesField, rawValue: encodeNotesForStorage(notesField.rawValue) },
+    },
+  };
 }
 
 /**
@@ -174,7 +148,7 @@ function detectDelimiterConflicts(
   const fieldKeys = getAllFieldKeys(runs);
 
   for (const rawRun of runs) {
-    const run = withPopulatedAppFields(rawRun);
+    const run = withEncodedNotes(rawRun);
     for (const fieldInfo of fieldKeys) {
       if (fieldInfo.isAppGenerated && !includeAppFields) continue;
 
@@ -337,7 +311,7 @@ export function exportToCsv(
   // property fallbacks and pre-encodes notes; from here on, app + game
   // fields share one extraction path keyed off `field.dataType`.
   for (const rawRun of runs) {
-    const run = withPopulatedAppFields(rawRun);
+    const run = withEncodedNotes(rawRun);
     const values: string[] = [];
 
     for (const fieldInfo of fieldKeys) {

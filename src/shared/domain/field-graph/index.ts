@@ -2,6 +2,7 @@ import { appGraph } from './app-graph';
 import type { FieldRef } from './field-graph';
 import * as breakdownsQ from './catalog/edges/breakdowns/breakdowns.queries';
 import * as dataTypesQ from './catalog/edges/data-types/data-types.queries';
+import * as derivationsQ from './catalog/edges/derivations/derivations.queries';
 import * as enumValuesQ from './catalog/edges/enum-values/enum-values.queries';
 import * as internalFieldsQ from './catalog/edges/internal-fields/internal-fields.queries';
 import * as measurementsQ from './catalog/edges/measurements/measurements.queries';
@@ -59,6 +60,13 @@ export const csvHeaderOf = (field: FieldRef) => internalFieldsQ.csvHeaderOf(appG
 
 export const dataTypeOf = (field: FieldRef) => dataTypesQ.dataTypeOf(appGraph(), field);
 export { DATA_TYPES, isDataType, type DataType } from './catalog/edges/data-types/data-types.constants';
+
+export const derivationsOf = (field: FieldRef) => derivationsQ.derivationsOf(appGraph(), field);
+export const fieldsDerivedFrom = (field: FieldRef) => derivationsQ.fieldsDerivedFrom(appGraph(), field);
+
+// Lifecycle methods: hydrate a `ParsedGameRun` from raw fields, or apply a
+// single-field edit and re-cascade dependents. See `hydration.ts`.
+export { hydrateRun, updateField, type HydrationContext } from './hydration';
 
 export const fieldsInSection = (section: FieldRef) => sectionsQ.fieldsInSection(appGraph(), section);
 export const sectionsOf = (field: FieldRef) => sectionsQ.sectionsOf(appGraph(), field);
