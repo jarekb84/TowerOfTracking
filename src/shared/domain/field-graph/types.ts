@@ -22,6 +22,7 @@ export type EdgeType =
   | 'BELONGS_TO_SECTION'
   | 'BELONGS_TO_CATEGORY'
   | 'IS_SOURCE_OF'
+  | 'IS_MEASURED_AGAINST'
   | 'IS_DERIVED_FROM'
   | 'APPEARS_IN_VIEW'
   | 'APPEARS_IN_FILTER'
@@ -37,6 +38,8 @@ export type EdgeType =
   | 'CONDITIONAL_ON'
   | 'ACCEPTS_VALUE'
   | 'IS_INTERNAL_FIELD'
+  | 'HAS_BREAKDOWN_TOTAL'
+  | 'HAS_BREAKDOWN_RATE'
   // Terminal-target (to is a plain string, not a node id)
   | 'HAS_DISPLAY_NAME'
   | 'HAS_COLOR'
@@ -73,7 +76,24 @@ export interface EdgeMeta {
 export const EDGE_META: Readonly<Record<EdgeType, EdgeMeta>> = {
   BELONGS_TO_SECTION: { sourceKind: 'Field', targetKind: 'Section', cardinality: 'many' },
   BELONGS_TO_CATEGORY: { sourceKind: 'Section', targetKind: 'Category', cardinality: 'one' },
+  // `HAS_BREAKDOWN_TOTAL`: section X renders as a breakdown of total field Y
+  // (Y is the denominator for percentage-bar visualization). Cardinality
+  // 'one' — a section has at most one breakdown denominator.
+  HAS_BREAKDOWN_TOTAL: { sourceKind: 'Section', targetKind: 'Field', cardinality: 'one' },
+  // `HAS_BREAKDOWN_RATE`: section X's breakdown also displays Y as a per-hour
+  // rate alongside the total. Cardinality 'one' — at most one rate field
+  // per section.
+  HAS_BREAKDOWN_RATE: { sourceKind: 'Section', targetKind: 'Field', cardinality: 'one' },
   IS_SOURCE_OF: { sourceKind: 'Field', targetKind: 'Field', cardinality: 'many' },
+  // `IS_MEASURED_AGAINST` captures the supplementary-breakdown relationship:
+  // the source field is the primary stat the user cares about; the target
+  // field is its reference yardstick (its denominator for percentage
+  // visualization). Distinct from IS_SOURCE_OF because the sources do NOT
+  // sum to the total — they overlap or categorize the same universe (a
+  // single enemy can be hit by multiple weapons, etc.). Cardinality 'many'
+  // permits a field to be measured against multiple totals in principle;
+  // in practice today each is anchored to one.
+  IS_MEASURED_AGAINST: { sourceKind: 'Field', targetKind: 'Field', cardinality: 'many' },
   IS_DERIVED_FROM: { sourceKind: 'Field', targetKind: 'Field', cardinality: 'many' },
   // Cardinality temporarily relaxed from 'at-least-one' to 'many' during the
   // field-graph migration. Phase 1 (commits 1–3) declares Field nodes without
@@ -96,7 +116,7 @@ export const EDGE_META: Readonly<Record<EdgeType, EdgeMeta>> = {
   CONDITIONAL_ON: { sourceKind: 'Field', targetKind: 'EnumValue', cardinality: 'many' },
   ACCEPTS_VALUE: { sourceKind: 'Field', targetKind: 'EnumValue', cardinality: 'many' },
   IS_INTERNAL_FIELD: { sourceKind: 'Field', targetKind: 'none', cardinality: 'one' },
-  HAS_DISPLAY_NAME: { sourceKind: ['Field', 'EnumValue'], targetKind: 'terminal', cardinality: 'one' },
+  HAS_DISPLAY_NAME: { sourceKind: ['Field', 'EnumValue', 'Section', 'Category'], targetKind: 'terminal', cardinality: 'one' },
   HAS_COLOR: { sourceKind: ['Field', 'EnumValue'], targetKind: 'terminal', cardinality: 'one' },
   // Cardinality is `'one'` (max-one), not `'at-least-one'`. The production-
   // catalog universality is enforced by the explicit invariant test in

@@ -4,7 +4,7 @@
  * Pure functions for building tooltip text for breakdown items.
  */
 
-import type { DiscrepancyType } from '@/shared/domain/fields/breakdown-sources'
+import type { DiscrepancyType } from '@/shared/domain/source-discrepancy'
 
 /**
  * Build explanatory tooltip text for discrepancy entries.

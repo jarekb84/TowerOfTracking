@@ -6,33 +6,15 @@
 
 import type { ParsedGameRun } from '@/shared/types/game-run.types';
 import type { CategoryDefinition, SourceFieldDefinition, SourceValue, SourceSummaryValue } from '../types';
-import { FIELD_ALIASES } from '../category-config';
 
-/**
- * Extract numeric value from a game run field
- * Returns 0 if field doesn't exist or isn't a number
- */
 export function extractFieldValue(
   run: ParsedGameRun,
   fieldName: string
 ): number {
-  // Try primary field name
   const field = run.fields[fieldName];
   if (field && typeof field.value === 'number') {
     return field.value;
   }
-
-  // Try aliases
-  const aliases = FIELD_ALIASES[fieldName];
-  if (aliases) {
-    for (const alias of aliases) {
-      const aliasField = run.fields[alias];
-      if (aliasField && typeof aliasField.value === 'number') {
-        return aliasField.value;
-      }
-    }
-  }
-
   return 0;
 }
 

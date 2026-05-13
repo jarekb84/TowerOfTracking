@@ -2,16 +2,31 @@
  * Run Details Data Hook
  *
  * Orchestrates the preparation of run-details data driven by the field
- * graph: categories → sections → fields (plain or breakdown).
+ * graph. Categories → sections → fields (plain or breakdown). Every facet
+ * — section ordering, breakdown denominators, source lists, display names,
+ * colors — comes from the graph.
+ *
+ * Breakdown source resolution:
+ *   - Genuine sum-to-total breakdowns use `sourcesOf(totalField)` and run
+ *     discrepancy detection.
+ *   - Supplementary same-denominator breakdowns use the intersection of
+ *     `fieldsMeasuredAgainst(totalField)` with `fieldsInSection(sectionId)`
+ *     and skip discrepancy detection (sources don't sum to the denominator).
  */
 
 import { useMemo } from 'react'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
 import {
+  breakdownRateOf,
+  breakdownTotalOf,
   categoriesInDisplayOrder,
+  colorOf,
+  displayNameOf,
   fieldsInSection,
+  fieldsMeasuredAgainst,
   isInternalField,
   sectionsInCategory,
+  sourcesOf,
 } from '@/shared/domain/field-graph'
 import type {
   BreakdownConfig,
@@ -24,36 +39,87 @@ import {
   calculateBreakdownGroup,
   extractPlainFields,
 } from './breakdown/breakdown-calculations'
-import { deriveDisplayName } from './derive-display-name'
-import { HIDDEN_FROM_RUN_DETAILS, SECTION_BREAKDOWNS } from './section-config'
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'category:general': 'Battle Report',
-  'category:records': 'Records',
-  'category:combat': 'Combat',
-  'category:economic': 'Economic',
-}
+const DEFAULT_BREAKDOWN_COLOR = '#a1a1aa'
+
+// `battleReport_battleDate` is rendered in the run card header, so it's
+// suppressed from the section listing to avoid duplicate display. Per-view
+// visibility like this becomes an APPEARS_IN_VIEW exclusion in commit 12.
+const HIDDEN_FROM_RUN_DETAILS: ReadonlySet<string> = new Set(['battleReport_battleDate'])
 
 function categoryLabel(categoryId: string): string {
-  return CATEGORY_LABELS[categoryId] ?? deriveDisplayName(categoryId.replace('category:', ''))
+  return displayNameOf(categoryId) ?? categoryId
 }
 
 function sectionLabel(sectionId: string): string {
-  return deriveDisplayName(sectionId.replace('section:', '')).toUpperCase()
+  return (displayNameOf(sectionId) ?? sectionId).toUpperCase()
+}
+
+function fieldDisplayName(fieldId: string): string {
+  return displayNameOf(fieldId) ?? fieldId
+}
+
+function fieldColor(fieldId: string): string {
+  return colorOf(fieldId) ?? DEFAULT_BREAKDOWN_COLOR
+}
+
+/**
+ * Resolve a section's breakdown source list.
+ *
+ * Genuine breakdown: a section that contains at least one IS_SOURCE_OF of
+ * the denominator. Returns ALL direct sources in catalog declaration order
+ * — cross-section sources are intentional (e.g. `healthRegenerated_lifesteal`
+ * contributes to `damage_damageDealt`).
+ *
+ * Supplementary breakdown: no field in the section is a direct source of
+ * the denominator. Returns the section's fields that are IS_MEASURED_AGAINST
+ * the denominator, in BELONGS_TO_SECTION declaration order.
+ */
+function resolveBreakdownSources(sectionId: string, totalField: string): {
+  readonly sourceIds: readonly string[]
+  readonly isSupplementary: boolean
+} {
+  const sectionFieldSet = new Set(fieldsInSection(sectionId))
+  const directSources = sourcesOf(totalField)
+  const isGenuine = directSources.some((id) => sectionFieldSet.has(id))
+  if (isGenuine) {
+    return { sourceIds: directSources, isSupplementary: false }
+  }
+  const measuredSet = new Set(fieldsMeasuredAgainst(totalField))
+  const supplementarySources = fieldsInSection(sectionId).filter((id) => measuredSet.has(id))
+  return { sourceIds: supplementarySources, isSupplementary: true }
+}
+
+function buildBreakdownConfig(sectionId: string, totalField: string): BreakdownConfig {
+  const { sourceIds, isSupplementary } = resolveBreakdownSources(sectionId, totalField)
+  return {
+    totalField,
+    label: sectionLabel(sectionId),
+    perHourField: breakdownRateOf(sectionId),
+    skipDiscrepancy: isSupplementary,
+    sources: sourceIds.map((id) => ({
+      fieldName: id,
+      displayName: fieldDisplayName(id),
+      color: fieldColor(id),
+    })),
+  }
 }
 
 function buildPlainSection(
   run: ParsedGameRun,
   sectionId: string,
 ): SectionData | null {
-  const fieldIds = fieldsInSection(sectionId).filter(
-    (id) => !HIDDEN_FROM_RUN_DETAILS.has(id),
-  )
+  const breakdownTotal = breakdownTotalOf(sectionId)
+  const fieldIds = fieldsInSection(sectionId).filter((id) => {
+    if (HIDDEN_FROM_RUN_DETAILS.has(id)) return false
+    if (breakdownTotal !== undefined && id === breakdownTotal) return false
+    return true
+  })
   if (fieldIds.length === 0) return null
 
   const data = extractPlainFields(run, {
     label: sectionLabel(sectionId),
-    fields: fieldIds.map((id) => ({ fieldName: id, displayName: deriveDisplayName(id) })),
+    fields: fieldIds.map((id) => ({ fieldName: id, displayName: fieldDisplayName(id) })),
   })
   if (data.items.length === 0) return null
 
@@ -68,9 +134,9 @@ function buildPlainSection(
 function buildBreakdownSection(
   run: ParsedGameRun,
   sectionId: string,
-  config: BreakdownConfig,
+  totalField: string,
 ): SectionData | null {
-  const group = calculateBreakdownGroup(run, config)
+  const group = calculateBreakdownGroup(run, buildBreakdownConfig(sectionId, totalField))
   if (group === null) return null
   return {
     kind: 'breakdown',
@@ -84,9 +150,9 @@ function buildBreakdownSection(
 }
 
 function buildSection(run: ParsedGameRun, sectionId: string): SectionData | null {
-  const breakdown = SECTION_BREAKDOWNS[sectionId]
-  if (breakdown !== undefined) {
-    return buildBreakdownSection(run, sectionId, breakdown)
+  const totalField = breakdownTotalOf(sectionId)
+  if (totalField !== undefined) {
+    return buildBreakdownSection(run, sectionId, totalField)
   }
   return buildPlainSection(run, sectionId)
 }
@@ -106,13 +172,6 @@ function buildCategory(run: ParsedGameRun, categoryId: string): CategoryData {
 
 function buildUncategorized(run: ParsedGameRun): PlainFieldsData {
   const categorized = new Set<string>()
-  for (const breakdownSection of Object.keys(SECTION_BREAKDOWNS)) {
-    for (const source of SECTION_BREAKDOWNS[breakdownSection].sources) {
-      categorized.add(source.fieldName)
-    }
-    const total = SECTION_BREAKDOWNS[breakdownSection].totalField
-    if (total) categorized.add(total)
-  }
   for (const categoryId of categoriesInDisplayOrder()) {
     for (const sectionId of sectionsInCategory(categoryId)) {
       for (const fieldId of fieldsInSection(sectionId)) {

@@ -139,6 +139,13 @@ export const BELONGS_TO_SECTION_EDGES: readonly Edge[] = [
     f.KILLED_WITH_EFFECT_ACTIVE__GOLDEN_TOWER_NODE.id,
     f.KILLED_WITH_EFFECT_ACTIVE__AMPLIFY_BOT_NODE.id,
     f.KILLED_WITH_EFFECT_ACTIVE__DEATH_PENALTY_NODE.id,
+    // Multi-section: `totalEnemies_summonedEnemies` also lives in
+    // section:totalEnemies (per V3 storage prefix). It renders in the
+    // killedWithEffectActive supplementary breakdown alongside the
+    // killedWithEffectActive_* fields. The `IS_MEASURED_AGAINST` edge to
+    // `totalEnemies_totalEnemies` is declared in
+    // `../sources/sources.measured-against.edges.ts`.
+    f.TOTAL_ENEMIES__SUMMONED_ENEMIES_NODE.id,
   ]),
   ...membership(SECTION_TOTAL_ENEMIES_NODE.id, [
     f.TOTAL_ENEMIES__TOTAL_ENEMIES_NODE.id,

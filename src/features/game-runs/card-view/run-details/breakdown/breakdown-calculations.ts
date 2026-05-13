@@ -12,7 +12,7 @@ import {
   DISCREPANCY_COLORS,
   DISCREPANCY_FIELD_NAMES,
   DISCREPANCY_DISPLAY_NAMES,
-} from '@/shared/domain/fields/breakdown-sources'
+} from '@/shared/domain/source-discrepancy'
 import type {
   BreakdownConfig,
   BreakdownGroupData,

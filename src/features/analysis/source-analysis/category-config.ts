@@ -1,21 +1,23 @@
 /**
  * Category Configuration for Source Analysis
  *
- * Defines the mapping between aggregate totals and their constituent sources.
- * Uses shared field configurations to ensure consistency with Run Details.
+ * Source-analysis pages render two breakdown categories (damage dealt, coin
+ * income). The source field list, display names, and colors all come from
+ * the field graph — the only thing this file owns is the user-facing
+ * category metadata (id, friendly description, default selection).
  */
 
-import type { CategoryDefinition, SourceCategory } from './types';
 import {
-  DAMAGE_DEALT_CATEGORY as SHARED_DAMAGE_CATEGORY,
-  COINS_EARNED_CATEGORY as SHARED_COINS_CATEGORY,
-  COIN_FIELD_ALIASES,
-} from '@/shared/domain/fields/breakdown-sources';
+  BATTLE_REPORT__COINS_EARNED_NODE,
+  DAMAGE__DAMAGE_DEALT_NODE,
+} from '@/shared/domain/field-graph/catalog/fields.nodes';
+import {
+  colorOf,
+  displayNameOf,
+  sourcesOf,
+} from '@/shared/domain/field-graph';
+import type { CategoryDefinition, SourceCategory, SourceFieldDefinition } from './types';
 
-/**
- * Gradient definitions for enhanced visual depth
- * Each gradient goes from the base color (top) to a darker/transparent variant (bottom)
- */
 export interface GradientConfig {
   id: string;
   startColor: string;
@@ -24,10 +26,6 @@ export interface GradientConfig {
   endOpacity: number;
 }
 
-/**
- * Generate gradient configuration for a source color
- * Creates a vertical gradient that fades from full color to semi-transparent
- */
 export function getGradientConfig(fieldName: string, color: string): GradientConfig {
   return {
     id: `gradient-${fieldName}`,
@@ -38,62 +36,52 @@ export function getGradientConfig(fieldName: string, color: string): GradientCon
   };
 }
 
-/**
- * Damage Dealt category definition
- * Derived from shared configuration for consistency with Run Details
- */
-const DAMAGE_DEALT_CATEGORY: CategoryDefinition = {
-  id: 'damageDealt',
-  name: SHARED_DAMAGE_CATEGORY.name,
-  description: SHARED_DAMAGE_CATEGORY.description ?? 'Breakdown of damage sources contributing to total damage dealt',
-  totalField: SHARED_DAMAGE_CATEGORY.totalField!,
-  sources: SHARED_DAMAGE_CATEGORY.fields.map((f) => ({
-    fieldName: f.fieldName,
-    displayName: f.displayName,
-    color: f.color,
-  })),
-};
+const DEFAULT_SOURCE_COLOR = '#a1a1aa';
 
-/**
- * Coin Income category definition
- * Derived from shared configuration for consistency with Run Details
- */
-const COIN_INCOME_CATEGORY: CategoryDefinition = {
-  id: 'coinIncome',
-  name: SHARED_COINS_CATEGORY.name,
-  description: SHARED_COINS_CATEGORY.description ?? 'Breakdown of coin income sources',
-  totalField: SHARED_COINS_CATEGORY.totalField!,
-  sources: SHARED_COINS_CATEGORY.fields.map((f) => ({
-    fieldName: f.fieldName,
-    displayName: f.displayName,
-    color: f.color,
-  })),
-};
-
-/**
- * Field name aliases to handle variations in game data
- * Derived from shared configuration
- */
-export const FIELD_ALIASES: Record<string, string[]> = COIN_FIELD_ALIASES;
-
-/**
- * All category definitions
- */
-const CATEGORY_DEFINITIONS: Record<SourceCategory, CategoryDefinition> = {
-  damageDealt: DAMAGE_DEALT_CATEGORY,
-  coinIncome: COIN_INCOME_CATEGORY,
-};
-
-/**
- * Get category definition by ID
- */
-export function getCategoryDefinition(categoryId: SourceCategory): CategoryDefinition {
-  return CATEGORY_DEFINITIONS[categoryId];
+function sourceDefinition(fieldId: string): SourceFieldDefinition {
+  return {
+    fieldName: fieldId,
+    displayName: displayNameOf(fieldId) ?? fieldId,
+    color: colorOf(fieldId) ?? DEFAULT_SOURCE_COLOR,
+  };
 }
 
-/**
- * Get all available categories
- */
+interface CategoryMetadata {
+  id: SourceCategory;
+  name: string;
+  description: string;
+  totalFieldNodeId: string;
+}
+
+const CATEGORY_METADATA: Record<SourceCategory, CategoryMetadata> = {
+  damageDealt: {
+    id: 'damageDealt',
+    name: 'Damage Dealt',
+    description: 'Breakdown of damage sources contributing to total damage dealt',
+    totalFieldNodeId: DAMAGE__DAMAGE_DEALT_NODE.id,
+  },
+  coinIncome: {
+    id: 'coinIncome',
+    name: 'Coins Earned',
+    description: 'Breakdown of coin income sources',
+    totalFieldNodeId: BATTLE_REPORT__COINS_EARNED_NODE.id,
+  },
+};
+
+function buildCategoryDefinition(metadata: CategoryMetadata): CategoryDefinition {
+  return {
+    id: metadata.id,
+    name: metadata.name,
+    description: metadata.description,
+    totalField: metadata.totalFieldNodeId,
+    sources: sourcesOf(metadata.totalFieldNodeId).map(sourceDefinition),
+  };
+}
+
+export function getCategoryDefinition(categoryId: SourceCategory): CategoryDefinition {
+  return buildCategoryDefinition(CATEGORY_METADATA[categoryId]);
+}
+
 export function getAvailableCategories(): CategoryDefinition[] {
-  return Object.values(CATEGORY_DEFINITIONS);
+  return Object.values(CATEGORY_METADATA).map(buildCategoryDefinition);
 }

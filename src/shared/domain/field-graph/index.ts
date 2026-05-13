@@ -1,8 +1,10 @@
 import { appGraph } from './app-graph';
 import type { FieldRef } from './field-graph';
+import * as breakdownsQ from './catalog/edges/breakdowns/breakdowns.queries';
 import * as dataTypesQ from './catalog/edges/data-types/data-types.queries';
 import * as enumValuesQ from './catalog/edges/enum-values/enum-values.queries';
 import * as internalFieldsQ from './catalog/edges/internal-fields/internal-fields.queries';
+import * as measurementsQ from './catalog/edges/measurements/measurements.queries';
 import * as presentationQ from './catalog/edges/presentation/presentation.queries';
 import * as sectionsQ from './catalog/edges/sections/sections.queries';
 import * as sourcesQ from './catalog/edges/sources/sources.queries';
@@ -65,6 +67,13 @@ export const categoryOfSection = (section: FieldRef) => sectionsQ.categoryOfSect
 export const categoriesInDisplayOrder = () => sectionsQ.categoriesInDisplayOrder(appGraph());
 
 export const sourcesOf = (totalField: FieldRef) => sourcesQ.sourcesOf(appGraph(), totalField);
+export const fieldsMeasuredAgainst = (totalField: FieldRef) =>
+  measurementsQ.fieldsMeasuredAgainst(appGraph(), totalField);
+export const measurementTargetsOf = (field: FieldRef) =>
+  measurementsQ.measurementTargetsOf(appGraph(), field);
+
+export const breakdownTotalOf = (section: FieldRef) => breakdownsQ.breakdownTotalOf(appGraph(), section);
+export const breakdownRateOf = (section: FieldRef) => breakdownsQ.breakdownRateOf(appGraph(), section);
 
 export const displayNameOf = (node: FieldRef) => presentationQ.displayNameOf(appGraph(), node);
 export const colorOf = (node: FieldRef) => presentationQ.colorOf(appGraph(), node);

@@ -16,8 +16,7 @@ function buildSourcesGraph(): FieldGraph {
 
 describe('sourcesOf', () => {
   it('returns fields contributing to a total', () => {
-    const graph = buildSourcesGraph();
-    expect(sourcesOf(graph, 'total')).toEqual(['a', 'b']);
+    expect(sourcesOf(buildSourcesGraph(), 'total')).toEqual(['a', 'b']);
   });
 
   it('returns [] for a field that is not a total', () => {
@@ -27,7 +26,6 @@ describe('sourcesOf', () => {
   });
 
   it('returns [] for an unknown field id', () => {
-    const graph = buildSourcesGraph();
-    expect(sourcesOf(graph, 'never')).toEqual([]);
+    expect(sourcesOf(buildSourcesGraph(), 'never')).toEqual([]);
   });
 });
