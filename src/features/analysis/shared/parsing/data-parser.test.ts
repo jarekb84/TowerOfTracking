@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  deriveDateTimeFromBattleDate,
   constructDateFromLegacyFields,
   parseGameRun
 } from '../parsing/data-parser';
@@ -59,40 +58,6 @@ describe('parseBattleDate', () => {
   });
 });
 
-describe('deriveDateTimeFromBattleDate', () => {
-  it('should derive correct date and time strings', () => {
-    const battleDate = new Date('2025-10-14T13:14:00');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-10-14');
-    expect(result.time).toBe('13:14:00');
-  });
-
-  it('should handle single-digit months and days with zero padding', () => {
-    const battleDate = new Date('2025-01-05T08:05:03');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-01-05');
-    expect(result.time).toBe('08:05:03');
-  });
-
-  it('should handle midnight correctly', () => {
-    const battleDate = new Date('2025-12-31T00:00:00');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-12-31');
-    expect(result.time).toBe('00:00:00');
-  });
-
-  it('should handle end of day correctly', () => {
-    const battleDate = new Date('2025-06-15T23:59:59');
-    const result = deriveDateTimeFromBattleDate(battleDate);
-
-    expect(result.date).toBe('2025-06-15');
-    expect(result.time).toBe('23:59:59');
-  });
-});
-
 describe('constructDateFromLegacyFields', () => {
   it('should construct date from legacy date and time fields', () => {
     const result = constructDateFromLegacyFields('2025-10-14', '13:14:00');
@@ -142,9 +107,9 @@ Cells Earned\t152.81K`;
     expect(result.timestamp.getHours()).toBe(13);
     expect(result.timestamp.getMinutes()).toBe(14);
 
-    // Should have battle_date field
-    expect(result.fields.battleDate).toBeDefined();
-    expect(result.fields.battleDate.rawValue).toBe('Oct 14, 2025 13:14');
+    // Battle date is normalized to V3 canonical key via remapV2FieldKeys
+    expect(result.fields.battleReport_battleDate).toBeDefined();
+    expect(result.fields.battleReport_battleDate.rawValue).toBe('Oct 14, 2025 13:14');
 
     // Should have derived _date and _time fields
     expect(result.fields._date).toBeDefined();
@@ -205,11 +170,14 @@ Waves Skipped\t1756`;
     expect(result.fields.combat).toBeUndefined();
     expect(result.fields.utility).toBeUndefined();
 
-    // Should have actual data fields
-    expect(result.fields.battleDate).toBeDefined();
-    expect(result.fields.gameTime).toBeDefined();
-    expect(result.fields.damageDealt).toBeDefined();
-    expect(result.fields.wavesSkipped).toBeDefined();
+    // Should have actual data fields (V3 section-aware keys for V28 sectioned paste)
+    expect(result.fields.battleReport_battleDate).toBeDefined();
+    expect(result.fields.battleReport_gameTime).toBeDefined();
+    // "Combat" is not a V28 section; labels under it fall through with the
+    // section name camel-cased. Assert the section-aware shape rather than
+    // the legacy flat key.
+    expect(result.fields.combat_damageDealt).toBeDefined();
+    expect(result.fields.utility_wavesSkipped).toBeDefined();
   });
 
   it('should handle notes field migration', () => {

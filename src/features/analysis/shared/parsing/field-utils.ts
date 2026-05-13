@@ -5,38 +5,13 @@ import {
   formatLargeNumber
 } from '../../../../shared/formatting/number-scale';
 import { decodeNotesFromStorage } from '@/shared/domain/fields/notes-encoding';
+import { dataTypeOf, resolveFieldByAnyKey, type DataType } from '@/shared/domain/field-graph';
+import { V3_COLUMN_PREFIX } from '@/shared/domain/migrations/storage-keys';
 
 // Field configuration for processing rules
 interface FieldConfig {
-  type: 'number' | 'duration' | 'string' | 'date';
+  type: DataType;
 }
-
-// Exact match field configurations - O(1) lookup instead of if-chain
-const EXACT_FIELD_CONFIGS: Record<string, FieldConfig> = {
-  // Internal fields (prefixed with underscore)
-  '_date': { type: 'date' },
-  'date': { type: 'date' },
-  '_time': { type: 'date' },
-  'time': { type: 'date' },
-  '_notes': { type: 'string' },
-  'notes': { type: 'string' },
-  '_runtype': { type: 'string' },
-  'runtype': { type: 'string' },
-  '_run_type': { type: 'string' },
-  'run_type': { type: 'string' },
-  // Battle date variants
-  'battle date': { type: 'date' },
-  'battledate': { type: 'date' },
-  'battle_date': { type: 'date' },
-  // Other string fields
-  'killed by': { type: 'string' },
-};
-
-// Pattern-based field detection (order matters - first match wins)
-const PATTERN_FIELD_CONFIGS: Array<{ pattern: string; config: FieldConfig }> = [
-  { pattern: 'time', config: { type: 'duration' } },
-  { pattern: 'date', config: { type: 'date' } },
-];
 
 // Parse duration strings like "7H 45M 35S" or "1d 13h 24m 51s" into seconds
 function parseDuration(duration: string): number {
@@ -71,23 +46,32 @@ function formatDuration(seconds: number): string {
   return parts.join(' ') || '0s';
 }
 
-function getFieldConfig(key: string, rawValue?: string): FieldConfig {
-  const lowerKey = key.toLowerCase();
-
-  // 1. Check exact match first (O(1) lookup)
-  const exactMatch = EXACT_FIELD_CONFIGS[lowerKey];
-  if (exactMatch) return exactMatch;
-
-  // 2. Special case: tier with '+' suffix (e.g., "10+") is a string
-  if (lowerKey === 'tier' && rawValue?.includes('+')) return { type: 'string' };
-
-  // 3. Check pattern-based matches
-  for (const { pattern, config } of PATTERN_FIELD_CONFIGS) {
-    if (lowerKey.includes(pattern)) return config;
+// TRANSITIONAL — deleted by commit 11b (parser-boundary resolver
+// centralization). Same input-shape normalization lives in three other
+// files (`csv-parser.ts:buildColumnToFieldMap`, `csv-field-mapping.ts`,
+// `v2-to-v3-migrator.ts:classifyV2Header`); commit 11b collapses all four
+// into a single `resolveFieldByAnyKey(rawString)` call. Decision shape
+// is captured in
+// `docs/field-graph/EXPLORATION-parser-boundary-resolution.md`.
+function deriveCanonicalKey(originalKey: string): string {
+  if (originalKey.startsWith(V3_COLUMN_PREFIX)) {
+    return originalKey.slice(V3_COLUMN_PREFIX.length);
   }
+  if (originalKey.startsWith('_')) {
+    return '_' + toCamelCase(originalKey.slice(1));
+  }
+  return toCamelCase(originalKey);
+}
 
-  // 4. Default to number
-  return { type: 'number' };
+// Resolve a field's data type via the graph. The graph is authoritative for
+// every declared Field and every legacy key (RENAMED_FROM edges resolve V2
+// display labels like 'Real Time' / 'Killed By' through to their V3
+// canonical's IS_OF_TYPE). Unknown columns default to 'number' — the modal
+// case for game-export stats.
+function getFieldConfig(originalKey: string): FieldConfig {
+  const camel = deriveCanonicalKey(originalKey);
+  const canonicalId = resolveFieldByAnyKey(camel)?.id ?? camel;
+  return { type: dataTypeOf(canonicalId) ?? 'number' };
 }
 
 /**
@@ -107,66 +91,70 @@ function processStringField(originalKey: string, rawValue: string): string {
  * @param importFormat - Optional import format settings (defaults to store's import format)
  * @returns GameRunField with processed value, raw value, and display value
  */
+interface ProcessedField {
+  value: number | string | Date;
+  rawValue: string;
+  displayValue: string;
+  dataType: DataType;
+}
+
+function processByDataType(
+  type: DataType,
+  originalKey: string,
+  rawValue: string,
+  importFormat?: ImportFormatSettings,
+): ProcessedField {
+  switch (type) {
+    case 'duration': {
+      const value = parseDuration(rawValue);
+      return { value, rawValue, displayValue: formatDuration(value), dataType: 'duration' };
+    }
+    case 'date': {
+      try {
+        return { value: new Date(rawValue), rawValue, displayValue: rawValue, dataType: 'date' };
+      } catch {
+        return { value: rawValue, rawValue, displayValue: rawValue, dataType: 'string' };
+      }
+    }
+    case 'number': {
+      const value = parseShorthandNumber(rawValue, importFormat);
+      return { value, rawValue, displayValue: formatLargeNumber(value), dataType: 'number' };
+    }
+    case 'string': {
+      const decoded = processStringField(originalKey, rawValue);
+      // Store decoded value so exports re-encode correctly
+      return { value: decoded, rawValue: decoded, displayValue: decoded, dataType: 'string' };
+    }
+    case 'tier': {
+      // Tournament tiers carry a `'+'` suffix (e.g. `"10+"`). Keep the raw
+      // string verbatim so the suffix survives round-trip; expose the leading
+      // integer as `.value` so consumers don't re-run the regex.
+      const m = rawValue.match(/^(\d+)/);
+      return {
+        value: m ? parseInt(m[1], 10) : 0,
+        rawValue,
+        displayValue: rawValue,
+        dataType: 'tier',
+      };
+    }
+    default:
+      return { value: rawValue, rawValue, displayValue: rawValue, dataType: 'string' };
+  }
+}
+
 export function createGameRunField(
   originalKey: string,
   rawValue: string,
   importFormat?: ImportFormatSettings
 ): GameRunField {
-  const fieldConfig = getFieldConfig(originalKey, rawValue);
-
-  let processedValue: number | string | Date;
-  let displayValue: string;
-  let dataType: GameRunField['dataType'];
-  let finalRawValue = rawValue; // Track if we need to decode rawValue
-
-  switch (fieldConfig.type) {
-    case 'duration':
-      processedValue = parseDuration(rawValue);
-      displayValue = formatDuration(processedValue as number);
-      dataType = 'duration';
-      break;
-
-    case 'date':
-      try {
-        processedValue = new Date(rawValue);
-        displayValue = rawValue;
-        dataType = 'date';
-      } catch {
-        processedValue = rawValue;
-        displayValue = rawValue;
-        dataType = 'string';
-      }
-      break;
-
-    case 'number':
-      // parseShorthandNumber uses store's import format if not explicitly provided
-      processedValue = parseShorthandNumber(rawValue, importFormat);
-      // formatLargeNumber uses store's display locale
-      displayValue = formatLargeNumber(processedValue as number);
-      dataType = 'number';
-      break;
-
-    case 'string': {
-      const decodedValue = processStringField(originalKey, rawValue);
-      processedValue = decodedValue;
-      displayValue = decodedValue;
-      finalRawValue = decodedValue; // Store decoded value so exports re-encode correctly
-      dataType = 'string';
-      break;
-    }
-
-    default:
-      processedValue = rawValue;
-      displayValue = rawValue;
-      dataType = 'string';
-  }
-
+  const fieldConfig = getFieldConfig(originalKey);
+  const processed = processByDataType(fieldConfig.type, originalKey, rawValue, importFormat);
   return {
-    value: processedValue,
-    rawValue: finalRawValue,
-    displayValue,
+    value: processed.value,
+    rawValue: processed.rawValue,
+    displayValue: processed.displayValue,
     originalKey,
-    dataType,
+    dataType: processed.dataType,
   };
 }
 
@@ -217,21 +205,26 @@ export function extractTimestampFromFields(fields: Record<string, GameRunField>)
 }
 
 /**
- * Create an internal field (app-generated metadata) with string data type
+ * Create an internal field (app-generated metadata) — display-label
+ * passthrough, with `dataType` resolved from the graph.
  *
- * Internal fields are application-controlled metadata (notes, run type, etc.)
- * and always use string data type with simple value pass-through.
+ * The graph (`IS_OF_TYPE` edges in `data-types.edges.ts`) is authoritative.
+ * `_rank` resolves to `'number'`; `_date` to `'date'`; `_notes` / `_runType`
+ * / `_time` to `'string'`. The `'string'` fallback only fires for
+ * unrecognized internal-shaped keys (test fixtures, future fields not yet
+ * in the catalog).
  *
  * @param originalKey - Display name for the field (e.g., "Notes", "Run Type")
  * @param value - The string value to store
- * @returns GameRunField with string data type
+ * @returns GameRunField with graph-driven dataType
  */
 export function createInternalField(originalKey: string, value: string): GameRunField {
+  const dataType = dataTypeOf(deriveCanonicalKey(originalKey)) ?? 'string';
   return {
     value,
     rawValue: value,
     displayValue: value,
     originalKey,
-    dataType: 'string' as const
+    dataType,
   };
 }

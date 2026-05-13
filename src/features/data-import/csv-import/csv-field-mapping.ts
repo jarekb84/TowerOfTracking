@@ -5,13 +5,11 @@
  * field mapping reports with similarity detection.
  */
 
-import type { GameRunField } from '@/shared/types/game-run.types';
 import type { FieldMappingReport } from './types';
 import { toCamelCase } from '@/features/analysis/shared/parsing/field-utils';
-import { isLegacyField, getMigratedFieldName } from '@/shared/domain/fields/internal-field-config';
+import { resolveFieldByAnyKey } from '@/shared/domain/field-graph';
 import { extractFieldNamesFromStorage } from '@/shared/domain/fields/field-discovery';
 import { classifyFields } from '@/shared/domain/fields/field-similarity';
-import { detectRunTypeFromFields, extractNumericStats } from '@/shared/domain/run-types/run-type-detection';
 
 /**
  * Create enhanced field mapping report with similarity detection
@@ -34,25 +32,24 @@ export function createFieldMappingReport(
   const knownDisplayNames = extractFieldNamesFromStorage();
   const knownDisplayNamesArray: string[] = Array.from(knownDisplayNames);
 
-  // Convert headers to camelCase for supportedFields.json lookups
+  // Convert headers to camelCase for supportedFields.json lookups, resolving
+  // legacy keys (V1 internal-field names, V2 game-field names) through the
+  // field graph's `resolveFieldByAnyKey` so the report shows the canonical id
+  // a future export will write.
+  //
+  // TRANSITIONAL — collapses to a one-line graph call in commit 11b
+  // (parser-boundary resolver centralization). The same underscore +
+  // camelCase normalization lives in `csv-parser.ts`, `field-utils.ts`,
+  // and `v2-to-v3-migrator.ts`; commit 11b consolidates all four.
+  // Decision shape captured in
+  // `docs/field-graph/EXPLORATION-parser-boundary-resolution.md`.
   const camelCaseHeaders = headers.map(header => {
-    // Handle underscore-prefixed headers (v2 internal fields)
     if (header.startsWith('_')) {
       const withoutUnderscore = header.substring(1);
       return '_' + toCamelCase(withoutUnderscore);
-    } else {
-      let camelCase = toCamelCase(header);
-
-      // Apply legacy field migration
-      if (isLegacyField(camelCase)) {
-        const migratedName = getMigratedFieldName(camelCase);
-        if (migratedName) {
-          camelCase = migratedName;
-        }
-      }
-
-      return camelCase;
     }
+    const camelCase = toCamelCase(header);
+    return resolveFieldByAnyKey(camelCase)?.id ?? camelCase;
   });
 
   // Classify each field using DISPLAY NAMES for similarity detection against localStorage
@@ -108,30 +105,3 @@ export function createFieldMappingReport(
   };
 }
 
-/**
- * Extract key statistics from fields for cached properties
- */
-export function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number;
-  runType: 'farm' | 'tournament' | 'milestone';
-} {
-  const numericStats = extractNumericStats(fields);
-
-  // Check if _runType field exists (from CSV), otherwise detect from tier
-  let runType: 'farm' | 'tournament' | 'milestone';
-  const runTypeField = fields._runType;
-  if (runTypeField && runTypeField.rawValue) {
-    runType = runTypeField.rawValue as 'farm' | 'tournament' | 'milestone';
-  } else {
-    runType = detectRunTypeFromFields(fields);
-  }
-
-  return {
-    ...numericStats,
-    runType,
-  };
-}

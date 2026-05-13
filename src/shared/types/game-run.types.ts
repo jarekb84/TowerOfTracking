@@ -1,4 +1,5 @@
 import type { BattleDateValidationError } from '@/shared/formatting/date-validation.types';
+import type { DataType } from '@/shared/domain/field-graph';
 
 // Run type enumeration for type safety
 enum RunType {
@@ -45,7 +46,7 @@ export interface GameRunField {
   
   // Metadata
   originalKey: string;        // Original clipboard key
-  dataType: 'number' | 'duration' | 'string' | 'date';
+  dataType: DataType;         // Sourced from the field graph's `IS_OF_TYPE` edge
 }
 
 // Tier Trends Analysis Types

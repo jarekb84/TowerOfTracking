@@ -4,32 +4,11 @@ import type {
   RawClipboardData,
   GameRunField
 } from '@/shared/types/game-run.types';
-import type { RunTypeValue } from '@/shared/domain/run-types/types';
 import type { ImportFormatSettings } from '@/shared/locale/types';
-import { createGameRunField, createInternalField, toCamelCase } from './field-utils';
-import { determineRunType } from '../filtering/run-type-filter';
-import {
-  validateBattleDate,
-  constructDate,
-  formatIsoDate,
-  formatIsoTime
-} from '@/shared/formatting/date-formatters';
-import {
-  INTERNAL_FIELD_NAMES,
-  isLegacyField,
-  getMigratedFieldName
-} from '@/shared/domain/fields/internal-field-config';
-
-/**
- * Derive _date and _time fields from battle_date
- * Returns { date: 'yyyy-MM-dd', time: 'HH:mm:ss' }
- */
-export function deriveDateTimeFromBattleDate(battleDate: Date): { date: string; time: string } {
-  return {
-    date: formatIsoDate(battleDate),
-    time: formatIsoTime(battleDate)
-  };
-}
+import { createGameRunField, toCamelCase } from './field-utils';
+import { parseV28SectionedEntries, looksLikeV28SectionedInput } from './section-aware-parser';
+import { hydrateRun } from '@/shared/domain/field-graph';
+import { constructDate } from '@/shared/formatting/date-formatters';
 
 /**
  * Construct Date from legacy _date and _time fields
@@ -115,38 +94,6 @@ function parseTabDelimitedData(rawData: string): RawClipboardData {
   return parsed;
 }
 
-function extractKeyStatsFromFields(fields: Record<string, GameRunField>): {
-  tier: number;
-  wave: number;
-  coinsEarned: number;
-  cellsEarned: number;
-  realTime: number;
-  runType: RunTypeValue;
-} {
-  const tierStr = (fields.tier?.rawValue) || '';
-  const runType: RunTypeValue = determineRunType(tierStr);
-  
-  // Extract numeric tier value from both numeric fields and tournament strings like "8+"
-  let tier: number;
-  if (fields.tier?.dataType === 'number') {
-    tier = fields.tier.value as number;
-  } else {
-    // For tournament tiers like "8+", extract the numeric part
-    const match = tierStr.match(/^(\d+)/);
-    tier = match ? parseInt(match[1], 10) : 0;
-  }
-  tier = tier || 0;
-  
-  return {
-    tier,
-    wave: (fields.wave?.value as number) || 0,
-    coinsEarned: (fields.coinsEarned?.value as number) || 0,
-    cellsEarned: (fields.cellsEarned?.value as number) || 0,
-    realTime: (fields.realTime?.value as number) || 0,
-    runType
-  };
-}
-
 // Calculate value per hour
 export function calculatePerHour(value: number, durationInSeconds: number): number {
   if (durationInSeconds === 0) {
@@ -156,93 +103,43 @@ export function calculatePerHour(value: number, durationInSeconds: number): numb
   return value / hours;
 }
 
-// Main parsing function with enhanced field structure and battle_date support
+// Parses tab-delimited clipboard text (V28 sectioned or V2 flat) into a raw
+// fields map, then hands off to `hydrateRun` which owns V2-key remap, the
+// derivation cascade, timestamp resolution, and cached-stat extraction.
 export function parseGameRun(
   rawInput: string,
   customTimestamp?: Date,
   importFormat?: ImportFormatSettings
 ): ParsedGameRun {
   try {
-    const clipboardData = parseTabDelimitedData(rawInput);
-
-    // Generate field-based structure
-    const fields: Record<string, GameRunField> = {};
-    const dateFormat = importFormat?.dateFormat ?? 'month-first';
-
-    for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
-      const camelKey = toCamelCase(originalKey);
-      const field = createGameRunField(originalKey, rawValue, importFormat);
-
-      fields[camelKey] = field;
-    }
-
-    // Determine timestamp using hierarchy: battle_date > customTimestamp > current time
-    let timestamp: Date;
-    let hasBattleDate = false;
-    let dateValidationError: ParsedGameRun['dateValidationError'];
-
-    // Check for battle_date field (new game export format)
-    if (fields.battleDate) {
-      const validationResult = validateBattleDate(fields.battleDate.rawValue, {
-        format: dateFormat,
-        // Don't fail on future/old dates - just parse
-        warnFutureDates: false,
-      });
-
-      if (validationResult.success) {
-        timestamp = validationResult.date;
-        hasBattleDate = true;
-
-        // Derive _date and _time from battle_date
-        const derived = deriveDateTimeFromBattleDate(validationResult.date);
-
-        // Add derived internal fields (these won't be in the original game export)
-        fields[INTERNAL_FIELD_NAMES.DATE] = createInternalField('Date', derived.date);
-        fields[INTERNAL_FIELD_NAMES.TIME] = createInternalField('Time', derived.time);
-      } else {
-        // battle_date parsing failed - capture error and fall back to customTimestamp or current time
-        dateValidationError = validationResult.error;
-        timestamp = customTimestamp || new Date();
-      }
-    } else {
-      // No battle_date - use customTimestamp or current time
-      timestamp = customTimestamp || new Date();
-    }
-
-    // Handle legacy data migration: fields without underscore prefix
-    // Migrate legacy field names to new internal field names
-    for (const [fieldName, field] of Object.entries(fields)) {
-      if (isLegacyField(fieldName)) {
-        const migratedName = getMigratedFieldName(fieldName);
-        if (migratedName) {
-          // Special handling for date/time fields with battle_date present
-          if (hasBattleDate && (fieldName === 'date' || fieldName === 'time')) {
-            // Skip migration if battle_date is present (we already derived from battle_date)
-            delete fields[fieldName];
-            continue;
-          }
-
-          // Migrate field to internal name
-          fields[migratedName] = { ...field };
-          delete fields[fieldName];
-        }
-      }
-    }
-
-    // Extract key stats from field structure
-    const fieldKeyStats = extractKeyStatsFromFields(fields);
-
-    return {
-      id: crypto.randomUUID(),
-      timestamp,
-      fields,
-      ...fieldKeyStats,
-      ...(dateValidationError && { dateValidationError }),
-    };
+    const rawFields = parseToRawFields(rawInput, importFormat);
+    return hydrateRun(rawFields, { customTimestamp, importFormat });
   } catch (error) {
     console.error('Error parsing game run:', error);
     throw error;
   }
+}
+
+function parseToRawFields(
+  rawInput: string,
+  importFormat: ImportFormatSettings | undefined,
+): Record<string, GameRunField> {
+  // Two input shapes: V28 sectioned exports emit `{key, label, value}` triples
+  // with V3-canonical composite keys; V2 flat clipboard emits whatever keys
+  // were typed and gets canonicalized inside `hydrateRun` via remap.
+  const rawFields: Record<string, GameRunField> = {};
+  if (looksLikeV28SectionedInput(rawInput)) {
+    for (const entry of parseV28SectionedEntries(rawInput)) {
+      rawFields[entry.key] = createGameRunField(entry.label, entry.value, importFormat);
+    }
+    return rawFields;
+  }
+  const clipboardData = parseTabDelimitedData(rawInput);
+  for (const [originalKey, rawValue] of Object.entries(clipboardData)) {
+    const fieldKey = toCamelCase(originalKey);
+    rawFields[fieldKey] = createGameRunField(originalKey, rawValue, importFormat);
+  }
+  return rawFields;
 }
 
 // Map tournament tier (with '+') to league label

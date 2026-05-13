@@ -1,30 +1,17 @@
+import { enumValueMeta } from '@/shared/domain/field-graph'
+import { _RUN_TYPE_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes'
 import { ParsedGameRun } from '@/shared/types/game-run.types'
 import { RunType, RunTypeValue } from '@/shared/domain/run-types/types'
 
 export type RunTypeFilter = RunTypeValue | 'all'
 
-/**
- * Centralized function to determine run type from tier string
- * This is the single source of truth for run type detection
- */
-export function determineRunType(tierRawValue: string): RunTypeValue {
-  return /\+/.test(tierRawValue) ? RunType.TOURNAMENT : RunType.FARM
-}
 
 /**
- * Get display label for run type
+ * Get display label for a run type. Declared on the matching `_runType`
+ * enum-value node; falls back to 'Unknown' when no declaration is found.
  */
 export function getRunTypeDisplayLabel(runType: RunTypeValue): string {
-  switch (runType) {
-    case RunType.TOURNAMENT:
-      return 'Tournament'
-    case RunType.FARM:
-      return 'Farm'
-    case RunType.MILESTONE:
-      return 'Milestone'
-    default:
-      return 'Unknown'
-  }
+  return enumValueMeta(_RUN_TYPE_NODE, runType)?.displayName ?? 'Unknown'
 }
 
 /**

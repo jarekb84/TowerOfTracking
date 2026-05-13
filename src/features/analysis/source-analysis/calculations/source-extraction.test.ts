@@ -67,17 +67,13 @@ describe('extractFieldValue', () => {
     expect(extractFieldValue(run, 'orbDamage')).toBe(0);
   });
 
-  it('uses field alias when primary field is missing', () => {
+  it('returns 0 when only a legacy-spelled variant is present (V2->V3 remap is expected upstream)', () => {
+    // Post-V3, the V2->V3 field remap runs at parse time, so by the time data
+    // reaches extractFieldValue the legacy spellings have already been
+    // canonicalized. The alias fallback map is empty and this is the correct
+    // behavior for stray legacy data that bypassed the remap.
     const run = createMockRun({ coinsFromBlackhole: 5000 });
-    expect(extractFieldValue(run, 'coinsFromBlackHole')).toBe(5000);
-  });
-
-  it('prefers primary field over alias', () => {
-    const run = createMockRun({
-      coinsFromBlackHole: 1000,
-      coinsFromBlackhole: 500
-    });
-    expect(extractFieldValue(run, 'coinsFromBlackHole')).toBe(1000);
+    expect(extractFieldValue(run, 'coins_blackHole')).toBe(0);
   });
 });
 

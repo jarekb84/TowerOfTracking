@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createErrorParseResult, resolveDelimiter, parseCsvSafe } from './csv-import-parsing';
-import { INTERNAL_FIELD_NAMES } from '../../../shared/domain/fields/internal-field-config';
+import { _DATE_NODE, _TIME_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes';
 
 describe('csv-import-parsing', () => {
   describe('createErrorParseResult', () => {
@@ -96,10 +96,10 @@ describe('csv-import-parsing', () => {
 
         expect(result.success.length).toBe(1);
         const run = result.success[0];
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE]).toBeDefined();
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-10-14');
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME]).toBeDefined();
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('13:14:00');
+        expect(run.fields[_DATE_NODE.id]).toBeDefined();
+        expect(run.fields[_DATE_NODE.id].rawValue).toBe('2025-10-14');
+        expect(run.fields[_TIME_NODE.id]).toBeDefined();
+        expect(run.fields[_TIME_NODE.id].rawValue).toBe('13:14:00');
       });
 
       it('should preserve existing _Date and _Time columns when provided', () => {
@@ -108,8 +108,8 @@ describe('csv-import-parsing', () => {
 
         expect(result.success.length).toBe(1);
         const run = result.success[0];
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-01-01');
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('00:00:00');
+        expect(run.fields[_DATE_NODE.id].rawValue).toBe('2025-01-01');
+        expect(run.fields[_TIME_NODE.id].rawValue).toBe('00:00:00');
       });
 
       it('should not create _date/_time when battleDate is missing', () => {
@@ -118,8 +118,8 @@ describe('csv-import-parsing', () => {
 
         expect(result.success.length).toBe(1);
         const run = result.success[0];
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE]).toBeUndefined();
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME]).toBeUndefined();
+        expect(run.fields[_DATE_NODE.id]).toBeUndefined();
+        expect(run.fields[_TIME_NODE.id]).toBeUndefined();
       });
 
       it('should handle lowercase month format in Battle Date', () => {
@@ -132,9 +132,9 @@ describe('csv-import-parsing', () => {
 
         expect(result.success.length).toBe(1);
         const run = result.success[0];
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE]).toBeDefined();
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-11-20');
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('22:28:00');
+        expect(run.fields[_DATE_NODE.id]).toBeDefined();
+        expect(run.fields[_DATE_NODE.id].rawValue).toBe('2025-11-20');
+        expect(run.fields[_TIME_NODE.id].rawValue).toBe('22:28:00');
       });
     });
 
@@ -236,8 +236,8 @@ describe('csv-import-parsing', () => {
         expect(result.success.length).toBe(1);
         // Should preserve existing _date/_time
         const run = result.success[0];
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-01-01');
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('00:00:00');
+        expect(run.fields[_DATE_NODE.id].rawValue).toBe('2025-01-01');
+        expect(run.fields[_TIME_NODE.id].rawValue).toBe('00:00:00');
         // Should still generate warning for empty battleDate
         expect(result.dateWarnings?.length).toBe(1);
         expect(result.dateWarnings?.[0].error.code).toBe('empty');
@@ -250,8 +250,8 @@ describe('csv-import-parsing', () => {
         expect(result.success.length).toBe(1);
         // Should preserve existing _date/_time
         const run = result.success[0];
-        expect(run.fields[INTERNAL_FIELD_NAMES.DATE].rawValue).toBe('2025-01-01');
-        expect(run.fields[INTERNAL_FIELD_NAMES.TIME].rawValue).toBe('00:00:00');
+        expect(run.fields[_DATE_NODE.id].rawValue).toBe('2025-01-01');
+        expect(run.fields[_TIME_NODE.id].rawValue).toBe('00:00:00');
         // Should still generate warning for invalid format
         expect(result.dateWarnings?.length).toBe(1);
         expect(result.dateWarnings?.[0].error.code).toBe('invalid-format');

@@ -11,7 +11,8 @@
     "!src/**/*.spec.{ts,tsx}"
   ],
   "ignore": [
-    "src/routeTree.gen.ts"
+    "src/routeTree.gen.ts",
+    "src/shared/domain/field-graph/**"
   ],
   "ignoreDependencies": [
     "@tanstack/react-start",    

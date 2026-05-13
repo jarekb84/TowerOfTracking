@@ -3,7 +3,7 @@ import {
   formatRunTypeDisplay,
   formatRunTypeFilterDisplay
 } from './tier-trends-display'
-import { RunType } from '@/shared/domain/run-types/types'
+import { RunType, type RunTypeValue } from '@/shared/domain/run-types/types'
 import type { RunTypeFilter } from '@/features/analysis/shared/filtering/run-type-filter'
 
 describe('formatRunTypeDisplay', () => {
@@ -24,7 +24,7 @@ describe('formatRunTypeDisplay', () => {
   })
 
   it('should return empty string for unknown run type', () => {
-    expect(formatRunTypeDisplay('unknown' as RunType)).toBe('')
+    expect(formatRunTypeDisplay('unknown' as RunTypeValue)).toBe('')
   })
 })
 

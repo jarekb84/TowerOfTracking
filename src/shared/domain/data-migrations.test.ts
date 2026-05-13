@@ -113,7 +113,8 @@ describe('Data Migrations', () => {
         const result = migrateCsvOnImport(csvData);
 
         // migrateCsvOnImport only handles title-case headers (Date, Time, etc.)
-        // Lowercase headers are handled during parsing via isLegacyField()
+        // Lowercase headers are handled during parsing via the field graph's
+        // RENAMED_FROM edges (`resolveFieldByAnyKey` resolves them to canonical)
         expect(result).toBe(csvData);
       });
 
@@ -288,7 +289,12 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
   });
 
   describe('migrateRunsV1ToV2 (In-Memory Migration)', () => {
-    it('should migrate legacy field names to internal field names', () => {
+    // Post field-graph cutover, this helper resolves every legacy key through
+    // the graph's RENAMED_FROM index. That includes V1→V2 internal-field
+    // renames AND V2→V3 game-field renames in one pass — runs land with V3
+    // canonical keys regardless of which legacy form they came in as.
+
+    it('should migrate legacy internal-field names to canonical underscore form', () => {
       const runs: ParsedGameRun[] = [{
         id: '1',
         timestamp: new Date('2024-01-15T14:30:00'),
@@ -314,17 +320,14 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
       expect(migrated[0].fields._notes).toBeDefined();
       expect(migrated[0].fields._runType).toBeDefined();
 
-      // Old fields should not exist
+      // Old V1 internal-field forms should not exist
       expect(migrated[0].fields.date).toBeUndefined();
       expect(migrated[0].fields.time).toBeUndefined();
       expect(migrated[0].fields.notes).toBeUndefined();
       expect(migrated[0].fields.runType).toBeUndefined();
-
-      // Game fields should be preserved
-      expect(migrated[0].fields.tier).toBeDefined();
     });
 
-    it('should preserve non-legacy fields', () => {
+    it('should also resolve V2 game-field keys to V3 canonical via the graph', () => {
       const runs: ParsedGameRun[] = [{
         id: '1',
         timestamp: new Date('2024-01-15T14:30:00'),
@@ -343,9 +346,37 @@ Test\tfarm\t14:30:00\t2024-01-15\t10`;
 
       const migrated = migrateRunsV1ToV2(runs);
 
-      expect(migrated[0].fields.tier).toEqual(runs[0].fields.tier);
-      expect(migrated[0].fields.wave).toEqual(runs[0].fields.wave);
-      expect(migrated[0].fields.coinsEarned).toEqual(runs[0].fields.coinsEarned);
+      // V2 game-field keys are renamed to V3 canonical via RENAMED_FROM edges
+      expect(migrated[0].fields.battleReport_tier).toEqual(runs[0].fields.tier);
+      expect(migrated[0].fields.battleReport_wave).toEqual(runs[0].fields.wave);
+      expect(migrated[0].fields.battleReport_coinsEarned).toEqual(runs[0].fields.coinsEarned);
+      // Old V2 keys are gone
+      expect(migrated[0].fields.tier).toBeUndefined();
+      expect(migrated[0].fields.wave).toBeUndefined();
+      expect(migrated[0].fields.coinsEarned).toBeUndefined();
+    });
+
+    it('should preserve already-canonical V3 keys unchanged', () => {
+      const runs: ParsedGameRun[] = [{
+        id: '1',
+        timestamp: new Date('2024-01-15T14:30:00'),
+        tier: 10,
+        wave: 5000,
+        coinsEarned: 1500000000000,
+        cellsEarned: 45200,
+        realTime: 27966,
+        runType: 'farm',
+        fields: {
+          battleReport_tier: { value: 10, rawValue: '10', displayValue: '10', originalKey: 'Tier', dataType: 'number' },
+          unknownCustom: { value: 'x', rawValue: 'x', displayValue: 'x', originalKey: 'Custom', dataType: 'string' },
+        }
+      }];
+
+      const migrated = migrateRunsV1ToV2(runs);
+
+      expect(migrated[0].fields.battleReport_tier).toEqual(runs[0].fields.battleReport_tier);
+      // Unknown custom keys pass through unchanged
+      expect(migrated[0].fields.unknownCustom).toEqual(runs[0].fields.unknownCustom);
     });
 
     it('should handle empty runs array', () => {

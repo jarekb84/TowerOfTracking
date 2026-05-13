@@ -12,6 +12,13 @@ import { createInternalField } from '@/features/analysis/shared/parsing/field-ut
 import { applyDateFix, detectDateIssue, type DateIssueInfo } from '@/shared/formatting/date-issue-detection';
 import { parseGameRun } from '@/features/analysis/shared/parsing/data-parser';
 import { hasExplicitRunType } from '@/shared/domain/run-types/run-type-detection';
+import { updateField } from '@/shared/domain/field-graph';
+import {
+  BATTLE_REPORT__BATTLE_DATE_NODE,
+  _NOTES_NODE,
+  _RANK_NODE,
+  _RUN_TYPE_NODE,
+} from '@/shared/domain/field-graph/catalog/fields.nodes';
 import type { RankValue } from '@/features/game-runs/editing/field-update-logic';
 import type { ImportFormatSettings } from '@/shared/locale/types';
 
@@ -28,12 +35,8 @@ interface PrepareRunForSaveParams {
 }
 
 /**
- * Prepare a ParsedGameRun for saving.
- *
- * Applies date fix if enabled, adds notes/runType/rank fields.
- *
- * @param params - Parameters for preparing the run
- * @returns The prepared run ready for saving
+ * Prepare a ParsedGameRun for saving. Applies date fix when enabled, ensures
+ * battleDate is materialized, and adds notes / runType / rank fields.
  */
 export function prepareRunForSave(params: PrepareRunForSaveParams): ParsedGameRun {
   const {
@@ -45,28 +48,20 @@ export function prepareRunForSave(params: PrepareRunForSaveParams): ParsedGameRu
     rank,
   } = params;
 
-  // Apply date fix if enabled and there's a fixable issue
-  let runToSave = previewData;
+  let run = previewData;
   if (autoFixDateEnabled && dateIssueInfo?.isFixable && dateIssueInfo.derivedDate) {
-    runToSave = applyDateFix(previewData, dateIssueInfo.derivedDate);
+    run = applyDateFix(previewData, dateIssueInfo.derivedDate);
+  } else if (!run.fields[BATTLE_REPORT__BATTLE_DATE_NODE.id]) {
+    run = applyDateFix(run, run.timestamp);
   }
 
-  const updatedFields = {
-    ...runToSave.fields,
-    _notes: createInternalField('Notes', notes),
-    _runType: createInternalField('Run Type', selectedRunType),
-    // Only include rank for tournament runs
-    ...(selectedRunType === RunType.TOURNAMENT && rank !== ''
-      ? { _rank: createInternalField('Rank', String(rank)) }
-      : {}
-    )
-  };
+  run = updateField(run, _NOTES_NODE.id, createInternalField('Notes', notes));
+  run = updateField(run, _RUN_TYPE_NODE.id, createInternalField('Run Type', selectedRunType));
+  if (selectedRunType === RunType.TOURNAMENT && rank !== '') {
+    run = updateField(run, _RANK_NODE.id, createInternalField('Rank', String(rank)));
+  }
 
-  return {
-    ...runToSave,
-    runType: selectedRunType,
-    fields: updatedFields
-  };
+  return { ...run, runType: selectedRunType };
 }
 
 /**

@@ -35,13 +35,10 @@
   },
   "src/features/analysis/shared/parsing/data-parser.ts": {
     "complexity": {
-      "count": 4
-    },
-    "max-depth": {
-      "count": 1
+      "count": 2
     },
     "max-statements": {
-      "count": 2
+      "count": 1
     }
   },
   "src/features/analysis/source-analysis/calculations/period-grouping.test.ts": {
@@ -112,10 +109,10 @@
   },
   "src/features/data-export/csv-export/csv-exporter.ts": {
     "complexity": {
-      "count": 3
+      "count": 1
     },
     "max-statements": {
-      "count": 3
+      "count": 1
     }
   },
   "src/features/data-import/csv-import/csv-parser.ts": {

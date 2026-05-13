@@ -5,6 +5,7 @@ import type {
   TierStatsConfig
 } from '../types'
 import { TierStatsAggregation } from '../types'
+import { BATTLE_REPORT__TIER_NODE, _RUN_TYPE_NODE } from '@/shared/domain/field-graph/catalog/fields.nodes'
 
 /**
  * Default columns for tier stats table
@@ -44,17 +45,14 @@ export function discoverAvailableFields(runs: ParsedGameRun[]): AvailableField[]
     // Skip internal fields
     if (fieldName.startsWith('_')) return
 
-    // Skip tier field (used as row grouping identifier)
-    if (fieldName === 'tier') return
+    // Skip tier (row grouping identifier) and run-type (filtered at a higher
+    // level). Legacy V2 key `'tier'` is also rejected because pre-migration
+    // fixtures may surface it.
+    if (fieldName === BATTLE_REPORT__TIER_NODE.id || fieldName === 'tier') return
+    if (fieldName === _RUN_TYPE_NODE.id || fieldName === 'runType') return
 
-    // Skip date/time fields (not useful for tier stats)
-    if (field.dataType === 'date') return
-
-    // Skip run type field (already filtered at higher level)
-    if (fieldName === 'runType') return
-
-    // Skip string-only fields (not aggregatable)
-    if (field.dataType === 'string') return
+    // Skip date, tier, and string fields — none are aggregatable as table columns.
+    if (field.dataType === 'date' || field.dataType === 'tier' || field.dataType === 'string') return
 
     const isNumeric = field.dataType === 'number' || field.dataType === 'duration'
 

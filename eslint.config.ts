@@ -37,6 +37,7 @@ export default defineConfig([
       "@typescript-eslint/no-unused-vars": ["error", {
         "args": "after-used",
         "caughtErrors": "none",
+        "varsIgnorePattern": "^_",
         "destructuredArrayIgnorePattern": "^_"
       }],
       "max-lines": ["error", {
@@ -75,5 +76,15 @@ export default defineConfig([
       "max-lines-per-function": "off",
       "max-statements": "off",
     }
-  }
+  },
+  // Node-runtime scripts (one-shot data-prep tools). They use `process`,
+  // `console`, and large procedural `main()` functions by nature.
+  {
+    files: ["scripts/**/*.{js,mjs,cjs,ts}"],
+    languageOptions: { globals: globals.node },
+    rules: {
+      "max-statements": "off",
+      "max-lines-per-function": "off",
+    }
+  },
 ]);
