@@ -60,6 +60,9 @@ export { DATA_TYPES, isDataType, type DataType } from './catalog/edges/data-type
 
 export const fieldsInSection = (section: FieldRef) => sectionsQ.fieldsInSection(appGraph(), section);
 export const sectionsOf = (field: FieldRef) => sectionsQ.sectionsOf(appGraph(), field);
+export const sectionsInCategory = (category: FieldRef) => sectionsQ.sectionsInCategory(appGraph(), category);
+export const categoryOfSection = (section: FieldRef) => sectionsQ.categoryOfSection(appGraph(), section);
+export const categoriesInDisplayOrder = () => sectionsQ.categoriesInDisplayOrder(appGraph());
 
 export const sourcesOf = (totalField: FieldRef) => sourcesQ.sourcesOf(appGraph(), totalField);
 

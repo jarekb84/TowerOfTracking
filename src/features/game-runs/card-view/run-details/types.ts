@@ -119,53 +119,52 @@ export interface PlainFieldsData {
 }
 
 /**
- * Complete run details data organized by purpose-based sections
+ * A single section rendered in run-details — either a list of plain fields
+ * or a breakdown with totals + percentage bars.
+ *
+ * Both kinds share the `label` field, and a stable section id
+ * (`section:battleReport` etc.) used for React keys.
+ */
+export type SectionData =
+  | {
+      kind: 'plain'
+      sectionId: string
+      label: string
+      items: PlainFieldItem[]
+    }
+  | {
+      kind: 'breakdown'
+      sectionId: string
+      label: string
+      total: number
+      totalDisplayValue: string
+      perHourDisplayValue?: string
+      items: BreakdownItem[]
+    }
+
+/**
+ * One UI category (general / records / combat / economic) and its sections
+ * in declaration order.
+ */
+export interface CategoryData {
+  categoryId: string
+  label: string
+  sections: SectionData[]
+}
+
+/**
+ * Complete run details data organized by category.
  */
 export interface RunDetailsData {
-  /** Battle Report section (top) */
-  battleReport: {
-    essential: PlainFieldsData
-    miscellaneous: PlainFieldsData
-  }
-  /** Combat section (two-column) */
-  combat: {
-    damageDealt: BreakdownGroupData | null
-    damageTaken: PlainFieldsData
-    combatMisc: PlainFieldsData
-    enemiesDestroyed: BreakdownGroupData | null
-    destroyedBy: BreakdownGroupData | null
-  }
-  /** Economic section (two-column) */
-  economic: {
-    coinsEarned: BreakdownGroupData | null
-    enemiesAffectedBy: BreakdownGroupData | null
-    otherEarnings: PlainFieldsData
-  }
-  /** Modules section (two-column) */
-  modules: {
-    rerollShards: BreakdownGroupData | null
-    upgradeShards: BreakdownGroupData | null
-    modules: BreakdownGroupData | null
-  }
-  /** Any fields not explicitly categorized */
+  /** Categories in catalog declaration order. */
+  categories: CategoryData[]
+  /** Fields that don't belong to any catalog section. */
   uncategorized: PlainFieldsData
 }
 
 /**
- * Props for section components
+ * Props for the category section component.
  */
-export interface BattleReportSectionProps {
-  data: RunDetailsData['battleReport']
-}
-
-export interface CombatSectionProps {
-  data: RunDetailsData['combat']
-}
-
-export interface EconomicSectionProps {
-  data: RunDetailsData['economic']
-}
-
-export interface ModulesSectionProps {
-  data: RunDetailsData['modules']
+export interface CategorySectionProps {
+  data: CategoryData
 }

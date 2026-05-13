@@ -59,7 +59,6 @@ export interface DerivedGrowthRateResult {
  * Maps currency IDs to the run data fields that contain the income.
  *
  * Field names must match the camelCase keys in run.fields, not display names.
- * See REROLL_SHARDS_CONFIG in section-config.ts for the source field definitions.
  */
 export const DERIVABLE_CURRENCY_FIELDS: Partial<Record<CurrencyId, CurrencyFieldConfig>> = {
   [CurrencyId.Coins]: { cachedProperty: 'coinsEarned' },

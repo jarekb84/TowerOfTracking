@@ -1,71 +1,27 @@
 /**
- * Section Configuration
+ * Section Breakdown Configs
  *
- * Purpose-based field groupings for run details display.
- * Fields are organized by what users want to understand, not by game export structure.
+ * Per-section breakdown definitions — total field + colored sources for the
+ * percentage-bar visualizations rendered in run-details.
  *
- * Field names are V3 canonical (`<sectionCamel>_<labelCamel>`) — see the
- * `RENAMED_FROM` edges in
- * `src/shared/domain/field-graph/catalog/edges/renames/renames.edges.ts`.
- * Anything keyed under a legacy V2 name falls into the uncategorized
- * "Miscellaneous" bucket because the V2→V3 remap runs at import time via
- * the field graph's reverse-key index.
+ * TRANSITIONAL — these configs survive until commit 7, which lands the
+ * `IS_SOURCE_OF` + `HAS_COLOR` + `HAS_DISPLAY_NAME` edges on field nodes.
+ * After commit 7, breakdowns are derived from the graph:
+ *   sourcesOf(totalField) -> [{ fieldName, displayName, color }, ...]
+ * and this file is deleted entirely.
  *
- * TRANSITIONAL — this entire file is deleted by commit 6
- * (`BELONGS_TO_SECTION` + `RENDERS_AS_IN_SECTION` edges). All exported
- * configs (`BATTLE_REPORT_ESSENTIAL`, `DAMAGE_TAKEN_CONFIG`, ...) become
- * `graph.fieldsInSection(...)` queries; per-field display names + colors
- * are already in the graph (commit 7's `IS_SOURCE_OF` + `HAS_DISPLAY_NAME`
- * + `HAS_COLOR` edges). Consumers move to graph queries; no parallel
- * config survives.
+ * Keys are V3 section ids (`section:damage`, …) — the graph-aligned section
+ * that a breakdown renders under. Sections without a key here render as
+ * plain field lists.
  */
 
-import type {
-  BreakdownConfig,
-  PlainFieldsConfig,
-} from './types'
 import {
-  DAMAGE_DEALT_CATEGORY,
   COINS_EARNED_CATEGORY,
+  DAMAGE_DEALT_CATEGORY,
 } from '@/shared/domain/fields/breakdown-sources'
+import type { BreakdownConfig } from './types'
 
-// =============================================================================
-// Battle Report Section
-// =============================================================================
-
-export const BATTLE_REPORT_ESSENTIAL: PlainFieldsConfig = {
-  fields: [
-    { fieldName: 'battleReport_tier', displayName: 'Tier' },
-    { fieldName: 'battleReport_wave', displayName: 'Wave' },
-    { fieldName: 'battleReport_killedBy', displayName: 'Killed By' },
-    { fieldName: 'battleReport_gameTime', displayName: 'Game Time' },
-    { fieldName: 'battleReport_realTime', displayName: 'Real Time' },
-  ],
-}
-
-export const BATTLE_REPORT_MISCELLANEOUS: PlainFieldsConfig = {
-  label: 'MISCELLANEOUS',
-  fields: [
-    { fieldName: 'utility_freeAttackUpgrade', displayName: 'Free Attack Upgrade' },
-    { fieldName: 'utility_freeDefenseUpgrade', displayName: 'Free Defense Upgrade' },
-    { fieldName: 'utility_freeUtilityUpgrade', displayName: 'Free Utility Upgrade' },
-    { fieldName: 'utility_recoveryPackages', displayName: 'Recovery Packages' },
-    { fieldName: 'utility_enemyAttackLevelsSkipped', displayName: 'Enemy Attack Levels Skipped' },
-    { fieldName: 'utility_enemyHealthLevelsSkipped', displayName: 'Enemy Health Levels Skipped' },
-    { fieldName: 'counts_wavesSkipped', displayName: 'Waves Skipped' },
-    { fieldName: 'counts_deathDefy', displayName: 'Death Defy' },
-    { fieldName: 'counts_secondWind', displayName: 'Second Wind' },
-    { fieldName: 'counts_demonMode', displayName: 'Demon Mode' },
-    { fieldName: 'counts_nuke', displayName: 'Nuke' },
-    { fieldName: 'counts_hitsAbsorbedByEnergyShield', displayName: 'Hits Absorbed By Energy Shield' },
-  ],
-}
-
-// =============================================================================
-// Combat Section
-// =============================================================================
-
-export const DAMAGE_DEALT_CONFIG: BreakdownConfig = {
+const DAMAGE_DEALT: BreakdownConfig = {
   totalField: DAMAGE_DEALT_CATEGORY.totalField!,
   label: DAMAGE_DEALT_CATEGORY.name.toUpperCase(),
   sources: DAMAGE_DEALT_CATEGORY.fields.map((f) => ({
@@ -75,40 +31,18 @@ export const DAMAGE_DEALT_CONFIG: BreakdownConfig = {
   })),
 }
 
-export const DAMAGE_TAKEN_CONFIG: PlainFieldsConfig = {
-  label: 'DAMAGE TAKEN',
-  fields: [
-    { fieldName: 'damageTaken_tower', displayName: 'Tower' },
-    { fieldName: 'damageTaken_wall', displayName: 'Wall' },
-    { fieldName: 'healthRegenerated_towerHealthRegen', displayName: 'Tower Health Regen' },
-    { fieldName: 'healthRegenerated_wallHealthRegen', displayName: 'Wall Health Regen' },
-    { fieldName: 'bonusHealthGained_fromDeathWave', displayName: 'HP From Death Wave' },
-  ],
+const COINS_EARNED: BreakdownConfig = {
+  totalField: COINS_EARNED_CATEGORY.totalField!,
+  label: COINS_EARNED_CATEGORY.name.toUpperCase(),
+  perHourField: COINS_EARNED_CATEGORY.perHourField,
+  sources: COINS_EARNED_CATEGORY.fields.map((f) => ({
+    fieldName: f.fieldName,
+    displayName: f.displayName,
+    color: f.color,
+  })),
 }
 
-const DAMAGE_BLOCKED_CONFIG: PlainFieldsConfig = {
-  label: 'DAMAGE BLOCKED',
-  fields: [
-    { fieldName: 'damageBlocked_defense', displayName: 'Defense %' },
-    { fieldName: 'damageBlocked_defenseAbsolute', displayName: 'Defense Absolute' },
-    { fieldName: 'damageBlocked_chronoField', displayName: 'Chrono Field' },
-    { fieldName: 'damageBlocked_chainThunder', displayName: 'Chain Thunder' },
-    { fieldName: 'damageBlocked_primordialCollapse', displayName: 'Primordial Collapse' },
-    { fieldName: 'damageBlocked_negativeMassProjector', displayName: 'Negative Mass Projector' },
-    { fieldName: 'damageBlocked_flameBot', displayName: 'Flame Bot' },
-  ],
-}
-
-export const COMBAT_MISC_CONFIG: PlainFieldsConfig = {
-  label: 'COUNTS',
-  fields: [
-    { fieldName: 'counts_projectilesCount', displayName: 'Projectiles Count' },
-    { fieldName: 'counts_landMinesSpawned', displayName: 'Land Mines Spawned' },
-    { fieldName: 'counts_thunderBotStuns', displayName: 'Thunder Bot Stuns' },
-  ],
-}
-
-export const ENEMIES_DESTROYED_CONFIG: BreakdownConfig = {
+const ENEMIES_DESTROYED: BreakdownConfig = {
   totalField: 'totalEnemies_totalEnemies',
   label: 'ENEMIES DESTROYED',
   sources: [
@@ -127,7 +61,7 @@ export const ENEMIES_DESTROYED_CONFIG: BreakdownConfig = {
   ],
 }
 
-const ENEMIES_HIT_BY_CONFIG: BreakdownConfig = {
+const ENEMIES_HIT_BY: BreakdownConfig = {
   totalField: 'totalEnemies_totalEnemies',
   label: 'ENEMIES HIT BY',
   skipDiscrepancy: true,
@@ -151,7 +85,7 @@ const ENEMIES_HIT_BY_CONFIG: BreakdownConfig = {
   ],
 }
 
-const ENEMIES_DESTROYED_BY_CONFIG: BreakdownConfig = {
+const ENEMIES_DESTROYED_BY: BreakdownConfig = {
   totalField: 'totalEnemies_totalEnemies',
   label: 'ENEMIES DESTROYED BY',
   skipDiscrepancy: true,
@@ -171,16 +105,7 @@ const ENEMIES_DESTROYED_BY_CONFIG: BreakdownConfig = {
   ],
 }
 
-/**
- * Backward-compatible alias for the hook and combat-section component
- * (`combat.destroyedBy`). Points at the V3 `ENEMIES_HIT_BY_CONFIG`, which is
- * the closest analogue of the old mixed hit/destroyed grouping. The
- * separate `ENEMIES_DESTROYED_BY_CONFIG` is available for a UI follow-up
- * that wants to show destruction sources distinctly.
- */
-export const DESTROYED_BY_CONFIG = ENEMIES_HIT_BY_CONFIG
-
-export const ENEMIES_AFFECTED_BY_CONFIG: BreakdownConfig = {
+const ENEMIES_AFFECTED_BY: BreakdownConfig = {
   totalField: 'totalEnemies_totalEnemies',
   label: 'KILLED WITH EFFECT ACTIVE',
   skipDiscrepancy: true,
@@ -195,151 +120,27 @@ export const ENEMIES_AFFECTED_BY_CONFIG: BreakdownConfig = {
   ],
 }
 
-
-// =============================================================================
-// Records Section
-// =============================================================================
-
-const RECORDS_CONFIG: PlainFieldsConfig = {
-  label: 'RECORDS',
-  fields: [
-    { fieldName: 'records_highestCoinsMinute', displayName: 'Highest Coins / Minute' },
-    { fieldName: 'records_largestWaveSkip', displayName: 'Largest Wave Skip' },
-    { fieldName: 'records_mostCoinsFromWaveSkip', displayName: 'Most Coins From Wave Skip' },
-    { fieldName: 'records_mostCellsFromWaveSkip', displayName: 'Most Cells From Wave Skip' },
-    { fieldName: 'records_largestGoldenCombo', displayName: 'Largest Golden Combo' },
-    { fieldName: 'records_mostCoinsFromGoldenCombo', displayName: 'Most Coins From Golden Combo' },
-    { fieldName: 'records_largestSmartMissileStack', displayName: 'Largest Smart Missile Stack' },
-    { fieldName: 'records_largestInnerLandmineCharge', displayName: 'Largest Inner Landmine Charge' },
-  ],
+/**
+ * Section id -> breakdown config. Sections without a key render as plain
+ * field lists driven by graph queries.
+ */
+export const SECTION_BREAKDOWNS: Readonly<Record<string, BreakdownConfig>> = {
+  'section:damage': DAMAGE_DEALT,
+  'section:coins': COINS_EARNED,
+  'section:totalEnemies': ENEMIES_DESTROYED,
+  'section:enemiesHitBy': ENEMIES_HIT_BY,
+  'section:enemiesDestroyedBy': ENEMIES_DESTROYED_BY,
+  'section:killedWithEffectActive': ENEMIES_AFFECTED_BY,
 }
 
-// =============================================================================
-// Economic Section
-// =============================================================================
-
-export const COINS_EARNED_CONFIG: BreakdownConfig = {
-  totalField: COINS_EARNED_CATEGORY.totalField!,
-  label: COINS_EARNED_CATEGORY.name.toUpperCase(),
-  perHourField: COINS_EARNED_CATEGORY.perHourField,
-  sources: COINS_EARNED_CATEGORY.fields.map((f) => ({
-    fieldName: f.fieldName,
-    displayName: f.displayName,
-    color: f.color,
-  })),
-}
-
-export const OTHER_EARNINGS_CONFIG: PlainFieldsConfig = {
-  label: 'OTHER EARNINGS',
-  fields: [
-    { fieldName: 'cash_cashEarned', displayName: 'Cash' },
-    { fieldName: 'cash_interestEarned', displayName: 'Interest' },
-    { fieldName: 'cash_goldenTower', displayName: 'Golden Tower (Cash)' },
-    { fieldName: 'currencies_medals', displayName: 'Guardian Medals' },
-    { fieldName: 'currencies_gems', displayName: 'Guardian Gems' },
-    { fieldName: 'currencies_adGems', displayName: 'Ad Gems' },
-    { fieldName: 'currencies_fetchGems', displayName: 'Fetch Gems' },
-    { fieldName: 'currencies_gemBlocksTapped', displayName: 'Gem Blocks Tapped' },
-    { fieldName: 'battleReport_cellsEarned', displayName: 'Cells' },
-    { fieldName: 'battleReport_cellsPerHour', displayName: 'Cells / Hour' },
-  ],
-}
-
-// =============================================================================
-// Modules Section
-// =============================================================================
-
-export const UPGRADE_SHARDS_CONFIG: BreakdownConfig = {
-  totalField: null,
-  label: 'UPGRADE SHARDS',
-  sources: [
-    { fieldName: 'currencies_armorShards', displayName: 'Armor', color: '#64748b' },
-    { fieldName: 'currencies_coreShards', displayName: 'Core', color: '#f59e0b' },
-    { fieldName: 'currencies_cannonShards', displayName: 'Cannon', color: '#ef4444' },
-    { fieldName: 'currencies_generatorShards', displayName: 'Generator', color: '#22c55e' },
-  ],
-}
-
-export const REROLL_SHARDS_CONFIG: BreakdownConfig = {
-  totalField: null,
-  label: 'REROLL SHARDS',
-  sources: [
-    { fieldName: 'currencies_rerollShardsEarned', displayName: 'Earned', color: '#94a3b8' },
-    { fieldName: 'currencies_rerollShardsFetched', displayName: 'Fetched', color: '#64748b' },
-  ],
-}
-
-export const MODULES_CONFIG: BreakdownConfig = {
-  totalField: null,
-  label: 'MODULES',
-  sources: [
-    { fieldName: 'currencies_commonModules', displayName: 'Common', color: '#94a3b8' },
-    { fieldName: 'currencies_rareModules', displayName: 'Rare', color: '#3b82f6' },
-  ],
-}
-
-// =============================================================================
-// Fields to Skip (internal app fields, handled elsewhere)
-// =============================================================================
-
-export const SKIP_FIELDS = new Set([
-  '_date',
-  '_time',
-  '_runType',
-  '_notes',
-  '_rank',
+/**
+ * Fields hidden from run-details rendering even though they belong to a
+ * declared section. Today this is only `battleReport_battleDate`, which is
+ * already rendered in the run card's header — duplicating it inside the
+ * Battle Report section would be noisy. Internal app-fields (`_date`,
+ * `_time`, `_notes`, `_runType`, `_rank`) are excluded structurally via
+ * `isInternalField()` and don't need an entry here.
+ */
+export const HIDDEN_FROM_RUN_DETAILS: ReadonlySet<string> = new Set([
   'battleReport_battleDate',
 ])
-
-// =============================================================================
-// All Categorized Fields (for uncategorized field detection)
-// =============================================================================
-
-function collectFieldNames(configs: (BreakdownConfig | PlainFieldsConfig)[]): Set<string> {
-  const fields = new Set<string>()
-
-  for (const config of configs) {
-    if ('sources' in config) {
-      // BreakdownConfig
-      if (config.totalField) {
-        fields.add(config.totalField)
-      }
-      if (config.perHourField) {
-        fields.add(config.perHourField)
-      }
-      for (const source of config.sources) {
-        fields.add(source.fieldName)
-      }
-    } else {
-      // PlainFieldsConfig
-      for (const field of config.fields) {
-        fields.add(field.fieldName)
-      }
-    }
-  }
-
-  return fields
-}
-
-export const CATEGORIZED_FIELDS = collectFieldNames([
-  BATTLE_REPORT_ESSENTIAL,
-  BATTLE_REPORT_MISCELLANEOUS,
-  DAMAGE_DEALT_CONFIG,
-  DAMAGE_TAKEN_CONFIG,
-  DAMAGE_BLOCKED_CONFIG,
-  COMBAT_MISC_CONFIG,
-  ENEMIES_DESTROYED_CONFIG,
-  ENEMIES_HIT_BY_CONFIG,
-  ENEMIES_DESTROYED_BY_CONFIG,
-  ENEMIES_AFFECTED_BY_CONFIG,
-  RECORDS_CONFIG,
-  COINS_EARNED_CONFIG,
-  OTHER_EARNINGS_CONFIG,
-  UPGRADE_SHARDS_CONFIG,
-  REROLL_SHARDS_CONFIG,
-  MODULES_CONFIG,
-])
-
-// NOTE: Any field NOT in the configs above will appear in the "Miscellaneous" section.
-// This is intentional - it ensures new/unknown game fields are always visible.
-// If you want to hide a field completely, add it to SKIP_FIELDS instead.

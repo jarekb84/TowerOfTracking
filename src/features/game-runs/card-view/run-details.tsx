@@ -1,8 +1,9 @@
 /**
  * Run Details Component
  *
- * Displays detailed statistics for a single game run.
- * Organized by purpose (what users want to understand) rather than source (where data came from).
+ * Displays detailed statistics for a single game run. Sections, ordering,
+ * and category membership are all sourced from the field graph
+ * (`@/shared/domain/field-graph`).
  */
 
 import type { ParsedGameRun, RunTypeValue } from '@/shared/types/game-run.types'
@@ -18,10 +19,7 @@ import {
   type RankValue,
 } from '../editing/field-update-logic'
 import { useRunDetailsData } from './run-details/use-run-details-data'
-import { BattleReportSection } from './run-details/sections/battle-report-section'
-import { CombatSection } from './run-details/sections/combat-section'
-import { EconomicSection } from './run-details/sections/economic-section'
-import { ModulesSection } from './run-details/sections/modules-section'
+import { CategorySection } from './run-details/sections/category-section'
 import { PlainFieldsGroup } from './run-details/sections/plain-fields-group'
 import { SectionHeader } from './run-details/sections/section-header'
 
@@ -36,24 +34,20 @@ export function RunDetails({ run }: RunDetailsProps) {
   const handleUserFieldsUpdate = (newNotes: string, newRunType: RunTypeValue, newRank: RankValue) => {
     let updatedFields = { ...run.fields }
 
-    // Apply notes update if changed
     if (newNotes !== extractNotesValue(run.fields)) {
       updatedFields = createUpdatedNotesFields(updatedFields, newNotes)
     }
 
-    // Apply run type update if changed
     const currentRunType = extractRunTypeValue(run)
     if (newRunType !== currentRunType) {
       updatedFields = createUpdatedRunTypeFields(updatedFields, newRunType)
     }
 
-    // Apply rank update if changed
     const currentRank = extractRankValue(run.fields)
     if (newRank !== currentRank) {
       updatedFields = createUpdatedRankFields(updatedFields, newRank)
     }
 
-    // Single update with all changes
     updateRun(run.id, {
       fields: updatedFields,
       runType: newRunType,
@@ -66,7 +60,6 @@ export function RunDetails({ run }: RunDetailsProps) {
 
   return (
     <div className="space-y-6">
-      {/* User-editable fields (notes, run type, rank) */}
       <EditableUserFields
         notes={notes}
         runType={runType}
@@ -74,22 +67,13 @@ export function RunDetails({ run }: RunDetailsProps) {
         onSave={handleUserFieldsUpdate}
       />
 
-      {/* Battle Report (essential run identity) */}
-      <BattleReportSection data={data.battleReport} />
+      {data.categories.map((category) => (
+        <CategorySection key={category.categoryId} data={category} />
+      ))}
 
-      {/* Combat (damage dealt/taken, enemies destroyed) */}
-      <CombatSection data={data.combat} />
-
-      {/* Economic (coins earned, other earnings) */}
-      <EconomicSection data={data.economic} />
-
-      {/* Modules (shards, modules) */}
-      <ModulesSection data={data.modules} />
-
-      {/* Uncategorized fields (fallback for new/unknown fields) */}
       {data.uncategorized.items.length > 0 && (
         <div className="space-y-4">
-          <SectionHeader title="Miscellaneous" />
+          <SectionHeader title="Unmapped Fields" />
           <PlainFieldsGroup data={data.uncategorized} />
         </div>
       )}

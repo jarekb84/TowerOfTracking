@@ -1,37 +1,144 @@
 /**
  * Run Details Data Hook
  *
- * Orchestrates the preparation of purpose-based run details data.
- * Delegates all calculations to pure functions.
+ * Orchestrates the preparation of run-details data driven by the field
+ * graph: categories → sections → fields (plain or breakdown).
  */
 
 import { useMemo } from 'react'
 import type { ParsedGameRun } from '@/shared/types/game-run.types'
-import type { RunDetailsData } from './types'
+import {
+  categoriesInDisplayOrder,
+  fieldsInSection,
+  isInternalField,
+  sectionsInCategory,
+} from '@/shared/domain/field-graph'
+import type {
+  BreakdownConfig,
+  CategoryData,
+  PlainFieldsData,
+  RunDetailsData,
+  SectionData,
+} from './types'
 import {
   calculateBreakdownGroup,
   extractPlainFields,
-  findUncategorizedFields,
-  calculatePerHourRate,
 } from './breakdown/breakdown-calculations'
-import { formatLargeNumber } from '@/shared/formatting/number-scale'
-import {
-  BATTLE_REPORT_ESSENTIAL,
-  BATTLE_REPORT_MISCELLANEOUS,
-  DAMAGE_DEALT_CONFIG,
-  DAMAGE_TAKEN_CONFIG,
-  ENEMIES_DESTROYED_CONFIG,
-  DESTROYED_BY_CONFIG,
-  COINS_EARNED_CONFIG,
-  OTHER_EARNINGS_CONFIG,
-  UPGRADE_SHARDS_CONFIG,
-  MODULES_CONFIG,
-  CATEGORIZED_FIELDS,
-  SKIP_FIELDS,
-  REROLL_SHARDS_CONFIG,
-  ENEMIES_AFFECTED_BY_CONFIG,
-  COMBAT_MISC_CONFIG,
-} from './section-config'
+import { deriveDisplayName } from './derive-display-name'
+import { HIDDEN_FROM_RUN_DETAILS, SECTION_BREAKDOWNS } from './section-config'
+
+const CATEGORY_LABELS: Record<string, string> = {
+  'category:general': 'Battle Report',
+  'category:records': 'Records',
+  'category:combat': 'Combat',
+  'category:economic': 'Economic',
+}
+
+function categoryLabel(categoryId: string): string {
+  return CATEGORY_LABELS[categoryId] ?? deriveDisplayName(categoryId.replace('category:', ''))
+}
+
+function sectionLabel(sectionId: string): string {
+  return deriveDisplayName(sectionId.replace('section:', '')).toUpperCase()
+}
+
+function buildPlainSection(
+  run: ParsedGameRun,
+  sectionId: string,
+): SectionData | null {
+  const fieldIds = fieldsInSection(sectionId).filter(
+    (id) => !HIDDEN_FROM_RUN_DETAILS.has(id),
+  )
+  if (fieldIds.length === 0) return null
+
+  const data = extractPlainFields(run, {
+    label: sectionLabel(sectionId),
+    fields: fieldIds.map((id) => ({ fieldName: id, displayName: deriveDisplayName(id) })),
+  })
+  if (data.items.length === 0) return null
+
+  return {
+    kind: 'plain',
+    sectionId,
+    label: data.label ?? sectionLabel(sectionId),
+    items: data.items,
+  }
+}
+
+function buildBreakdownSection(
+  run: ParsedGameRun,
+  sectionId: string,
+  config: BreakdownConfig,
+): SectionData | null {
+  const group = calculateBreakdownGroup(run, config)
+  if (group === null) return null
+  return {
+    kind: 'breakdown',
+    sectionId,
+    label: group.label,
+    total: group.total,
+    totalDisplayValue: group.totalDisplayValue,
+    perHourDisplayValue: group.perHourDisplayValue,
+    items: group.items,
+  }
+}
+
+function buildSection(run: ParsedGameRun, sectionId: string): SectionData | null {
+  const breakdown = SECTION_BREAKDOWNS[sectionId]
+  if (breakdown !== undefined) {
+    return buildBreakdownSection(run, sectionId, breakdown)
+  }
+  return buildPlainSection(run, sectionId)
+}
+
+function buildCategory(run: ParsedGameRun, categoryId: string): CategoryData {
+  const sections: SectionData[] = []
+  for (const sectionId of sectionsInCategory(categoryId)) {
+    const section = buildSection(run, sectionId)
+    if (section !== null) sections.push(section)
+  }
+  return {
+    categoryId,
+    label: categoryLabel(categoryId),
+    sections,
+  }
+}
+
+function buildUncategorized(run: ParsedGameRun): PlainFieldsData {
+  const categorized = new Set<string>()
+  for (const breakdownSection of Object.keys(SECTION_BREAKDOWNS)) {
+    for (const source of SECTION_BREAKDOWNS[breakdownSection].sources) {
+      categorized.add(source.fieldName)
+    }
+    const total = SECTION_BREAKDOWNS[breakdownSection].totalField
+    if (total) categorized.add(total)
+  }
+  for (const categoryId of categoriesInDisplayOrder()) {
+    for (const sectionId of sectionsInCategory(categoryId)) {
+      for (const fieldId of fieldsInSection(sectionId)) {
+        categorized.add(fieldId)
+      }
+    }
+  }
+
+  const items = Object.entries(run.fields)
+    .filter(([fieldName, field]) => {
+      if (categorized.has(fieldName)) return false
+      if (HIDDEN_FROM_RUN_DETAILS.has(fieldName)) return false
+      if (isInternalField(fieldName)) return false
+      return !!field
+    })
+    .map(([fieldName, field]) => ({
+      fieldName,
+      displayName: field.originalKey,
+      displayValue: field.displayValue,
+    }))
+
+  return {
+    label: 'UNMAPPED FIELDS',
+    items,
+  }
+}
 
 /**
  * Hook that prepares all run details data for display.
@@ -39,63 +146,8 @@ import {
  */
 export function useRunDetailsData(run: ParsedGameRun): RunDetailsData {
   return useMemo(() => {
-    // Battle Report section
-    const battleReport = {
-      essential: extractPlainFields(run, BATTLE_REPORT_ESSENTIAL),
-      miscellaneous: extractPlainFields(run, BATTLE_REPORT_MISCELLANEOUS),
-    }
-
-    // Combat section
-    const combat = {
-      damageDealt: calculateBreakdownGroup(run, DAMAGE_DEALT_CONFIG),
-      damageTaken: extractPlainFields(run, DAMAGE_TAKEN_CONFIG),
-      combatMisc: extractPlainFields(run, COMBAT_MISC_CONFIG),
-      enemiesDestroyed: calculateBreakdownGroup(run, ENEMIES_DESTROYED_CONFIG),
-      destroyedBy: calculateBreakdownGroup(run, DESTROYED_BY_CONFIG),
-    }
-
-    // Economic section
-    const coinsEarned = calculateBreakdownGroup(run, COINS_EARNED_CONFIG)
-    const enemiesAffectedBy = calculateBreakdownGroup(run, ENEMIES_AFFECTED_BY_CONFIG)
-    const otherEarnings = extractPlainFields(run, OTHER_EARNINGS_CONFIG)
-
-    // Add cells per hour as a computed fallback, but only if the V3 game
-    // field isn't already present (V28 exports emit `battleReport_cellsPerHour`
-    // directly; computing a duplicate synthetic item would render twice).
-    const hasGameCellsPerHour = !!run.fields.battleReport_cellsPerHour
-    if (!hasGameCellsPerHour) {
-      const cellsPerHour = calculatePerHourRate(run.cellsEarned, run.realTime)
-      if (cellsPerHour > 0) {
-        otherEarnings.items.push({
-          fieldName: 'cellsPerHour',
-          displayName: 'Cells/Hour',
-          displayValue: formatLargeNumber(cellsPerHour),
-        })
-      }
-    }
-
-    const economic = {
-      coinsEarned,
-      enemiesAffectedBy,
-      otherEarnings,
-    }
-
-    // Modules section
-    const modules = {
-      upgradeShards: calculateBreakdownGroup(run, UPGRADE_SHARDS_CONFIG),
-      rerollShards: calculateBreakdownGroup(run, REROLL_SHARDS_CONFIG),
-      modules: calculateBreakdownGroup(run, MODULES_CONFIG),
-    }
-
-    // Uncategorized fields (fallback for new/unknown fields)
-    const uncategorized = findUncategorizedFields(run, CATEGORIZED_FIELDS, SKIP_FIELDS)
-
-    return {
-      battleReport,
-      combat,
-      economic,
-      modules,
-      uncategorized,
-    }
+    const categories = categoriesInDisplayOrder().map((id) => buildCategory(run, id))
+    const uncategorized = buildUncategorized(run)
+    return { categories, uncategorized }
   }, [run])
 }

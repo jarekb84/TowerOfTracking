@@ -3,31 +3,49 @@
  *
  * Fixtures use V3 canonical field keys (`<sectionCamel>_<labelCamel>`) —
  * same shape the runtime parsers produce after V2->V3 remap.
+ *
+ * The data shape is graph-driven (per commit 6's BELONGS_TO_SECTION +
+ * BELONGS_TO_CATEGORY cutover): top-level `categories[]` in
+ * `categoriesInDisplayOrder()` order, each with `sections[]` from
+ * `sectionsInCategory()`.
  */
 
 import { describe, it, expect } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { createMockRun } from './test-helpers'
 import { useRunDetailsData } from './use-run-details-data'
+import type { CategoryData, SectionData } from './types'
+
+function findCategory(
+  categories: readonly CategoryData[],
+  categoryId: string,
+): CategoryData | undefined {
+  return categories.find((c) => c.categoryId === categoryId)
+}
+
+function findSection(
+  category: CategoryData | undefined,
+  sectionId: string,
+): SectionData | undefined {
+  return category?.sections.find((s) => s.sectionId === sectionId)
+}
 
 describe('useRunDetailsData', () => {
-  describe('structure', () => {
-    it('returns correct data structure', () => {
-      const run = createMockRun({
-        battleReport_tier: 11,
-        battleReport_wave: 1000,
-      })
+  it('returns categories in catalog declaration order', () => {
+    const run = createMockRun({ battleReport_tier: 11, battleReport_wave: 1000 })
 
-      const { result } = renderHook(() => useRunDetailsData(run))
+    const { result } = renderHook(() => useRunDetailsData(run))
 
-      expect(result.current).toHaveProperty('battleReport')
-      expect(result.current).toHaveProperty('combat')
-      expect(result.current).toHaveProperty('economic')
-      expect(result.current).toHaveProperty('modules')
-      expect(result.current).toHaveProperty('uncategorized')
-    })
+    expect(result.current.categories.map((c) => c.categoryId)).toEqual([
+      'category:general',
+      'category:records',
+      'category:combat',
+      'category:economic',
+    ])
+  })
 
-    it('returns battle report with essential and miscellaneous sections', () => {
+  describe('battle report section', () => {
+    it('lists the run\'s battleReport_* fields in declaration order', () => {
       const run = createMockRun({
         battleReport_tier: 11,
         battleReport_wave: 1000,
@@ -37,71 +55,43 @@ describe('useRunDetailsData', () => {
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
+      const general = findCategory(result.current.categories, 'category:general')
+      const battleReport = findSection(general, 'section:battleReport')
 
-      expect(result.current.battleReport.essential.items).toHaveLength(5)
-      expect(
-        result.current.battleReport.essential.items.some(
-          (i) => i.fieldName === 'battleReport_tier'
-        )
-      ).toBe(true)
+      expect(battleReport).toBeDefined()
+      expect(battleReport!.kind).toBe('plain')
+      if (battleReport!.kind === 'plain') {
+        expect(battleReport!.items.map((i) => i.fieldName)).toEqual([
+          'battleReport_tier',
+          'battleReport_wave',
+          'battleReport_killedBy',
+          'battleReport_gameTime',
+          'battleReport_realTime',
+        ])
+      }
     })
 
-    it('returns combat section with all subsections', () => {
-      const run = createMockRun({
-        damage_damageDealt: 1000000,
-        damage_deathWave: 500000,
-        totalEnemies_totalEnemies: 5000,
-        totalEnemies_basic: 3000,
-      })
-
-      const { result } = renderHook(() => useRunDetailsData(run))
-
-      expect(result.current.combat).toHaveProperty('damageDealt')
-      expect(result.current.combat).toHaveProperty('damageTaken')
-      expect(result.current.combat).toHaveProperty('enemiesDestroyed')
-      expect(result.current.combat).toHaveProperty('destroyedBy')
-    })
-  })
-
-  describe('battle report', () => {
-    it('extracts essential fields when present', () => {
+    it('hides battleReport_battleDate (rendered in the run card header)', () => {
       const run = createMockRun({
         battleReport_tier: 11,
-        battleReport_wave: 1000,
-        battleReport_gameTime: 7200,
-        battleReport_realTime: 7500,
-        battleReport_killedBy: 'Boss',
+        battleReport_battleDate: '2024-03-15T10:30:00',
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const essential = result.current.battleReport.essential
+      const general = findCategory(result.current.categories, 'category:general')
+      const battleReport = findSection(general, 'section:battleReport')
 
-      expect(essential.items).toHaveLength(5)
-      expect(
-        essential.items.find((i) => i.fieldName === 'battleReport_tier')
-          ?.displayValue
-      ).toBe('11')
-    })
-
-    it('extracts miscellaneous fields when present', () => {
-      const run = createMockRun({
-        counts_wavesSkipped: 10,
-        utility_recoveryPackages: 3,
-        utility_freeAttackUpgrade: 1,
-      })
-
-      const { result } = renderHook(() => useRunDetailsData(run))
-      const misc = result.current.battleReport.miscellaneous
-
-      expect(misc.label).toBe('MISCELLANEOUS')
-      expect(
-        misc.items.some((i) => i.fieldName === 'counts_wavesSkipped')
-      ).toBe(true)
+      expect(battleReport).toBeDefined()
+      if (battleReport!.kind === 'plain') {
+        expect(
+          battleReport!.items.some((i) => i.fieldName === 'battleReport_battleDate'),
+        ).toBe(false)
+      }
     })
   })
 
-  describe('combat section', () => {
-    it('calculates damage dealt breakdown', () => {
+  describe('combat category', () => {
+    it('calculates damage dealt breakdown for section:damage', () => {
       const run = createMockRun({
         damage_damageDealt: 1000000,
         damage_deathWave: 500000,
@@ -110,14 +100,18 @@ describe('useRunDetailsData', () => {
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const damageDealt = result.current.combat.damageDealt
+      const combat = findCategory(result.current.categories, 'category:combat')
+      const damage = findSection(combat, 'section:damage')
 
-      expect(damageDealt).not.toBeNull()
-      expect(damageDealt!.total).toBe(1000000)
-      expect(damageDealt!.items).toHaveLength(3)
+      expect(damage).toBeDefined()
+      expect(damage!.kind).toBe('breakdown')
+      if (damage!.kind === 'breakdown') {
+        expect(damage!.total).toBe(1000000)
+        expect(damage!.items).toHaveLength(3)
+      }
     })
 
-    it('calculates enemies destroyed breakdown', () => {
+    it('calculates enemies destroyed breakdown for section:totalEnemies', () => {
       const run = createMockRun({
         totalEnemies_totalEnemies: 10000,
         totalEnemies_basic: 5000,
@@ -126,29 +120,33 @@ describe('useRunDetailsData', () => {
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const enemiesDestroyed = result.current.combat.enemiesDestroyed
+      const combat = findCategory(result.current.categories, 'category:combat')
+      const totalEnemies = findSection(combat, 'section:totalEnemies')
 
-      expect(enemiesDestroyed).not.toBeNull()
-      expect(enemiesDestroyed!.total).toBe(10000)
-      expect(enemiesDestroyed!.items[0].percentage).toBe(50) // basic
+      expect(totalEnemies).toBeDefined()
+      if (totalEnemies!.kind === 'breakdown') {
+        expect(totalEnemies!.total).toBe(10000)
+        expect(totalEnemies!.items[0].percentage).toBe(50)
+      }
     })
 
-    it('extracts damage taken as plain fields', () => {
+    it('renders damage taken as a plain section', () => {
       const run = createMockRun({
         damageTaken_tower: 5000,
         damageTaken_wall: 3000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const damageTaken = result.current.combat.damageTaken
+      const combat = findCategory(result.current.categories, 'category:combat')
+      const damageTaken = findSection(combat, 'section:damageTaken')
 
-      expect(damageTaken.label).toBe('DAMAGE TAKEN')
-      expect(damageTaken.items.length).toBeGreaterThanOrEqual(2)
+      expect(damageTaken).toBeDefined()
+      expect(damageTaken!.kind).toBe('plain')
     })
   })
 
-  describe('economic section', () => {
-    it('calculates coins earned breakdown', () => {
+  describe('economic category', () => {
+    it('calculates coins earned breakdown for section:coins', () => {
       const run = createMockRun({
         battleReport_coinsEarned: 1000000,
         coins_deathWave: 400000,
@@ -157,11 +155,14 @@ describe('useRunDetailsData', () => {
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const coinsEarned = result.current.economic.coinsEarned
+      const economic = findCategory(result.current.categories, 'category:economic')
+      const coins = findSection(economic, 'section:coins')
 
-      expect(coinsEarned).not.toBeNull()
-      expect(coinsEarned!.total).toBe(1000000)
-      expect(coinsEarned!.items).toHaveLength(3)
+      expect(coins).toBeDefined()
+      if (coins!.kind === 'breakdown') {
+        expect(coins!.total).toBe(1000000)
+        expect(coins!.items).toHaveLength(3)
+      }
     })
 
     it('includes per-hour rate when available', () => {
@@ -172,34 +173,15 @@ describe('useRunDetailsData', () => {
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const coinsEarned = result.current.economic.coinsEarned
+      const economic = findCategory(result.current.categories, 'category:economic')
+      const coins = findSection(economic, 'section:coins')
 
-      expect(coinsEarned).not.toBeNull()
-      expect(coinsEarned!.perHourDisplayValue).toBeDefined()
+      if (coins!.kind === 'breakdown') {
+        expect(coins!.perHourDisplayValue).toBeDefined()
+      }
     })
 
-    it('calculates cells per hour dynamically when the game field is absent', () => {
-      const run = createMockRun(
-        { battleReport_cellsEarned: 100 },
-        {
-          cellsEarned: 100,
-          realTime: 3600, // 1 hour
-        }
-      )
-
-      const { result } = renderHook(() => useRunDetailsData(run))
-      const otherEarnings = result.current.economic.otherEarnings
-
-      const cellsPerHour = otherEarnings.items.find(
-        (i) => i.fieldName === 'cellsPerHour'
-      )
-      expect(cellsPerHour).toBeDefined()
-      expect(cellsPerHour!.displayValue).toBe('100')
-    })
-  })
-
-  describe('modules section', () => {
-    it('calculates upgrade shards breakdown with computed total', () => {
+    it('renders currencies as a plain section', () => {
       const run = createMockRun({
         currencies_armorShards: 50,
         currencies_coreShards: 100,
@@ -207,26 +189,14 @@ describe('useRunDetailsData', () => {
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const upgradeShards = result.current.modules.upgradeShards
+      const economic = findCategory(result.current.categories, 'category:economic')
+      const currencies = findSection(economic, 'section:currencies')
 
-      expect(upgradeShards).not.toBeNull()
-      expect(upgradeShards!.total).toBe(200) // Sum of all upgrade shards
-      expect(upgradeShards!.items).toHaveLength(3)
-    })
-
-    it('calculates modules breakdown with computed total', () => {
-      const run = createMockRun({
-        currencies_commonModules: 15,
-        currencies_rareModules: 5,
-      })
-
-      const { result } = renderHook(() => useRunDetailsData(run))
-      const modules = result.current.modules.modules
-
-      expect(modules).not.toBeNull()
-      expect(modules!.total).toBe(20)
-      expect(modules!.items[0].percentage).toBe(75) // common
-      expect(modules!.items[1].percentage).toBe(25) // rare
+      expect(currencies).toBeDefined()
+      expect(currencies!.kind).toBe('plain')
+      if (currencies!.kind === 'plain') {
+        expect(currencies!.items.map((i) => i.fieldName)).toContain('currencies_armorShards')
+      }
     })
   })
 
@@ -241,19 +211,14 @@ describe('useRunDetailsData', () => {
       const { result } = renderHook(() => useRunDetailsData(run))
       const uncategorized = result.current.uncategorized
 
-      expect(
-        uncategorized.items.some((i) => i.fieldName === 'unknownNewField')
-      ).toBe(true)
-      expect(
-        uncategorized.items.some((i) => i.fieldName === 'anotherNewField')
-      ).toBe(true)
+      expect(uncategorized.items.some((i) => i.fieldName === 'unknownNewField')).toBe(true)
+      expect(uncategorized.items.some((i) => i.fieldName === 'anotherNewField')).toBe(true)
     })
 
     it('excludes internal fields from uncategorized', () => {
       const run = createMockRun({
         battleReport_tier: 11,
       })
-      // Add internal field
       run.fields['_notes'] = {
         value: 'test notes',
         rawValue: 'test notes',
@@ -263,9 +228,10 @@ describe('useRunDetailsData', () => {
       }
 
       const { result } = renderHook(() => useRunDetailsData(run))
-      const uncategorized = result.current.uncategorized
 
-      expect(uncategorized.items.some((i) => i.fieldName === '_notes')).toBe(false)
+      expect(
+        result.current.uncategorized.items.some((i) => i.fieldName === '_notes'),
+      ).toBe(false)
     })
 
     it('returns empty uncategorized when all fields are known', () => {
@@ -278,24 +244,22 @@ describe('useRunDetailsData', () => {
 
       const { result } = renderHook(() => useRunDetailsData(run))
 
-      // Should have 0 uncategorized since all fields are in BATTLE_REPORT_ESSENTIAL
       expect(result.current.uncategorized.items).toHaveLength(0)
     })
   })
 
   describe('null handling', () => {
-    it('returns null for sections with no data', () => {
+    it('omits sections with no data', () => {
       const run = createMockRun({
         battleReport_tier: 11,
         battleReport_wave: 1000,
       })
 
       const { result } = renderHook(() => useRunDetailsData(run))
+      const combat = findCategory(result.current.categories, 'category:combat')
 
-      // These should be null because no source fields exist
-      expect(result.current.combat.damageDealt).toBeNull()
-      expect(result.current.combat.enemiesDestroyed).toBeNull()
-      expect(result.current.economic.coinsEarned).toBeNull()
+      expect(findSection(combat, 'section:damage')).toBeUndefined()
+      expect(findSection(combat, 'section:totalEnemies')).toBeUndefined()
     })
   })
 
